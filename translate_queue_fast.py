@@ -86,7 +86,8 @@ PRIMARY_OUT_SECTION = "onscreens/onscreens.json"  # what we write into lm_output
 
 # ── tuning (matches cp2077_fix_missing_translations.py) ─────────────────
 DYN_MAX_LINES    = 12     # hard cap per batch prompt
-DYN_MAX_WORDS    = 150    # soft cap per batch prompt
+DYN_MAX_WORDS    = 100    # soft cap per batch prompt (lowered from 150 → fits LM Studio context)
+LONG_ITEM_CHAR_THRESHOLD = 200  # items longer than this bypass batching entirely
 PARALLEL_WORKERS = 4      # concurrent LM Studio slots
 SAVE_EVERY       = 200    # checkpoint cadence
 
@@ -101,6 +102,8 @@ SYSTEM_PROMPT = (
     "No explanations, no notes, no markdown, no quotes, no prefix like 'Translation:'.\n"
     "No <think> tags. No reasoning. Just the Hebrew text on a single line.\n"
     "CRITICAL: USE ONLY HEBREW AND ENGLISH ALPHABETS. DO NOT USE RUSSIAN, ARABIC, CYRILLIC, THAI, OR ANY OTHER LANGUAGES.\n"
+    "CRITICAL: NEVER use Hebrew Niqqud (vowel points like ַ ָ ֵ ֶ ִ ֹ ֻ ּ ׁ ׂ etc.). "
+    "Use plain modern Hebrew letters only. NO marks above or below letters under any circumstance.\n"
     "Keep tags like <n>, <br>, {0}, %s exactly as written.\n"
     "Keep proper nouns (V, Johnny, Arasaka) transliterated naturally.\n"
     "\n"
@@ -144,6 +147,10 @@ _TAG_RE        = re.compile(r"<.*?>|\{.*?\}|%[a-zA-Z]")
 _HEB_RE        = re.compile(r"[֐-׿]")
 _FOREIGN_RE    = re.compile(r"[Ѐ-ӿ؀-ۿ฀-๿ऀ-ॿ一-鿿]")
 _LATIN_RE      = re.compile(r"[A-Za-z]")
+# Hebrew niqqud (vowel points) + cantillation marks: U+0591..U+05C7.
+# The engine's RTL shaper mis-stacks these glyphs and breaks rendering, so
+# we strip them programmatically as a hard safeguard regardless of prompt.
+_NIQQUD_RE     = re.compile(r"[֑-ׇ]")
 
 # ── shared mutable state (guarded by state_lock) ────────────────────────
 state_lock = threading.Lock()
@@ -185,6 +192,9 @@ def clean_response(raw: str) -> str:
     s = re.sub(r"^\*+\s*(.+?)\s*\*+$", r"\1", s).strip()
     s = re.sub(r"^_+\s*(.+?)\s*_+$", r"\1", s).strip()
     s = _PREFIX_RE.sub("", s).strip()
+    # Hard safeguard: strip Hebrew niqqud + cantillation. The prompt asks
+    # the model to never produce these, but Gemma still slips occasionally.
+    s = _NIQQUD_RE.sub("", s)
     return s
 
 
@@ -228,10 +238,22 @@ def try_fast_track(text: str) -> str | None:
 
 
 def build_dynamic_batches(items, text_for):
-    """Group items into sub-lists capped by DYN_MAX_WORDS / DYN_MAX_LINES."""
+    """Group items into sub-lists capped by DYN_MAX_WORDS / DYN_MAX_LINES.
+
+    Long items (>LONG_ITEM_CHAR_THRESHOLD chars) bypass batching — they
+    get yielded as size-1 batches so the LM context window doesn't blow
+    up on a single oversized payload (book excerpts, articles, etc).
+    """
     batch, words = [], 0
     for item in items:
-        w = len(text_for(item).split())
+        text = text_for(item)
+        if len(text) > LONG_ITEM_CHAR_THRESHOLD:
+            if batch:
+                yield batch
+                batch, words = [], 0
+            yield [item]
+            continue
+        w = len(text.split())
         if batch and (words + w > DYN_MAX_WORDS or len(batch) >= DYN_MAX_LINES):
             yield batch
             batch, words = [], 0
@@ -239,6 +261,13 @@ def build_dynamic_batches(items, text_for):
         words += w
     if batch:
         yield batch
+
+
+def _is_context_error(exc: Exception) -> bool:
+    """Recognize LM Studio's 400 context-size-exceeded family. These won't
+    recover from retries — the prompt won't get smaller next time."""
+    s = str(exc).lower()
+    return "context size" in s or "context length" in s or "context_length" in s
 
 
 def translate_one(text: str, retries: int = 3) -> str:
@@ -262,6 +291,10 @@ def translate_one(text: str, retries: int = 3) -> str:
                 return result
         except Exception as e:
             _log(f"      [!] API Error (attempt {attempt}): {e}")
+            if _is_context_error(e):
+                # Context-size errors are deterministic — bail out so the
+                # item gets SKIPped instead of burning 6 wasted seconds.
+                break
             time.sleep(2)
     return text
 
@@ -284,36 +317,35 @@ def translate_batch(texts: list[str]) -> list[str]:
     user_text = BATCH_PROMPT_HEADER
     for j, (_, text) in enumerate(non_empty):
         user_text += f"{j + 1}. {text}\n"
-    for attempt in range(2):
-        try:
-            resp = lm_client.chat.completions.create(
-                model=LM_MODEL,
-                messages=[
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user",   "content": user_text},
-                ],
-                temperature=TEMPERATURE,
-                max_tokens=MAX_TOKENS,
-            )
-            raw = (resp.choices[0].message.content or "").strip()
-            parsed = _parse_batch_response(raw, len(non_empty))
-            results = list(texts)
-            success = 0
-            for k, (orig_idx, _) in enumerate(non_empty):
-                if is_valid_translation(texts[orig_idx], parsed[k]):
-                    results[orig_idx] = parsed[k]
-                    success += 1
-            if success == len(non_empty):
-                return results
-            _log(
-                f"      [~] Batch partial: {success} ok, "
-                f"{len(non_empty) - success} going to single mode"
-            )
-            break
-        except Exception as e:
-            _log(f"      [!] Batch API Error: {e}")
-            time.sleep(2)
     results = list(texts)
+    try:
+        resp = lm_client.chat.completions.create(
+            model=LM_MODEL,
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user",   "content": user_text},
+            ],
+            temperature=TEMPERATURE,
+            max_tokens=MAX_TOKENS,
+        )
+        raw = (resp.choices[0].message.content or "").strip()
+        parsed = _parse_batch_response(raw, len(non_empty))
+        success = 0
+        for k, (orig_idx, _) in enumerate(non_empty):
+            if is_valid_translation(texts[orig_idx], parsed[k]):
+                results[orig_idx] = parsed[k]
+                success += 1
+        if success == len(non_empty):
+            return results
+        _log(
+            f"      [~] Batch partial: {success} ok, "
+            f"{len(non_empty) - success} going to single mode"
+        )
+    except Exception as e:
+        # Graceful failover: don't retry the same batch — on a context-size
+        # 400 it will fail identically. Break it apart immediately so each
+        # item gets its own context budget via single-mode.
+        _log(f"      [!] Batch API Error → fallback to singles: {e}")
     for i, text in enumerate(texts):
         if text and not is_valid_translation(texts[i], results[i]):
             results[i] = translate_one(text)

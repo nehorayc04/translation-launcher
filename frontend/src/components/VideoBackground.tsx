@@ -28,12 +28,32 @@ export default function VideoBackground() {
 
   // Boot: start A at t=0, start B at t=duration/2 so the two layers are
   // permanently out of phase. We wait for metadata so currentTime sticks.
+  //
+  // Autoplay robustness: Chromium intermittently rejects the FIRST
+  // play() (no prior user gesture, app-mode launch, power-saver, etc.)
+  // even though our <video> has muted+autoplay+playsInline. The user
+  // sees a frozen poster frame. So we layer three retry strategies:
+  //   1. Re-attempt play() on every relevant media event (canplay,
+  //      loadeddata, playing) until paused === false.
+  //   2. A one-time, capture-phase document listener for ANY user
+  //      gesture (pointerdown, keydown, touchstart). The gesture
+  //      satisfies Chromium's autoplay heuristic, so the retry
+  //      succeeds on first interaction.
+  //   3. A short retry loop (~300ms apart, 6 attempts) right after
+  //      mount in case the initial reject was a transient decoder
+  //      busy-state.
   useEffect(() => {
     const a = refA.current;
     const b = refB.current;
     if (!a || !b) return;
 
-    const begin = async (el: HTMLVideoElement, offsetRatio: number) => {
+    const cleanups: Array<() => void> = [];
+
+    const tryPlay = (el: HTMLVideoElement, where: string) => {
+      el.play().catch((e) => console.log(`Autoplay prevented [${where}]:`, e));
+    };
+
+    const begin = async (el: HTMLVideoElement, offsetRatio: number, tag: string) => {
       // metadata gives us duration; without it currentTime can be clamped.
       if (!Number.isFinite(el.duration) || el.duration <= 0) {
         await new Promise<void>((resolve) => {
@@ -44,12 +64,57 @@ export default function VideoBackground() {
       try {
         el.currentTime = (el.duration || 0) * offsetRatio;
       } catch { /* some browsers throw on premature seek — safe to ignore */ }
-      try { await el.play(); }
-      catch (err) { console.warn("[video] autoplay blocked:", err); }
+
+      // Belt-and-braces in case React stripped the attribute somehow.
+      el.muted        = true;
+      el.playsInline  = true;
+      el.loop         = true;
+
+      tryPlay(el, `boot:${tag}`);
+
+      // Retry on every event that means "the player has more data to
+      // chew on". Each handler short-circuits once the element is
+      // actively playing.
+      const retry = () => { if (el.paused) tryPlay(el, `evt:${tag}`); };
+      ["canplay", "loadeddata", "playing", "stalled", "suspend"].forEach((ev) => {
+        el.addEventListener(ev, retry);
+        cleanups.push(() => el.removeEventListener(ev, retry));
+      });
+
+      // 6 × 300ms ≈ 1.8s of patient retrying. Cheap; bails the moment
+      // the video starts playing.
+      let attempts = 0;
+      const interval = window.setInterval(() => {
+        if (!el.paused || attempts >= 6) {
+          window.clearInterval(interval);
+          return;
+        }
+        attempts += 1;
+        tryPlay(el, `poll:${tag}#${attempts}`);
+      }, 300);
+      cleanups.push(() => window.clearInterval(interval));
     };
 
-    begin(a, 0);
-    begin(b, 0.5);
+    begin(a, 0,   "A");
+    begin(b, 0.5, "B");
+
+    // Last-resort: any user gesture anywhere on the page nudges both
+    // layers back to life. capture-phase so we don't compete with
+    // app-level handlers; { once: true } so we don't leak listeners.
+    const onGesture = () => {
+      [a, b].forEach((el) => { if (el && el.paused) tryPlay(el, "gesture"); });
+    };
+    const opts: AddEventListenerOptions = { once: true, capture: true, passive: true };
+    document.addEventListener("pointerdown", onGesture, opts);
+    document.addEventListener("keydown",     onGesture, opts);
+    document.addEventListener("touchstart",  onGesture, opts);
+    cleanups.push(() => {
+      document.removeEventListener("pointerdown", onGesture, true);
+      document.removeEventListener("keydown",     onGesture, true);
+      document.removeEventListener("touchstart",  onGesture, true);
+    });
+
+    return () => { cleanups.forEach((fn) => fn()); };
   }, []);
 
   // Crossfade scheduler — observes the active layer only; the inactive

@@ -92,16 +92,23 @@ Final working files preserved at `backup_translation_2026-05-10\final_arabic_slo
 
 ### History
 
+- 2026-05-17 — Scaffolded `progress_monitor` package (Task 4.1): `__init__.py`, `core.py` (Monitor/Snapshot/Stage), `__main__.py` CLI runner. Adapter-driven, game-agnostic. Commit f5ae824.
 - 2026-05-01 — extraction complete (cp2077_extract.py)
 - 2026-05-02 — cp2077_inject.py v4 — produced loadable files but crashed at runtime (later replaced)
 - 2026-05-09 — translation complete; LQA pass; multiple inject failures; identified the en-us/raj path crashes
 - 2026-05-10 — switched to WolvenKit canonical encode/decode (`convert serialize/deserialize`), then to Arabic-slot routing — Hebrew rendering finally working
+- 2026-05-17 — Desktop tool Task 1.6: removed in-card `<LiveProgressBar>` from `GameCard.tsx`; dropped `useLiveGameProgress` import, `refreshNonce` prop, and all derived live-progress vars (lines 6,13–32,126–142). Also cleaned `LibraryView.tsx`, `HomeView.tsx`, `App.tsx` callers. Build clean. Commit 57027ce.
+- 2026-05-17 — Desktop tool Task 1.7: added `showDashboard?: boolean` to `ProgressSnapshot` in `eel.ts`; added early-return `if (!showDashboard) return null` in `ProgressDashboard.tsx` (defaults true). Build clean. Commit ceef175.
+- 2026-05-17 — Desktop tool Task 3.1: `swr_cache.py` — `configure()` now ignores `bundled_files=` kwarg (rejected at runtime with warning). `seed_from_file` internal path removed so disk-bundled JSON is never used to seed the cache.
+- 2026-05-17 — Desktop tool Task 3.2: `main_eel.py` — added `_has_any_cache()`, `_ping_api()`, `_show_no_internet_dialog()` helpers; gate before `eel.start`: `if not _has_any_cache() and not _ping_api(): show dialog + sys.exit(1)`. Removed `bundled_files=` kwarg from `swr_cache.configure()`. `API_BASE` derived from existing `REMOTE_CATALOG_URL` host. Commit f0efd3d.
+- 2026-05-17 — Desktop tool Task 6.5: created `frontend/src/lib/useSiteConfig.tsx` (SiteConfigProvider + useSiteConfig hook, polls `https://hebrew-translation-hub.vercel.app/api/config` every 30s, injects `customCss`). Wrapped App root in `<SiteConfigProvider>`. Applied `vis['dashboard']`, `vis['grid']`, `vis['news']` visibility checks in HomeView. Build clean. Commit 524592e.
 - 2026-05-17 — Empty settings footer buttons (RESET/DEFAULTS/APPLY) fixed. Root cause: LocKey#23204/5/6 missing from both sections of `localization_translated.json`. Vanilla Arabic strings from `lang_ar_text.archive/onscreens_final.json` were passing through to the widget; Hebrew Heebo font has no Arabic letter glyphs → invisible. Added 3 entries (`ברירות מחדל` / `איפוס` / `שמור שינויים`). NOT a font, widget-layout, or RTL bug — pure translation gap. Lesson: when a string is missing from our translations, the engine falls back to the vanilla locale text, NOT to nothing — debugging in this project must distinguish "rendered as invisible" (font/glyph) from "rendered as wrong-locale-text-that-our-font-can't-render" (translation gap).
 
 ### Open tasks (future)
 
 - [ ] (Optional) Extend coverage to subtitles via same Arabic-slot pipeline (~12 hours of CLI batch processing)
 - [ ] (Optional) Handle Phantom Liberty DLC text in `archive/pc/ep1/lang_ar_text.archive`
+- [x] Task 4.2 — cp2077 adapter: `progress_monitor/adapters/cp2077.py` + `__init__.py` (commit 9cb8a4d, 2026-05-17)
 
 ### Technical Decisions
 

@@ -65,7 +65,18 @@ lm_translation_progress.json
 lm_output.json
 *_decompiled/
 
-# ── editor / OS ──────────────────────────────────────────────
+# ── editor / OS / agent caches ───────────────────────────────
 .DS_Store
 .vscode/
 .idea/
+.claude/
+.playwright-mcp/
+
+# ── Windows shortcuts leak absolute local paths ──────────────
+*.lnk
+
+# ── miscellaneous local-only ─────────────────────────────────
+*.bak.*
+REDmodLog.txt
+# Private notes intended for Claude Code, not for public distribution
+הודעה לקלוד קוד*.txt

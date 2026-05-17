@@ -12,6 +12,7 @@ import DownloadsView     from "./views/DownloadsView";
 import GameDetailPanel   from "./views/GameDetailPanel";
 import { api }           from "./lib/eel";
 import type { Game }     from "./lib/types";
+import { SiteConfigProvider } from "./lib/useSiteConfig";
 
 export const APP_VERSION = "v1.1.0";
 
@@ -127,6 +128,7 @@ export default function App() {
   }, [reportStatus]);
 
   return (
+    <SiteConfigProvider>
     <div className="h-screen w-screen text-slate-200 overflow-hidden relative">
       <VideoBackground />
 
@@ -192,6 +194,7 @@ export default function App() {
         {APP_VERSION}
       </div>
     </div>
+    </SiteConfigProvider>
   );
 }
 

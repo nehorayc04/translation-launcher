@@ -3,6 +3,7 @@ import type { Game } from "../lib/types";
 import GameCard from "../components/GameCard";
 import NewsSection from "../components/NewsSection";
 import ProgressDashboard from "../components/ProgressDashboard";
+import { useSiteConfig } from "../lib/useSiteConfig";
 
 interface Props {
   games: Game[];
@@ -14,6 +15,8 @@ interface Props {
 }
 
 export default function HomeView({ games, onOpenGame, onOpenLibrary, refreshNonce }: Props) {
+  const cfg = useSiteConfig();
+  const vis = cfg.sections?.visible ?? {};
   // Featured games are curated from /admin → games → "מוצג ב'תרגומים מובילים'".
   // Order by the catalog-level sortOrder (lower = earlier) so the admin can
   // rearrange the row without touching code. If nothing is flagged yet
@@ -87,39 +90,43 @@ export default function HomeView({ games, onOpenGame, onOpenLibrary, refreshNonc
       </section>
 
       {/* LIVE PROGRESS — only renders when there's an in-progress game */}
-      {inProgGame && (
+      {(vis['dashboard'] ?? true) && inProgGame && (
         <ProgressDashboard game={inProgGame} refreshNonce={refreshNonce} />
       )}
 
       {/* FEATURED ROW */}
-      <section className="mt-8">
-        <div className="flex items-baseline justify-between mb-4">
-          <button
-            onClick={onOpenLibrary}
-            className="text-brand-cyan hover:text-brand-yellow text-sm transition-colors"
-          >
-            לכל הספרייה ←
-          </button>
-          <h2 className="text-2xl font-bold text-white">תרגומים מובילים</h2>
-        </div>
-        <div className="flex gap-5 overflow-x-auto pb-3 -mx-2 px-2">
-          {featured.map((g) => (
-            <GameCard
-              key={g.id}
-              game={g}
-              onClick={onOpenGame}
-              size="lg"
-            />
-          ))}
-        </div>
-        <div className="text-xs text-slate-500 mt-2 text-right">
-          {withMods === 1 && "מוד אחד פעיל כרגע"}
-          {withMods  >  1 && `${withMods} מודים פעילים כרגע`}
-        </div>
-      </section>
+      {(vis['grid'] ?? true) && (
+        <section className="mt-8">
+          <div className="flex items-baseline justify-between mb-4">
+            <button
+              onClick={onOpenLibrary}
+              className="text-brand-cyan hover:text-brand-yellow text-sm transition-colors"
+            >
+              לכל הספרייה ←
+            </button>
+            <h2 className="text-2xl font-bold text-white">תרגומים מובילים</h2>
+          </div>
+          <div className="flex gap-5 overflow-x-auto pb-3 -mx-2 px-2">
+            {featured.map((g) => (
+              <GameCard
+                key={g.id}
+                game={g}
+                onClick={onOpenGame}
+                size="lg"
+              />
+            ))}
+          </div>
+          <div className="text-xs text-slate-500 mt-2 text-right">
+            {withMods === 1 && "מוד אחד פעיל כרגע"}
+            {withMods  >  1 && `${withMods} מודים פעילים כרגע`}
+          </div>
+        </section>
+      )}
 
       {/* NEWS — dynamic, fetched from backend (remote → local fallback) */}
-      <NewsSection games={games} onOpenGame={onOpenGame} refreshNonce={refreshNonce} />
+      {(vis['news'] ?? true) && (
+        <NewsSection games={games} onOpenGame={onOpenGame} refreshNonce={refreshNonce} />
+      )}
     </div>
   );
 }

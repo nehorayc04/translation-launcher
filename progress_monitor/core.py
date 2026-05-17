@@ -116,6 +116,9 @@ class Monitor:
 
     def run(self, *, once: bool = False, dry_run: bool = False) -> int:
         """Returns the number of successful pushes (useful for tests)."""
+        if not once:
+            log.info("monitor started for game_id=%s · pushing every %.0fs to %s",
+                     self.game_id, self.interval_s, self.api_base)
         sent = 0
         while True:
             try:
@@ -123,12 +126,18 @@ class Monitor:
             except Exception as e:                      # noqa: BLE001
                 log.exception("adapter raised: %s", e)
                 snap = None
-            if snap is not None:
+            if snap is None:
+                log.info("no data this tick — adapter returned None")
+            else:
+                summary = (f"phase={snap.phase} processed={snap.processed} "
+                           f"total={snap.total} rate={snap.rate_per_hour}/h")
                 if dry_run:
-                    log.info("[dry-run] would push %s", snap)
+                    log.info("[dry-run] would push: %s", summary)
                     sent += 1
                 elif self.push(snap):
+                    log.info("pushed snapshot: %s", summary)
                     sent += 1
             if once:
                 return sent
+            log.info("sleeping %.0fs until next push (Ctrl+C to stop)", self.interval_s)
             time.sleep(self.interval_s)

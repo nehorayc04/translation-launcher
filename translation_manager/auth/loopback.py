@@ -1,5 +1,5 @@
 """
-One-shot HTTP server on http://127.0.0.1:<random-port>/callback.
+One-shot HTTP server on http://127.0.0.1:<random-port>/auth/callback.
 
 Used as the OAuth redirect target for the launcher (RFC 8252 §7.3,
 "loopback interface redirection"). Lifecycle:
@@ -7,7 +7,7 @@ Used as the OAuth redirect target for the launcher (RFC 8252 §7.3,
   1. Caller opens a free port via OS allocation (port=0).
   2. Starts the server in a daemon thread.
   3. Opens the system browser to the OAuth authorize URL with
-     redirect_to=http://127.0.0.1:<port>/callback.
+     redirect_to=http://127.0.0.1:<port>/auth/callback.
   4. After Google + Supabase finish their dance, the browser is
      redirected back here with ?code=...&state=... or ?error=...
   5. Server captures the params, returns a small "you can close
@@ -97,7 +97,7 @@ class CallbackResult:
 
 
 class _Handler(BaseHTTPRequestHandler):
-    """Custom request handler — captures /callback params and ends the wait."""
+    """Custom request handler — captures /auth/callback params and ends the wait."""
 
     # Set on the server instance by start_loopback() below.
     expected_state: str = ''
@@ -110,7 +110,7 @@ class _Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):  # noqa: N802 — required by BaseHTTPRequestHandler
         parsed = urlparse(self.path)
-        if parsed.path not in ('/callback', '/callback/'):
+        if parsed.path not in ('/auth/callback', '/auth/callback/'):
             self.send_response(404)
             self.end_headers()
             return
@@ -166,7 +166,7 @@ class LoopbackListener:
 
     @property
     def redirect_uri(self) -> str:
-        return f'http://127.0.0.1:{self.port}/callback'
+        return f'http://127.0.0.1:{self.port}/auth/callback'
 
     def __enter__(self) -> 'LoopbackListener':
         # Bind explicitly to 127.0.0.1 — NOT 0.0.0.0 — so only the local
@@ -185,7 +185,7 @@ class LoopbackListener:
         return self
 
     def await_code(self, timeout: float = 120.0) -> CallbackResult:
-        """Block until the browser hits /callback, or timeout."""
+        """Block until the browser hits /auth/callback, or timeout."""
         if not self._done.wait(timeout):
             return CallbackResult(code=None, state=None, error='timeout',
                                   error_description='User did not complete sign-in within %d seconds' % int(timeout))

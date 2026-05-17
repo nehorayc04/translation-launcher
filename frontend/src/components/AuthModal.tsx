@@ -39,7 +39,10 @@ export default function AuthModal({ open, onClose }: Props) {
     return () => clearTimeout(t);
   }, [open, mode]);
 
-  // Escape to close
+  // Escape to close. Allowed even while the Google flow is mid-flight
+  // (Python's listener will time out cleanly on its own) but blocked
+  // during a password POST (it's near-instant; closing mid-POST would
+  // race the setUser callback).
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -84,16 +87,32 @@ export default function AuthModal({ open, onClose }: Props) {
     onClose();
   };
 
+  // Separate busy flag for the Google flow so we can render a richer
+  // "waiting for browser" state that explains the modal is alive,
+  // tells the user the browser tab is open, and offers a Cancel that
+  // closes the modal locally (Python's loopback await_code() times
+  // out after ~2 min so no zombie listener is left behind — even if
+  // the user re-opens and signs in via email/password in the
+  // meantime, the abandoned Google listener can't interfere).
+  const [googleBusy, setGoogleBusy] = useState(false);
+
   const onGoogle = async () => {
     setError(null); setInfo(null);
-    setBusy(true);
+    setGoogleBusy(true);
     const r = await signInGoogle();
-    setBusy(false);
+    setGoogleBusy(false);
     if (!r.ok) {
       setError(r.error || "התחברות דרך Google נכשלה");
       return;
     }
     onClose();
+  };
+
+  const cancelGoogle = () => {
+    // Just dismiss locally — the Python listener self-times-out and
+    // the promise above resolves with an error we silently ignore.
+    setGoogleBusy(false);
+    setError(null);
   };
 
   return (
@@ -111,7 +130,9 @@ export default function AuthModal({ open, onClose }: Props) {
                    bg-slate-900/85 backdrop-blur-2xl p-6 sm:p-7
                    shadow-[0_30px_60px_-20px_rgba(0,0,0,0.85),0_0_40px_-10px_rgba(0,255,224,0.25)]"
       >
-        {/* close button */}
+        {/* close button — busy here is the PASSWORD post, which is
+            near-instant. The Google wait uses its own overlay below
+            and exposes a Cancel that doesn't require the X button. */}
         <button
           type="button"
           aria-label="סגור"
@@ -121,6 +142,30 @@ export default function AuthModal({ open, onClose }: Props) {
         >
           ×
         </button>
+
+        {/* Google-waiting overlay — covers the modal contents while we
+            await the loopback callback. Renders ON TOP of the form so
+            the user sees the modal is alive and can cancel without
+            being thrown out into a stuck sidebar state. */}
+        {googleBusy && (
+          <div className="absolute inset-0 z-10 rounded-2xl flex flex-col items-center justify-center
+                          gap-4 px-6 text-center bg-slate-900/95 backdrop-blur-sm">
+            <div className="w-12 h-12 rounded-full border-2 border-[#00ffe0] border-t-transparent animate-spin" />
+            <div className="text-white font-bold text-lg">ממתין להתחברות דרך Google…</div>
+            <div className="text-slate-400 text-xs max-w-xs leading-relaxed">
+              נפתחה חלונית דפדפן. אשר את חשבון Google שלך שם וההתחברות תושלם
+              אוטומטית. אם הדפדפן לא נפתח, ניתן לבטל ולנסות שוב.
+            </div>
+            <button
+              type="button"
+              onClick={cancelGoogle}
+              className="mt-2 px-4 py-1.5 rounded-lg bg-white/5 border border-white/10
+                         text-slate-300 hover:bg-white/10 text-xs"
+            >
+              בטל וחזור
+            </button>
+          </div>
+        )}
 
         {/* brand */}
         <div className="text-center mb-5">
@@ -235,11 +280,14 @@ export default function AuthModal({ open, onClose }: Props) {
           <div className="flex-1 h-px bg-white/10" />
         </div>
 
-        {/* Google — uses the loopback browser flow */}
+        {/* Google — uses the loopback browser flow. Disabled while
+            either the password form OR a previous Google attempt is
+            in flight (the latter is also covered by the full-modal
+            overlay above; this is defence-in-depth). */}
         <button
           type="button"
           onClick={onGoogle}
-          disabled={busy}
+          disabled={busy || googleBusy}
           className="w-full flex items-center justify-center gap-3 rounded-xl
                      bg-white text-[#0a0a14] font-semibold px-4 py-2.5
                      border border-white/20 hover:bg-slate-100 transition-all

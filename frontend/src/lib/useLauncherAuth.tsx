@@ -59,8 +59,15 @@ export function LauncherAuthProvider({ children }: { children: ReactNode }) {
     void refresh();
   }, [refresh]);
 
+  // Note: none of the operation methods below mutate `loading`. That
+  // flag is reserved for the INITIAL bootstrap (authMe on mount); if
+  // we flipped it during sign-in, the Sidebar's `if (loading) return
+  // <shim>` branch fires and unmounts the AuthModal mid-flow — which
+  // for Google OAuth means the user is left with a stuck loading
+  // sidebar and no way to cancel. Callers (AuthModal) track their
+  // own busy state instead.
+
   const signInGoogle = useCallback(async () => {
-    setLoading(true);
     try {
       const r = await api.authLogin();
       if (r.ok && r.user) {
@@ -71,13 +78,10 @@ export function LauncherAuthProvider({ children }: { children: ReactNode }) {
       return { ok: false, error: r.error };
     } catch (e) {
       return { ok: false, error: (e as Error).message };
-    } finally {
-      setLoading(false);
     }
   }, []);
 
   const signInPassword = useCallback(async (email: string, password: string) => {
-    setLoading(true);
     try {
       const r = await api.authSignInPassword(email, password);
       if (r.ok && r.user) {
@@ -88,13 +92,10 @@ export function LauncherAuthProvider({ children }: { children: ReactNode }) {
       return { ok: false, error: r.error };
     } catch (e) {
       return { ok: false, error: (e as Error).message };
-    } finally {
-      setLoading(false);
     }
   }, []);
 
   const signUpPassword = useCallback(async (email: string, password: string, fullName: string) => {
-    setLoading(true);
     try {
       const r = await api.authSignUpPassword(email, password, fullName);
       if (!r.ok) return { ok: false, error: r.error };
@@ -108,8 +109,6 @@ export function LauncherAuthProvider({ children }: { children: ReactNode }) {
       return { ok: true, confirmed: !!r.confirmed };
     } catch (e) {
       return { ok: false, error: (e as Error).message };
-    } finally {
-      setLoading(false);
     }
   }, []);
 

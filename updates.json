@@ -1,0 +1,52 @@
+[
+  {
+    "id":      "sys-launcher-1.1",
+    "kind":    "system",
+    "title":   "מנהל תרגומים v1.1",
+    "version": "1.1.0",
+    "size_mb": 24.5,
+    "notes":   "תפריט הורדות חדש, זיהוי מדויק יותר של מודים, תיקוני RTL בכרטיסי משחק.",
+    "url":     null,
+    "simulated": true
+  },
+  {
+    "id":      "sys-detector-2.0",
+    "kind":    "system",
+    "title":   "מנוע זיהוי משחקים v2",
+    "version": "2.0.0",
+    "size_mb": 4.2,
+    "notes":   "תמיכה במשחקי Xbox Game Pass + סריקת ספריות מותאמות אישית.",
+    "url":     null,
+    "simulated": true
+  },
+  {
+    "id":      "tr-cp2077-v2.1",
+    "kind":    "translation",
+    "title":   "Cyberpunk 2077 — תרגום v2.1",
+    "version": "v2.1",
+    "size_mb": 38.9,
+    "notes":   "תיקוני LQA, תרגום DLC Phantom Liberty, שיפור עברית בתפריטים הראשיים.",
+    "url":     null,
+    "simulated": true
+  },
+  {
+    "id":      "tr-hogwarts-v1.0",
+    "kind":    "translation",
+    "title":   "Hogwarts Legacy — תרגום v1.0",
+    "version": "v1.0",
+    "size_mb": 52.1,
+    "notes":   "תרגום מלא לכל הלחשים, השיקויים והדיאלוגים בטירה.",
+    "url":     null,
+    "simulated": true
+  },
+  {
+    "id":      "tr-witcher3-beta",
+    "kind":    "translation",
+    "title":   "The Witcher 3 — תרגום בטא",
+    "version": "0.4-beta",
+    "size_mb": 17.3,
+    "notes":   "סיפור ראשי + הסיוע של אנשי-העץ-הלבן. עדיין חסר תרגום בכמה משימות צד.",
+    "url":     null,
+    "simulated": true
+  }
+]

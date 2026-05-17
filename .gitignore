@@ -1,0 +1,71 @@
+# ── huge / external ──────────────────────────────────────────
+# game install (~90 GB), backups, staging
+Cyberpunk 2077/
+תרגום_משחקים/
+backup_translation_*/
+_font_extract_tmp/
+
+# ── build artefacts ──────────────────────────────────────────
+build/
+dist/
+Output/
+__pycache__/
+*.pyc
+*.pyo
+*.spec.bak
+.venv/
+venv/
+
+# ── frontend (Vite) ──────────────────────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/*.tsbuildinfo
+
+# ── secrets / runtime ────────────────────────────────────────
+.env
+.env.*
+*.env
+~/.translation_manager/
+cache.json
+*.log
+*.log.err
+*.runtime.log
+
+# ── large media ──────────────────────────────────────────────
+*.mp4
+*.mkv
+*.mov
+*.avi
+*.webm
+*.mp3
+*.m4a
+*.wav
+*.flac
+*.opus
+
+# ── binaries / archives ──────────────────────────────────────
+*.apk
+*.aab
+*.ipa
+*.dex
+*.exe
+*.dll
+*.zip
+*.7z
+*.rar
+*.tar.gz
+*.archive
+*.archive.WITH_FONTS_BROKEN
+*.bak
+
+# ── large data files (translation working sets) ──────────────
+localization_translated.json
+missing_translations_queue.json
+lm_translation_progress.json
+lm_output.json
+*_decompiled/
+
+# ── editor / OS ──────────────────────────────────────────────
+.DS_Store
+.vscode/
+.idea/

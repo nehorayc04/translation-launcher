@@ -60,6 +60,9 @@ def configure(*,
     global _push_cb
     if push_cb is not None:
         _push_cb = push_cb
+    if bundled_files:
+        log.info("[swr] ignoring %d bundled files — cache is network-only now",
+                 len(bundled_files))
     _ensure_loaded(bundled_files or {})
 
 
@@ -169,20 +172,16 @@ def _ensure_loaded(bundled_files: dict[str, Path]) -> None:
     _seed_bundled(bundled_files)
 
 
-def _seed_bundled(bundled_files: dict[str, Path]) -> None:
-    """For any scalar kind not yet in _mem, seed from the bundled JSON
-    file shipped alongside the launcher. ts=0 means 'definitely stale,
-    refresh on first access'."""
-    for kind, path in bundled_files.items():
-        if (kind, None) in _mem:
-            continue
-        if not path or not path.exists():
-            continue
-        try:
-            data = json.loads(path.read_text(encoding="utf-8"))
-            _mem[(kind, None)] = {"ts": 0.0, "data": data}
-        except (OSError, json.JSONDecodeError, ValueError) as e:
-            log.warning("[swr] bundled %s unreadable (%s)", path, e)
+def _seed_bundled(_bundled_files: dict[str, Path]) -> None:
+    """Intentionally a no-op.
+
+    Earlier versions seeded the cache from JSON files shipped with the
+    installer. That caused users without internet on first launch to see
+    stale data from whenever the installer was signed. The cache is now
+    network-only: first launch MUST be online; everything else is served
+    from cache.json on disk.
+    """
+    return
 
 
 # ─────────────────────────────────────────────────────────────────

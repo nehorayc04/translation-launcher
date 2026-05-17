@@ -126,3 +126,10 @@ restart_translation.ps1
 
 # Internal Claude planning docs (not part of launcher distribution).
 /docs/
+
+# Private operator-only copy of the detailed pipeline playbook.
+# Kept on disk so the operator still has the original CP2077-specific
+# notes (Arabic-slot trick, WolvenKit pipeline, etc.) but never
+# pushed publicly.
+CLAUDE_PRIVATE*
+*.bak

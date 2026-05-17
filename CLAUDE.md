@@ -1,120 +1,90 @@
-### Current Status
+# Translation Launcher
 
-**Cyberpunk 2077 Hebrew Translation Project — WORKING (2026-05-10)**
+A Windows desktop launcher for Hebrew game-translation mods. Built with
+**Eel** (Python ↔ Chromium bridge), a React + Vite frontend, and packaged
+as a standalone installer via PyInstaller + Inno Setup.
 
-Hebrew rendering achieved via the **Arabic-slot approach**: Hebrew CR2W files placed under
-`base/localization/ar-ar/` instead of `en-us/`, with the Arabic font replaced by Heebo.
-Game language must be set to **Arabic** in settings — the game then routes Hebrew text
-through CDPR's tested Arabic RTL/bidi pipeline.
+The launcher fetches a games catalog from the public translation hub
+API, displays available titles, downloads the matching translation
+archive, and copies it into the game's mod folder.
 
-Direct font replacement in en-us/raj path crashes the engine. Arabic-slot routing works.
+---
 
-**Deployed mod:**
-- Path: `Cyberpunk 2077\archive\pc\mod\z_hebrew_translation.archive` (3.82 MB)
-- MD5: `dc7e6a9e564435558e281653a0f771a8`
-- Contents: ar-ar/onscreens (2 files, Hebrew CR2W) + Heebo Arabic font replacement
+## Repository layout
 
-**User-side requirement:** Settings → Language → set Interface to Arabic (العربית) → restart game.
+| Path | Purpose |
+|---|---|
+| `main_eel.py` | Eel entry point. Spawns the Chromium window and exposes the Python bridge functions consumed by the frontend. |
+| `translation_manager/` | Python application package — UI views, asset/download logic, game detection, theme, paths, SWR cache. |
+| `frontend/` | React + Vite UI rendered inside the Eel window. Build output is bundled into the executable. |
+| `build_assets/` | Installer artwork (icon, wizard BMPs, store screenshots) used by Inno Setup + PyInstaller. |
+| `build_exe.bat` | One-shot build script: builds the frontend, runs PyInstaller, then Inno Setup. |
+| `TranslationManager.spec` | PyInstaller spec — declares hidden imports, data files, icon, and console behaviour. |
 
-### Working pipeline (replay any time)
+---
 
-1. **Extract pristine Arabic CR2W skeleton:**
-   ```
-   WolvenKit.CLI.exe extract <game>/archive/pc/content/lang_ar_text.archive -o <work>/ar_pristine -w "*onscreens.json"
-   WolvenKit.CLI.exe extract <game>/archive/pc/content/lang_ar_text.archive -o <work>/ar_pristine -w "*onscreens_final.json"
-   ```
+## Dev setup
 
-2. **Serialize CR2W → text JSON:**
-   ```
-   WolvenKit.CLI.exe convert serialize <work>/ar_pristine/base/localization/ar-ar/onscreens/onscreens.json -o <work>/text
-   ```
+Prerequisites: **Python 3.11+**, **Node 20+**, **Windows 10/11**.
 
-3. **Apply Hebrew translations** (modifies femaleVariant/maleVariant by primaryKey lookup):
-   ```
-   python cp2077_apply_translations_to_wkit_json.py <work>/text/onscreens.json.json onscreens/onscreens.json
-   ```
+```bash
+# Python deps (run from the repo root)
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r translation_manager/requirements.txt
 
-4. **Deserialize text JSON → CR2W:**
-   ```
-   WolvenKit.CLI.exe convert deserialize <work>/text/onscreens.json.json -o <work>/encoded
-   ```
+# Frontend deps
+cd frontend
+npm install
+```
 
-5. **Build project:**
-   ```
-   <project>/source/archive/base/localization/ar-ar/onscreens/onscreens.json   ← from <work>/encoded
-   <project>/source/archive/base/gameplay/gui/fonts/foreign/arabic/ara_es_nawar/araesnawar-regular.fnt
-   ```
-   The Arabic font .fnt is built by importing a stripped-Heebo TTF via WolvenKit `import -k`.
+---
 
-6. **Pack and deploy:**
-   ```
-   WolvenKit.CLI.exe pack <project>/source/archive -o <project>/packed/archive/pc/mod
-   cp packed/archive.archive → Cyberpunk 2077/archive/pc/mod/z_hebrew_translation.archive
-   ```
+## Running locally
 
-### Current scope
+```bash
+# Terminal 1 — frontend dev server (HMR)
+cd frontend
+npm run dev
 
-- ✅ Onscreens (UI text, settings, menus): 88,839 + 252 = ~89k Hebrew translations live
-- ⚠ Subtitles (3,083 files): still vanilla English — the same pipeline applies if extended
+# Terminal 2 — Eel host (Python)
+python main_eel.py
+```
 
-### Working files
+For a one-shot production-mode launch (frontend already built into
+`frontend/dist/`):
 
-- `cp2077_apply_translations_to_wkit_json.py` — applies Hebrew text to a WolvenKit-decoded JSON skeleton
-- `make_static_heebo.py` — extracts static TTFs from variable Heebo
-- `fix_heebo_tables.py` — strips OpenType layout tables from Heebo (avoids shaper crashes)
-- `localization_translated.json` (32 MB) — source Hebrew translations, keyed by primaryKey
-- `cp2077_extract.py`, `cp2077_translate.py`, `cp2077_fix_missing_translations.py` — original translation pipeline
-- `cp2077_lqa_check.py`, `verify_translation.py` — QA scripts
+```bash
+cd frontend && npm run build && cd ..
+python main_eel.py
+```
 
-### Failed scripts (don't use)
+---
 
-- `cp2077_inject.py` — the original Python CR2W injector. Produces files that load but crash the engine. The WolvenKit canonical pipeline replaced it.
-- `cp2077_font_pipeline.py` — has a contamination bug; just use the per-font import logic shown in the working pipeline above.
+## Building the installer
 
-### Why the Arabic-slot approach works
+`build_exe.bat` is the canonical end-to-end build:
 
-CDPR's engine has a hardcoded language-aware text pipeline. Setting Interface=Arabic activates:
-1. Loading text from `base/localization/ar-ar/` (where we placed Hebrew strings)
-2. RTL bidi processing (works for Hebrew chars too — same Unicode bidi class)
-3. Loading the Arabic font (`foreign/arabic/...`) — where we put Hebrew Heebo glyphs
-4. The shaping/rendering path that doesn't crash on RTL non-Latin glyphs
+1. `npm run build` inside `frontend/` — produces `frontend/dist/`.
+2. `pyinstaller TranslationManager.spec` — bundles Python + frontend
+   into `dist/TranslationManager/`.
+3. Inno Setup compiles the installer into `Output/TranslationManager-Setup-<version>.exe`.
 
-Putting Hebrew CR2W files in en-us/ + Heebo as raj font does NOT trigger this pipeline →
-the engine tries to render Hebrew through the Latin path → crash.
+Latest signed builds: see
+[Releases](https://github.com/nehorayc04/translation-launcher/releases).
 
-### Backup
+---
 
-Final working files preserved at `backup_translation_2026-05-10\final_arabic_slot\`:
-- `z_hebrew_translation.archive` (deployed mod)
-- `Heebo-Regular.ttf` (stripped, used for font import)
-- `cp2077_apply_translations_to_wkit_json.py` (working applier)
-- `README.txt` — restore + language-switch instructions
+## Frontend build flags
 
-### History
+| Command | Description |
+|---|---|
+| `npm run dev` | Vite dev server with HMR on `localhost:5173`. |
+| `npm run build` | Type-checks + emits production bundle to `frontend/dist/`. |
+| `npm run preview` | Serves the built bundle to validate before bundling. |
 
-- 2026-05-17 — Scaffolded `progress_monitor` package (Task 4.1): `__init__.py`, `core.py` (Monitor/Snapshot/Stage), `__main__.py` CLI runner. Adapter-driven, game-agnostic. Commit f5ae824.
-- 2026-05-01 — extraction complete (cp2077_extract.py)
-- 2026-05-02 — cp2077_inject.py v4 — produced loadable files but crashed at runtime (later replaced)
-- 2026-05-09 — translation complete; LQA pass; multiple inject failures; identified the en-us/raj path crashes
-- 2026-05-10 — switched to WolvenKit canonical encode/decode (`convert serialize/deserialize`), then to Arabic-slot routing — Hebrew rendering finally working
-- 2026-05-17 — Desktop tool Task 1.6: removed in-card `<LiveProgressBar>` from `GameCard.tsx`; dropped `useLiveGameProgress` import, `refreshNonce` prop, and all derived live-progress vars (lines 6,13–32,126–142). Also cleaned `LibraryView.tsx`, `HomeView.tsx`, `App.tsx` callers. Build clean. Commit 57027ce.
-- 2026-05-17 — Desktop tool Task 1.7: added `showDashboard?: boolean` to `ProgressSnapshot` in `eel.ts`; added early-return `if (!showDashboard) return null` in `ProgressDashboard.tsx` (defaults true). Build clean. Commit ceef175.
-- 2026-05-17 — Desktop tool Task 3.1: `swr_cache.py` — `configure()` now ignores `bundled_files=` kwarg (rejected at runtime with warning). `seed_from_file` internal path removed so disk-bundled JSON is never used to seed the cache.
-- 2026-05-17 — Desktop tool Task 3.2: `main_eel.py` — added `_has_any_cache()`, `_ping_api()`, `_show_no_internet_dialog()` helpers; gate before `eel.start`: `if not _has_any_cache() and not _ping_api(): show dialog + sys.exit(1)`. Removed `bundled_files=` kwarg from `swr_cache.configure()`. `API_BASE` derived from existing `REMOTE_CATALOG_URL` host. Commit f0efd3d.
-- 2026-05-17 — Desktop tool Task 6.5: created `frontend/src/lib/useSiteConfig.tsx` (SiteConfigProvider + useSiteConfig hook, polls `https://hebrew-translation-hub.vercel.app/api/config` every 30s, injects `customCss`). Wrapped App root in `<SiteConfigProvider>`. Applied `vis['dashboard']`, `vis['grid']`, `vis['news']` visibility checks in HomeView. Build clean. Commit 524592e.
-- 2026-05-17 — Empty settings footer buttons (RESET/DEFAULTS/APPLY) fixed. Root cause: LocKey#23204/5/6 missing from both sections of `localization_translated.json`. Vanilla Arabic strings from `lang_ar_text.archive/onscreens_final.json` were passing through to the widget; Hebrew Heebo font has no Arabic letter glyphs → invisible. Added 3 entries (`ברירות מחדל` / `איפוס` / `שמור שינויים`). NOT a font, widget-layout, or RTL bug — pure translation gap. Lesson: when a string is missing from our translations, the engine falls back to the vanilla locale text, NOT to nothing — debugging in this project must distinguish "rendered as invisible" (font/glyph) from "rendered as wrong-locale-text-that-our-font-can't-render" (translation gap).
+---
 
-### Open tasks (future)
+## License
 
-- [ ] (Optional) Extend coverage to subtitles via same Arabic-slot pipeline (~12 hours of CLI batch processing)
-- [ ] (Optional) Handle Phantom Liberty DLC text in `archive/pc/ep1/lang_ar_text.archive`
-- [x] Task 4.2 — cp2077 adapter: `progress_monitor/adapters/cp2077.py` + `__init__.py` (commit 9cb8a4d, 2026-05-17)
-
-### Technical Decisions
-
-- **Localization slot**: `base/localization/ar-ar/` (NOT `en-us/`) — only Arabic pipeline accepts Hebrew without crash
-- **Font slot**: `base/gameplay/gui/fonts/foreign/arabic/ara_es_nawar/araesnawar-regular.fnt` — Arabic font replaced by Heebo
-- **Heebo TTF prep**: must be static (no `fvar`/`gvar`/`STAT`) and stripped of OpenType layout (`GSUB`/`GPOS`/`GDEF`) to avoid shaper edge cases
-- **CR2W workflow**: WolvenKit's `convert serialize/deserialize` is the only safe round-trip — direct binary patching breaks header CRCs / table offsets in subtle ways
-- **Mod filename**: `z_hebrew_translation.archive` — `z_` prefix loads after vanilla archives so our overrides win
-- **Game language**: must be Arabic in user settings; English language ignores the ar-ar files entirely
+See repository for license terms.

@@ -31,6 +31,12 @@ cache.json
 *.log.err
 *.runtime.log
 
+# Build-time bake secrets (Supabase URL + anon key). Loaded by
+# build_exe.bat → generated into translation_manager/auth/_baked.py
+# at PyInstaller time. Both files MUST stay out of git.
+.env.build
+translation_manager/auth/_baked.py
+
 # ── large media ──────────────────────────────────────────────
 *.mp4
 *.mkv

@@ -2,3 +2,9 @@ customtkinter>=5.2.0
 Pillow>=10.0.0
 opencv-python>=4.8.0
 pyinstaller>=6.0.0
+eel>=0.16
+requests>=2.31
+# OS-native credential store (Windows Credential Manager, macOS Keychain,
+# libsecret on Linux). Used by translation_manager.auth.storage for the
+# Supabase access + refresh tokens — never written to disk in plaintext.
+keyring>=24.0

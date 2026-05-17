@@ -46,6 +46,18 @@ from translation_manager.mod_logic import (
     uninstall_mod,
 )
 
+# Optional auth subsystem — if Supabase isn't configured (e.g. local
+# dev without env vars), the bridge stays installed but every call
+# returns a "not configured" error rather than crashing the launcher.
+try:
+    from translation_manager import auth as _auth
+    _auth_available = True
+    _auth_error: str | None = None
+except Exception as e:  # pragma: no cover — defensive
+    _auth = None
+    _auth_available = False
+    _auth_error = str(e)
+
 
 # ─────────────────────────────────────────────────────────────
 # Dynamic content layer  (Stale-While-Revalidate via swr_cache)
@@ -459,6 +471,71 @@ def open_folder(path: str) -> dict:
         return {"ok": True}
     except OSError as e:
         return {"ok": False, "error": str(e)}
+
+
+# ═════════════════════════════════════════════════════════════
+# Auth bridge — Supabase OAuth (Google) + DRM ownership check
+# ═════════════════════════════════════════════════════════════
+#
+# These four functions are the entire frontend-facing surface of the
+# auth subsystem. Everything else (PKCE, loopback HTTP, token
+# refresh, keyring storage) lives behind translation_manager.auth.
+#
+# All four return JSON-serializable dicts so the React frontend can
+# treat them uniformly: `{ ok: bool, ... }` for actions, and the
+# user object directly for `auth_me()` (or None).
+#
+# `auth_login()` is BLOCKING for as long as the user takes to
+# complete the browser flow. Eel runs each exposed function on a
+# worker thread, so this doesn't freeze the UI — but we cap the
+# wait at 180 s so a forgotten browser tab doesn't pin a thread.
+
+@eel.expose
+def auth_login() -> dict:
+    """Open browser → wait for OAuth callback → store tokens → return user."""
+    if not _auth_available or _auth is None:
+        return {"ok": False, "error": f"auth-unavailable: {_auth_error or 'module not loaded'}"}
+    try:
+        user = _auth.login()
+        return {"ok": True, "user": user}
+    except _auth.AuthError as e:
+        return {"ok": False, "error": str(e)}
+    except Exception as e:  # pragma: no cover — defensive
+        return {"ok": False, "error": f"unexpected: {e}"}
+
+
+@eel.expose
+def auth_me() -> dict | None:
+    """Return the cached user (refreshing token if needed) or None."""
+    if not _auth_available or _auth is None:
+        return None
+    try:
+        return _auth.me()
+    except Exception:
+        return None
+
+
+@eel.expose
+def auth_logout() -> dict:
+    """Local sign-out — clears the OS keyring entry."""
+    if not _auth_available or _auth is None:
+        return {"ok": True}  # already effectively signed out
+    try:
+        _auth.logout()
+        return {"ok": True}
+    except Exception as e:  # pragma: no cover
+        return {"ok": False, "error": str(e)}
+
+
+@eel.expose
+def auth_owns_game(game_id: str) -> bool:
+    """DRM check — fails closed on any error."""
+    if not _auth_available or _auth is None:
+        return False
+    try:
+        return bool(_auth.owns_game(str(game_id)))
+    except Exception:
+        return False
 
 
 # ═════════════════════════════════════════════════════════════

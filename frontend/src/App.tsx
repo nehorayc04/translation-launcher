@@ -13,6 +13,7 @@ import GameDetailPanel   from "./views/GameDetailPanel";
 import { api }           from "./lib/eel";
 import type { Game }     from "./lib/types";
 import { SiteConfigProvider } from "./lib/useSiteConfig";
+import { LauncherAuthProvider } from "./lib/useLauncherAuth";
 
 export const APP_VERSION = "v1.1.0";
 
@@ -129,6 +130,7 @@ export default function App() {
 
   return (
     <SiteConfigProvider>
+    <LauncherAuthProvider>
     <div className="h-screen w-screen text-slate-200 overflow-hidden relative">
       <VideoBackground />
 
@@ -194,6 +196,7 @@ export default function App() {
         {APP_VERSION}
       </div>
     </div>
+    </LauncherAuthProvider>
     </SiteConfigProvider>
   );
 }

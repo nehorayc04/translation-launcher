@@ -75,6 +75,14 @@ export interface NewsItem {
   link:   string | null; // game id to deep-link to, or null
 }
 
+export interface LauncherUser {
+  id:         string;
+  email:      string;
+  fullName:   string;
+  avatarUrl:  string;
+  provider:   string;
+}
+
 export const api = {
   ready:            (): boolean => isEelReady(),
   getAllGames:      ()                          => call<Game[]>("get_all_games"),
@@ -94,4 +102,10 @@ export const api = {
   getLiveProgress:  (id: string)                => call<ProgressSnapshot | null>("get_live_progress", id),
   startDownload:    (id: string)                => call<{ok: boolean; error?: string}>("start_download", id),
   cancelDownload:   (id: string)                => call<{ok: boolean; error?: string}>("cancel_download", id),
+
+  // ── Auth (Supabase OAuth + DRM) ───────────────────────────
+  authLogin:        ()                          => call<{ok: boolean; user?: LauncherUser; error?: string}>("auth_login"),
+  authMe:           ()                          => call<LauncherUser | null>("auth_me"),
+  authLogout:       ()                          => call<{ok: boolean; error?: string}>("auth_logout"),
+  authOwnsGame:     (gameId: string)            => call<boolean>("auth_owns_game", gameId),
 };

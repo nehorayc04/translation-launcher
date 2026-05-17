@@ -3,6 +3,7 @@
 // updates now live in the dedicated /downloads view.
 import { useMemo, useState, type ComponentType, type SVGProps } from "react";
 import { HomeIcon, LibraryIcon, DownloadsIcon, SettingsIcon } from "./NavIcons";
+import { useLauncherAuth } from "../lib/useLauncherAuth";
 
 export type NavKey = "home" | "library" | "downloads" | "settings";
 
@@ -99,6 +100,9 @@ export default function Sidebar({ current, onNavigate, onRefresh }: Props) {
       {/* Spacer */}
       <div className="flex-1" />
 
+      {/* Auth slot — sign in / avatar with logout */}
+      <AuthSlot />
+
       {/* Bottom action panel — Settings + Refresh */}
       <SettingsPanel
         active={current === "settings"}
@@ -110,6 +114,89 @@ export default function Sidebar({ current, onNavigate, onRefresh }: Props) {
         v1.0  •  © {year}
       </div>
     </aside>
+  );
+}
+
+function AuthSlot() {
+  const { user, signedIn, signIn, signOut, loading } = useLauncherAuth();
+  const [busy, setBusy] = useState(false);
+  const [err,  setErr]  = useState<string | null>(null);
+
+  const onSignIn = async () => {
+    setBusy(true); setErr(null);
+    const r = await signIn();
+    setBusy(false);
+    if (!r.ok) setErr(r.error || 'sign-in failed');
+  };
+
+  if (loading) {
+    return (
+      <div className="px-3 py-2 mx-2 rounded-xl bg-white/[0.03] text-[11px] text-slate-500 text-center">
+        ...
+      </div>
+    );
+  }
+
+  if (!signedIn) {
+    return (
+      <div className="px-2 mb-2">
+        <button
+          type="button"
+          onClick={onSignIn}
+          disabled={busy}
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl
+                     bg-[#00ffe0]/10 border border-[#00ffe0]/30 text-[#00ffe0]
+                     hover:bg-[#00ffe0]/20 transition text-xs font-semibold
+                     disabled:opacity-50 disabled:cursor-wait"
+          title="פותח את הדפדפן להתחברות עם Google"
+        >
+          <span>{busy ? '⏳ מתחבר…' : '🔐 התחבר'}</span>
+        </button>
+        {err && (
+          <div className="mt-1 text-[10px] text-rose-300 truncate" title={err}>
+            {err}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  const initials = (user?.fullName || user?.email || '??').slice(0, 2).toUpperCase();
+
+  return (
+    <div className="px-2 mb-2">
+      <div className="flex items-center gap-2 px-2 py-2 rounded-xl
+                      bg-white/[0.03] border border-white/[0.05]">
+        {user?.avatarUrl ? (
+          <img
+            src={user.avatarUrl}
+            alt={user.fullName || user.email}
+            referrerPolicy="no-referrer"
+            className="w-7 h-7 rounded-full object-cover shrink-0"
+          />
+        ) : (
+          <div className="w-7 h-7 rounded-full grid place-items-center shrink-0
+                          bg-gradient-to-br from-[#00ffe0] to-[#7c3aed]
+                          text-[10px] font-extrabold text-[#0a0a14]">
+            {initials}
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <div className="text-[11px] font-semibold text-slate-100 truncate">
+            {user?.fullName || user?.email?.split('@')[0]}
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={signOut}
+          title="התנתק"
+          className="text-[10px] text-rose-300 hover:text-rose-200 px-1.5 py-0.5
+                     rounded border border-rose-500/20 hover:border-rose-500/40"
+        >
+          יציאה
+        </button>
+      </div>
+    </div>
   );
 }
 

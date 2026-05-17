@@ -93,11 +93,134 @@ def _fmt_duration(seconds: float | None) -> str:
     return f"{sec}s"
 
 
-def _bar(done: int, total: int, width: int = 60, color: str = C.GREEN) -> tuple[str, float]:
+def _bar(done: int, total: int, width: int = 50, color: str = C.GREEN) -> tuple[str, float]:
+    """Legacy-style horizontal bar: solid blocks for done, dotted for remainder."""
     pct = (done / total * 100) if total else 0.0
     safe_total = max(total or 1, 1)
     filled = min(width, max(0, int(width * done / safe_total)))
     return f"{color}{'█' * filled}{C.GRAY}{'░' * (width - filled)}{C.RESET}", pct
+
+
+def _section(title: str, color: str = '') -> None:
+    """Legacy-style section divider: gray ── + colored title + gray ──."""
+    print(C.GRAY + ('─' * WIDTH) + C.RESET)
+    print(f"  {color}{title}{C.RESET}")
+    print(C.GRAY + ('─' * WIDTH) + C.RESET)
+
+
+def _status_marker(status: str) -> tuple[str, str]:
+    """Legacy mapping: done=✓ green, active=⏵ yellow, pending=· gray."""
+    if status == 'done':
+        return ('✓', C.GREEN)
+    if status == 'active':
+        return ('⏵', C.YELLOW)
+    return ('·', C.GRAY)
+
+
+# ── multi-stage layout (faithful port of legacy cp2077_monitor.render) ───
+def render_multi_stage(
+    snap: Snapshot,
+    *,
+    started_at: float,
+    last_push_at: float | None,
+    last_push_ok: bool | None,
+    last_push_msg: str,
+    next_push_at: float,
+    push_count: int,
+    push_interval_s: float,
+    refresh_s: float,
+    dry_run: bool = False,
+) -> None:
+    now = time.time()
+    now_dt = datetime.now()
+    uptime = _fmt_duration(now - started_at)
+
+    # ─── HEADER ───
+    headline = snap.headline_he or f'Universal progress monitor — {snap.game_id}'
+    print(C.CYAN + ('═' * WIDTH) + C.RESET)
+    print(f"  {C.BOLD}{C.WHITE}{headline}{C.RESET}")
+    print(
+        f"  {now_dt:%Y-%m-%d  %H:%M:%S}    "
+        f"זמן ריצה: {C.CYAN}{uptime}{C.RESET}    "
+        f"רענון כל {refresh_s:.1f} שניות"
+    )
+    # LTR English phase tag — unambiguous at a glance, mirrors the legacy.
+    phase_up = snap.phase.upper()
+    phase_color = {
+        'EXTRACTION':  C.BLUE,
+        'TRANSLATION': C.YELLOW,
+        'PACKAGING':   C.MAGENTA,
+        'QA':          C.CYAN,
+        'DEPLOYMENT':  C.CYAN,
+        'IDLE':        C.GREEN,
+    }.get(phase_up, C.WHITE)
+    phase_line = f"[PHASE: {phase_up}]  {snap.processed:,} / {snap.total:,} {snap.unit}"
+    print(f"  {C.BOLD}{phase_color}{phase_line}{C.RESET}")
+    print(C.CYAN + ('═' * WIDTH) + C.RESET)
+
+    # ─── OVERALL SUMMARY ───
+    print(f"{C.BLUE}◆ סיכום כללי{C.RESET}")
+    print(C.GRAY + ('─' * WIDTH) + C.RESET)
+    if snap.summary_eta_sec is None:
+        print(f"   זמן משוער לסיום:        {C.DIM}(לא ידוע — אין קצב){C.RESET}")
+    elif snap.summary_eta_sec == 0:
+        print(f"   זמן משוער לסיום:        {C.GREEN}✓ הסתיים{C.RESET}")
+    else:
+        print(
+            f"   זמן משוער לסיום:        {C.MAGENTA}{_fmt_duration(snap.summary_eta_sec)}{C.RESET}"
+        )
+    # Current-stage label
+    active_stage = next((s for s in snap.stages if s.status == 'active'), None)
+    if active_stage:
+        current_label = active_stage.title_he
+    else:
+        current_label = snap.phase_label_he or snap.phase
+    print(f"   שלב נוכחי:              {C.YELLOW}{current_label}{C.RESET}")
+    if snap.gpu_model or snap.ai_model:
+        meta = ' · '.join(s for s in [snap.gpu_model, snap.ai_model] if s)
+        print(f"   {C.DIM}{meta}{C.RESET}")
+    print()
+
+    # ─── PER-STAGE SECTIONS ───
+    for st in snap.stages:
+        icon, color = _status_marker(st.status)
+        _section(f"{icon} {st.title_he}", color)
+        # progress bar (skip for pending stages with 0 work shown)
+        if st.status != 'pending' or st.processed > 0:
+            bar, pct = _bar(st.processed, st.total or 1, width=50, color=color)
+            print(f"   [{bar}] {C.CYAN}{pct:5.1f}%{C.RESET}")
+        for line in st.detail_lines:
+            print(f"   {line}")
+        print()
+
+    # ─── ACTIVITY TAIL ───
+    if snap.activity_tail:
+        _section('◇ פעילות אחרונה', C.CYAN)
+        for line in snap.activity_tail:
+            print(f"   {C.DIM}{line}{C.RESET}")
+        print()
+
+    # ─── PUSH STATUS FOOTER ───
+    print(C.CYAN + ('═' * WIDTH) + C.RESET)
+    if last_push_at is None:
+        last_str = f"{C.DIM}never (first push pending){C.RESET}"
+    else:
+        ago = int(now - last_push_at)
+        tick = f"{C.GREEN}✓{C.RESET}" if last_push_ok else f"{C.RED}✗{C.RESET}"
+        suffix = f" {C.DIM}({last_push_msg}){C.RESET}" if last_push_msg else ''
+        last_str = f"{tick} {ago}s ago{suffix}"
+    next_in = max(0, int(next_push_at - now))
+    mode = f"{C.YELLOW}[DRY-RUN] {C.RESET}" if dry_run else ''
+    print(
+        f"  {mode}pushes: {C.GREEN}{push_count}{C.RESET}    "
+        f"last: {last_str}    "
+        f"next push in: {C.CYAN}{_fmt_duration(next_in)}{C.RESET}"
+    )
+    print(
+        f"  {C.DIM}push interval: {int(push_interval_s)}s · Ctrl+C to stop{C.RESET}"
+    )
+    print(C.CYAN + ('═' * WIDTH) + C.RESET)
+    sys.stdout.flush()
 
 
 def render(

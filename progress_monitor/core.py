@@ -16,6 +16,21 @@ log = logging.getLogger(__name__)
 Stage = str  # 'extraction' | 'translation' | 'packaging' | 'qa' | 'deployment' | 'idle' | custom
 
 
+@dataclass
+class StageInfo:
+    """One row in the multi-section TUI. Adapters that emit this enable
+    the legacy multi-stage dashboard layout; adapters that don't get the
+    simpler single-phase view."""
+    key:           str                              # 'extraction' / 'translation' / ...
+    title_he:      str                              # section header text, e.g. 'שלב 1 — חילוץ וסידור כתוביות'
+    status:        str = 'pending'                  # 'done' | 'active' | 'pending'
+    processed:     int = 0
+    total:         int = 0
+    unit:          str = ''
+    rate_per_hour: int = 0
+    detail_lines:  list[str] = field(default_factory=list)   # pre-formatted extra rows under the bar
+
+
 # ── env loading ────────────────────────────────────────────────────────
 # Mirrors monitor_push.py: walks up from this file looking for a project
 # .env so the script works whether run via `cp2077_monitor.bat`, scheduled
@@ -63,6 +78,13 @@ class Snapshot:
     gpu_model:      str = ''
     ai_model:       str = ''
     meta:           dict[str, Any] = field(default_factory=dict)
+    # Local-only multi-stage view for the TUI. NOT sent to the API.
+    # Adapters that don't supply this fall back to the simple single-phase
+    # dashboard.
+    stages:           list[StageInfo] = field(default_factory=list)
+    summary_eta_sec:  int | None = None
+    activity_tail:    list[str] = field(default_factory=list)
+    headline_he:      str = ''                  # legacy-style headline, e.g. 'תרגום סייברפאנק 2077 לעברית'
 
 
 @dataclass
@@ -200,19 +222,36 @@ class Monitor:
                         sent += 1
                         last_push = now
                 _tui.clear_screen()
-                _tui.render(
-                    snap,
-                    game_id=self.game_id,
-                    started_at=started,
-                    last_push_at=last_push,
-                    last_push_ok=self._last_push_ok,
-                    last_push_msg=self._last_push_msg,
-                    next_push_at=(last_push + self.interval_s) if last_push else (now + self.interval_s),
-                    push_count=sent,
-                    push_interval_s=self.interval_s,
-                    refresh_s=self.refresh_s,
-                    dry_run=dry_run,
-                )
+                next_at = (last_push + self.interval_s) if last_push else (now + self.interval_s)
+                if snap is not None and snap.stages:
+                    # Adapter emitted a per-stage breakdown → legacy multi-section layout.
+                    _tui.render_multi_stage(
+                        snap,
+                        started_at=started,
+                        last_push_at=last_push,
+                        last_push_ok=self._last_push_ok,
+                        last_push_msg=self._last_push_msg,
+                        next_push_at=next_at,
+                        push_count=sent,
+                        push_interval_s=self.interval_s,
+                        refresh_s=self.refresh_s,
+                        dry_run=dry_run,
+                    )
+                else:
+                    # Single-phase fallback for adapters that don't emit stages.
+                    _tui.render(
+                        snap,
+                        game_id=self.game_id,
+                        started_at=started,
+                        last_push_at=last_push,
+                        last_push_ok=self._last_push_ok,
+                        last_push_msg=self._last_push_msg,
+                        next_push_at=next_at,
+                        push_count=sent,
+                        push_interval_s=self.interval_s,
+                        refresh_s=self.refresh_s,
+                        dry_run=dry_run,
+                    )
                 time.sleep(self.refresh_s)
         except KeyboardInterrupt:
             print(f"\nMonitor stopped (sent {sent} push{'es' if sent != 1 else ''}).")

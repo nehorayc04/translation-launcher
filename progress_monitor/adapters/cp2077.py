@@ -13,7 +13,7 @@ import time
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from ..core import Monitor, Snapshot, Stage
+from ..core import Monitor, Snapshot, Stage, StageInfo
 
 log = logging.getLogger(__name__)
 
@@ -78,6 +78,10 @@ RE_LOG_TIME = re.compile(r"^\[(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})\]")
 
 # ── module-level mutable state for rolling rate windows ──────────────────────
 _pkg_snapshots: list[tuple[float, int]] = []
+
+# ANSI fragments used inside detail_lines (the TUI doesn't post-process).
+C_DIM   = '\033[2m'
+C_RESET = '\033[0m'
 
 
 # ── helpers (lifted from cp2077_monitor.py) ───────────────────────────────────
@@ -397,6 +401,163 @@ def _detect_stage() -> Stage:
     return _detect_phase(trans, reex)
 
 
+# ── multi-stage TUI helpers ──────────────────────────────────────────────────
+
+def _stage1(reex: dict) -> StageInfo:
+    """Step 1 — extraction (chilutz/sidur subtitles)."""
+    complete = bool(reex.get('complete'))
+    started  = bool(reex.get('started_at') or reex.get('file_count'))
+    file_count = int(reex.get('file_count') or 0)
+    done_log   = int(reex.get('done_log')   or 0)
+    total      = int(reex.get('total')      or REEXTRACT_TOTAL)
+    rate_s     = float(reex.get('rate_per_sec') or 0)
+    failed     = int(reex.get('failed') or 0)
+    detail: list[str] = []
+    if complete:
+        status = 'done'
+        detail.append(f"✓ הסתיים — {file_count:,}/{total:,} קבצים")
+    elif started:
+        status = 'active'
+        detail.append(
+            f"קבצים (דיסק): {file_count:>5,}/{total:,}      "
+            f"לוג: {done_log:>5,}/{total:,}      נכשלו: {failed}"
+        )
+        if rate_s > 0:
+            eta = (total - max(file_count, done_log)) / rate_s
+            detail.append(
+                f"קצב: {rate_s:.2f} קבצים/שנ׳      זמן משוער לסיום שלב: {_fmt_dur(eta)}"
+            )
+    else:
+        status = 'pending'
+        detail.append("(ממתין להתחלה)")
+    return StageInfo(
+        key='extraction',
+        title_he='שלב 1 — חילוץ וסידור כתוביות',
+        status=status,
+        processed=max(file_count, done_log),
+        total=total,
+        unit='קבצים',
+        rate_per_hour=int(rate_s * 3600),
+        detail_lines=detail,
+    )
+
+
+def _stage2(reex: dict, trans: dict) -> StageInfo:
+    """Step 2 — translation (LM Studio loop)."""
+    reex_done = bool(reex.get('complete'))
+    fixed     = int(trans.get('fixed') or 0)
+    needed    = trans.get('fields_needed')
+    needed_i  = int(needed) if needed else 0
+    remaining = int(trans.get('remaining') or max(0, needed_i - fixed))
+    skipped   = int(trans.get('skipped') or 0)
+    rpm       = float(trans.get('rate_per_min') or 0)
+    elapsed   = trans.get('elapsed_sec')
+    step_done = trans.get('step_done_min')
+    skipped_step = bool(trans.get('skipped_step'))
+
+    detail: list[str] = []
+    if not reex_done:
+        status = 'pending'
+        detail.append("(ממתין לסיום שלב 1)")
+    elif skipped_step:
+        status = 'pending'
+        detail.append("(הסתיים בריצה קודמת)")
+    elif step_done is not None and step_done > 0:
+        status = 'done'
+        detail.append(f"✓ הסתיים תוך {step_done:.1f} דקות")
+    elif fixed > 0 or needed_i > 0:
+        status = 'active'
+        if needed_i:
+            detail.append(f"סה\"כ לתרגום: {needed_i:>9,}")
+        detail.append(f"תוקן עד כה:  {fixed:>9,}")
+        if remaining:
+            detail.append(f"נותר:        ~{remaining:>8,}")
+        if skipped:
+            detail.append(f"דילוגים קבועים: {skipped:>9,}")
+        if elapsed:
+            detail.append(f"זמן בפעולה: {_fmt_dur(elapsed)}")
+        if rpm > 0:
+            detail.append(f"קצב: {rpm:.1f} ערכים/דקה")
+            if remaining:
+                detail.append(f"זמן משוער (לפי קצב): {_fmt_dur(remaining / rpm * 60)}")
+    else:
+        status = 'pending'
+        detail.append("(ממתין להתחלה)")
+    return StageInfo(
+        key='translation',
+        title_he='שלב 2 — תרגום LM Studio',
+        status=status,
+        processed=fixed,
+        total=needed_i,
+        unit='שורות',
+        rate_per_hour=int(rpm * 60),
+        detail_lines=detail,
+    )
+
+
+def _stage3(trans_done: bool) -> StageInfo:
+    """Step 3 — packaging + deployment.
+
+    Only "active" once Step 2 (translation) is done — stale CR2W files
+    from a prior deploy don't count as in-progress.
+    """
+    cur = _count_subtitle_cr2w()
+    rate_h = _packaging_rate_per_hour(cur)
+    complete = cur >= SUBTITLE_DIR_TOTAL
+
+    detail: list[str] = []
+    if complete:
+        status = 'done'
+        detail.append(f"✓ פריסה הסתיימה — {cur:,}/{SUBTITLE_DIR_TOTAL:,} קבצים")
+    elif not trans_done:
+        status = 'pending'
+        detail.append("(ממתין לסיום שלב 2)")
+        if cur > 0:
+            detail.append(f"{C_DIM}(שאריות מריצה קודמת: {cur:,} קבצים){C_RESET}")
+    else:
+        status = 'active'
+        detail.append(f"קבצים ארוזים: {cur:>5,}/{SUBTITLE_DIR_TOTAL:,}")
+        if rate_h > 0:
+            remaining = SUBTITLE_DIR_TOTAL - cur
+            detail.append(
+                f"קצב: {rate_h:,}/שעה      זמן משוער: {_fmt_dur(remaining * 3600 / rate_h)}"
+            )
+    return StageInfo(
+        key='packaging',
+        title_he='שלב 3 — אריזת CR2W ופריסה',
+        status=status,
+        processed=cur,
+        total=SUBTITLE_DIR_TOTAL,
+        unit='קבצים',
+        rate_per_hour=rate_h,
+        detail_lines=detail,
+    )
+
+
+def _fmt_dur(seconds: float) -> str:
+    s = int(max(0, seconds))
+    h, rem = divmod(s, 3600)
+    m, sec = divmod(rem, 60)
+    if h:
+        return f"{h}h {m:02d}m"
+    return f"{m}m {sec:02d}s"
+
+
+def _summary_eta(stages: list[StageInfo]) -> int | None:
+    total = 0
+    any_remaining = False
+    for st in stages:
+        if st.status == 'done':
+            continue
+        remaining = max(0, st.total - st.processed)
+        if remaining and st.rate_per_hour > 0:
+            total += int(remaining * 3600 / st.rate_per_hour)
+            any_remaining = True
+        elif remaining:
+            any_remaining = True   # unknown rate; can't include but mark unfinished
+    return total if any_remaining and total > 0 else (None if any_remaining else 0)
+
+
 # ── main adapter callback ─────────────────────────────────────────────────────
 
 def _collect() -> Snapshot | None:
@@ -437,15 +598,23 @@ def _collect() -> Snapshot | None:
         log.info("cp2077 adapter: no live data (pipeline not running)")
         return None
 
+    # Build the multi-stage view for the TUI. Order matters: legacy
+    # showed Step 1 → 2 → 3.
+    trans_done = bool(trans.get('step_done_min') is not None or _is_translation_complete(trans))
+    stages = [_stage1(reex), _stage2(reex, trans), _stage3(trans_done)]
+
     return Snapshot(
-        game_id       = GAME_ID,
-        phase         = phase,
-        gpu_model     = GPU,
-        ai_model      = AI_MODEL,
-        processed     = cur,
-        total         = total,
-        rate_per_hour = rate,
-        unit          = unit,
+        game_id         = GAME_ID,
+        phase           = phase,
+        gpu_model       = GPU,
+        ai_model        = AI_MODEL,
+        processed       = cur,
+        total           = total,
+        rate_per_hour   = rate,
+        unit            = unit,
+        stages          = stages,
+        summary_eta_sec = _summary_eta(stages),
+        headline_he     = 'תרגום סייברפאנק 2077 לעברית — מסך מעקב חי',
     )
 
 

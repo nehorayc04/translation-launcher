@@ -155,7 +155,6 @@ export default function App() {
               games={games}
               onOpenGame={handleOpenGame}
               onScanDeep={handleScanDeep}
-              refreshNonce={refreshNonce}
             />
           ) : view === "downloads" ? (
             <DownloadsView refreshNonce={refreshNonce} />

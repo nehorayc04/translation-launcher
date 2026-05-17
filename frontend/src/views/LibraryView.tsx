@@ -8,12 +8,9 @@ interface Props {
   games: Game[];
   onOpenGame:  (g: Game) => void;
   onScanDeep:  () => Promise<void>;
-  /** Bumped by App's sidebar refresh — forwarded to in-progress
-   *  GameCards so their live progress bars re-pull. */
-  refreshNonce?: number;
 }
 
-export default function LibraryView({ games, onOpenGame, onScanDeep, refreshNonce }: Props) {
+export default function LibraryView({ games, onOpenGame, onScanDeep }: Props) {
   const [busy, setBusy] = useState<"deep" | null>(null);
 
   const sections = useMemo(() => {
@@ -87,7 +84,7 @@ export default function LibraryView({ games, onOpenGame, onScanDeep, refreshNonc
           <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-5">
             {sec.items.map((g) => (
               <div key={g.id} className="flex justify-center">
-                <GameCard game={g} onClick={onOpenGame} refreshNonce={refreshNonce} />
+                <GameCard game={g} onClick={onOpenGame} />
               </div>
             ))}
           </div>

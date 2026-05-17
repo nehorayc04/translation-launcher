@@ -109,7 +109,6 @@ export default function HomeView({ games, onOpenGame, onOpenLibrary, refreshNonc
               game={g}
               onClick={onOpenGame}
               size="lg"
-              refreshNonce={refreshNonce}
             />
           ))}
         </div>

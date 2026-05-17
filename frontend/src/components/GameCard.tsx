@@ -3,33 +3,14 @@
 import type { Game } from "../lib/types";
 import { availabilityLabel, accentFor, gradientFor, modStateLabel } from "../lib/theme";
 import { useState } from "react";
-import { useLiveGameProgress } from "../lib/useLiveGameProgress";
 
 interface Props {
   game: Game;
   onClick: (g: Game) => void;
   size?: "lg" | "md";    // lg = featured (home), md = library tile
-  /** Bumped by App's sidebar refresh button — re-pulls the live bar
-   *  on in-progress tiles without remounting the card. */
-  refreshNonce?: number;
 }
 
-export default function GameCard({ game, onClick, size = "md", refreshNonce = 0 }: Props) {
-  // Pull live progress only for in-progress titles.
-  //   loaded=false  → render the bar at 0% so the OLD static value never
-  //                   briefly flashes before the live one arrives.
-  //   loaded=true + snap=null → server has no row; fall back to static.
-  //   loaded=true + snap      → use processed/total from /api/progress.
-  const { snap: live, loaded } = useLiveGameProgress(game.id, {
-    enabled:      game.availability === "in-progress",
-    refreshNonce,
-  });
-  const usingLive = live !== null && live.total > 0;
-  const livePct = !loaded
-    ? 0
-    : usingLive
-      ? (live!.processed / live!.total) * 100
-      : (game.progress ?? 0);
+export default function GameCard({ game, onClick, size = "md" }: Props) {
   const [g1, g2] = gradientFor(game.theme_key);
   const accent   = accentFor(game.theme_key);
   const avail    = availabilityLabel(game.availability);
@@ -123,23 +104,7 @@ export default function GameCard({ game, onClick, size = "md", refreshNonce = 0 
           </span>
         </div>
 
-        {/* Progress bar overlay (only in-progress) — prefers live data
-            from /api/progress, falls back to static `game.progress`. */}
-        {game.availability === "in-progress" && (
-          <div className="absolute bottom-0 inset-x-0 h-1 bg-black/40">
-            <div
-              className="h-full transition-[width] duration-700"
-              style={{
-                width: `${livePct}%`,
-                background: accent,
-                boxShadow: usingLive ? `0 0 6px ${accent}aa` : undefined,
-              }}
-              title={usingLive
-                ? `${live!.processed.toLocaleString("he-IL")} / ${live!.total.toLocaleString("he-IL")} ${live!.unit}`
-                : `${livePct.toFixed(1)}%`}
-            />
-          </div>
-        )}
+
       </div>
 
       {/* Caption — tagline below cover */}

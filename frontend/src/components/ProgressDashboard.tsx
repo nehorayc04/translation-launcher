@@ -29,6 +29,10 @@ export default function ProgressDashboard({ game, refreshNonce = 0 }: Props) {
     refreshNonce,
     pollMs: POLL_MS,
   });
+
+  const showDashboard = snap?.showDashboard ?? true;
+  if (!showDashboard) return null;
+
   const updatedAt = snap?.updatedAt ?? null;
 
   // First-paint protection: render the whole card at zeros while the

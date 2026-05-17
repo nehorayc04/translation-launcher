@@ -62,6 +62,7 @@ export interface ProgressSnapshot {
   aiModel:       string;
   meta:          unknown;
   updatedAt:     number | null;
+  showDashboard?: boolean;
 }
 
 export interface NewsItem {

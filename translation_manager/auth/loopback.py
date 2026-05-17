@@ -35,7 +35,12 @@ from typing import Optional
 from urllib.parse import parse_qs, urlparse
 
 
-_SUCCESS_HTML = b"""<!doctype html>
+# NOTE: these MUST be Unicode strings encoded to bytes at module level —
+# Python bytes literals (b"...") may only contain ASCII. Embedding Hebrew
+# directly inside b"""...""" is a hard SyntaxError. We keep the source
+# as a regular triple-quoted str and call .encode('utf-8') once so the
+# wire-format bytes are still ready at import time.
+_SUCCESS_HTML = """<!doctype html>
 <html lang="he" dir="rtl"><head>
 <meta charset="utf-8"><title>התחברות הושלמה</title>
 <style>
@@ -60,13 +65,13 @@ _SUCCESS_HTML = b"""<!doctype html>
   @keyframes pulse { 0%,100% { opacity:0.3; } 50% { opacity:1; } }
 </style></head>
 <body><div class="card">
-  <div class="badge">\xe2\x9c\x93</div>
+  <div class="badge">✓</div>
   <h1>ההתחברות הושלמה</h1>
-  <p>חזור ללאנצ\xe2\x80\x99ר \xe2\x80\x94 אפשר לסגור את החלון הזה.<span class="pulse"></span></p>
+  <p>חזור ללאנצ’ר — אפשר לסגור את החלון הזה.<span class="pulse"></span></p>
 </div></body></html>
-"""
+""".encode('utf-8')
 
-_ERROR_HTML = b"""<!doctype html>
+_ERROR_HTML = """<!doctype html>
 <html lang="he" dir="rtl"><head>
 <meta charset="utf-8"><title>ההתחברות נכשלה</title>
 <style>
@@ -77,9 +82,9 @@ _ERROR_HTML = b"""<!doctype html>
 </style></head>
 <body><div class="card">
   <h1>ההתחברות נכשלה</h1>
-  <p>סגור את החלון הזה ונסה שוב מהלאנצ\xe2\x80\x99ר.</p>
+  <p>סגור את החלון הזה ונסה שוב מהלאנצ’ר.</p>
 </div></body></html>
-"""
+""".encode('utf-8')
 
 
 @dataclass

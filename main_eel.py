@@ -132,11 +132,121 @@ def _try_remote(url: str) -> list[dict] | None:
     return None
 
 
+def _shape_supabase_game(row: dict, owned_ids: set[str]) -> dict:
+    """Snake-case DB row → camelCase shape consumed by the React frontend
+    (matches the website's /api/games response 1:1 so the frontend
+    doesn't have to branch on data source)."""
+    gid = row.get('id') or ''
+    return {
+        'id':              gid,
+        'titleEn':         row.get('title_en') or '',
+        'titleHe':         row.get('title_he') or '',
+        'version':         row.get('version') or '—',
+        'versionLabel':    row.get('version_label') or '',
+        'status':          row.get('status') or 'final',
+        'cover':           row.get('cover_url'),
+        'theme_key':       row.get('theme_key') or 'default',   # legacy snake
+        'themeKey':        row.get('theme_key') or 'default',   # new camel
+        'availability':    row.get('availability') or 'planned',
+        'progress':        row.get('progress'),
+        'downloadUrl':     row.get('download_url'),
+        'tagline':         row.get('tagline') or '',
+        'description':     row.get('description') or '',
+        'next':            bool(row.get('next_up')),
+        'featured':        bool(row.get('featured')),
+        'sortOrder':       row.get('sort_order') or 1000,
+        # New: ownership flag for the DRM gate. Always present (false when
+        # signed out or not purchased) so the frontend can branch cleanly.
+        'owned':           gid in owned_ids,
+    }
+
+
+def _try_supabase_catalog() -> list[dict] | None:
+    """Live games catalog straight from Supabase REST. Bypasses the
+    website's CDN-cached /api/games (60s s-maxage) so admin edits show
+    up within one SWR window. Fails closed → caller falls through to
+    /api/games → bundled games.json on absolute offline cold boot.
+
+    Auth-aware: if the launcher has a valid stored access token, also
+    queries user_purchases and tags each game with `owned`. If the user
+    is signed out (or the token is expired and refresh fails), the
+    games table is anon-readable so we still get the catalog — every
+    `owned` is just `false`."""
+    if not _auth_available or _auth is None:
+        return None
+    try:
+        from translation_manager.auth.config import load_config, AuthConfigError
+        from translation_manager.auth.storage import TokenStore
+    except Exception:                                              # pragma: no cover
+        return None
+    try:
+        cfg = load_config()
+    except AuthConfigError:
+        return None
+
+    # Optional Bearer — present iff there's a non-expired access token.
+    headers = {'apikey': cfg.anon_key, 'Accept': 'application/json'}
+    access_token: str | None = None
+    try:
+        tok = TokenStore().load()
+        if tok and tok.access_token and not tok.is_expired():
+            access_token = tok.access_token
+            headers['Authorization'] = f'Bearer {access_token}'
+    except Exception:
+        access_token = None
+
+    # 1) Games — anon-readable; auth optional.
+    try:
+        r = requests.get(
+            cfg.rest_url + '/games',
+            headers=headers,
+            params={'select': '*', 'order': 'sort_order.asc'},
+            timeout=REMOTE_TIMEOUT,
+        )
+        if not r.ok:
+            return None
+        rows = r.json()
+        if not isinstance(rows, list):
+            return None
+    except (requests.RequestException, ValueError):
+        return None
+
+    # 2) Owned game IDs (only when signed in). RLS scopes to auth.uid().
+    #    A failure here is non-fatal — we just don't tag ownership.
+    owned_ids: set[str] = set()
+    if access_token:
+        try:
+            r2 = requests.get(
+                cfg.rest_url + '/user_purchases',
+                headers=headers,
+                params={'select': 'game_id', 'status': 'eq.completed'},
+                timeout=REMOTE_TIMEOUT,
+            )
+            if r2.ok:
+                purchases = r2.json()
+                if isinstance(purchases, list):
+                    owned_ids = {p['game_id'] for p in purchases if isinstance(p, dict) and p.get('game_id')}
+        except (requests.RequestException, ValueError):
+            pass
+
+    return [_shape_supabase_game(row, owned_ids) for row in rows if isinstance(row, dict)]
+
+
+def _fetch_catalog_live_first() -> list[dict] | None:
+    """SWR fetch closure: try live Supabase first (instant admin reflection),
+    then the website /api/games (CDN-cached, slightly stale), and let SWR
+    fall through to the bundled JSON if both return None."""
+    data = _try_supabase_catalog()
+    if data is not None:
+        return data
+    return _try_remote(REMOTE_CATALOG_URL)
+
+
 def _load_catalog() -> list[dict]:
     """SWR-cached catalog. On absolute cold start (no disk cache, no
     bundled file, no network) falls back to the dataclasses bundled
     inside the launcher binary itself."""
-    data = swr_cache.swr("games", lambda: _try_remote(REMOTE_CATALOG_URL),
+    data = swr_cache.swr("games", _fetch_catalog_live_first,
                          ttl=_REMOTE_CACHE_TTL)
     if data is None:
         data = [asdict(g) for g in _bundled_games()]

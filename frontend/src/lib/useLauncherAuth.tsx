@@ -19,7 +19,12 @@ interface LauncherAuthValue {
   user:      LauncherUser | null;
   loading:   boolean;
   signedIn:  boolean;
-  signIn:    () => Promise<{ ok: boolean; error?: string }>;
+  /** OAuth (Google) — opens system browser via loopback listener. */
+  signInGoogle: () => Promise<{ ok: boolean; error?: string }>;
+  /** Email/password — entirely inside the launcher window. */
+  signInPassword: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
+  signUpPassword: (email: string, password: string, fullName: string)
+    => Promise<{ ok: boolean; confirmed?: boolean; error?: string }>;
   signOut:   () => Promise<void>;
   refresh:   () => Promise<void>;
   ownsGame:  (gameId: string) => Promise<boolean>;
@@ -54,7 +59,7 @@ export function LauncherAuthProvider({ children }: { children: ReactNode }) {
     void refresh();
   }, [refresh]);
 
-  const signIn = useCallback(async () => {
+  const signInGoogle = useCallback(async () => {
     setLoading(true);
     try {
       const r = await api.authLogin();
@@ -64,6 +69,43 @@ export function LauncherAuthProvider({ children }: { children: ReactNode }) {
         return { ok: true };
       }
       return { ok: false, error: r.error };
+    } catch (e) {
+      return { ok: false, error: (e as Error).message };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const signInPassword = useCallback(async (email: string, password: string) => {
+    setLoading(true);
+    try {
+      const r = await api.authSignInPassword(email, password);
+      if (r.ok && r.user) {
+        setUser(r.user);
+        ownershipCache.current.clear();
+        return { ok: true };
+      }
+      return { ok: false, error: r.error };
+    } catch (e) {
+      return { ok: false, error: (e as Error).message };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const signUpPassword = useCallback(async (email: string, password: string, fullName: string) => {
+    setLoading(true);
+    try {
+      const r = await api.authSignUpPassword(email, password, fullName);
+      if (!r.ok) return { ok: false, error: r.error };
+      if (r.confirmed && r.user) {
+        // Project allows immediate sign-in (no email confirmation).
+        setUser(r.user);
+        ownershipCache.current.clear();
+      }
+      // If not confirmed, stay signed out — caller surfaces the
+      // "check your inbox" UX based on the `confirmed` flag.
+      return { ok: true, confirmed: !!r.confirmed };
     } catch (e) {
       return { ok: false, error: (e as Error).message };
     } finally {
@@ -94,11 +136,13 @@ export function LauncherAuthProvider({ children }: { children: ReactNode }) {
     user,
     loading,
     signedIn: !!user,
-    signIn,
+    signInGoogle,
+    signInPassword,
+    signUpPassword,
     signOut,
     refresh,
     ownsGame,
-  }), [user, loading, signIn, signOut, refresh, ownsGame]);
+  }), [user, loading, signInGoogle, signInPassword, signUpPassword, signOut, refresh, ownsGame]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

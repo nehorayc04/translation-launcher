@@ -4,6 +4,7 @@
 import { useMemo, useState, type ComponentType, type SVGProps } from "react";
 import { HomeIcon, LibraryIcon, DownloadsIcon, SettingsIcon } from "./NavIcons";
 import { useLauncherAuth } from "../lib/useLauncherAuth";
+import AuthModal from "./AuthModal";
 
 export type NavKey = "home" | "library" | "downloads" | "settings";
 
@@ -118,16 +119,8 @@ export default function Sidebar({ current, onNavigate, onRefresh }: Props) {
 }
 
 function AuthSlot() {
-  const { user, signedIn, signIn, signOut, loading } = useLauncherAuth();
-  const [busy, setBusy] = useState(false);
-  const [err,  setErr]  = useState<string | null>(null);
-
-  const onSignIn = async () => {
-    setBusy(true); setErr(null);
-    const r = await signIn();
-    setBusy(false);
-    if (!r.ok) setErr(r.error || 'sign-in failed');
-  };
+  const { user, signedIn, signOut, loading } = useLauncherAuth();
+  const [modalOpen, setModalOpen] = useState(false);
 
   if (loading) {
     return (
@@ -139,25 +132,21 @@ function AuthSlot() {
 
   if (!signedIn) {
     return (
-      <div className="px-2 mb-2">
-        <button
-          type="button"
-          onClick={onSignIn}
-          disabled={busy}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl
-                     bg-[#00ffe0]/10 border border-[#00ffe0]/30 text-[#00ffe0]
-                     hover:bg-[#00ffe0]/20 transition text-xs font-semibold
-                     disabled:opacity-50 disabled:cursor-wait"
-          title="פותח את הדפדפן להתחברות עם Google"
-        >
-          <span>{busy ? '⏳ מתחבר…' : '🔐 התחבר'}</span>
-        </button>
-        {err && (
-          <div className="mt-1 text-[10px] text-rose-300 truncate" title={err}>
-            {err}
-          </div>
-        )}
-      </div>
+      <>
+        <div className="px-2 mb-2">
+          <button
+            type="button"
+            onClick={() => setModalOpen(true)}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl
+                       bg-[#00ffe0]/10 border border-[#00ffe0]/30 text-[#00ffe0]
+                       hover:bg-[#00ffe0]/20 transition text-xs font-semibold"
+            title="פותח חלון התחברות/הרשמה בתוך הלאנצ׳ר"
+          >
+            <span>🔐 התחברות/הרשמה</span>
+          </button>
+        </div>
+        <AuthModal open={modalOpen} onClose={() => setModalOpen(false)} />
+      </>
     );
   }
 

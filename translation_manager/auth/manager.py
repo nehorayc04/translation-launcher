@@ -80,6 +80,109 @@ def _cfg_or_init() -> SupabaseConfig:
 
 # ── public API ───────────────────────────────────────────────
 
+def _supabase_error_message(resp) -> str:
+    """Best-effort decode of Supabase's auth error envelopes — fields
+    vary across versions (error_description / msg / error / message)."""
+    try:
+        body = resp.json()
+        if isinstance(body, dict):
+            for k in ('error_description', 'msg', 'message', 'error'):
+                v = body.get(k)
+                if isinstance(v, str) and v.strip():
+                    return v.strip()
+    except (ValueError, AttributeError):
+        pass
+    return f'HTTP {resp.status_code}'
+
+
+def signin_with_password(email: str, password: str) -> dict:
+    """Email+password sign-in. Returns the user dict on success; raises
+    AuthError on any failure (invalid creds, network, etc.).
+
+    Tokens land in the OS keyring exactly like the OAuth flow — the
+    frontend can't tell which entry point was used."""
+    cfg   = _cfg_or_init()
+    store = _store_or_init()
+    try:
+        r = requests.post(
+            cfg.token_url,
+            params={'grant_type': 'password'},
+            json={'email': email, 'password': password},
+            headers={'apikey': cfg.anon_key, 'Content-Type': 'application/json'},
+            timeout=15,
+        )
+    except requests.RequestException as e:
+        raise AuthError(f'Network error: {e}') from e
+    if not r.ok:
+        raise AuthError(_supabase_error_message(r))
+
+    try:
+        body = r.json()
+    except ValueError as e:
+        raise AuthError('Sign-in returned non-JSON') from e
+    stored = _store_token_from_response(cfg, store, body)
+    user = _fetch_user(cfg, stored.access_token)
+    # Backfill email + user_id in storage so me() works offline.
+    stored = StoredToken(**{**stored.__dict__, 'email': user.email, 'user_id': user.id})
+    store.save(stored)
+    return user.to_dict()
+
+
+def signup_with_password(email: str, password: str, full_name: str = '') -> dict:
+    """Email+password registration. Returns the user dict.
+
+    If the Supabase project has email-confirmation disabled, the response
+    includes session tokens that we persist (immediate sign-in). If
+    confirmation IS required, the response carries only the user object
+    — we still return it so the UI can show "check your inbox", but no
+    tokens are stored and the user remains signed-out locally.
+
+    The returned dict always includes a `confirmed: bool` flag so the
+    frontend can branch the UX cleanly."""
+    cfg   = _cfg_or_init()
+    store = _store_or_init()
+    payload: dict = {'email': email, 'password': password}
+    if full_name:
+        # Supabase stores `data` under raw_user_meta_data; our
+        # handle_new_user trigger reads full_name from there.
+        payload['data'] = {'full_name': full_name}
+    try:
+        r = requests.post(
+            cfg.url.rstrip('/') + '/auth/v1/signup',
+            json=payload,
+            headers={'apikey': cfg.anon_key, 'Content-Type': 'application/json'},
+            timeout=15,
+        )
+    except requests.RequestException as e:
+        raise AuthError(f'Network error: {e}') from e
+    if not r.ok:
+        raise AuthError(_supabase_error_message(r))
+
+    try:
+        body = r.json()
+    except ValueError as e:
+        raise AuthError('Sign-up returned non-JSON') from e
+
+    if body.get('access_token'):
+        # Confirmation disabled → we have a usable session immediately.
+        stored = _store_token_from_response(cfg, store, body)
+        user = _fetch_user(cfg, stored.access_token)
+        stored = StoredToken(**{**stored.__dict__, 'email': user.email, 'user_id': user.id})
+        store.save(stored)
+        return {**user.to_dict(), 'confirmed': True}
+
+    # Confirmation required → just the user object, no session.
+    user_obj = body.get('user') or {}
+    return {
+        'id':        str(user_obj.get('id') or ''),
+        'email':     str(user_obj.get('email') or email),
+        'fullName':  full_name,
+        'avatarUrl': '',
+        'provider':  'email',
+        'confirmed': False,
+    }
+
+
 def login(timeout: float = 180.0) -> dict:
     """
     Blocking. Opens browser → loopback listener → token exchange.

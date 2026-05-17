@@ -22,6 +22,14 @@ Internals live in the sibling modules:
 We deliberately keep the OAuth flow in stdlib (http.server + requests +
 webbrowser) so PyInstaller doesn't have to bundle aiohttp / authlib.
 """
-from .manager import login, logout, me, owns_game, AuthError
+from .manager import (
+    login, logout, me, owns_game,
+    signin_with_password, signup_with_password,
+    AuthError,
+)
 
-__all__ = ['login', 'logout', 'me', 'owns_game', 'AuthError']
+__all__ = [
+    'login', 'logout', 'me', 'owns_game',
+    'signin_with_password', 'signup_with_password',
+    'AuthError',
+]

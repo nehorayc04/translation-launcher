@@ -108,4 +108,12 @@ export const api = {
   authMe:           ()                          => call<LauncherUser | null>("auth_me"),
   authLogout:       ()                          => call<{ok: boolean; error?: string}>("auth_logout"),
   authOwnsGame:     (gameId: string)            => call<boolean>("auth_owns_game", gameId),
+
+  // ── Email/password (kept entirely inside the launcher UI) ──
+  authSignInPassword: (email: string, password: string) =>
+    call<{ok: boolean; user?: LauncherUser; error?: string}>("auth_signin_password", email, password),
+  authSignUpPassword: (email: string, password: string, fullName: string) =>
+    call<{ok: boolean; user?: LauncherUser & {confirmed?: boolean}; confirmed?: boolean; error?: string}>(
+      "auth_signup_password", email, password, fullName,
+    ),
 };

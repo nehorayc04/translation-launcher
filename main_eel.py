@@ -648,6 +648,45 @@ def auth_owns_game(game_id: str) -> bool:
         return False
 
 
+# Email/password bridges — keep the entire credential flow inside the
+# launcher UI without bouncing through the system browser. Tokens land
+# in the OS keyring the same way as the OAuth flow, so me() / owns_game
+# / sign-out are agnostic about which entry point was used.
+
+@eel.expose
+def auth_signin_password(email: str, password: str) -> dict:
+    if not _auth_available or _auth is None:
+        return {"ok": False, "error": f"auth-unavailable: {_auth_error or 'module not loaded'}"}
+    if not email or not password:
+        return {"ok": False, "error": "missing-credentials"}
+    try:
+        user = _auth.signin_with_password(str(email), str(password))
+        return {"ok": True, "user": user}
+    except _auth.AuthError as e:
+        return {"ok": False, "error": str(e)}
+    except Exception as e:                                                    # pragma: no cover
+        return {"ok": False, "error": f"unexpected: {e}"}
+
+
+@eel.expose
+def auth_signup_password(email: str, password: str, full_name: str = "") -> dict:
+    if not _auth_available or _auth is None:
+        return {"ok": False, "error": f"auth-unavailable: {_auth_error or 'module not loaded'}"}
+    if not email or not password:
+        return {"ok": False, "error": "missing-credentials"}
+    try:
+        user = _auth.signup_with_password(str(email), str(password), str(full_name or ""))
+        # `confirmed=True` means a session was returned and stored; the
+        # UI should treat it like a successful sign-in. `False` means
+        # the project requires email confirmation — UI shows "check
+        # your inbox" and stays signed out.
+        return {"ok": True, "user": user, "confirmed": bool(user.get("confirmed", False))}
+    except _auth.AuthError as e:
+        return {"ok": False, "error": str(e)}
+    except Exception as e:                                                    # pragma: no cover
+        return {"ok": False, "error": f"unexpected: {e}"}
+
+
 # ═════════════════════════════════════════════════════════════
 # Boot
 # ═════════════════════════════════════════════════════════════

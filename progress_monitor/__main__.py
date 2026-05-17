@@ -14,6 +14,10 @@ def main() -> int:
     p.add_argument('--once',    action='store_true', help='single tick then exit')
     p.add_argument('--dry-run', action='store_true', help='log what would be pushed; no HTTP')
     p.add_argument('-v', '--verbose', action='store_true')
+    p.add_argument('--tui',    dest='tui', action='store_true',  default=None,
+                   help='force the live ANSI dashboard')
+    p.add_argument('--no-tui', dest='tui', action='store_false',
+                   help='force plain log output (for scheduled tasks / piped stdout)')
     args = p.parse_args()
 
     logging.basicConfig(
@@ -26,7 +30,11 @@ def main() -> int:
     except ImportError:
         mod = importlib.import_module(args.adapter)
     monitor = mod.build()
-    monitor.run(once=args.once, dry_run=args.dry_run)
+
+    # Auto-detect: TUI when stdout is an interactive terminal, plain logs
+    # when piped or scheduled. Explicit --tui / --no-tui overrides.
+    tui = args.tui if args.tui is not None else sys.stdout.isatty()
+    monitor.run(once=args.once, dry_run=args.dry_run, tui=tui)
     return 0
 
 

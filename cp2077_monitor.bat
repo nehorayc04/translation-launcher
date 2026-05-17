@@ -1,16 +1,12 @@
 @echo off
+chcp 65001 >NUL
 title CP2077 progress monitor
 cd /d "%~dp0"
 
-echo ============================================================
-echo  Cyberpunk 2077 progress monitor
-echo  Pushes a snapshot every 15 minutes to:
-echo    https://hebrew-translation-hub.vercel.app/api/admin/progress
-echo  Close this window or press Ctrl+C to stop.
-echo ============================================================
-echo.
+set PYTHONIOENCODING=utf-8
+set PYTHONUTF8=1
 
-python -m progress_monitor --adapter cp2077
+python -m progress_monitor --adapter cp2077 --tui
 
 echo.
 echo ------------------------------------------------------------

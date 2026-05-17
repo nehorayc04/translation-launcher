@@ -20,7 +20,7 @@ interface Props {
 }
 
 export default function AuthModal({ open, onClose }: Props) {
-  const { signInPassword, signUpPassword, signInGoogle } = useLauncherAuth();
+  const { signInPassword, signUpPassword, signInGoogle, cancelGoogleSignIn } = useLauncherAuth();
   const [mode,     setMode]     = useState<Mode>("login");
   const [email,    setEmail]    = useState("");
   const [password, setPassword] = useState("");
@@ -109,9 +109,15 @@ export default function AuthModal({ open, onClose }: Props) {
     onClose();
   };
 
-  const cancelGoogle = () => {
-    // Just dismiss locally — the Python listener self-times-out and
-    // the promise above resolves with an error we silently ignore.
+  const cancelGoogle = async () => {
+    // EXPLICIT abort — calls auth_abort_login() so the Python
+    // loopback HTTP server is torn down immediately, freeing port
+    // 8085 for the next attempt. Without this the React state would
+    // reset but Python would keep blocking in await_code(), and
+    // every subsequent click would queue behind it (the "multi-window
+    // delay" bug). Awaited so the modal can't render a fresh Google
+    // button until the old listener is actually gone.
+    await cancelGoogleSignIn();
     setGoogleBusy(false);
     setError(null);
   };

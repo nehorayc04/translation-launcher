@@ -108,6 +108,7 @@ export const api = {
   authMe:           ()                          => call<LauncherUser | null>("auth_me"),
   authLogout:       ()                          => call<{ok: boolean; error?: string}>("auth_logout"),
   authOwnsGame:     (gameId: string)            => call<boolean>("auth_owns_game", gameId),
+  authAbortLogin:   ()                          => call<{ok: boolean; aborted?: boolean; error?: string}>("auth_abort_login"),
 
   // ── Email/password (kept entirely inside the launcher UI) ──
   authSignInPassword: (email: string, password: string) =>

@@ -27,12 +27,27 @@ Security notes:
 from __future__ import annotations
 
 import secrets
-import socket
 import threading
 from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import Optional
 from urllib.parse import parse_qs, urlparse
+
+
+# Fixed loopback port. Supabase's Redirect URLs whitelist must contain
+# `http://127.0.0.1:8085/auth/callback` exactly — Supabase often rejects
+# wildcard ports (`127.0.0.1:*`) and falls back to the project's Site
+# URL on mismatch, which is why the launcher used to send users to the
+# Vercel homepage instead of completing the OAuth handshake.
+LOOPBACK_PORT = 8085
+
+
+class _ReuseHTTPServer(HTTPServer):
+    """HTTPServer with SO_REUSEADDR so a freshly-aborted listener can
+    rebind to port 8085 immediately — otherwise rapid Cancel → Google
+    → Cancel cycles would hit `OSError: Address already in use` while
+    the OS holds the socket in TIME_WAIT."""
+    allow_reuse_address = True
 
 
 # NOTE: these MUST be Unicode strings encoded to bytes at module level —
@@ -147,22 +162,22 @@ class _Handler(BaseHTTPRequestHandler):
             srv.done_event.set()  # type: ignore[attr-defined]
 
 
-def _pick_free_port() -> int:
-    """Ask the OS for a free port — guaranteed not racy on Windows."""
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(('127.0.0.1', 0))
-        return s.getsockname()[1]
-
-
 class LoopbackListener:
-    """One-shot loopback HTTP server, started + stopped by the caller."""
+    """One-shot loopback HTTP server, started + stopped by the caller.
+    Pinned to LOOPBACK_PORT (8085) because Supabase's URL Configuration
+    must whitelist the exact redirect — wildcard ports trigger a
+    fallback to the project's Site URL instead of the loopback."""
 
     def __init__(self) -> None:
-        self.port  = _pick_free_port()
+        self.port  = LOOPBACK_PORT
         self.state = secrets.token_urlsafe(24)
         self._done = threading.Event()
         self._httpd: Optional[HTTPServer] = None
         self._thread: Optional[threading.Thread] = None
+        # Aborted flag is a tristate: None = no abort signalled yet,
+        # True = abort() was called and we should treat any pending
+        # await_code wait as cancelled rather than as a real callback.
+        self._aborted = False
 
     @property
     def redirect_uri(self) -> str:
@@ -170,8 +185,10 @@ class LoopbackListener:
 
     def __enter__(self) -> 'LoopbackListener':
         # Bind explicitly to 127.0.0.1 — NOT 0.0.0.0 — so only the local
-        # user can deliver the callback.
-        self._httpd = HTTPServer(('127.0.0.1', self.port), _Handler)
+        # user can deliver the callback. _ReuseHTTPServer sets
+        # SO_REUSEADDR so a rapid abort→retry sequence doesn't fail
+        # with "Address already in use" while the OS holds TIME_WAIT.
+        self._httpd = _ReuseHTTPServer(('127.0.0.1', self.port), _Handler)
         # Park per-server state on the HTTPServer instance so the handler
         # (which is constructed fresh per request) can read it.
         self._httpd.expected_state = self.state  # type: ignore[attr-defined]
@@ -185,17 +202,53 @@ class LoopbackListener:
         return self
 
     def await_code(self, timeout: float = 120.0) -> CallbackResult:
-        """Block until the browser hits /auth/callback, or timeout."""
+        """Block until the browser hits /auth/callback, until abort()
+        is called from another thread, or until timeout — whichever
+        comes first. Each terminus produces a distinct CallbackResult
+        so the caller can branch."""
         if not self._done.wait(timeout):
-            return CallbackResult(code=None, state=None, error='timeout',
-                                  error_description='User did not complete sign-in within %d seconds' % int(timeout))
+            return CallbackResult(
+                code=None, state=None, error='timeout',
+                error_description='User did not complete sign-in within %d seconds' % int(timeout),
+            )
+        if self._aborted:
+            return CallbackResult(
+                code=None, state=None, error='cancelled',
+                error_description='Sign-in cancelled by user',
+            )
         return getattr(self._httpd, 'result', None) or CallbackResult(
             code=None, state=None, error='no_callback', error_description='no result captured',
         )
 
+    def abort(self) -> None:
+        """Release any blocked await_code() caller immediately and
+        tear down the HTTP server. Safe to call from any thread other
+        than the serve thread (HTTPServer.shutdown blocks on a self-
+        signal so calling from the serve thread itself would deadlock;
+        in practice this is invoked from the Eel worker thread that
+        handles the auth_abort_login bridge, never from the serve
+        thread). Idempotent — repeated calls are no-ops."""
+        self._aborted = True
+        self._done.set()
+        # Shutdown + close in a best-effort manner; either may already
+        # be in progress from __exit__ if a real callback raced us.
+        httpd = self._httpd
+        if httpd is not None:
+            try:
+                httpd.shutdown()
+            except Exception:
+                pass
+            try:
+                httpd.server_close()
+            except Exception:
+                pass
+
     def __exit__(self, exc_type, exc, tb) -> None:
+        # If abort() already ran, these calls are harmless no-ops.
         if self._httpd is not None:
-            self._httpd.shutdown()
-            self._httpd.server_close()
+            try: self._httpd.shutdown()
+            except Exception: pass
+            try: self._httpd.server_close()
+            except Exception: pass
         if self._thread is not None:
             self._thread.join(timeout=2.0)

@@ -21,6 +21,9 @@ interface LauncherAuthValue {
   signedIn:  boolean;
   /** OAuth (Google) — opens system browser via loopback listener. */
   signInGoogle: () => Promise<{ ok: boolean; error?: string }>;
+  /** Abort an in-flight Google sign-in (kills the loopback HTTP
+   *  server immediately so a fresh attempt can re-bind the port). */
+  cancelGoogleSignIn: () => Promise<void>;
   /** Email/password — entirely inside the launcher window. */
   signInPassword: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
   signUpPassword: (email: string, password: string, fullName: string)
@@ -81,6 +84,16 @@ export function LauncherAuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const cancelGoogleSignIn = useCallback(async () => {
+    try {
+      await api.authAbortLogin();
+    } catch {
+      // best-effort — the awaiting login() Promise will reject with
+      // "cancelled" and the modal's onGoogle handler already routes
+      // that to a benign close.
+    }
+  }, []);
+
   const signInPassword = useCallback(async (email: string, password: string) => {
     try {
       const r = await api.authSignInPassword(email, password);
@@ -136,12 +149,13 @@ export function LauncherAuthProvider({ children }: { children: ReactNode }) {
     loading,
     signedIn: !!user,
     signInGoogle,
+    cancelGoogleSignIn,
     signInPassword,
     signUpPassword,
     signOut,
     refresh,
     ownsGame,
-  }), [user, loading, signInGoogle, signInPassword, signUpPassword, signOut, refresh, ownsGame]);
+  }), [user, loading, signInGoogle, cancelGoogleSignIn, signInPassword, signUpPassword, signOut, refresh, ownsGame]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

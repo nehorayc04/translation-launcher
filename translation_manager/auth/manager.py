@@ -18,6 +18,7 @@ API directly — everything else goes through these four functions.
 from __future__ import annotations
 
 import logging
+import threading
 import time
 import webbrowser
 from dataclasses import dataclass
@@ -62,6 +63,16 @@ class UserInfo:
 # tries to authenticate.
 _store: Optional[TokenStore] = None
 _cfg:   Optional[SupabaseConfig] = None
+
+# Tracks the LoopbackListener for the currently-active Google OAuth
+# attempt so abort_login() can shut it down from another thread. Eel
+# runs each exposed function on a worker thread, so reads + writes are
+# concurrent — guarded by a Lock. Lock-then-take pattern below: the
+# aborter swaps the global to None while holding the lock, then calls
+# .abort() outside the lock (abort can call .shutdown() which blocks
+# briefly; we don't want to hold the lock during that).
+_active_listener:      Optional[LoopbackListener] = None
+_active_listener_lock                              = threading.Lock()
 
 
 def _store_or_init() -> TokenStore:
@@ -183,6 +194,28 @@ def signup_with_password(email: str, password: str, full_name: str = '') -> dict
     }
 
 
+def abort_login() -> bool:
+    """Tear down any in-flight Google OAuth attempt immediately so a
+    new login() call can rebind port 8085 without lag. Returns True
+    iff there was an active listener to abort.
+
+    Called from:
+      • The Eel auth_abort_login bridge (user clicked "בטל וחזור").
+      • The top of login() itself, defensively, so a forgotten-modal
+        scenario can't leave a stale listener pinning the port."""
+    global _active_listener
+    with _active_listener_lock:
+        srv = _active_listener
+        _active_listener = None
+    if srv is None:
+        return False
+    try:
+        srv.abort()
+    except Exception as e:
+        log.warning('abort_login: listener.abort() raised: %s', e)
+    return True
+
+
 def login(timeout: float = 180.0) -> dict:
     """
     Blocking. Opens browser → loopback listener → token exchange.
@@ -196,33 +229,52 @@ def login(timeout: float = 180.0) -> dict:
     except AuthConfigError as e:
         raise AuthError(str(e)) from e
 
+    # Defensive: abort any stale listener BEFORE binding the fixed
+    # port. Without this, a second click on "המשך עם Google" after a
+    # closed-but-not-cancelled modal would crash with EADDRINUSE.
+    abort_login()
+
     pkce = pkce_generate()
 
     with LoopbackListener() as srv:
-        authorize_url = cfg.authorize_url + '?' + urlencode({
-            'provider':              'google',
-            'redirect_to':           srv.redirect_uri,
-            'code_challenge':        pkce.challenge,
-            'code_challenge_method': pkce.method,
-            'flow_type':             'pkce',
-            # `state` is what protects us against a stranger forging a
-            # /callback hit on our loopback — the listener checks it.
-            'state':                 srv.state,
-        })
+        # Register globally so abort_login() can find us. Using a lock
+        # because Eel worker threads may run concurrent login attempts
+        # (we just aborted any prior one above, but a parallel one
+        # could land here at the same time).
+        global _active_listener
+        with _active_listener_lock:
+            _active_listener = srv
+        try:
+            authorize_url = cfg.authorize_url + '?' + urlencode({
+                'provider':              'google',
+                'redirect_to':           srv.redirect_uri,
+                'code_challenge':        pkce.challenge,
+                'code_challenge_method': pkce.method,
+                'flow_type':             'pkce',
+                # `state` is what protects us against a stranger forging a
+                # /callback hit on our loopback — the listener checks it.
+                'state':                 srv.state,
+            })
 
-        log.info('Opening browser to %s (loopback: %s)', cfg.authorize_url, srv.redirect_uri)
-        opened = webbrowser.open(authorize_url, new=2)
-        if not opened:
-            # Fall back to printing — even on Windows this is unusual.
-            log.warning('webbrowser.open returned False. Manual URL: %s', authorize_url)
+            log.info('Opening browser to %s (loopback: %s)', cfg.authorize_url, srv.redirect_uri)
+            opened = webbrowser.open(authorize_url, new=2)
+            if not opened:
+                # Fall back to printing — even on Windows this is unusual.
+                log.warning('webbrowser.open returned False. Manual URL: %s', authorize_url)
 
-        cb = srv.await_code(timeout=timeout)
-        if cb.error or not cb.code:
-            raise AuthError(cb.error_description or cb.error or 'Sign-in did not complete')
+            cb = srv.await_code(timeout=timeout)
+            if cb.error or not cb.code:
+                raise AuthError(cb.error_description or cb.error or 'Sign-in did not complete')
 
-        # Exchange the auth code for tokens (PKCE: no client secret).
-        token_payload = _exchange_pkce(cfg, cb.code, pkce.verifier)
-        stored = _store_token_from_response(cfg, store, token_payload)
+            # Exchange the auth code for tokens (PKCE: no client secret).
+            token_payload = _exchange_pkce(cfg, cb.code, pkce.verifier)
+            stored = _store_token_from_response(cfg, store, token_payload)
+        finally:
+            # Deregister even on error — otherwise a stale reference
+            # would point at a closed server.
+            with _active_listener_lock:
+                if _active_listener is srv:
+                    _active_listener = None
 
     user = _fetch_user(cfg, stored.access_token)
     # Update the stored email/user_id once we know them — cheap, lets

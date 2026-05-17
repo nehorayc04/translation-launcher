@@ -23,13 +23,13 @@ We deliberately keep the OAuth flow in stdlib (http.server + requests +
 webbrowser) so PyInstaller doesn't have to bundle aiohttp / authlib.
 """
 from .manager import (
-    login, logout, me, owns_game,
+    login, logout, me, owns_game, abort_login,
     signin_with_password, signup_with_password,
     AuthError,
 )
 
 __all__ = [
-    'login', 'logout', 'me', 'owns_game',
+    'login', 'logout', 'me', 'owns_game', 'abort_login',
     'signin_with_password', 'signup_with_password',
     'AuthError',
 ]

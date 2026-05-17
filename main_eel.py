@@ -648,6 +648,28 @@ def auth_owns_game(game_id: str) -> bool:
         return False
 
 
+@eel.expose
+def auth_abort_login() -> dict:
+    """Tear down any in-flight Google OAuth attempt RIGHT NOW so the
+    next login() call can rebind port 8085 immediately.
+
+    Without this, the user clicking "בטל וחזור" only resets the React
+    UI — the Python loopback HTTP server keeps blocking in
+    await_code() for the full 180s timeout, holding port 8085 and
+    queueing every subsequent Eel auth_login call behind it. That's
+    what produced the "multi-window stacking" bug.
+
+    Returns { ok: true, aborted: bool }. aborted=False means there
+    was no active listener (idempotent / nothing to do)."""
+    if not _auth_available or _auth is None:
+        return {"ok": False, "error": "auth-unavailable"}
+    try:
+        aborted = bool(_auth.abort_login())
+        return {"ok": True, "aborted": aborted}
+    except Exception as e:                                                    # pragma: no cover
+        return {"ok": False, "error": f"unexpected: {e}"}
+
+
 # Email/password bridges — keep the entire credential flow inside the
 # launcher UI without bouncing through the system browser. Tokens land
 # in the OS keyring the same way as the OAuth flow, so me() / owns_game

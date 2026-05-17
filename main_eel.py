@@ -13,7 +13,9 @@ Run in DEV mode (frontend served by Vite on :5173, Eel just exposes the API):
 from __future__ import annotations
 
 import argparse
+import json
 import os
+import pathlib
 import subprocess
 import sys
 from dataclasses import asdict
@@ -65,6 +67,43 @@ REMOTE_TIMEOUT     = 3.0   # seconds — keep short so offline boot isn't slow
 _REMOTE_CACHE_TTL  = 30    # in-memory hot-window. Below this, swr returns
                            # the cached value without firing a background
                            # refresh. Above it, return cached + refresh.
+API_BASE = "https://hebrew-translation-hub.vercel.app"
+
+
+def _has_any_cache() -> bool:
+    """True if the SWR cache already has at least one entry on disk."""
+    p = pathlib.Path.home() / ".translation_manager" / "cache.json"
+    if not p.exists():
+        return False
+    try:
+        raw = json.loads(p.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False
+    return bool(raw.get("entries"))
+
+
+def _ping_api(timeout: float = 3.0) -> bool:
+    try:
+        r = requests.get(f"{API_BASE}/api/games", timeout=timeout)
+        return r.ok
+    except requests.RequestException:
+        return False
+
+
+def _show_no_internet_dialog() -> None:
+    """Tk-based blocking dialog. Used only when the launcher cannot start
+    its cache from the network on first run."""
+    import tkinter as tk
+    from tkinter import messagebox
+    root = tk.Tk()
+    root.withdraw()
+    messagebox.showerror(
+        "אין חיבור לאינטרנט",
+        "להפעלה הראשונה של מנהל התרגומים נדרש חיבור לאינטרנט "
+        "כדי להוריד את הקטלוג המעודכן (משחקים, חדשות, תמונות).\n\n"
+        "אנא התחבר לאינטרנט ופתח שוב את האפליקציה.",
+    )
+    root.destroy()
 
 
 def _try_remote(url: str) -> list[dict] | None:
@@ -128,11 +167,6 @@ def _push_cache_event(kind: str, data, sub_key) -> None:
 
 
 swr_cache.configure(
-    bundled_files={
-        "games":   LOCAL_CATALOG_FILE,
-        "news":    LOCAL_NEWS_FILE,
-        "updates": LOCAL_UPDATES_FILE,
-    },
     push_cb=_push_cache_event,
 )
 
@@ -456,6 +490,10 @@ def main() -> None:
     # game_detector seeds its cache from disk at import time (no work to do
     # here). We deliberately do NOT run an automatic scan on boot — the user
     # owns scanning via the explicit "Full Drive Scan" button.
+
+    if not _has_any_cache() and not _ping_api():
+        _show_no_internet_dialog()
+        sys.exit(1)
 
     if args.dev:
         # Vite dev mode — Eel only serves /eel.js + JSON-RPC; the React app

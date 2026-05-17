@@ -145,6 +145,28 @@ def _count_subtitle_cr2w() -> int:
     return _count_json_files(PROJ_AR_SUBTITLES)
 
 
+def _recent_translation_lines(limit: int = 4) -> list[str]:
+    """Last `limit` translated strings from the log — what was actually
+    sent through LM Studio. Returned as already-trimmed strings ready
+    for the 'פעילות אחרונה' panel."""
+    lines = _read_lines_safe(LOG_TRANS, max_lines=3000)
+    if not lines:
+        return []
+    hits: list[str] = []
+    for line in reversed(lines):
+        if " -> '" not in line and " → " not in line:
+            continue
+        # Strip the leading [YYYY-MM-DD HH:MM:SS] timestamp if present.
+        clean = RE_LOG_TIME.sub('', line).strip()
+        # Keep the tail short so RTL strings don't break the layout.
+        if len(clean) > 90:
+            clean = clean[:87] + '…'
+        hits.append(clean)
+        if len(hits) >= limit:
+            break
+    return list(reversed(hits))
+
+
 def _packaging_rate_per_hour(current_count: int) -> int:
     now = time.time()
     _pkg_snapshots.append((now, current_count))
@@ -338,31 +360,45 @@ def _parse_translation_state() -> dict:
         extra = len(arrow_lines)
         state["fixed"]     = base_fixed + extra
         state["remaining"] = max(0, saves[-1][2] - extra)
-        window = saves[-5:]
-        if len(window) >= 2 and window[0][0] and window[-1][0]:
-            dt      = (window[-1][0] - window[0][0]).total_seconds()
-            d_fixed = window[-1][1] - window[0][1]
-            state["rate_per_min"] = (d_fixed / dt * 60) if dt > 0 else 0
-        if not state["rate_per_min"] and state["elapsed_sec"] and state["fixed"] > 0:
-            state["rate_per_min"] = state["fixed"] / state["elapsed_sec"] * 60
     elif arrow_lines and state["fields_needed"]:
         state["fixed"]     = len(arrow_lines)
         state["remaining"] = max(0, state["fields_needed"] - len(arrow_lines))
-        if state["elapsed_sec"] and state["elapsed_sec"] > 0:
-            state["rate_per_min"] = len(arrow_lines) / state["elapsed_sec"] * 60
 
-    if (
-        state["phase3_seen"]
-        and state["run_start_dt"]
-        and state["fixed"] > state["phase3_baseline_fixed"]
-    ):
-        phase3_start   = state["run_start_dt"] + timedelta(seconds=30)
-        phase3_elapsed = (datetime.now() - phase3_start).total_seconds()
-        if phase3_elapsed > 60:
-            phase3_items = state["fixed"] - state["phase3_baseline_fixed"]
-            state["rate_per_min"] = phase3_items / phase3_elapsed * 60
+    # Rate: strict wall-clock sliding window. Total-uptime averages and
+    # phase3-elapsed averages were producing absurd 1.2/min readings when
+    # the run had been going for many hours; the 4-worker burst rate is
+    # the only number that's actually predictive of finish time.
+    state["rate_per_min"] = _rate_from_recent_saves(saves, arrow_lines, window_min=10)
 
     return state
+
+
+def _rate_from_recent_saves(saves: list, arrow_lines: list, window_min: int = 10) -> float:
+    """Translation rate from the last `window_min` minutes only.
+
+    Strategy:
+      1. ≥2 saves in window  → (Δfixed) / (Δtime) — most reliable
+      2. 1 save in window + arrows since  → arrows / (now − save_time)
+      3. Saves all stale + arrows present → arrows / window_min (conservative)
+      4. Otherwise 0 (don't lie with stale averages).
+    """
+    cutoff = datetime.now() - timedelta(minutes=window_min)
+    recent = [s for s in saves if s[0] and s[0] >= cutoff]
+    if len(recent) >= 2:
+        dt_min = (recent[-1][0] - recent[0][0]).total_seconds() / 60.0
+        d_fixed = recent[-1][1] - recent[0][1]
+        if dt_min > 0 and d_fixed > 0:
+            return d_fixed / dt_min
+    if recent and arrow_lines:
+        last_t = recent[-1][0]
+        dt_min = (datetime.now() - last_t).total_seconds() / 60.0
+        if dt_min >= 0.5:
+            return len(arrow_lines) / dt_min
+    if arrow_lines:
+        # Fresh arrows but no anchoring save in the window — assume they
+        # accumulated across the full window. Conservative; never inflates.
+        return len(arrow_lines) / window_min
+    return 0.0
 
 
 def _detect_phase(trans: dict, reex: dict) -> Stage:
@@ -615,6 +651,7 @@ def _collect() -> Snapshot | None:
         stages          = stages,
         summary_eta_sec = _summary_eta(stages),
         headline_he     = 'תרגום סייברפאנק 2077 לעברית — מסך מעקב חי',
+        activity_tail   = _recent_translation_lines(limit=4),
     )
 
 

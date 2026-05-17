@@ -116,6 +116,12 @@ python -m PyInstaller ^
     --collect-submodules translation_manager.auth ^
     --collect-submodules keyring ^
     --collect-submodules keyring.backends ^
+    REM --copy-metadata is REQUIRED for keyring: it discovers backends
+    REM via importlib.metadata entry_points, which need the dist-info
+    REM (METADATA, RECORD, entry_points.txt) bundled in the EXE.
+    REM Without this, keyring falls through to a null backend at
+    REM runtime and storage.py raises "no backend available".
+    --copy-metadata keyring ^
     --hidden-import bottle ^
     --hidden-import bottle_websocket ^
     --hidden-import gevent ^

@@ -29,6 +29,12 @@ export default function AuthModal({ open, onClose }: Props) {
   const [busy,     setBusy]     = useState(false);
   const [error,    setError]    = useState<string | null>(null);
   const [info,     setInfo]     = useState<string | null>(null);
+  // Separate busy flag for the Google flow so we can render a richer
+  // "waiting for browser" state. MUST live up here with the other
+  // useState calls — Rules of Hooks forbid declaring it below the
+  // `if (!open) return null` early return, since the hook-call count
+  // would change between closed↔open renders and crash the whole tree.
+  const [googleBusy, setGoogleBusy] = useState(false);
   const firstInput = useRef<HTMLInputElement>(null);
 
   // Reset state every open + focus first input
@@ -87,15 +93,10 @@ export default function AuthModal({ open, onClose }: Props) {
     onClose();
   };
 
-  // Separate busy flag for the Google flow so we can render a richer
-  // "waiting for browser" state that explains the modal is alive,
-  // tells the user the browser tab is open, and offers a Cancel that
-  // closes the modal locally (Python's loopback await_code() times
-  // out after ~2 min so no zombie listener is left behind — even if
-  // the user re-opens and signs in via email/password in the
-  // meantime, the abandoned Google listener can't interfere).
-  const [googleBusy, setGoogleBusy] = useState(false);
-
+  // (googleBusy useState is now declared above with the other hooks —
+  // it MUST be unconditional to satisfy Rules of Hooks. Closing the
+  // modal mid-Google is fine: Python's loopback await_code() times
+  // out cleanly in ~2 min so no zombie listener lingers.)
   const onGoogle = async () => {
     setError(null); setInfo(null);
     setGoogleBusy(true);

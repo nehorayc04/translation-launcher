@@ -77,7 +77,11 @@ RE_TRANS_START_TIME = re.compile(
 RE_LOG_TIME = re.compile(r"^\[(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})\]")
 
 # ── module-level mutable state for rolling rate windows ──────────────────────
-_pkg_snapshots: list[tuple[float, int]] = []
+_pkg_snapshots:   list[tuple[float, int]] = []
+_trans_snapshots: list[tuple[float, int]] = []   # (wall_clock_sec, total_fixed)
+
+_TRANS_WINDOW_SEC = 600   # 10-min rolling window for translation rate
+_TRANS_MIN_OBSERVATION_SEC = 30   # need ≥30s before reporting a rate
 
 # ANSI fragments used inside detail_lines (the TUI doesn't post-process).
 C_DIM   = '\033[2m'
@@ -364,41 +368,31 @@ def _parse_translation_state() -> dict:
         state["fixed"]     = len(arrow_lines)
         state["remaining"] = max(0, state["fields_needed"] - len(arrow_lines))
 
-    # Rate: strict wall-clock sliding window. Total-uptime averages and
-    # phase3-elapsed averages were producing absurd 1.2/min readings when
-    # the run had been going for many hours; the 4-worker burst rate is
-    # the only number that's actually predictive of finish time.
-    state["rate_per_min"] = _rate_from_recent_saves(saves, arrow_lines, window_min=10)
+    # Rate: wall-clock rolling window. The translator log's "[~] Saved"
+    # lines have NO timestamps, so log-based windows can't work — we anchor
+    # to the adapter's own tick clock instead. Same pattern as packaging.
+    state["rate_per_min"] = _translation_rate_per_min(state["fixed"])
 
     return state
 
 
-def _rate_from_recent_saves(saves: list, arrow_lines: list, window_min: int = 10) -> float:
-    """Translation rate from the last `window_min` minutes only.
-
-    Strategy:
-      1. ≥2 saves in window  → (Δfixed) / (Δtime) — most reliable
-      2. 1 save in window + arrows since  → arrows / (now − save_time)
-      3. Saves all stale + arrows present → arrows / window_min (conservative)
-      4. Otherwise 0 (don't lie with stale averages).
-    """
-    cutoff = datetime.now() - timedelta(minutes=window_min)
-    recent = [s for s in saves if s[0] and s[0] >= cutoff]
-    if len(recent) >= 2:
-        dt_min = (recent[-1][0] - recent[0][0]).total_seconds() / 60.0
-        d_fixed = recent[-1][1] - recent[0][1]
-        if dt_min > 0 and d_fixed > 0:
-            return d_fixed / dt_min
-    if recent and arrow_lines:
-        last_t = recent[-1][0]
-        dt_min = (datetime.now() - last_t).total_seconds() / 60.0
-        if dt_min >= 0.5:
-            return len(arrow_lines) / dt_min
-    if arrow_lines:
-        # Fresh arrows but no anchoring save in the window — assume they
-        # accumulated across the full window. Conservative; never inflates.
-        return len(arrow_lines) / window_min
-    return 0.0
+def _translation_rate_per_min(total_fixed: int) -> float:
+    """Translation throughput from a wall-clock rolling window over the
+    adapter's own ticks. Robust: doesn't depend on log timestamps existing
+    or being parseable. Falls back to 0 for the first ~30s of observation."""
+    now = time.time()
+    _trans_snapshots.append((now, total_fixed))
+    cutoff = now - _TRANS_WINDOW_SEC
+    # Trim old samples but always keep at least 2 for delta computation.
+    while len(_trans_snapshots) > 2 and _trans_snapshots[0][0] < cutoff:
+        _trans_snapshots.pop(0)
+    if len(_trans_snapshots) < 2:
+        return 0.0
+    dt_sec = _trans_snapshots[-1][0] - _trans_snapshots[0][0]
+    d_items = _trans_snapshots[-1][1] - _trans_snapshots[0][1]
+    if dt_sec < _TRANS_MIN_OBSERVATION_SEC or d_items <= 0:
+        return 0.0
+    return (d_items / dt_sec) * 60.0
 
 
 def _detect_phase(trans: dict, reex: dict) -> Stage:

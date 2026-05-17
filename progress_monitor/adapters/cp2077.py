@@ -75,6 +75,10 @@ RE_TRANS_START_TIME = re.compile(
     r"\[started:\s+(?:(\d{4}-\d{2}-\d{2})\s+)?(\d{2}:\d{2}:\d{2})\]"
 )
 RE_LOG_TIME = re.compile(r"^\[(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})\]")
+# Extracts just the 'English' -> 'Hebrew' pair from an arrow line, dropping
+# the file:line:[variant] prefix. Backref on the quote so English with the
+# OTHER quote style ("Boxer's" inside double-quotes) still parses.
+RE_TRANS_PAIR = re.compile(r"""(['"])(.+?)\1\s*(?:->|→)\s*(['"])(.+?)\3""")
 
 # ── module-level mutable state for rolling rate windows ──────────────────────
 _pkg_snapshots:   list[tuple[float, int]] = []
@@ -151,8 +155,8 @@ def _count_subtitle_cr2w() -> int:
 
 def _recent_translation_lines(limit: int = 4) -> list[str]:
     """Last `limit` translated strings from the log — what was actually
-    sent through LM Studio. Returned as already-trimmed strings ready
-    for the 'פעילות אחרונה' panel."""
+    sent through LM Studio. Returns just the 'English' -> 'Hebrew' pair,
+    no file:line / variant noise, no truncation."""
     lines = _read_lines_safe(LOG_TRANS, max_lines=3000)
     if not lines:
         return []
@@ -160,12 +164,16 @@ def _recent_translation_lines(limit: int = 4) -> list[str]:
     for line in reversed(lines):
         if " -> '" not in line and " → " not in line:
             continue
-        # Strip the leading [YYYY-MM-DD HH:MM:SS] timestamp if present.
+        if '[SKIP]' in line:
+            # Skipped items aren't translations — don't pad the feed with them.
+            continue
         clean = RE_LOG_TIME.sub('', line).strip()
-        # Keep the tail short so RTL strings don't break the layout.
-        if len(clean) > 90:
-            clean = clean[:87] + '…'
-        hits.append(clean)
+        m = RE_TRANS_PAIR.search(clean)
+        if not m:
+            # Line had the arrow but didn't match the quoted-pair shape
+            # (e.g. unexpected log format) — drop it rather than show noise.
+            continue
+        hits.append(f"'{m.group(2)}' -> '{m.group(4)}'")
         if len(hits) >= limit:
             break
     return list(reversed(hits))

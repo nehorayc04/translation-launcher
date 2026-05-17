@@ -80,3 +80,49 @@ lm_output.json
 REDmodLog.txt
 # Private notes intended for Claude Code, not for public distribution
 הודעה לקלוד קוד*.txt
+
+# ============================================================
+# Internal translation-pipeline tools (NOT part of the launcher).
+# These live in the same working directory as the launcher source
+# but are separate scripts for managing CP2077 translation work.
+# They reference local game paths, decompiled assets, and
+# operator-only workflows. Do NOT publish.
+# ============================================================
+cp2077_*
+audit_all_missing_translations.py
+audit_missing_report.txt
+build_startup_fix_pack.py
+cr2w_dump.py
+fill_translations_from_queue.py
+*arabic*.py
+*font*.py
+*heebo*.py
+*ui.py
+monitor_push.py
+rebuild_onscreens_and_pack.py
+translate_*.py
+verify_translation.py
+remove_niqqud.py
+make_cet_translations_lua.py
+restart_translation.ps1
+אימות_תרגום.py
+הפעלת התוכנה.bat
+
+# Inno Setup installer scripts — built locally, not part of source dist
+*.iss
+
+# Root-level data JSONs used by the translation pipeline (NOT a blanket
+# *.json — that would break frontend/package.json + tsconfig*.json).
+/games.json
+/news.json
+/updates.json
+/lm_*.json
+/missing_*.json
+/localization_*.json
+
+# Pipeline-side universal progress monitor (used by cp2077_monitor;
+# the launcher itself does not import it).
+/progress_monitor/
+
+# Internal Claude planning docs (not part of launcher distribution).
+/docs/

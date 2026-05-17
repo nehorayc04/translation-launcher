@@ -18,7 +18,7 @@ from ..core import Monitor, Snapshot, Stage
 log = logging.getLogger(__name__)
 
 # ── constants (mirrors cp2077_monitor.py) ────────────────────────────────────
-GAME_ID   = 'cyberpunk-2077'
+GAME_ID   = 'cyberpunk'
 GPU       = 'AMD Radeon RX 9070 16GB'
 AI_MODEL  = 'Gemma-2 27B'
 

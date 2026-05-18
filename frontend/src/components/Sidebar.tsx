@@ -1,4 +1,4 @@
-// Right-side nav (RTL): brand, three nav rows, bottom "settings + refresh"
+// Right-side nav (RTL): brand, nav rows, bottom "settings + refresh"
 // panel, version footer. The bottom panel replaces the old UpdatesMenu —
 // updates now live in the dedicated /downloads view.
 import { useEffect, useMemo, useState, type ComponentType, type SVGProps } from "react";
@@ -15,12 +15,28 @@ interface NavDef {
   accent: string;
 }
 
-// "settings" intentionally NOT in this list — it now sits in the bottom
-// panel alongside the refresh button.
+// Small inline icon for the Personal Area row — kept inline so we don't
+// need to touch NavIcons.tsx and risk another runtime mismatch.
+function PersonIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
+         width={20} height={20} {...props}>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21c0-4 4-7 8-7s8 3 8 7" />
+    </svg>
+  );
+}
+
+// "settings" intentionally NOT in this list — it sits in the bottom
+// panel alongside the refresh button. "personal" is added as a regular
+// nav row (instead of overloading the auth-slot button) so the whole
+// row tree stays simple and crash-free.
 const NAV: NavDef[] = [
   { key: "home",      label: "דף הבית",         Icon: HomeIcon,      accent: "#fff700" },
   { key: "library",   label: "ספרייה",          Icon: LibraryIcon,   accent: "#d4af37" },
   { key: "downloads", label: "הורדות ועדכונים", Icon: DownloadsIcon, accent: "#22c55e" },
+  { key: "personal",  label: "אזור אישי",        Icon: PersonIcon,    accent: "#00ffe0" },
 ];
 
 interface Props {
@@ -101,11 +117,10 @@ export default function Sidebar({ current, onNavigate, onRefresh }: Props) {
       {/* Spacer */}
       <div className="flex-1" />
 
-      {/* Auth slot — sign in / avatar + "אזור אישי" entry point */}
-      <AuthSlot
-        active={current === "personal"}
-        onOpenPersonal={() => onNavigate("personal")}
-      />
+      {/* Auth slot — sign in / avatar + logout. The "אזור אישי" entry
+          point lives in the main NAV list above (not here) so this row
+          stays simple and HTML-valid (no nested clickables). */}
+      <AuthSlot />
 
       {/* Bottom action panel — Settings + Refresh */}
       <SettingsPanel
@@ -121,9 +136,7 @@ export default function Sidebar({ current, onNavigate, onRefresh }: Props) {
   );
 }
 
-function AuthSlot({
-  active, onOpenPersonal,
-}: { active: boolean; onOpenPersonal: () => void }) {
+function AuthSlot() {
   const { user, signedIn, signOut, loading } = useLauncherAuth();
   const [modalOpen,        setModalOpen]        = useState(false);
   const [confirmLogout,    setConfirmLogout]    = useState(false);
@@ -158,23 +171,10 @@ function AuthSlot({
 
   const initials = (user?.fullName || user?.email || '??').slice(0, 2).toUpperCase();
 
-  // The avatar + "אזור אישי" label is now the entry point to the
-  // launcher's PersonalAreaView (mirrors the website's profile menu).
-  // Clicking anywhere on the row navigates; the small "יציאה" button
-  // stops propagation so it doesn't also fire the navigate.
   return (
     <div className="px-2 mb-2">
-      <button
-        type="button"
-        onClick={onOpenPersonal}
-        title="פתח אזור אישי"
-        className={[
-          "w-full flex items-center gap-2 px-2 py-2 rounded-xl text-right transition",
-          active
-            ? "bg-[#00ffe0]/12 border border-[#00ffe0]/40"
-            : "bg-white/[0.03] border border-white/[0.05] hover:bg-white/[0.07] hover:border-white/[0.12]",
-        ].join(" ")}
-      >
+      <div className="flex items-center gap-2 px-2 py-2 rounded-xl
+                      bg-white/[0.03] border border-white/[0.05]">
         {user?.avatarUrl ? (
           <img
             src={user.avatarUrl}
@@ -189,34 +189,21 @@ function AuthSlot({
             {initials}
           </div>
         )}
-        <div className="min-w-0 flex-1 text-right">
-          <div className={[
-            "text-[12px] font-semibold leading-tight truncate",
-            active ? "text-[#00ffe0]" : "text-slate-100",
-          ].join(" ")}>
-            אזור אישי
-          </div>
-          <div className="text-[10px] text-slate-400 truncate">
+        <div className="min-w-0 flex-1">
+          <div className="text-[11px] font-semibold text-slate-100 truncate">
             {user?.fullName || user?.email?.split('@')[0]}
           </div>
         </div>
-        <span
-          role="button"
-          tabIndex={0}
-          onClick={(e) => { e.stopPropagation(); setConfirmLogout(true); }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault(); e.stopPropagation(); setConfirmLogout(true);
-            }
-          }}
+        <button
+          type="button"
+          onClick={() => setConfirmLogout(true)}
           title="התנתק"
           className="text-[10px] text-rose-300 hover:text-rose-200 px-1.5 py-0.5
-                     rounded border border-rose-500/20 hover:border-rose-500/40
-                     cursor-pointer select-none"
+                     rounded border border-rose-500/20 hover:border-rose-500/40"
         >
           יציאה
-        </span>
-      </button>
+        </button>
+      </div>
       <LogoutConfirm
         open={confirmLogout}
         userLabel={user?.fullName || user?.email?.split('@')[0] || ''}

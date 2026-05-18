@@ -3,6 +3,7 @@
 // muted version label in the corner.
 import { useCallback, useEffect, useState } from "react";
 import VideoBackground   from "./components/VideoBackground";
+import ErrorBoundary     from "./components/ErrorBoundary";
 import Sidebar           from "./components/Sidebar";
 import type { NavKey }   from "./components/Sidebar";
 import HomeView          from "./views/HomeView";
@@ -16,7 +17,7 @@ import type { Game }     from "./lib/types";
 import { SiteConfigProvider } from "./lib/useSiteConfig";
 import { LauncherAuthProvider } from "./lib/useLauncherAuth";
 
-export const APP_VERSION = "v1.0.5";
+export const APP_VERSION = "v1.0.6";
 
 export default function App() {
   const [view,     setView]     = useState<NavKey>("home");
@@ -130,6 +131,7 @@ export default function App() {
   }, [reportStatus]);
 
   return (
+    <ErrorBoundary>
     <SiteConfigProvider>
     <LauncherAuthProvider>
     <div className="h-screen w-screen text-slate-200 overflow-hidden relative">
@@ -205,6 +207,7 @@ export default function App() {
     </div>
     </LauncherAuthProvider>
     </SiteConfigProvider>
+    </ErrorBoundary>
   );
 }
 

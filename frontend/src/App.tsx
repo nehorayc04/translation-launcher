@@ -17,7 +17,7 @@ import type { Game }     from "./lib/types";
 import { SiteConfigProvider } from "./lib/useSiteConfig";
 import { LauncherAuthProvider } from "./lib/useLauncherAuth";
 
-export const APP_VERSION = "v1.0.6";
+export const APP_VERSION = "v1.0.7";
 
 export default function App() {
   const [view,     setView]     = useState<NavKey>("home");

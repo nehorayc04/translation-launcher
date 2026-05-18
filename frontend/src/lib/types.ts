@@ -1,6 +1,23 @@
 // Game payload — mirrors `main_eel._game_payload()`.
 // Fields come straight from CatalogGame dataclass + install/mod enrichment.
-export type Availability = "available" | "in-progress" | "coming-soon" | "planned";
+// All availability values the catalog API can return. Mirrors the
+// website's union (src/data/games.ts). NOTE: this MUST stay in sync
+// with `availabilityLabel()` in lib/theme.ts — when a new value is
+// added on the website, add a matching case here AND in the switch.
+// The switch also has a `default` fallback, so a missing case shows
+// the value as-is instead of crashing the launcher.
+export type Availability =
+  | "available"
+  | "in-progress"
+  | "extracting"
+  | "translating"
+  | "packing"
+  | "finalizing"
+  | "qa"
+  | "coming-soon"
+  | "planned"
+  | "paused"
+  | "archived";
 export type ModState     = "ACTIVE" | "DISABLED" | "NOT_INSTALLED" | "NOT_AVAILABLE" | "UNKNOWN";
 
 export interface Game {

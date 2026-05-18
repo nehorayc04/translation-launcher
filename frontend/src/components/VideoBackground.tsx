@@ -25,6 +25,32 @@ export default function VideoBackground() {
   const refB = useRef<HTMLVideoElement>(null);
   const [active, setActive] = useState<"A" | "B">("A");
   const lastSwapRef = useRef<number>(0);
+  // Blob URL keeps the static .mp4 path out of the DOM so IDM-style
+  // sniffers can't grab a downloadable source. Fetched once, shared
+  // between both <video> layers, revoked on unmount.
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let objectUrl: string | null = null;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/214405.mp4");
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const blob = await res.blob();
+        if (cancelled) return;
+        objectUrl = URL.createObjectURL(blob);
+        setBlobUrl(objectUrl);
+      } catch (e) {
+        console.warn("[VideoBackground] blob fetch failed, falling back to direct src:", e);
+        if (!cancelled) setBlobUrl("/214405.mp4");
+      }
+    })();
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, []);
 
   // Boot: start A at t=0, start B at t=duration/2 so the two layers are
   // permanently out of phase. We wait for metadata so currentTime sticks.
@@ -168,20 +194,29 @@ export default function VideoBackground() {
 
   return (
     <>
-      <video
-        ref={refA}
-        autoPlay muted playsInline loop preload="auto"
-        className="fixed inset-0 w-screen h-screen object-cover"
-        style={layerStyle(active === "A")}
-        src="/214405.mp4"
-      />
-      <video
-        ref={refB}
-        autoPlay muted playsInline loop preload="auto"
-        className="fixed inset-0 w-screen h-screen object-cover"
-        style={layerStyle(active === "B")}
-        src="/214405.mp4"
-      />
+      {/* Both crossfading layers live inside one fixed wrapper plus a
+          transparent shield on top. IDM and similar extensions look for
+          a hoverable <video> element to attach their "download this
+          video" panel — the shield catches that hover instead, and
+          pointer-events:none on each video makes sure the browser never
+          registers hover on them directly either. */}
+      <div className="fixed inset-0" style={{ zIndex: 0 }} aria-hidden>
+        <video
+          ref={refA}
+          autoPlay muted playsInline loop preload="auto"
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+          style={layerStyle(active === "A")}
+          src={blobUrl ?? undefined}
+        />
+        <video
+          ref={refB}
+          autoPlay muted playsInline loop preload="auto"
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+          style={layerStyle(active === "B")}
+          src={blobUrl ?? undefined}
+        />
+        <div className="absolute inset-0 z-10 bg-transparent" />
+      </div>
       {/* Tinted overlay — sits between video and content */}
       <div
         className="fixed inset-0 pointer-events-none

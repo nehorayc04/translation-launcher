@@ -104,7 +104,7 @@ export default function GameDetailPanel({ game, onBack, onRefresh, reportStatus,
           <div className="aspect-[2/3] rounded-2xl overflow-hidden ring-1 ring-white/10
                           shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)]">
             <img
-              src={`/covers/${game.id}.jpg`}
+              src={game.cover || `/covers/${game.id}.jpg`}
               alt={game.titleEn}
               className="w-full h-full object-cover"
               draggable={false}

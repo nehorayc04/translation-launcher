@@ -15,7 +15,11 @@ export default function GameCard({ game, onClick, size = "md" }: Props) {
   const accent   = accentFor(game.theme_key);
   const avail    = availabilityLabel(game.availability);
   const modBadge = game.has_mod_support ? modStateLabel(game.mod_state) : null;
-  const coverSrc = `/covers/${game.id}.jpg`;
+  // Prefer the catalog's `cover` URL (admin-managed in the website's
+  // Supabase `games.cover_url` and surfaced by both _shape_supabase_game
+  // and /api/games). Falls back to the locally-bundled image for cards
+  // whose art was shipped with the launcher binary.
+  const coverSrc = game.cover || `/covers/${game.id}.jpg`;
   const [imgError, setImgError] = useState(false);
 
   const widthClass = size === "lg" ? "w-[230px]" : "w-[180px]";

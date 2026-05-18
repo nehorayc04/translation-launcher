@@ -21,6 +21,11 @@ export interface Game {
   featured?: boolean;
   /** Catalog-level sort order, lower = earlier. Used to order featured games. */
   sortOrder?: number;
+  /** Admin-managed cover URL from the catalog (cover_url in DB).
+   *  Preferred over the bundled /covers/<id>.jpg fallback so that
+   *  newly-added games (whose art was never shipped with the launcher)
+   *  still render their cover instead of a broken-image icon. */
+  cover?: string | null;
 }
 
 export interface ScanResult {

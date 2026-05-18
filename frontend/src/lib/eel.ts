@@ -83,6 +83,26 @@ export interface LauncherUser {
   provider:   string;
 }
 
+/** Shape returned by /auth/get_my_purchases. The nested `games` row
+ *  follows the snake_case DB schema (NOT the camelCase /api/games
+ *  output) because PostgREST embeds the raw columns. */
+export interface MyPurchase {
+  id:         string | number;
+  game_id:    string;
+  status:     string;
+  created_at: string;
+  games: {
+    id:            string;
+    title_en:      string;
+    title_he:      string;
+    cover_url:     string | null;
+    version:       string;
+    version_label: string;
+    download_url:  string | null;
+    price_cents:   number | null;
+  } | null;
+}
+
 export const api = {
   ready:            (): boolean => isEelReady(),
   getAllGames:      ()                          => call<Game[]>("get_all_games"),
@@ -108,6 +128,13 @@ export const api = {
   authMe:           ()                          => call<LauncherUser | null>("auth_me"),
   authLogout:       ()                          => call<{ok: boolean; error?: string}>("auth_logout"),
   authOwnsGame:     (gameId: string)            => call<boolean>("auth_owns_game", gameId),
+  /** All 'completed' purchases for the current user with the joined
+   *  game catalog row inlined (Supabase resource embedding). Returns
+   *  [] when signed out. */
+  authGetMyPurchases: ()                        => call<MyPurchase[]>("auth_get_my_purchases"),
+  /** Game-ids the current user has voted for. Returns [] when signed
+   *  out. */
+  authGetMyVotes:     ()                        => call<string[]>("auth_get_my_votes"),
   authAbortLogin:   ()                          => call<{ok: boolean; aborted?: boolean; error?: string}>("auth_abort_login"),
   /** URL of the currently-in-flight Google OAuth attempt, or null
    *  when no attempt is active. The AuthModal's "copy link" button

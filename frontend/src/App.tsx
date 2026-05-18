@@ -9,6 +9,7 @@ import HomeView          from "./views/HomeView";
 import LibraryView       from "./views/LibraryView";
 import SettingsView      from "./views/SettingsView";
 import DownloadsView     from "./views/DownloadsView";
+import PersonalAreaView  from "./views/PersonalAreaView";
 import GameDetailPanel   from "./views/GameDetailPanel";
 import { api }           from "./lib/eel";
 import type { Game }     from "./lib/types";
@@ -162,6 +163,12 @@ export default function App() {
             />
           ) : view === "downloads" ? (
             <DownloadsView refreshNonce={refreshNonce} />
+          ) : view === "personal" ? (
+            <PersonalAreaView
+              refreshNonce={refreshNonce}
+              onBack={() => setView("home")}
+              webProfileUrl="https://hebrew-translation-hub.vercel.app/profile"
+            />
           ) : (
             <SettingsView
               games={games}

@@ -742,6 +742,34 @@ def auth_owns_game(game_id: str) -> bool:
 
 
 @eel.expose
+def auth_get_my_purchases() -> list[dict]:
+    """All 'completed' purchases for the signed-in user, with the
+    joined game row embedded. Powers the launcher's Personal Area.
+    Returns [] when signed out or on any error (fail-closed)."""
+    if not _auth_available or _auth is None:
+        return []
+    try:
+        return _auth.get_purchases()
+    except Exception as e:                              # pragma: no cover
+        print(f"[auth_get_my_purchases] failed: {e}", flush=True)
+        return []
+
+
+@eel.expose
+def auth_get_my_votes() -> list[str]:
+    """Game-ids the signed-in user has voted for. Powers the votes
+    count + "voted" markers in the launcher's Personal Area. Returns
+    [] when signed out or on any error."""
+    if not _auth_available or _auth is None:
+        return []
+    try:
+        return _auth.get_votes()
+    except Exception as e:                              # pragma: no cover
+        print(f"[auth_get_my_votes] failed: {e}", flush=True)
+        return []
+
+
+@eel.expose
 def auth_get_authorize_url() -> str | None:
     """Return the URL of the in-flight Google OAuth attempt so the
     AuthModal can offer a "copy link" affordance — useful when the OS

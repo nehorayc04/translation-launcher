@@ -526,6 +526,101 @@ def owns_game(game_id: str) -> bool:
     return isinstance(rows, list) and len(rows) > 0
 
 
+def _authed_token() -> Optional[tuple]:
+    """Return (cfg, access_token) for the current user, refreshing if
+    needed. Returns None when no session is available — every caller
+    should treat that as "signed out, return an empty list / false"."""
+    try:
+        cfg   = _cfg_or_init()
+        store = _store_or_init()
+    except AuthConfigError:
+        return None
+    tok = store.load()
+    if not tok:
+        return None
+    if tok.is_expired():
+        try:
+            tok = _refresh(cfg, store, tok)
+        except AuthError:
+            return None
+    return (cfg, tok.access_token)
+
+
+def get_purchases() -> list[dict]:
+    """All 'completed' user_purchases rows for the current user, with
+    the joined game catalog row inlined via PostgREST's resource-
+    embedding syntax (`games(*)`). Fail-closed: returns [] on any
+    error so the UI can render an empty state without crashing."""
+    a = _authed_token()
+    if a is None:
+        return []
+    cfg, access = a
+    url = cfg.rest_url + '/user_purchases'
+    try:
+        r = requests.get(
+            url,
+            params={
+                'select': 'id,game_id,status,created_at,games(id,title_en,title_he,cover_url,version,version_label,download_url,price_cents)',
+                'status': 'eq.completed',
+                'order':  'created_at.desc',
+            },
+            headers={
+                'apikey':        cfg.anon_key,
+                'Authorization': f'Bearer {access}',
+                'Accept':        'application/json',
+            },
+            timeout=8,
+        )
+    except requests.RequestException as e:
+        log.warning('get_purchases network error: %s', e)
+        return []
+    if not r.ok:
+        log.warning('get_purchases HTTP %d: %s', r.status_code, r.text[:200])
+        return []
+    try:
+        rows = r.json()
+    except ValueError:
+        return []
+    return rows if isinstance(rows, list) else []
+
+
+def get_votes() -> list[str]:
+    """List of game_ids the current user has voted for. Empty list
+    when signed out."""
+    a = _authed_token()
+    if a is None:
+        return []
+    cfg, access = a
+    url = cfg.rest_url + '/votes'
+    try:
+        r = requests.get(
+            url,
+            params={
+                'select': 'game_id',
+                'order':  'created_at.desc',
+            },
+            headers={
+                'apikey':        cfg.anon_key,
+                'Authorization': f'Bearer {access}',
+                'Accept':        'application/json',
+            },
+            timeout=8,
+        )
+    except requests.RequestException as e:
+        log.warning('get_votes network error: %s', e)
+        return []
+    if not r.ok:
+        log.warning('get_votes HTTP %d: %s', r.status_code, r.text[:200])
+        return []
+    try:
+        rows = r.json()
+    except ValueError:
+        return []
+    if not isinstance(rows, list):
+        return []
+    return [str(row.get('game_id')) for row in rows if row.get('game_id')]
+
+
 # ── internals ─────────────────────────────────────────────────
 
 def _exchange_pkce(cfg: SupabaseConfig, code: str, verifier: str) -> dict:

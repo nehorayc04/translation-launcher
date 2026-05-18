@@ -24,12 +24,14 @@ webbrowser) so PyInstaller doesn't have to bundle aiohttp / authlib.
 """
 from .manager import (
     login, logout, me, owns_game, abort_login,
+    get_last_authorize_url,
     signin_with_password, signup_with_password,
     AuthError,
 )
 
 __all__ = [
     'login', 'logout', 'me', 'owns_game', 'abort_login',
+    'get_last_authorize_url',
     'signin_with_password', 'signup_with_password',
     'AuthError',
 ]

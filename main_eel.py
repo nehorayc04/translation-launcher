@@ -12,6 +12,34 @@ Run in DEV mode (frontend served by Vite on :5173, Eel just exposes the API):
 
 from __future__ import annotations
 
+# ════════════════════════════════════════════════════════════════════
+# CRITICAL: monkey-patch BEFORE any other runtime imports.
+# ════════════════════════════════════════════════════════════════════
+# Eel does NOT call gevent.monkey.patch_all() on its own. That left
+# every socket call (HTTPS to Supabase, the loopback's handle_request,
+# even Eel's own websocket accept) as native blocking calls running on
+# the same OS thread as the gevent hub. Result: the hub stalls during
+# every socket I/O, the React frontend hangs, and bridge calls like
+# auth_abort_login can't dispatch — which is the entire history of the
+# "Copy Link / Cancel button unresponsive" and "OAuth flow freezes
+# right after the callback" bugs.
+#
+# We patch socket + ssl (and select, which is what http.server uses to
+# wait for incoming connections). We DELIBERATELY DO NOT patch
+# threading — the launcher's download manager and a few other modules
+# use real OS threads for background work that must not be serialised
+# behind the gevent hub. Threads created inside the auth path that
+# DO need cooperative semantics use gevent.spawn / gevent.event
+# explicitly, so they don't need monkey-patching either.
+#
+# `from __future__` MUST be the very first statement (Python language
+# rule), so the patch lives on the line immediately after it; this is
+# still before every runtime import below.
+from gevent import monkey as _gevent_monkey
+_gevent_monkey.patch_socket()
+_gevent_monkey.patch_ssl()
+_gevent_monkey.patch_select()
+
 import argparse
 import json
 import os
@@ -602,16 +630,81 @@ def open_folder(path: str) -> dict:
 
 @eel.expose
 def auth_login() -> dict:
-    """Open browser → wait for OAuth callback → store tokens → return user."""
+    """Open browser → wait for OAuth callback → store tokens → return user.
+
+    The blocking call (`_auth.login()`, which can sit on a
+    threading.Event for up to 180 s waiting for the loopback callback)
+    runs on a NATIVE OS thread so it never pins the Eel/gevent
+    websocket loop. The handler greenlet then polls cooperatively via
+    `gevent.sleep` while waiting on the OS thread's done-event.
+
+    Why this matters: Eel's websocket transport runs on gevent. Without
+    monkey-patching (Eel does not patch by default), `threading.Event`
+    is the native blocking primitive — `event.wait()` from a greenlet
+    halts the entire gevent loop, which means a second Eel call
+    (`auth_abort_login`) cannot dispatch until the first returns. The
+    user clicks "בטל וחזור" and nothing happens for 180 s. Running the
+    blocker in an OS thread and polling cooperatively breaks the
+    deadlock — gevent stays alive, the abort bridge fires instantly."""
     if not _auth_available or _auth is None:
         return {"ok": False, "error": f"auth-unavailable: {_auth_error or 'module not loaded'}"}
+
+    # CRITICAL: run the blocking login() inside a GREENLET, not a native
+    # OS thread. Eel/bottle_websocket invokes gevent.monkey.patch_all(),
+    # which replaces the stdlib socket with a gevent-cooperative one.
+    # That patched socket REQUIRES a gevent hub in the current thread to
+    # dispatch I/O — the hub only exists on the thread the gevent event
+    # loop runs on. Spawning a native threading.Thread moves the
+    # subsequent requests.get/post calls off the hub-bearing thread, so
+    # the first HTTPS read silently deadlocks (the auth_debug.log gets
+    # stuck right between "storing initial tokens" and "fetching user
+    # profile", i.e. exactly at the next outbound HTTPS read).
+    #
+    # gevent.spawn keeps the work in the hub's thread. The Eel handler
+    # waits on a gevent.AsyncResult which yields cooperatively, so the
+    # websocket loop keeps dispatching other Eel calls (including
+    # auth_abort_login) while we wait — same UX guarantees as the
+    # threading version was supposed to have, without the deadlock.
+    import gevent                                                                 # type: ignore[import-not-found]
+    from gevent.event import AsyncResult                                          # type: ignore[import-not-found]
+
+    result_box: AsyncResult = AsyncResult()
+
+    def _worker() -> None:
+        try:
+            user = _auth.login()
+            result_box.set({"ok": True, "user": user})
+        except _auth.AuthError as e:
+            result_box.set({"ok": False, "error": str(e)})
+        except BaseException as e:                                                # noqa: BLE001
+            # BaseException catches KeyboardInterrupt / SystemExit /
+            # GreenletExit / etc. so even an exotic crash resolves the
+            # AsyncResult — the Eel handler returns a clean error
+            # instead of leaving the React Promise unresolved forever.
+            result_box.set({
+                "ok":    False,
+                "error": f'unexpected: {type(e).__name__}: {e}',
+            })
+
+    greenlet = gevent.spawn(_worker)
+
+    # Outer safety cap. _auth.login()'s internal timeout is 180 s; this
+    # 200 s wrap is belt-and-braces in case something exotic eats both
+    # success AND failure paths inside the greenlet. AsyncResult.get
+    # yields cooperatively to the gevent hub, so the websocket loop
+    # stays responsive — auth_abort_login dispatches normally while we
+    # wait, identical UX to a non-blocking handler.
     try:
-        user = _auth.login()
-        return {"ok": True, "user": user}
-    except _auth.AuthError as e:
-        return {"ok": False, "error": str(e)}
-    except Exception as e:  # pragma: no cover — defensive
-        return {"ok": False, "error": f"unexpected: {e}"}
+        return result_box.get(timeout=200.0)
+    except gevent.Timeout:
+        try:
+            greenlet.kill(block=False)
+        except Exception:
+            pass
+        return {
+            "ok":    False,
+            "error": "Login did not complete within 200s. Try again.",
+        }
 
 
 @eel.expose
@@ -646,6 +739,23 @@ def auth_owns_game(game_id: str) -> bool:
         return bool(_auth.owns_game(str(game_id)))
     except Exception:
         return False
+
+
+@eel.expose
+def auth_get_authorize_url() -> str | None:
+    """Return the URL of the in-flight Google OAuth attempt so the
+    AuthModal can offer a "copy link" affordance — useful when the OS
+    default browser opened the wrong Chrome profile and the user wants
+    to paste the URL into a different profile instead. Returns None
+    when no attempt is active. The URL embeds a PKCE challenge that
+    only this process can redeem, so sharing it with the user is
+    safe."""
+    if not _auth_available or _auth is None:
+        return None
+    try:
+        return _auth.get_last_authorize_url()
+    except Exception:
+        return None
 
 
 @eel.expose

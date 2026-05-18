@@ -1,11 +1,17 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_data_files
 from PyInstaller.utils.hooks import collect_submodules
+from PyInstaller.utils.hooks import copy_metadata
 
 datas = [('frontend\\dist', 'frontend/dist'), ('games.json', '.'), ('news.json', '.'), ('updates.json', '.'), ('translation_manager', 'translation_manager')]
-hiddenimports = ['bottle', 'bottle_websocket', 'gevent', 'gevent.monkey', 'gevent.queue', 'geventwebsocket', 'geventwebsocket.handler']
+hiddenimports = ['bottle', 'bottle_websocket', 'gevent', 'gevent.monkey', 'gevent.queue', 'gevent.event', 'geventwebsocket', 'geventwebsocket.handler', 'keyring.backends.Windows', 'keyring.backends.macOS', 'keyring.backends.SecretService', 'cryptography.fernet', 'cryptography.hazmat.backends.openssl']
 datas += collect_data_files('eel')
+datas += copy_metadata('keyring')
 hiddenimports += collect_submodules('eel')
+hiddenimports += collect_submodules('translation_manager.auth')
+hiddenimports += collect_submodules('keyring')
+hiddenimports += collect_submodules('keyring.backends')
+hiddenimports += collect_submodules('cryptography')
 
 
 a = Analysis(

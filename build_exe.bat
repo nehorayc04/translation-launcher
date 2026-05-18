@@ -132,6 +132,9 @@ python -m PyInstaller ^
     --hidden-import keyring.backends.Windows ^
     --hidden-import keyring.backends.macOS ^
     --hidden-import keyring.backends.SecretService ^
+    --collect-submodules cryptography ^
+    --hidden-import cryptography.fernet ^
+    --hidden-import cryptography.hazmat.backends.openssl ^
     main_eel.py
 
 if errorlevel 1 (

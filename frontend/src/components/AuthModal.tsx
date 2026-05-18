@@ -11,6 +11,7 @@
 // active tab). All state lives locally; the parent just toggles `open`.
 import { useEffect, useRef, useState } from "react";
 import { useLauncherAuth } from "../lib/useLauncherAuth";
+import { api } from "../lib/eel";
 
 type Mode = "login" | "register";
 
@@ -35,6 +36,18 @@ export default function AuthModal({ open, onClose }: Props) {
   // `if (!open) return null` early return, since the hook-call count
   // would change between closed↔open renders and crash the whole tree.
   const [googleBusy, setGoogleBusy] = useState(false);
+  // "Copied!" toast on the Copy Link button — flips back to its
+  // default label after 1.5s. Kept up here for the same Rules of
+  // Hooks reason as googleBusy.
+  const [copied, setCopied] = useState(false);
+  // Pre-fetched authorize URL. Populated by the polling effect below
+  // the moment googleBusy flips true. We MUST have the URL ready
+  // SYNCHRONOUSLY at click time — clipboard APIs in Eel/Chromium
+  // reject writeText() if there's any async gap between the user
+  // gesture and the call. Awaiting the Eel bridge inside the onClick
+  // handler is exactly that gap, which is why the old version
+  // appeared to succeed but silently dropped the payload.
+  const [authUrl, setAuthUrl] = useState("");
   const firstInput = useRef<HTMLInputElement>(null);
 
   // Reset state every open + focus first input
@@ -57,6 +70,31 @@ export default function AuthModal({ open, onClose }: Props) {
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [open, busy, onClose]);
+
+  // Pre-fetch the authorize URL the instant Google waiting starts.
+  // Python sets the URL synchronously BEFORE calling webbrowser.open,
+  // so by the time signInGoogle() has registered as awaited (which is
+  // what flips googleBusy true) the URL is already available on the
+  // Python side. We poll briefly to cover the edge case where this
+  // effect runs before login() reaches the assignment — 10 tries at
+  // 100 ms is a 1 s window, far longer than the URL build needs.
+  useEffect(() => {
+    if (!googleBusy) { setAuthUrl(""); return; }
+    let cancelled = false;
+    let tries = 0;
+    const tick = async () => {
+      if (cancelled) return;
+      try {
+        const u = await api.authGetAuthorizeUrl();
+        if (cancelled) return;
+        if (u) { setAuthUrl(u); return; }
+      } catch { /* keep polling */ }
+      tries += 1;
+      if (tries < 10) setTimeout(tick, 100);
+    };
+    tick();
+    return () => { cancelled = true; };
+  }, [googleBusy]);
 
   if (!open) return null;
 
@@ -122,6 +160,64 @@ export default function AuthModal({ open, onClose }: Props) {
     setError(null);
   };
 
+  // SYNCHRONOUS copy — no `await` between the user click and the
+  // write, which Chromium/Eel security requires for non-user-gesture
+  // clipboard access. The URL is grabbed from authUrl state (populated
+  // by the prefetch effect above); we never await the Eel bridge in
+  // the click handler itself.
+  //
+  // Two-layer strategy:
+  //   1. navigator.clipboard.writeText — the modern path. It returns
+  //      a Promise, but we kick it off WITHOUT awaiting it here so the
+  //      browser still sees this as a user-gesture call. We attach
+  //      .then/.catch to the Promise to flip the UI label or fall
+  //      through to step 2.
+  //   2. execCommand('copy') with a hidden <textarea> — the legacy
+  //      path. Works in older Chromium / restricted contexts where
+  //      writeText is blocked entirely. Synchronous, no Promise.
+  const copyAuthorizeUrl = () => {
+    if (!authUrl) {
+      setError("הקישור לא זמין עדיין. נסה שוב בעוד רגע.");
+      return;
+    }
+    const flash = () => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    };
+    const legacyCopy = (): boolean => {
+      try {
+        const ta = document.createElement("textarea");
+        ta.value         = authUrl;
+        ta.style.position = "fixed";
+        ta.style.top      = "-1000px";   // off-screen, not display:none
+        ta.style.opacity  = "0";          //   (which disables selection)
+        ta.setAttribute("readonly", "");
+        document.body.appendChild(ta);
+        ta.select();
+        ta.setSelectionRange(0, authUrl.length);
+        const ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        return ok;
+      } catch {
+        return false;
+      }
+    };
+    try {
+      // Modern path — Promise-returning. Do NOT await: that breaks the
+      // user-gesture invariant. .then for success, .catch for fallback.
+      const maybe = navigator.clipboard?.writeText?.(authUrl);
+      if (maybe && typeof maybe.then === "function") {
+        maybe.then(flash).catch(() => {
+          if (legacyCopy()) flash();
+          else setError("שגיאת העתקה — נסה לסמן ולהעתיק ידנית.");
+        });
+        return;
+      }
+    } catch { /* fall through to legacy */ }
+    if (legacyCopy()) flash();
+    else setError("שגיאת העתקה — נסה לסמן ולהעתיק ידנית.");
+  };
+
   return (
     <div
       className="fixed inset-0 z-[100] grid place-items-center p-4"
@@ -161,16 +257,32 @@ export default function AuthModal({ open, onClose }: Props) {
             <div className="text-white font-bold text-lg">ממתין להתחברות דרך Google…</div>
             <div className="text-slate-400 text-xs max-w-xs leading-relaxed">
               נפתחה חלונית דפדפן. אשר את חשבון Google שלך שם וההתחברות תושלם
-              אוטומטית. אם הדפדפן לא נפתח, ניתן לבטל ולנסות שוב.
+              אוטומטית. אם הדפדפן פתח את הפרופיל הלא נכון — העתק את הקישור
+              והדבק אותו בדפדפן שאתה רוצה.
             </div>
-            <button
-              type="button"
-              onClick={cancelGoogle}
-              className="mt-2 px-4 py-1.5 rounded-lg bg-white/5 border border-white/10
-                         text-slate-300 hover:bg-white/10 text-xs"
-            >
-              בטל וחזור
-            </button>
+            <div className="mt-2 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={copyAuthorizeUrl}
+                className={[
+                  "px-4 py-1.5 rounded-lg border text-xs font-semibold transition",
+                  copied
+                    ? "bg-[#00ffe0]/15 border-[#00ffe0]/40 text-[#00ffe0]"
+                    : "bg-[#00ffe0]/5 border-[#00ffe0]/25 text-[#00ffe0] hover:bg-[#00ffe0]/10",
+                ].join(" ")}
+                title="מעתיק את כתובת ההתחברות ללוח — תוכל להדביק בכל דפדפן"
+              >
+                {copied ? "✓ הקישור הועתק" : "📋 העתק קישור"}
+              </button>
+              <button
+                type="button"
+                onClick={cancelGoogle}
+                className="px-4 py-1.5 rounded-lg bg-white/5 border border-white/10
+                           text-slate-300 hover:bg-white/10 text-xs"
+              >
+                בטל וחזור
+              </button>
+            </div>
           </div>
         )}
 

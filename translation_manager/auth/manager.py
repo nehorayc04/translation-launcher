@@ -23,7 +23,7 @@ import time
 import webbrowser
 from dataclasses import dataclass
 from typing import Optional
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 
 import requests
 
@@ -33,6 +33,21 @@ from .pkce import generate as pkce_generate
 from .storage import StoredToken, TokenStore
 
 log = logging.getLogger(__name__)
+
+
+def _debug_step(label: str) -> None:
+    """Append a timestamped breadcrumb to a sidecar file. The launcher
+    runs windowed (no console), and PyInstaller swallows stdout, so
+    when the OAuth flow hangs we have no other way to tell which step
+    is blocked. Best-effort — never raises."""
+    try:
+        from pathlib import Path as _P
+        p = _P.home() / '.translation_manager' / 'auth_debug.log'
+        p.parent.mkdir(parents=True, exist_ok=True)
+        with open(p, 'a', encoding='utf-8') as fh:
+            fh.write(f'{time.strftime("%Y-%m-%d %H:%M:%S")}  {label}\n')
+    except Exception:
+        pass
 
 
 class AuthError(RuntimeError):
@@ -73,6 +88,24 @@ _cfg:   Optional[SupabaseConfig] = None
 # briefly; we don't want to hold the lock during that).
 _active_listener:      Optional[LoopbackListener] = None
 _active_listener_lock                              = threading.Lock()
+
+# Last-built authorize URL — exposed to the frontend via the
+# auth_get_authorize_url Eel bridge so the modal can offer a "copy
+# link" affordance. Lets users open the OAuth flow in a different
+# browser profile than the OS default, which webbrowser.open() picks
+# blindly. Set once per login() attempt right before webbrowser.open;
+# cleared when login() returns or aborts so a stale URL with a now-
+# closed listener never gets handed back out.
+_last_authorize_url:   Optional[str] = None
+
+
+def get_last_authorize_url() -> Optional[str]:
+    """Return the URL of the currently-in-flight Google sign-in
+    attempt, or None if no attempt is active. The URL embeds a PKCE
+    challenge that ONLY this process can redeem, so handing it to the
+    user (who pastes it into another browser) is safe — anyone else
+    intercepting it can't redeem the auth code without our verifier."""
+    return _last_authorize_url
 
 
 def _store_or_init() -> TokenStore:
@@ -236,25 +269,95 @@ def login(timeout: float = 180.0) -> dict:
 
     pkce = pkce_generate()
 
+    # Both module-level slots are reassigned inside the with-block
+    # below. `global` must precede the first assignment in the
+    # function body or Python silently treats them as fresh locals.
+    global _active_listener, _last_authorize_url
+
     with LoopbackListener() as srv:
         # Register globally so abort_login() can find us. Using a lock
         # because Eel worker threads may run concurrent login attempts
         # (we just aborted any prior one above, but a parallel one
         # could land here at the same time).
-        global _active_listener
         with _active_listener_lock:
             _active_listener = srv
         try:
-            authorize_url = cfg.authorize_url + '?' + urlencode({
+            # IMPORTANT: redirect_to is explicitly percent-encoded via
+            # quote(safe='') instead of being passed through urlencode().
+            # urlencode uses quote_plus which leaves `/` as-is by default
+            # in some Supabase URL-matchers — when the encoding doesn't
+            # match the Redirect URLs whitelist BYTE-for-BYTE, Supabase
+            # silently falls back to the Site URL (the Vercel homepage)
+            # instead of completing the OAuth handshake.
+            #
+            # NOTE: `flow_type=pkce` is INTENTIONALLY OMITTED. It is a
+            # supabase-js client-side flag, not a Supabase REST param.
+            # When sent to GoTrue's /auth/v1/authorize it is ignored at
+            # best and rejected at worst — in some versions GoTrue
+            # silently falls back to the Site URL when it sees unknown
+            # params, which is exactly the "always lands on Vercel
+            # homepage" symptom we were chasing.
+            # NOTE: NO `state` PARAMETER. Supabase's GoTrue acts as the
+            # OAuth middleman and generates + verifies its OWN state via
+            # an `sb-provider-state` cookie. Forcing a client-supplied
+            # `state` here corrupts GoTrue's validation and the entire
+            # flow fails with `bad_oauth_state` → Supabase redirects to
+            # the Site URL with the error in the query string, which
+            # presented as "always lands on the Vercel homepage". CSRF
+            # protection for the loopback is still strong: only the
+            # process holding the PKCE code_verifier can redeem the
+            # auth_code on the token endpoint.
+            encoded_redirect = quote(srv.redirect_uri, safe='')
+            other_params = urlencode({
                 'provider':              'google',
-                'redirect_to':           srv.redirect_uri,
                 'code_challenge':        pkce.challenge,
                 'code_challenge_method': pkce.method,
-                'flow_type':             'pkce',
-                # `state` is what protects us against a stranger forging a
-                # /callback hit on our loopback — the listener checks it.
-                'state':                 srv.state,
+                # Force Google's account chooser on every sign-in.
+                # Without this, persistent Google cookies in the OS
+                # default browser auto-complete the OAuth flow the
+                # instant the user re-clicks "המשך עם Google" after
+                # signing out — they get logged straight back into
+                # the same account with no chance to pick another.
+                # Supabase passes recognised OIDC params (prompt,
+                # login_hint, etc.) straight through to the upstream
+                # provider, so adding it here is enough.
+                'prompt':                'select_account',
             })
+            authorize_url = (
+                cfg.authorize_url
+                + '?redirect_to=' + encoded_redirect
+                + '&' + other_params
+            )
+
+            # Expose to the frontend BEFORE opening the browser so the
+            # AuthModal's "copy link" button has something to hand back
+            # the instant the user clicks it. Plain assignment is fine —
+            # we never read this concurrently from the worker thread
+            # that's about to block in await_code(). The `global`
+            # declaration lives at the top of login() because Python
+            # requires it before the first assignment in the function
+            # body; otherwise the finally-block assignment below
+            # triggers SyntaxError.
+            _last_authorize_url = authorize_url
+
+            # Drop the exact URL into a sidecar file so the user can
+            # paste it into a browser to verify it's what they think
+            # AND compare against Supabase's Redirect URLs whitelist
+            # without having to attach a debugger. The launcher is
+            # windowed (no console), so logging alone is invisible.
+            try:
+                from pathlib import Path as _P
+                dbg = _P.home() / '.translation_manager' / 'last_auth_url.txt'
+                dbg.parent.mkdir(parents=True, exist_ok=True)
+                dbg.write_text(
+                    'AUTHORIZE URL (opened in browser):\n'
+                    + authorize_url
+                    + '\n\nLOOPBACK redirect_uri (must be in Supabase Redirect URLs):\n'
+                    + srv.redirect_uri + '\n',
+                    encoding='utf-8',
+                )
+            except Exception:
+                pass
 
             log.info('Opening browser to %s (loopback: %s)', cfg.authorize_url, srv.redirect_uri)
             opened = webbrowser.open(authorize_url, new=2)
@@ -262,26 +365,70 @@ def login(timeout: float = 180.0) -> dict:
                 # Fall back to printing — even on Windows this is unusual.
                 log.warning('webbrowser.open returned False. Manual URL: %s', authorize_url)
 
+            _debug_step('awaiting callback')
             cb = srv.await_code(timeout=timeout)
+            _debug_step(f'callback received (code={"yes" if cb.code else "no"}, '
+                        f'error={cb.error!r})')
             if cb.error or not cb.code:
                 raise AuthError(cb.error_description or cb.error or 'Sign-in did not complete')
 
             # Exchange the auth code for tokens (PKCE: no client secret).
-            token_payload = _exchange_pkce(cfg, cb.code, pkce.verifier)
-            stored = _store_token_from_response(cfg, store, token_payload)
+            # Each step gets its own try/except so a failure surfaces
+            # as a clear AuthError instead of an opaque "unexpected"
+            # crash in the Eel worker (which would leave the UI stuck
+            # on the spinner forever).
+            _debug_step('exchanging PKCE code for tokens')
+            try:
+                token_payload = _exchange_pkce(cfg, cb.code, pkce.verifier)
+            except AuthError:
+                raise
+            except Exception as e:
+                raise AuthError(f'Token exchange failed: {e}') from e
+
+            _debug_step('storing initial tokens (keyring + encrypted file)')
+            try:
+                stored = _store_token_from_response(cfg, store, token_payload)
+            except AuthError:
+                raise
+            except Exception as e:
+                raise AuthError(f'Saving session failed: {e}') from e
         finally:
             # Deregister even on error — otherwise a stale reference
             # would point at a closed server.
             with _active_listener_lock:
                 if _active_listener is srv:
                     _active_listener = None
+            # Drop the cached authorize URL too — if the copy-link
+            # button is clicked AFTER the modal closes, returning the
+            # URL of a now-dead listener would just confuse the user.
+            _last_authorize_url = None
 
-    user = _fetch_user(cfg, stored.access_token)
-    # Update the stored email/user_id once we know them — cheap, lets
-    # `me()` answer without an extra round-trip when offline.
-    stored = StoredToken(**{**stored.__dict__, 'email': user.email, 'user_id': user.id})
-    store.save(stored)
+    _debug_step('fetching user profile from /auth/v1/user')
+    try:
+        user = _fetch_user(cfg, stored.access_token)
+    except AuthError:
+        raise
+    except Exception as e:
+        raise AuthError(f'Fetching user profile failed: {e}') from e
 
+    # Backfill email + user_id so me() can answer offline. NON-FATAL:
+    # if this second keyring/disk write fails for any reason (Windows
+    # Credential Manager flake, transient OSError, etc.) we still have
+    # a fully valid in-memory session and the initial save above
+    # already persisted the tokens. Returning success here means the
+    # user is signed in for THIS session even if me() has to do a
+    # network roundtrip next launch. Raising would mean a successful
+    # OAuth flow that the UI reports as a failure — exactly the
+    # "stuck spinner / silent failure" bug we're fixing.
+    _debug_step('backfilling email/user_id in session (non-fatal)')
+    try:
+        stored = StoredToken(**{**stored.__dict__, 'email': user.email, 'user_id': user.id})
+        store.save(stored)
+    except Exception as e:
+        log.warning('Non-fatal: could not backfill user info in session: %s', e)
+        _debug_step(f'backfill save failed (non-fatal): {e}')
+
+    _debug_step('login() complete — returning user dict')
     return user.to_dict()
 
 

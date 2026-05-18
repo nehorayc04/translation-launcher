@@ -109,6 +109,11 @@ export const api = {
   authLogout:       ()                          => call<{ok: boolean; error?: string}>("auth_logout"),
   authOwnsGame:     (gameId: string)            => call<boolean>("auth_owns_game", gameId),
   authAbortLogin:   ()                          => call<{ok: boolean; aborted?: boolean; error?: string}>("auth_abort_login"),
+  /** URL of the currently-in-flight Google OAuth attempt, or null
+   *  when no attempt is active. The AuthModal's "copy link" button
+   *  uses this so the user can paste into a different browser
+   *  profile if `webbrowser.open()` opened the wrong one. */
+  authGetAuthorizeUrl: ()                       => call<string | null>("auth_get_authorize_url"),
 
   // ── Email/password (kept entirely inside the launcher UI) ──
   authSignInPassword: (email: string, password: string) =>

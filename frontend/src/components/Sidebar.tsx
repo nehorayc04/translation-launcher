@@ -1,7 +1,7 @@
 // Right-side nav (RTL): brand, three nav rows, bottom "settings + refresh"
 // panel, version footer. The bottom panel replaces the old UpdatesMenu —
 // updates now live in the dedicated /downloads view.
-import { useMemo, useState, type ComponentType, type SVGProps } from "react";
+import { useEffect, useMemo, useState, type ComponentType, type SVGProps } from "react";
 import { HomeIcon, LibraryIcon, DownloadsIcon, SettingsIcon } from "./NavIcons";
 import { useLauncherAuth } from "../lib/useLauncherAuth";
 import AuthModal from "./AuthModal";
@@ -120,7 +120,8 @@ export default function Sidebar({ current, onNavigate, onRefresh }: Props) {
 
 function AuthSlot() {
   const { user, signedIn, signOut, loading } = useLauncherAuth();
-  const [modalOpen, setModalOpen] = useState(false);
+  const [modalOpen,        setModalOpen]        = useState(false);
+  const [confirmLogout,    setConfirmLogout]    = useState(false);
 
   if (loading) {
     return (
@@ -177,13 +178,97 @@ function AuthSlot() {
         </div>
         <button
           type="button"
-          onClick={signOut}
+          onClick={() => setConfirmLogout(true)}
           title="התנתק"
           className="text-[10px] text-rose-300 hover:text-rose-200 px-1.5 py-0.5
                      rounded border border-rose-500/20 hover:border-rose-500/40"
         >
           יציאה
         </button>
+      </div>
+      <LogoutConfirm
+        open={confirmLogout}
+        userLabel={user?.fullName || user?.email?.split('@')[0] || ''}
+        onCancel={() => setConfirmLogout(false)}
+        onConfirm={async () => {
+          setConfirmLogout(false);
+          await signOut();
+        }}
+      />
+    </div>
+  );
+}
+
+function LogoutConfirm({
+  open, userLabel, onCancel, onConfirm,
+}: {
+  open: boolean;
+  userLabel: string;
+  onCancel: () => void;
+  onConfirm: () => void | Promise<void>;
+}) {
+  // Escape to dismiss — close-on-backdrop-click is handled inline below.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onCancel(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, onCancel]);
+
+  if (!open) return null;
+  return (
+    <div
+      className="fixed inset-0 z-[110] grid place-items-center p-4"
+      style={{
+        direction: "rtl",
+        background: "rgba(0, 0, 0, 0.75)",
+        backdropFilter: "blur(10px)",
+      }}
+      onMouseDown={(e) => { if (e.target === e.currentTarget) onCancel(); }}
+    >
+      <div
+        className="w-full max-w-sm rounded-2xl border border-white/10
+                   bg-slate-900/90 backdrop-blur-2xl p-6
+                   shadow-[0_30px_60px_-20px_rgba(0,0,0,0.85),0_0_40px_-10px_rgba(244,63,94,0.25)]"
+      >
+        <div className="flex items-start gap-3 mb-4">
+          <div className="w-10 h-10 rounded-xl bg-rose-500/15 border border-rose-500/30
+                          grid place-items-center text-lg shrink-0">
+            ⚠️
+          </div>
+          <div className="flex-1 text-right">
+            <h3 className="text-white font-bold text-base">האם להתנתק?</h3>
+            {userLabel && (
+              <p className="text-slate-400 text-xs mt-0.5 truncate">
+                מחובר כעת כ־<span className="text-slate-200">{userLabel}</span>
+              </p>
+            )}
+          </div>
+        </div>
+        <p className="text-slate-300 text-xs leading-relaxed mb-5 text-right">
+          ההתנתקות תנקה את הסשן המקומי. תוכל להתחבר שוב בכל עת.
+        </p>
+        <div className="flex gap-2 justify-end">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 rounded-xl bg-white/5 border border-white/10
+                       text-slate-300 hover:bg-white/10 text-xs font-semibold transition"
+          >
+            ביטול
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="px-4 py-2 rounded-xl bg-rose-500/20 border border-rose-500/40
+                       text-rose-200 hover:bg-rose-500/30 hover:text-rose-100
+                       text-xs font-semibold transition
+                       shadow-[0_6px_16px_-6px_rgba(244,63,94,0.5)]"
+            autoFocus
+          >
+            כן, התנתק
+          </button>
+        </div>
       </div>
     </div>
   );

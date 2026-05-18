@@ -5,6 +5,12 @@ pyinstaller>=6.0.0
 eel>=0.16
 requests>=2.31
 # OS-native credential store (Windows Credential Manager, macOS Keychain,
-# libsecret on Linux). Used by translation_manager.auth.storage for the
-# Supabase access + refresh tokens — never written to disk in plaintext.
+# libsecret on Linux). Used by translation_manager.auth.storage to hold
+# the short Fernet key that decrypts the session blob on disk.
 keyring>=24.0
+# Symmetric encryption for the on-disk session file. We can't keep the
+# whole Supabase session in the keyring directly because Windows
+# Credential Manager rejects payloads over ~2560 bytes (WinError 1783,
+# "The stub received bad data"). Storage layout: short key in keyring,
+# encrypted JSON in %USERPROFILE%/.translation_manager/session.enc.
+cryptography>=42.0

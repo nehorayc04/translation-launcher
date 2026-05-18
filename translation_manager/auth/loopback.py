@@ -26,7 +26,6 @@ Security notes:
 """
 from __future__ import annotations
 
-import secrets
 import threading
 from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -35,11 +34,17 @@ from urllib.parse import parse_qs, urlparse
 
 
 # Fixed loopback port. Supabase's Redirect URLs whitelist must contain
-# `http://127.0.0.1:8085/auth/callback` exactly — Supabase often rejects
-# wildcard ports (`127.0.0.1:*`) and falls back to the project's Site
-# URL on mismatch, which is why the launcher used to send users to the
-# Vercel homepage instead of completing the OAuth handshake.
-LOOPBACK_PORT = 8085
+# `http://localhost:8085/auth/callback` exactly — Supabase's GoTrue
+# engine often REJECTS bare IPs (127.0.0.1) for desktop OAuth loopbacks
+# and falls back to the project's Site URL on mismatch, which is why
+# the launcher used to send users to the Vercel homepage instead of
+# completing the OAuth handshake. We bind the server to 127.0.0.1
+# (loopback only, no LAN exposure) but ADVERTISE the redirect URI as
+# `localhost` because the browser resolves both to the same socket
+# while Supabase only accepts the hostname form.
+LOOPBACK_HOST_BIND     = '127.0.0.1'   # what we listen on (security)
+LOOPBACK_HOST_ADVERTISE = 'localhost'  # what we tell Supabase + browser
+LOOPBACK_PORT          = 8085
 
 
 class _ReuseHTTPServer(HTTPServer):
@@ -104,9 +109,16 @@ _ERROR_HTML = """<!doctype html>
 
 @dataclass
 class CallbackResult:
-    """Captured query params from the OAuth redirect."""
+    """Captured query params from the OAuth redirect.
+
+    No `state` field — we no longer send a client-supplied state on
+    the authorize URL (it conflicts with Supabase GoTrue's own
+    sb-provider-state cookie verification and causes the entire flow
+    to fail with `bad_oauth_state`). CSRF protection on the loopback
+    relies entirely on the PKCE code_verifier: only this process
+    knows the verifier, so even if a stranger forged a hit on our
+    /auth/callback the auth_code can't be redeemed for tokens."""
     code:  Optional[str]
-    state: Optional[str]
     error: Optional[str]
     error_description: Optional[str]
 
@@ -114,8 +126,11 @@ class CallbackResult:
 class _Handler(BaseHTTPRequestHandler):
     """Custom request handler — captures /auth/callback params and ends the wait."""
 
-    # Set on the server instance by start_loopback() below.
-    expected_state: str = ''
+    # Set on the server instance by LoopbackListener.__enter__ below.
+    # `result` is the captured CallbackResult; `done_event` is the
+    # caller's wakeup signal. No `expected_state` — we no longer send
+    # a client-supplied state on the authorize URL (it conflicts with
+    # Supabase GoTrue's own state cookie).
     result: Optional[CallbackResult] = None
     done_event: Optional[threading.Event] = None
 
@@ -131,21 +146,14 @@ class _Handler(BaseHTTPRequestHandler):
             return
 
         qs = parse_qs(parsed.query)
-        state = (qs.get('state') or [None])[0]
         code  = (qs.get('code')  or [None])[0]
         err   = (qs.get('error') or [None])[0]
         err_d = (qs.get('error_description') or [None])[0]
+        # `state` is deliberately ignored — see CallbackResult docstring.
 
-        # CSRF check — the state we generated must match. If it doesn't,
-        # someone tricked the user's browser into hitting our loopback.
-        # Refuse the code so we don't exchange it.
         srv = self.server  # type: ignore[assignment]
-        if not err and srv.expected_state and state != srv.expected_state:  # type: ignore[attr-defined]
-            err = 'state_mismatch'
-            err_d = 'OAuth state token did not match (possible CSRF).'
-
         srv.result = CallbackResult(  # type: ignore[attr-defined]
-            code=code, state=state, error=err, error_description=err_d,
+            code=code, error=err, error_description=err_d,
         )
 
         self.send_response(200)
@@ -157,7 +165,7 @@ class _Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
         # Tell the caller we have the goods. The server itself is
-        # shut down by start_loopback's `with` block.
+        # shut down by LoopbackListener.__exit__.
         if srv.done_event:  # type: ignore[attr-defined]
             srv.done_event.set()  # type: ignore[attr-defined]
 
@@ -169,86 +177,140 @@ class LoopbackListener:
     fallback to the project's Site URL instead of the loopback."""
 
     def __init__(self) -> None:
+        # Use gevent.event.Event explicitly — NOT threading.Event.
+        # await_code() calls self._done.wait(timeout) from inside a
+        # greenlet (the auth-login worker spawned via gevent.spawn).
+        # threading.Event.wait is a native blocking call that pins
+        # the entire OS thread, including the gevent hub — Eel's
+        # websocket loop stalls, the serve-loop greenlet can't run,
+        # and the React UI freezes until the timeout expires.
+        # gevent.event.Event.wait yields cooperatively so the hub
+        # stays alive and every other greenlet (serve loop, abort
+        # bridge, copy-link bridge) keeps dispatching.
+        import gevent.event                                                       # type: ignore[import-not-found]
         self.port  = LOOPBACK_PORT
-        self.state = secrets.token_urlsafe(24)
-        self._done = threading.Event()
+        self._done = gevent.event.Event()
         self._httpd: Optional[HTTPServer] = None
-        self._thread: Optional[threading.Thread] = None
-        # Aborted flag is a tristate: None = no abort signalled yet,
-        # True = abort() was called and we should treat any pending
-        # await_code wait as cancelled rather than as a real callback.
+        # _greenlet runs the non-blocking serve loop. Typed loosely
+        # because gevent.Greenlet isn't available at type-checking
+        # time.
+        self._greenlet = None
+        # Aborted flag: True iff abort() was called and we should
+        # treat any pending await_code wait as cancelled rather than
+        # as a real callback.
         self._aborted = False
 
     @property
     def redirect_uri(self) -> str:
-        return f'http://127.0.0.1:{self.port}/auth/callback'
+        # The advertised hostname is `localhost`, not `127.0.0.1`.
+        # Supabase's GoTrue rejects bare IP loopbacks in its redirect
+        # allowlist matching even when the URL is listed — but it
+        # accepts `localhost:<port>`. The browser resolves localhost
+        # back to 127.0.0.1 (where we're actually listening) so the
+        # callback still lands on our HTTP server.
+        return f'http://{LOOPBACK_HOST_ADVERTISE}:{self.port}/auth/callback'
 
     def __enter__(self) -> 'LoopbackListener':
         # Bind explicitly to 127.0.0.1 — NOT 0.0.0.0 — so only the local
         # user can deliver the callback. _ReuseHTTPServer sets
         # SO_REUSEADDR so a rapid abort→retry sequence doesn't fail
         # with "Address already in use" while the OS holds TIME_WAIT.
-        self._httpd = _ReuseHTTPServer(('127.0.0.1', self.port), _Handler)
-        # Park per-server state on the HTTPServer instance so the handler
-        # (which is constructed fresh per request) can read it.
-        self._httpd.expected_state = self.state  # type: ignore[attr-defined]
+        self._httpd = _ReuseHTTPServer((LOOPBACK_HOST_BIND, self.port), _Handler)
+        # Park per-server slots on the HTTPServer instance so the handler
+        # (which is constructed fresh per request) can read/write them.
         self._httpd.result = None                # type: ignore[attr-defined]
         self._httpd.done_event = self._done      # type: ignore[attr-defined]
-        self._thread = threading.Thread(
-            target=self._httpd.serve_forever,
-            name='auth-loopback', daemon=True,
-        )
-        self._thread.start()
+        # handle_request() blocks waiting for a connection up to this
+        # many seconds, then returns. Short enough that abort() is
+        # responsive without needing a dummy self-request hack; long
+        # enough to amortize syscall overhead while idle.
+        self._httpd.timeout = 0.2                # type: ignore[attr-defined]
+
+        # CRITICAL: spawn the serve loop as a GREENLET, not a native
+        # thread. Eel/gevent monkey-patches the socket module, so the
+        # patched socket inside handle_request() needs the gevent hub —
+        # running it on a native OS thread would deadlock the first
+        # inbound connection. The greenlet's loop body explicitly
+        # yields via gevent.sleep(0.05) so the Eel websocket loop
+        # keeps dispatching frontend bridge calls (auth_abort_login,
+        # auth_get_authorize_url) while we're waiting for the
+        # callback.
+        import gevent                                                              # type: ignore[import-not-found]
+        self._greenlet = gevent.spawn(self._serve_loop)
         return self
+
+    def _serve_loop(self) -> None:
+        """Non-blocking serve loop. Replaces serve_forever() so the
+        Eel/gevent hub never wedges. Each iteration:
+          1. handle_request()  → blocks up to httpd.timeout (0.2s)
+                                 for an inbound connection.
+          2. gevent.sleep(0.05) → explicit cooperative yield.
+
+        Exits when _done is set (handler captured a callback) or when
+        _aborted flips true (user clicked בטל וחזור). Worst-case
+        responsiveness to either: ~250ms."""
+        import gevent                                                              # type: ignore[import-not-found]
+        httpd = self._httpd
+        while not self._done.is_set() and not self._aborted:
+            try:
+                httpd.handle_request()  # type: ignore[union-attr]
+            except Exception:
+                # Per-request error must not kill the loop — a valid
+                # callback might still arrive on a later request.
+                pass
+            gevent.sleep(0.05)
 
     def await_code(self, timeout: float = 120.0) -> CallbackResult:
         """Block until the browser hits /auth/callback, until abort()
-        is called from another thread, or until timeout — whichever
+        is called from another greenlet, or until timeout — whichever
         comes first. Each terminus produces a distinct CallbackResult
-        so the caller can branch."""
+        so the caller can branch.
+
+        Runs in the login() greenlet. self._done.wait() is monkey-
+        patched to be gevent-cooperative, so the wait yields the hub
+        — which means the serve-loop greenlet keeps running and can
+        actually fire the _done event when a request lands."""
         if not self._done.wait(timeout):
             return CallbackResult(
-                code=None, state=None, error='timeout',
+                code=None, error='timeout',
                 error_description='User did not complete sign-in within %d seconds' % int(timeout),
             )
         if self._aborted:
             return CallbackResult(
-                code=None, state=None, error='cancelled',
+                code=None, error='cancelled',
                 error_description='Sign-in cancelled by user',
             )
         return getattr(self._httpd, 'result', None) or CallbackResult(
-            code=None, state=None, error='no_callback', error_description='no result captured',
+            code=None, error='no_callback', error_description='no result captured',
         )
 
     def abort(self) -> None:
-        """Release any blocked await_code() caller immediately and
-        tear down the HTTP server. Safe to call from any thread other
-        than the serve thread (HTTPServer.shutdown blocks on a self-
-        signal so calling from the serve thread itself would deadlock;
-        in practice this is invoked from the Eel worker thread that
-        handles the auth_abort_login bridge, never from the serve
-        thread). Idempotent — repeated calls are no-ops."""
+        """Release any blocked await_code() caller immediately. Just
+        sets the two flags — the serve loop notices on its next
+        iteration (within ~250ms, given timeout=0.2 + sleep 0.05) and
+        exits cleanly on its own. No self-request hack required, and
+        no separate teardown thread: the socket close is handled by
+        __exit__ when the worker's `with LoopbackListener()` block
+        unwinds. Idempotent."""
+        if self._aborted:
+            return
         self._aborted = True
         self._done.set()
-        # Shutdown + close in a best-effort manner; either may already
-        # be in progress from __exit__ if a real callback raced us.
-        httpd = self._httpd
-        if httpd is not None:
-            try:
-                httpd.shutdown()
-            except Exception:
-                pass
-            try:
-                httpd.server_close()
-            except Exception:
-                pass
 
     def __exit__(self, exc_type, exc, tb) -> None:
-        # If abort() already ran, these calls are harmless no-ops.
+        # Signal the serve loop to stop (idempotent with abort()).
+        self._aborted = True
+        self._done.set()
+        # Wait for the greenlet to exit. With handle_request timeout
+        # of 0.2s + a 0.05s explicit yield, the loop notices and
+        # exits within ~250ms — the 2s cap is just defence-in-depth.
+        if self._greenlet is not None:
+            try:
+                self._greenlet.join(timeout=2.0)
+            except Exception:
+                pass
+        # Close the socket after the loop is gone so we never race
+        # the greenlet's handle_request against server_close.
         if self._httpd is not None:
-            try: self._httpd.shutdown()
-            except Exception: pass
             try: self._httpd.server_close()
             except Exception: pass
-        if self._thread is not None:
-            self._thread.join(timeout=2.0)

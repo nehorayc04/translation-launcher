@@ -140,6 +140,7 @@ _PATTERNS: dict[str, list[str]] = {
     "acvalhalla":    ["assassinscreedvalhalla"],
     "acmirage":      ["assassinscreedmirage"],
     "anno1800":      ["anno1800", "anno1800ubisoftconnect"],
+    "aot2":          ["attackontitan2", "aot2", "aot2finalbattle", "attackontitan2finalbattle"],
 }
 
 
@@ -199,6 +200,7 @@ _EXE_PATTERNS: dict[str, list[str]] = {
     "acvalhalla":    ["ACValhalla.exe"],
     "acmirage":      ["ACMirage.exe"],
     "anno1800":      ["Anno1800.exe"],
+    "aot2":          ["AOT2.exe", "AttackonTitan2.exe", "AOT2FB.exe"],
 }
 
 # Common sub-folders that hold the main binary in AAA titles.

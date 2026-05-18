@@ -2,6 +2,7 @@
 // title gradient at bottom, hover = scale-up + glow.
 import type { Game } from "../lib/types";
 import { availabilityLabel, accentFor, gradientFor, modStateLabel } from "../lib/theme";
+import { resolveCoverUrl } from "../lib/coverUrl";
 import { useState } from "react";
 
 interface Props {
@@ -15,11 +16,10 @@ export default function GameCard({ game, onClick, size = "md" }: Props) {
   const accent   = accentFor(game.theme_key);
   const avail    = availabilityLabel(game.availability);
   const modBadge = game.has_mod_support ? modStateLabel(game.mod_state) : null;
-  // Prefer the catalog's `cover` URL (admin-managed in the website's
-  // Supabase `games.cover_url` and surfaced by both _shape_supabase_game
-  // and /api/games). Falls back to the locally-bundled image for cards
-  // whose art was shipped with the launcher binary.
-  const coverSrc = game.cover || `/covers/${game.id}.jpg`;
+  // Normalise the catalog's `cover` field (which may be a full URL,
+  // a root-relative path, or just a bare filename like "cyberpunk.jpg")
+  // to a usable <img src>. See lib/coverUrl.ts for the resolution rules.
+  const coverSrc = resolveCoverUrl(game.cover, game.id);
   const [imgError, setImgError] = useState(false);
 
   const widthClass = size === "lg" ? "w-[230px]" : "w-[180px]";

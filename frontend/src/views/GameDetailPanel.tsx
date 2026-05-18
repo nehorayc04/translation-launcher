@@ -3,6 +3,7 @@
 // content area (NOT a separate window).
 import type { Game } from "../lib/types";
 import { accentFor, availabilityLabel, modStateLabel } from "../lib/theme";
+import { resolveCoverUrl } from "../lib/coverUrl";
 import { api } from "../lib/eel";
 import { resolvePhaseHeadline } from "../lib/phaseLabels";
 import { useLiveGameProgress } from "../lib/useLiveGameProgress";
@@ -104,7 +105,7 @@ export default function GameDetailPanel({ game, onBack, onRefresh, reportStatus,
           <div className="aspect-[2/3] rounded-2xl overflow-hidden ring-1 ring-white/10
                           shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)]">
             <img
-              src={game.cover || `/covers/${game.id}.jpg`}
+              src={resolveCoverUrl(game.cover, game.id)}
               alt={game.titleEn}
               className="w-full h-full object-cover"
               draggable={false}

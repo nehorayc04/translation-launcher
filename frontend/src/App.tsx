@@ -1,7 +1,7 @@
 // Root shell: video bg + sidebar + main content. No bottom bar — the previous
 // heavy chrome row was replaced with a transient status toast and a tiny
 // muted version label in the corner.
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import VideoBackground   from "./components/VideoBackground";
 import ErrorBoundary     from "./components/ErrorBoundary";
 import Sidebar           from "./components/Sidebar";
@@ -35,6 +35,13 @@ export default function App() {
   /** Launcher window/lifecycle prefs. `null` while we haven't loaded
    *  yet (don't show the modal during the brief pre-load window). */
   const [launcherPrefs, setLauncherPrefs] = useState<LauncherPrefs | null>(null);
+  /** True while the close-behavior modal is open — driven exclusively
+   *  by the X-click `beforeunload` interceptor below. NEVER shown on
+   *  app startup. */
+  const [showCloseModal, setShowCloseModal] = useState(false);
+  /** Latch set once the user has resolved the close modal so the
+   *  re-fired beforeunload (from window.close()) doesn't loop. */
+  const closingRef = useRef(false);
   // Bumped every time the sidebar refresh button completes successfully.
   // Views that fetch their own slice of data (NewsSection, DownloadsView)
   // include this in their effect deps so they re-pull instead of waiting
@@ -56,6 +63,47 @@ export default function App() {
       setLoading(false);
     }
   }, [selected?.id]);
+
+  // ── X-click interceptor ─────────────────────────────────────
+  // Fires when the user clicks the window's X (or anything that
+  // triggers a page unload — Alt+F4, taskbar close, etc.). The first
+  // time this happens we cancel the close, pop the modal, and let the
+  // user pick. After they pick we set closingRef and call
+  // window.close() so the next unload sails through.
+  //
+  // If a preference is already persisted ("minimize" | "close") we
+  // don't intercept — Eel's close_callback handles the action in
+  // Python according to the saved choice.
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (closingRef.current) return;                 // already resolved → let it through
+      if (!launcherPrefs) return;                     // prefs still loading → don't block
+      if (launcherPrefs.closeBehavior) return;        // user already picked → silent path
+      // No saved choice — prompt. preventDefault keeps the window alive
+      // long enough for the modal to render and the user to choose.
+      e.preventDefault();
+      // returnValue is the legacy contract — must be assigned to a non-
+      // empty string for Chrome to honour the cancel intent.
+      e.returnValue = "";
+      setShowCloseModal(true);
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [launcherPrefs]);
+
+  // Modal's resolve handler — persists the choice (if requested),
+  // then attempts to close the window so Eel's close_callback can
+  // honour the choice on the Python side.
+  const handleCloseModalResolved = useCallback((next: LauncherPrefs) => {
+    setLauncherPrefs(next);
+    setShowCloseModal(false);
+    closingRef.current = true;
+    // Give React a tick to commit the unmount before triggering the
+    // real close — otherwise the modal can flash on its way out.
+    setTimeout(() => {
+      try { window.close(); } catch { /* swallowed — close_callback handles fallbacks */ }
+    }, 60);
+  }, []);
 
   useEffect(() => {
     let attempts = 0;
@@ -179,6 +227,10 @@ export default function App() {
               software={selectedSoftware}
               onBack={() => setSelectedSoftware(null)}
               reportStatus={reportStatus}
+              onNavigateToDownloads={() => {
+                setSelectedSoftware(null);
+                setView("downloads");
+              }}
             />
           ) : view === "home" ? (
             <HomeView
@@ -198,6 +250,7 @@ export default function App() {
               reportStatus={reportStatus}
               refreshNonce={refreshNonce}
               onOpenSoftware={handleOpenSoftware}
+              onNavigateToDownloads={() => setView("downloads")}
             />
           ) : view === "downloads" ? (
             <DownloadsView refreshNonce={refreshNonce} />
@@ -223,16 +276,17 @@ export default function App() {
           current={view}
           onNavigate={handleNavigate}
           onRefresh={handleRefreshFromServer}
+          version={APP_VERSION}
         />
       </div>
 
-      {/* First-launch close-behavior modal. Shows ONLY when the
-          backend reports no persisted preference (closeBehavior === null).
-          Setting a choice via the modal (or via SettingsView later)
-          flips closeBehavior to "minimize" | "close" and the modal
-          stops rendering. */}
-      {launcherPrefs && launcherPrefs.closeBehavior === null && (
-        <CloseBehaviorModal onResolved={setLauncherPrefs} />
+      {/* Close-behavior modal — NEVER on startup. Only renders when
+          the beforeunload interceptor has caught an X-click AND no
+          saved preference exists yet. handleCloseModalResolved
+          persists the choice + calls window.close() so Eel's
+          close_callback executes the action. */}
+      {showCloseModal && (
+        <CloseBehaviorModal onResolved={handleCloseModalResolved} />
       )}
 
       {/* Floating status toast — top-center, replaces the heavy bottom bar */}

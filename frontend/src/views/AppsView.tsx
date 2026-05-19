@@ -18,9 +18,13 @@ interface Props {
   refreshNonce?: number;
   /** Click on a card → caller opens the full-screen detail panel. */
   onOpenSoftware?: (s: Software) => void;
+  /** CTA fallback when no built-in install handler exists for a card.
+   *  Navigates the launcher's main view to the "הורדות" tab — used to
+   *  be window.open(s.downloadUrl) which leaked the user to a browser. */
+  onNavigateToDownloads?: () => void;
 }
 
-export default function AppsView({ reportStatus, refreshNonce = 0, onOpenSoftware }: Props) {
+export default function AppsView({ reportStatus, refreshNonce = 0, onOpenSoftware, onNavigateToDownloads }: Props) {
   const [items, setItems] = useState<Software[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -114,6 +118,7 @@ export default function AppsView({ reportStatus, refreshNonce = 0, onOpenSoftwar
               s={s}
               reportStatus={reportStatus}
               onOpen={onOpenSoftware}
+              onNavigateToDownloads={onNavigateToDownloads}
             />
           ))}
         </div>
@@ -129,11 +134,12 @@ export default function AppsView({ reportStatus, refreshNonce = 0, onOpenSoftwar
 // ---------------------------------------------------------------- card
 
 function SoftwareCard({
-  s, reportStatus, onOpen,
+  s, reportStatus, onOpen, onNavigateToDownloads,
 }: {
   s: Software;
   reportStatus?: ReportStatus;
   onOpen?: (s: Software) => void;
+  onNavigateToDownloads?: () => void;
 }) {
   const [busy, setBusy] = useState(false);
   const accent = s.accentColor || "#66c0f4";
@@ -157,16 +163,14 @@ function SoftwareCard({
       finally { setBusy(false); }
       return;
     }
-    if (s.downloadUrl) {
-      window.open(s.downloadUrl, "_blank", "noopener,noreferrer");
-    } else {
-      reportStatus?.("לתוכנה זו אין עדיין קישור הורדה.", true);
-    }
+    // No built-in handler → bring the user to the launcher's own
+    // הורדות tab instead of opening an external publisher link.
+    onNavigateToDownloads?.();
   };
 
   const ctaLabel = handler
     ? (busy ? "מתקין…" : "התקן")
-    : (s.downloadUrl ? "הורד" : "בקרוב");
+    : "פתח הורדות";
 
   return (
     <div
@@ -247,7 +251,7 @@ function SoftwareCard({
       {/* CTA */}
       <button
         onClick={onCtaClick}
-        disabled={busy || (!handler && !s.downloadUrl)}
+        disabled={busy || (!handler && !onNavigateToDownloads)}
         className="w-full py-2.5 rounded-xl text-sm font-bold transition
                    disabled:opacity-60 disabled:cursor-wait
                    text-brand-ink hover:brightness-110"

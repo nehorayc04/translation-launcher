@@ -2,18 +2,30 @@
 // panel, version footer. The bottom panel replaces the old UpdatesMenu —
 // updates now live in the dedicated /downloads view.
 import { useEffect, useMemo, useState, type ComponentType, type SVGProps } from "react";
-import { HomeIcon, LibraryIcon, DownloadsIcon, SettingsIcon } from "./NavIcons";
+import { HomeIcon, LibraryIcon, DownloadsIcon, SettingsIcon, FolderIcon, AppsIcon } from "./NavIcons";
 import { useLauncherAuth } from "../lib/useLauncherAuth";
 import AuthModal from "./AuthModal";
 
-export type NavKey = "home" | "library" | "downloads" | "personal" | "settings";
+export type NavKey = "home" | "games" | "apps" | "downloads" | "personal" | "settings";
 
-interface NavDef {
+interface NavLeaf {
+  kind:   "leaf";
   key:    NavKey;
   label:  string;
   Icon:   ComponentType<SVGProps<SVGSVGElement>>;
   accent: string;
 }
+
+interface NavGroup {
+  kind:     "group";
+  id:       string;                                     // not a NavKey — header is non-routable
+  label:    string;
+  Icon:     ComponentType<SVGProps<SVGSVGElement>>;
+  accent:   string;
+  children: NavLeaf[];
+}
+
+type NavItem = NavLeaf | NavGroup;
 
 // Small inline icon for the Personal Area row — kept inline so we don't
 // need to touch NavIcons.tsx and risk another runtime mismatch.
@@ -32,20 +44,33 @@ function PersonIcon(props: SVGProps<SVGSVGElement>) {
 // panel alongside the refresh button. "personal" is added as a regular
 // nav row (instead of overloading the auth-slot button) so the whole
 // row tree stays simple and crash-free.
-const NAV: NavDef[] = [
-  { key: "home",      label: "דף הבית",         Icon: HomeIcon,      accent: "#fff700" },
-  { key: "library",   label: "ספרייה",          Icon: LibraryIcon,   accent: "#d4af37" },
-  { key: "downloads", label: "הורדות ועדכונים", Icon: DownloadsIcon, accent: "#22c55e" },
-  { key: "personal",  label: "אזור אישי",        Icon: PersonIcon,    accent: "#00ffe0" },
+const NAV: NavItem[] = [
+  { kind: "leaf",  key: "home", label: "דף הבית", Icon: HomeIcon, accent: "#fff700" },
+  {
+    kind:   "group",
+    id:     "library",
+    label:  "ספרייה",
+    Icon:   FolderIcon,
+    accent: "#d4af37",
+    children: [
+      { kind: "leaf", key: "games", label: "משחקים", Icon: LibraryIcon, accent: "#d4af37" },
+      { kind: "leaf", key: "apps",  label: "תוכנות", Icon: AppsIcon,    accent: "#66c0f4" },
+    ],
+  },
+  { kind: "leaf", key: "downloads", label: "הורדות ועדכונים", Icon: DownloadsIcon, accent: "#22c55e" },
+  { kind: "leaf", key: "personal",  label: "אזור אישי",        Icon: PersonIcon,    accent: "#00ffe0" },
 ];
 
 interface Props {
   current: NavKey;
   onNavigate: (key: NavKey) => void;
   onRefresh: () => Promise<void>;
+  /** Dynamic version string from App.APP_VERSION (e.g. "v1.1.0").
+   *  Replaces the previously hardcoded "v1.0" footer. */
+  version: string;
 }
 
-export default function Sidebar({ current, onNavigate, onRefresh }: Props) {
+export default function Sidebar({ current, onNavigate, onRefresh, version }: Props) {
   const year = useMemo(() => new Date().getFullYear(), []);
   return (
     <aside className="glass-strong rounded-2xl flex flex-col w-[230px] flex-shrink-0 p-3 gap-3">
@@ -83,35 +108,11 @@ export default function Sidebar({ current, onNavigate, onRefresh }: Props) {
 
       {/* Nav */}
       <nav className="flex flex-col gap-1 mt-1">
-        {NAV.map(({ key, label, Icon, accent }) => {
-          const active = key === current;
-          return (
-            <button
-              key={key}
-              onClick={() => onNavigate(key)}
-              className={[
-                "group relative flex items-center gap-3 text-right",
-                "rounded-xl pr-3 pl-3 py-3 transition-all duration-150",
-                active
-                  ? "bg-white/[0.08] text-white"
-                  : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-200",
-              ].join(" ")}
-            >
-              <span
-                className={[
-                  "absolute right-0 top-2 bottom-2 w-[3px] rounded-full transition-opacity",
-                  active ? "opacity-100" : "opacity-0",
-                ].join(" ")}
-                style={{ background: accent }}
-              />
-              <span className="flex-1 text-[14px] font-medium">{label}</span>
-              <Icon
-                className="transition-colors"
-                style={{ color: active ? accent : undefined }}
-              />
-            </button>
-          );
-        })}
+        {NAV.map((item) =>
+          item.kind === "leaf"
+            ? <NavRow key={item.key} item={item} current={current} onNavigate={onNavigate} />
+            : <NavGroupRow key={item.id} group={item} current={current} onNavigate={onNavigate} />
+        )}
       </nav>
 
       {/* Spacer */}
@@ -129,10 +130,99 @@ export default function Sidebar({ current, onNavigate, onRefresh }: Props) {
         onRefresh={onRefresh}
       />
 
-      <div className="text-center text-[10px] text-slate-500 pb-1">
-        v1.0  •  © {year}
+      <div className="text-center text-[10px] text-slate-500 pb-1 font-mono" dir="ltr">
+        {version} • © {year}
       </div>
     </aside>
+  );
+}
+
+// Standalone nav row (leaf). Mirrors the old map-callback markup so it
+// stays visually identical to a top-level item.
+function NavRow({
+  item, current, onNavigate, indent = false,
+}: {
+  item:     NavLeaf;
+  current:  NavKey;
+  onNavigate: (key: NavKey) => void;
+  indent?:  boolean;
+}) {
+  const active = item.key === current;
+  return (
+    <button
+      onClick={() => onNavigate(item.key)}
+      className={[
+        "group relative flex items-center gap-3 text-right",
+        "rounded-xl pl-3 py-2.5 transition-all duration-150",
+        // RTL: indent pushes content away from the right edge.
+        indent ? "pr-7 text-[13px]" : "pr-3 text-[14px]",
+        active
+          ? "bg-white/[0.08] text-white"
+          : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-200",
+      ].join(" ")}
+    >
+      <span
+        className={[
+          "absolute right-0 top-2 bottom-2 w-[3px] rounded-full transition-opacity",
+          active ? "opacity-100" : "opacity-0",
+        ].join(" ")}
+        style={{ background: item.accent }}
+      />
+      <span className="flex-1 font-medium">{item.label}</span>
+      <item.Icon
+        className="transition-colors"
+        width={indent ? 16 : 20}
+        height={indent ? 16 : 20}
+        style={{ color: active ? item.accent : undefined }}
+      />
+    </button>
+  );
+}
+
+// Non-routable section header + its indented children. Header highlights
+// faintly when one of its children is the active view.
+function NavGroupRow({
+  group, current, onNavigate,
+}: {
+  group:     NavGroup;
+  current:   NavKey;
+  onNavigate: (key: NavKey) => void;
+}) {
+  const childActive = group.children.some((c) => c.key === current);
+  return (
+    <div className="flex flex-col">
+      <div
+        className={[
+          "relative flex items-center gap-3 text-right",
+          "rounded-xl pr-3 pl-3 py-2 cursor-default select-none",
+          childActive ? "text-slate-100" : "text-slate-500",
+        ].join(" ")}
+      >
+        <span
+          className="absolute right-0 top-2 bottom-2 w-[2px] rounded-full opacity-30"
+          style={{ background: group.accent }}
+        />
+        <span className="flex-1 text-[14px] font-semibold tracking-wide">
+          {group.label}
+        </span>
+        <group.Icon
+          width={18}
+          height={18}
+          style={{ color: childActive ? group.accent : undefined }}
+        />
+      </div>
+      <div className="flex flex-col gap-0.5 mt-0.5">
+        {group.children.map((child) => (
+          <NavRow
+            key={child.key}
+            item={child}
+            current={current}
+            onNavigate={onNavigate}
+            indent
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 

@@ -1,12 +1,11 @@
 // Big-Picture detail panel for a software entry. Mirrors GameDetailPanel
-// in shape (large cover left, info + actions middle, settings sidebar
-// right) but simpler — software has no install path / mod state /
-// per-title theme.
+// in shape: large cover left, info + actions middle, settings sidebar
+// right (with the installation-path block + folder open).
 //
-// Currently the only software with a built-in installer is Steam; the
-// id→handler map in AppsView holds that wiring. Anything else opens
-// its downloadUrl externally.
-import { useState } from "react";
+// Software entries don't link out to the publisher's website anymore —
+// every catalog row's call-to-action funnels into the launcher's own
+// "הורדות" tab where the localized installer / asset bundle lives.
+import { useEffect, useState } from "react";
 import { resolveCoverUrl } from "../lib/coverUrl";
 import { api } from "../lib/eel";
 import type { Software } from "../lib/types";
@@ -17,11 +16,13 @@ interface Props {
   software: Software;
   onBack:    () => void;
   reportStatus?: ReportStatus;
+  /** Navigates the launcher's main view to the "הורדות" tab. The
+   *  software card's primary CTA fires this instead of opening an
+   *  external browser tab. */
+  onNavigateToDownloads: () => void;
 }
 
-// Same id→installer map as AppsView. Kept here too so the detail
-// panel's "Install" button knows whether to call a native handler or
-// fall back to the download URL.
+// Same id→installer map as AppsView.
 type InstallHandler = (rs?: ReportStatus) => Promise<void>;
 const INSTALL_HANDLERS: Partial<Record<string, InstallHandler>> = {
   steam: installSteamTranslation,
@@ -35,11 +36,28 @@ const AVAILABILITY_LABEL: Record<string, string> = {
   "archived":    "בארכיון",
 };
 
-export default function SoftwareDetailPanel({ software: s, onBack, reportStatus }: Props) {
+export default function SoftwareDetailPanel({
+  software: s, onBack, reportStatus, onNavigateToDownloads,
+}: Props) {
   const accent = s.accentColor || "#66c0f4";
   const cover  = resolveCoverUrl(s.cover, s.id);
   const handler = INSTALL_HANDLERS[s.id];
+
   const [busy, setBusy] = useState(false);
+  // Local install state (path + exe) — initialised from the catalog
+  // row (server-side detector enrichment) and refreshed on demand
+  // via the explicit "סרוק שוב" button below.
+  const [installPath, setInstallPath] = useState<string>(s.installPath ?? "");
+  const [installed,   setInstalled]   = useState<boolean>(Boolean(s.installed));
+  const [scanning,    setScanning]    = useState(false);
+
+  // If a new snapshot of the software prop arrives (e.g. AppsView
+  // re-fetched the catalog), pick up the fresh path/installed values
+  // so the detail panel doesn't go stale while we're looking at it.
+  useEffect(() => {
+    setInstallPath(s.installPath ?? "");
+    setInstalled(Boolean(s.installed));
+  }, [s.installPath, s.installed]);
 
   const onInstall = async () => {
     if (busy) return;
@@ -49,23 +67,43 @@ export default function SoftwareDetailPanel({ software: s, onBack, reportStatus 
       finally { setBusy(false); }
       return;
     }
-    if (s.downloadUrl) {
-      window.open(s.downloadUrl, "_blank", "noopener,noreferrer");
-    } else {
-      reportStatus?.("לתוכנה זו אין עדיין קישור הורדה.", true);
-    }
+    // Fallback for catalog entries without a built-in handler: take
+    // the user to the downloads tab — that's where the localized
+    // bundle (if any) is exposed.
+    onNavigateToDownloads();
   };
 
-  const onOpenPublisher = () => {
-    if (s.publisherUrl) {
-      window.open(s.publisherUrl, "_blank", "noopener,noreferrer");
+  const onOpenInstallFolder = async () => {
+    if (!installPath) return;
+    const r = await api.openFolder(installPath);
+    if (!r.ok) reportStatus?.(`לא הצלחתי לפתוח: ${r.error}`, true);
+  };
+
+  const onRescan = async () => {
+    if (scanning) return;
+    setScanning(true);
+    reportStatus?.("מאתר התקנה במחשב…");
+    try {
+      const r = await api.scanSoftware();
+      const fresh = r.software.find((x) => x.id === s.id);
+      if (fresh) {
+        setInstalled(Boolean(fresh.installed));
+        setInstallPath(fresh.installPath ?? "");
+        reportStatus?.(fresh.installed
+          ? `נמצאה התקנה: ${fresh.installPath}`
+          : "התוכנה לא מותקנת במחשב");
+      }
+    } catch (e) {
+      reportStatus?.(String(e), true);
+    } finally {
+      setScanning(false);
     }
   };
 
   const availLabel = AVAILABILITY_LABEL[s.availability] ?? s.availability;
   const ctaLabel = handler
     ? (busy ? "מתקין…" : "התקן")
-    : (s.downloadUrl ? "הורד" : "אין הורדה");
+    : "פתח את הורדות";
 
   return (
     <div className="h-full overflow-y-auto px-8 py-6 animate-scale-in">
@@ -82,9 +120,7 @@ export default function SoftwareDetailPanel({ software: s, onBack, reportStatus 
           <div
             className="aspect-[3/4] rounded-2xl overflow-hidden ring-1 ring-white/10
                        shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] relative"
-            style={{
-              background: `radial-gradient(circle at 30% 30%, ${accent}33, #0a0e1a 70%)`,
-            }}
+            style={{ background: `radial-gradient(circle at 30% 30%, ${accent}33, #0a0e1a 70%)` }}
           >
             {cover ? (
               <img
@@ -131,18 +167,16 @@ export default function SoftwareDetailPanel({ software: s, onBack, reportStatus 
                 {s.version}
               </span>
             )}
-            {s.badge && (
-              <span
-                className="px-3 py-1 rounded-full text-xs font-semibold"
-                style={{
-                  color:      "#0a0a14",
-                  background: accent,
-                  boxShadow:  `0 6px 16px -8px ${accent}aa`,
-                }}
-              >
-                {s.badge}
-              </span>
-            )}
+            <span
+              className="px-3 py-1 rounded-full text-xs font-semibold"
+              style={{
+                color:      installed ? "#86efac" : "#cbd5e1",
+                background: installed ? "rgba(34,197,94,0.18)" : "rgba(148,163,184,0.18)",
+                border:     `1px solid ${installed ? "rgba(34,197,94,0.45)" : "rgba(148,163,184,0.35)"}`,
+              }}
+            >
+              {installed ? "מותקן" : "לא מותקן"}
+            </span>
           </div>
 
           {s.tagline && (
@@ -152,10 +186,10 @@ export default function SoftwareDetailPanel({ software: s, onBack, reportStatus 
             <p className="text-slate-400 leading-relaxed mb-6">{s.description}</p>
           )}
 
-          {/* Big action buttons */}
+          {/* Big action buttons — ONLY internal CTAs; no external links. */}
           <div className="flex gap-3 flex-wrap justify-start mt-auto">
             <button
-              disabled={busy || (!handler && !s.downloadUrl)}
+              disabled={busy}
               onClick={onInstall}
               className="font-extrabold px-8 py-3 rounded-xl text-lg transition
                          disabled:opacity-40 disabled:cursor-not-allowed
@@ -168,41 +202,72 @@ export default function SoftwareDetailPanel({ software: s, onBack, reportStatus 
               {ctaLabel}
             </button>
 
-            {s.publisherUrl && (
-              <button
-                onClick={onOpenPublisher}
-                className="bg-white/5 hover:bg-white/10 text-slate-200 font-bold
-                           px-6 py-3 rounded-xl border border-white/10 transition"
-              >
-                מידע נוסף ↗
-              </button>
-            )}
+            <button
+              onClick={onNavigateToDownloads}
+              className="bg-white/5 hover:bg-white/10 text-slate-200 font-bold
+                         px-6 py-3 rounded-xl border border-white/10 transition"
+            >
+              פתח את הורדות
+            </button>
           </div>
         </div>
 
-        {/* Settings sidebar — kept structurally identical to GameDetailPanel
-            so the layout stays uniform between the two surfaces. */}
+        {/* Settings sidebar — full parity with GameDetailPanel: install
+            path field + folder open + status chips. The path here is
+            auto-detected via registry/fingerprint scan, so the "browse"
+            interaction is read-only display + "scan again" button (rather
+            than free text — there's no per-software override store yet). */}
         <div className="glass rounded-2xl p-5 self-start space-y-5">
-          <h3 className="text-white font-bold text-lg">פרטים</h3>
+          <h3 className="text-white font-bold text-lg">הגדרות</h3>
 
+          <div>
+            <label className="block text-xs text-slate-400 mb-1.5">נתיב התקנה</label>
+            <input
+              dir="ltr"
+              value={installPath}
+              readOnly
+              placeholder="C:\Program Files..."
+              className="w-full bg-black/40 border border-white/10
+                         rounded-lg px-3 py-2 text-sm text-slate-100 outline-none"
+            />
+            <div className="flex gap-2 mt-2">
+              <button
+                disabled={scanning}
+                onClick={onRescan}
+                className="flex-1 text-xs px-3 py-1.5 bg-brand-yellow text-brand-ink
+                           font-bold rounded-lg hover:bg-yellow-300 disabled:opacity-50"
+              >
+                {scanning ? "סורק…" : "סרוק שוב"}
+              </button>
+              <button
+                disabled={!installPath}
+                onClick={onOpenInstallFolder}
+                className="flex-1 text-xs px-3 py-1.5 border border-white/10
+                           text-slate-300 rounded-lg hover:bg-white/5 disabled:opacity-40"
+              >
+                עיון
+              </button>
+            </div>
+          </div>
+
+          <button
+            disabled={!installPath}
+            onClick={onOpenInstallFolder}
+            className="w-full text-sm px-3 py-2 border border-white/10 text-slate-200
+                       rounded-lg hover:border-brand-cyan/40 hover:bg-brand-cyan/5
+                       disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            פתח תיקיית התוכנה
+          </button>
+
+          {/* Status summary */}
           <div className="border-t border-white/5 pt-4 text-xs space-y-1.5">
-            <Row k="זמינות"   v={availLabel} />
-            <Row k="גרסה"     v={s.version || "—"} />
+            <Row k="זמינות"    v={availLabel} />
+            <Row k="גרסה"      v={s.version || "—"} />
+            <Row k="התקנה"     v={installed ? "מותקן" : "לא נמצא"} />
             {s.badge   && <Row k="תווית"  v={s.badge} />}
             {handler   && <Row k="מנגנון" v="התקנה אוטומטית" />}
           </div>
-
-          {s.downloadUrl && (
-            <a
-              href={s.downloadUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block w-full text-center text-xs px-3 py-2 rounded-lg
-                         border border-white/10 text-slate-300 hover:bg-white/5 transition"
-            >
-              קישור הורדה ישיר ↗
-            </a>
-          )}
         </div>
       </div>
     </div>
@@ -212,7 +277,7 @@ export default function SoftwareDetailPanel({ software: s, onBack, reportStatus 
 function Row({ k, v }: { k: string; v: string }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-slate-200">{v}</span>
+      <span className="text-slate-200 truncate max-w-[180px]" dir="ltr">{v}</span>
       <span className="text-slate-500">{k}</span>
     </div>
   );

@@ -8,6 +8,7 @@ import Sidebar           from "./components/Sidebar";
 import type { NavKey }   from "./components/Sidebar";
 import HomeView          from "./views/HomeView";
 import LibraryView       from "./views/LibraryView";
+import AppsView          from "./views/AppsView";
 import SettingsView      from "./views/SettingsView";
 import DownloadsView     from "./views/DownloadsView";
 import PersonalAreaView  from "./views/PersonalAreaView";
@@ -17,7 +18,7 @@ import type { Game }     from "./lib/types";
 import { SiteConfigProvider } from "./lib/useSiteConfig";
 import { LauncherAuthProvider } from "./lib/useLauncherAuth";
 
-export const APP_VERSION = "v1.0.7";
+export const APP_VERSION = "v1.0.9";
 
 export default function App() {
   const [view,     setView]     = useState<NavKey>("home");
@@ -94,7 +95,7 @@ export default function App() {
   };
   const handleOpenGame = (g: Game) => {
     setSelected(g);
-    setView("library");
+    setView("games");
   };
 
   const gamesCountHe = (n: number) =>
@@ -154,15 +155,17 @@ export default function App() {
             <HomeView
               games={games}
               onOpenGame={handleOpenGame}
-              onOpenLibrary={() => setView("library")}
+              onOpenLibrary={() => setView("games")}
               refreshNonce={refreshNonce}
             />
-          ) : view === "library" ? (
+          ) : view === "games" ? (
             <LibraryView
               games={games}
               onOpenGame={handleOpenGame}
               onScanDeep={handleScanDeep}
             />
+          ) : view === "apps" ? (
+            <AppsView reportStatus={reportStatus} />
           ) : view === "downloads" ? (
             <DownloadsView refreshNonce={refreshNonce} />
           ) : view === "personal" ? (

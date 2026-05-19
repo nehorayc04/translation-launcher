@@ -54,6 +54,7 @@ import requests
 
 from translation_manager import downloads as _downloads
 from translation_manager import paths as user_paths
+from translation_manager import steam_apply as _steam_apply
 from translation_manager import swr_cache
 from translation_manager.config import GAMES as GAME_CONFIGS
 from translation_manager.config import GameConfig
@@ -73,6 +74,15 @@ from translation_manager.mod_logic import (
     enable_mod,
     uninstall_mod,
 )
+from translation_manager.cp2077_language import (
+    enable_arabic_slot as _cp2077_enable_arabic_slot,
+    restore_language   as _cp2077_restore_language,
+)
+
+# Catalog id of the Cyberpunk 2077 entry. Hard-coded because the
+# Arabic-slot flip is specific to that game's Hebrew mod and must
+# never trigger for any other title.
+_CP2077_ID = "cyberpunk"
 
 # Optional auth subsystem — if Supabase isn't configured (e.g. local
 # dev without env vars), the bridge stays installed but every call
@@ -100,9 +110,10 @@ ROOT = Path(__file__).parent
 LOCAL_CATALOG_FILE = ROOT / "games.json"
 LOCAL_NEWS_FILE    = ROOT / "news.json"
 LOCAL_UPDATES_FILE = ROOT / "updates.json"
-REMOTE_CATALOG_URL = "https://hebrew-translation-hub.vercel.app/api/games"
-REMOTE_NEWS_URL    = "https://hebrew-translation-hub.vercel.app/api/news"
-REMOTE_UPDATES_URL = "https://hebrew-translation-hub.vercel.app/api/updates"
+REMOTE_CATALOG_URL  = "https://hebrew-translation-hub.vercel.app/api/games"
+REMOTE_SOFTWARE_URL = "https://hebrew-translation-hub.vercel.app/api/software"
+REMOTE_NEWS_URL     = "https://hebrew-translation-hub.vercel.app/api/news"
+REMOTE_UPDATES_URL  = "https://hebrew-translation-hub.vercel.app/api/updates"
 REMOTE_TIMEOUT     = 3.0   # seconds — keep short so offline boot isn't slow
 _REMOTE_CACHE_TTL  = 30    # in-memory hot-window. Below this, swr returns
                            # the cached value without firing a background
@@ -293,6 +304,23 @@ def _load_updates() -> list[dict]:
     return data if data is not None else []
 
 
+def _try_software_remote() -> list[dict] | None:
+    """Fetch /api/software, drop entries that aren't flagged
+    show_on_launcher. Returns None on any network/parse failure so SWR
+    keeps serving the cached value."""
+    data = _try_remote(REMOTE_SOFTWARE_URL)
+    if data is None:
+        return None
+    return [s for s in data if s.get("showOnLauncher") is not False]
+
+
+def _load_software() -> list[dict]:
+    """Software catalog visible to the launcher. SWR-cached: instant
+    return from disk, background refresh from /api/software."""
+    data = swr_cache.swr("software", _try_software_remote, ttl=_REMOTE_CACHE_TTL)
+    return data if data is not None else []
+
+
 def _force_refresh(kind: str, url: str) -> str:
     """Synchronous force-refresh used by `refresh_catalog`. Returns a
     source label ("remote" | "cache" | "none") for the status toast."""
@@ -460,13 +488,33 @@ def clear_custom_path(game_id: str) -> dict:
 
 
 @eel.expose
+def apply_steam_translation() -> dict:
+    """Copy compiled steam_hebrew_output/* into the live Steam install."""
+    return _steam_apply.apply()
+
+
+@eel.expose
 def enable_mod_for(game_id: str) -> dict:
     cfg = _config_for(game_id)
     base = _install_path(game_id)
     if cfg is None or base is None:
         return {"ok": False, "error": "no config or install path", "state": _mod_state(game_id)}
     ok, count, err = enable_mod(cfg, base)
-    return {"ok": ok, "count": count, "error": err, "state": _mod_state(game_id)}
+    lang_result = None
+    # One-click install: flip CP2077 to the Arabic locale slot so the
+    # Hebrew CR2W archive renders through CDPR's RTL/bidi pipeline.
+    # Best-effort — failures degrade silently so they never block the
+    # file-level mod operation that already succeeded above.
+    if ok and game_id == _CP2077_ID:
+        try:
+            lang_result = _cp2077_enable_arabic_slot()
+        except Exception as e:  # pragma: no cover — defensive
+            print(f"[cp2077_language] enable failed: {e}", flush=True)
+            lang_result = {"ok": False, "error": str(e)}
+    return {
+        "ok": ok, "count": count, "error": err, "state": _mod_state(game_id),
+        "language": lang_result,
+    }
 
 
 @eel.expose
@@ -476,7 +524,17 @@ def disable_mod_for(game_id: str) -> dict:
     if cfg is None or base is None:
         return {"ok": False, "error": "no config or install path", "state": _mod_state(game_id)}
     ok, count, err = disable_mod(cfg, base)
-    return {"ok": ok, "count": count, "error": err, "state": _mod_state(game_id)}
+    lang_result = None
+    if ok and game_id == _CP2077_ID:
+        try:
+            lang_result = _cp2077_restore_language()
+        except Exception as e:  # pragma: no cover — defensive
+            print(f"[cp2077_language] restore (disable) failed: {e}", flush=True)
+            lang_result = {"ok": False, "error": str(e)}
+    return {
+        "ok": ok, "count": count, "error": err, "state": _mod_state(game_id),
+        "language": lang_result,
+    }
 
 
 @eel.expose
@@ -486,7 +544,17 @@ def uninstall_mod_for(game_id: str) -> dict:
     if cfg is None or base is None:
         return {"ok": False, "error": "no config or install path", "state": _mod_state(game_id)}
     ok, count, err = uninstall_mod(cfg, base)
-    return {"ok": ok, "count": count, "error": err, "state": _mod_state(game_id)}
+    lang_result = None
+    if ok and game_id == _CP2077_ID:
+        try:
+            lang_result = _cp2077_restore_language()
+        except Exception as e:  # pragma: no cover — defensive
+            print(f"[cp2077_language] restore (uninstall) failed: {e}", flush=True)
+            lang_result = {"ok": False, "error": str(e)}
+    return {
+        "ok": ok, "count": count, "error": err, "state": _mod_state(game_id),
+        "language": lang_result,
+    }
 
 
 @eel.expose
@@ -543,6 +611,13 @@ _downloads.set_progress_callback(_push_download_progress)
 @eel.expose
 def list_updates() -> list[dict]:
     return _load_updates()
+
+
+@eel.expose
+def get_all_software() -> list[dict]:
+    """Software catalog visible to the launcher. Returns the same shape
+    as /api/software but filtered to entries flagged show_on_launcher."""
+    return _load_software()
 
 
 # ─────────────────────────────────────────────────────────────

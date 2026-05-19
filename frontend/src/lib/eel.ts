@@ -1,6 +1,6 @@
 // Thin wrapper around window.eel that adds typings + promise interop.
 // All Python @eel.expose functions are wrapped here.
-import type { Game, OpResult, ScanResult } from "./types";
+import type { Game, OpResult, ScanResult, Software } from "./types";
 
 // Eel attaches functions to window.eel.<name>. Calling them returns a thunk
 // that, when called with (), starts an async RPC; resolving requires
@@ -118,7 +118,11 @@ export const api = {
   uninstallMod:     (id: string)                => call<OpResult>("uninstall_mod_for", id),
   launchGame:       (id: string)                => call<OpResult>("launch_game", id),
   openFolder:       (p: string)                 => call<OpResult>("open_folder", p),
+  applySteamTranslation: ()                     => call<OpResult & {steam_dir?: string}>("apply_steam_translation"),
   listUpdates:      ()                          => call<UpdateItem[]>("list_updates"),
+  /** Software catalog (Steam, etc.) — sister of getAllGames. Backend
+   *  pulls /api/software with showOnLauncher filtering. */
+  getAllSoftware:   ()                          => call<Software[]>("get_all_software"),
   getLiveProgress:  (id: string)                => call<ProgressSnapshot | null>("get_live_progress", id),
   startDownload:    (id: string)                => call<{ok: boolean; error?: string}>("start_download", id),
   cancelDownload:   (id: string)                => call<{ok: boolean; error?: string}>("cancel_download", id),

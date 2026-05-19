@@ -20,6 +20,18 @@ export type Availability =
   | "archived";
 export type ModState     = "ACTIVE" | "DISABLED" | "NOT_INSTALLED" | "NOT_AVAILABLE" | "UNKNOWN";
 
+/** "Actively in production" — generic 'in-progress' plus the admin-set
+ *  pipeline-stage variants. Gates the live-progress UI in HomeView /
+ *  GameDetailPanel; without this set those checks hardcoded
+ *  `availability === "in-progress"` and the dashboard hid whenever
+ *  the admin had picked a stage-specific label like "translating". */
+const IN_FLIGHT_AVAILABILITIES = new Set<Availability>([
+  "in-progress", "extracting", "translating", "packing", "finalizing", "qa",
+]);
+export function isInFlight(a: string): boolean {
+  return IN_FLIGHT_AVAILABILITIES.has(a as Availability);
+}
+
 export interface Game {
   id: string;
   titleEn: string;
@@ -50,10 +62,46 @@ export interface ScanResult {
   found: number;
 }
 
+/** Software catalog entry — sister of Game. Comes from /api/software
+ *  filtered to entries flagged show_on_launcher. */
+export interface Software {
+  id:             string;
+  titleEn:        string;
+  titleHe:        string;
+  version:        string;
+  cover:          string | null;
+  availability:   string;
+  downloadUrl:    string | null;
+  publisherUrl:   string | null;
+  tagline:        string;
+  description:    string;
+  badge:          string;
+  accentColor:    string;
+  featured?:      boolean;
+  showOnWebsite?: boolean;
+  showOnLauncher?: boolean;
+}
+
 export interface OpResult {
   ok: boolean;
   error?: string;
   state?: ModState;
   count?: number;
   exe?: string;
+  /** Cyberpunk-only side effect: result of flipping/restoring the
+   *  game's Text + Subtitles locale to "ar-ar" (the Arabic-slot used
+   *  by the Hebrew translation). Present only for enable/disable/
+   *  uninstall of the cyberpunk catalog entry, null otherwise. */
+  language?: LanguageOpResult | null;
+}
+
+export interface LanguageOpResult {
+  ok: boolean;
+  error?: string;
+  /** Vars that were rewritten on this call (e.g. ["Text", "Subtitles"]). */
+  changed?: string[];
+  /** Vars that were restored from the backup (e.g. ["Text", "Subtitles"]). */
+  restored?: string[];
+  /** Backed-up originals at the moment of enable (e.g. {Text: "en-us", ...}). */
+  previous?: Record<string, string>;
 }

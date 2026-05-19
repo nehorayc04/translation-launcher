@@ -40,9 +40,43 @@ export default function AppsView({ reportStatus, refreshNonce = 0, onOpenSoftwar
     return () => { alive = false; };
   }, [refreshNonce]);
 
+  const [scanning, setScanning] = useState(false);
+  const runScan = async () => {
+    if (scanning) return;
+    setScanning(true);
+    reportStatus?.("סורק תוכנות מותקנות…");
+    try {
+      const r = await api.scanSoftware();
+      setItems(r.software);
+      const found = r.software.filter((x) => x.installed).length;
+      reportStatus?.(`הסריקה הושלמה — ${found} מתוך ${r.software.length} מותקנות`);
+    } catch (e) {
+      reportStatus?.(String(e), true);
+    } finally {
+      setScanning(false);
+    }
+  };
+
   return (
     <div className="h-full overflow-y-auto px-8 py-6 animate-fade-in">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between gap-3 mb-6 flex-wrap">
+        <button
+          disabled={scanning}
+          onClick={runScan}
+          className="px-5 py-2.5 rounded-xl bg-brand-yellow hover:bg-yellow-300
+                     text-brand-ink text-sm font-bold disabled:opacity-50 transition
+                     shadow-[0_6px_15px_-6px_rgba(255,247,0,0.5)]
+                     flex items-center gap-2"
+        >
+          {scanning ? (
+            <>
+              <span className="w-4 h-4 border-2 border-brand-ink border-t-transparent rounded-full animate-spin" />
+              סורק…
+            </>
+          ) : (
+            "סרוק תוכנות"
+          )}
+        </button>
         <span className="text-slate-400 text-sm">
           {items === null ? "טוען..." : `${items.length} ${items.length === 1 ? "תוכנה" : "תוכנות"}`}
         </span>
@@ -168,6 +202,23 @@ function SoftwareCard({
           >
             {s.titleEn}
           </div>
+        )}
+
+        {/* Local-presence chip (top-left of the plate). Only rendered
+            after a scan/load actually filled the `installed` field — the
+            absence of the chip means we don't know either way. */}
+        {typeof s.installed === "boolean" && (
+          <span
+            className="absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full
+                       backdrop-blur-md tracking-wider"
+            style={{
+              background: s.installed ? "rgba(34,197,94,0.18)" : "rgba(148,163,184,0.18)",
+              color:      s.installed ? "#86efac" : "#cbd5e1",
+              border:     `1px solid ${s.installed ? "rgba(34,197,94,0.45)" : "rgba(148,163,184,0.35)"}`,
+            }}
+          >
+            {s.installed ? "מותקן" : "לא מותקן"}
+          </span>
         )}
       </div>
 

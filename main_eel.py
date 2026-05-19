@@ -616,8 +616,87 @@ def list_updates() -> list[dict]:
 @eel.expose
 def get_all_software() -> list[dict]:
     """Software catalog visible to the launcher. Returns the same shape
-    as /api/software but filtered to entries flagged show_on_launcher."""
-    return _load_software()
+    as /api/software but filtered to entries flagged show_on_launcher.
+
+    Every entry is enriched with a local-presence snapshot
+    (`installed`, `path`, `exe`) from `software_detector.scan_all()`
+    so the React side can render an "installed" chip without a
+    separate round-trip on first paint."""
+    from translation_manager import software_detector
+    items = _load_software()
+    presence = software_detector.scan_all([s.get("id", "") for s in items if s.get("id")])
+    for s in items:
+        sid = s.get("id")
+        if isinstance(sid, str):
+            info = presence.get(sid) or {}
+            s["installed"]    = bool(info.get("installed"))
+            s["installPath"]  = info.get("path") or ""
+            s["installExe"]   = info.get("exe")  or ""
+    return items
+
+
+@eel.expose
+def scan_software() -> dict:
+    """Re-run the local fingerprint sweep for every software id in the
+    catalog. Used by the "סרוק" button under the תוכנות tab — mirrors
+    the games' scan flow but with no expensive disk walk; just the
+    declared registry/path fingerprints in software_detector."""
+    return {"software": get_all_software()}
+
+
+# ─────────────────────────────────────────────────────────────
+# Launcher window/lifecycle prefs (close-to-tray + autostart)
+# ─────────────────────────────────────────────────────────────
+@eel.expose
+def get_launcher_prefs() -> dict:
+    """Snapshot consumed by the React frontend on boot. Drives:
+       - first-launch close-behavior modal (when closeBehavior is null)
+       - SettingsView toggles (keep-running-on-close, start-with-windows)
+       - the static version label in the sidebar footer."""
+    from translation_manager import autostart, launcher_prefs
+    return {
+        "closeBehavior": launcher_prefs.get_close_behavior(),       # "minimize" | "close" | None
+        "startWithOs":   autostart.is_enabled(),
+    }
+
+
+@eel.expose
+def set_close_behavior(behavior: str | None) -> dict:
+    """Persist the close-behavior choice. `None` resets it (next launch
+    will re-show the first-launch modal). Returns the fresh prefs
+    snapshot so the React side can sync without a second call."""
+    from translation_manager import autostart, launcher_prefs
+    if behavior in ("minimize", "close"):
+        ok = launcher_prefs.set_close_behavior(behavior)            # type: ignore[arg-type]
+    elif behavior in (None, "", "null"):
+        ok = launcher_prefs.clear_close_behavior()
+    else:
+        return {"ok": False, "error": f"invalid-behavior:{behavior!r}"}
+    return {
+        "ok": ok,
+        "closeBehavior": launcher_prefs.get_close_behavior(),
+        "startWithOs":   autostart.is_enabled(),
+    }
+
+
+@eel.expose
+def set_start_with_os(enabled: bool) -> dict:
+    """Write or remove the HKCU autostart Run-key entry. Mirrors the
+    state into launcher_prefs.json so the UI stays in sync with the
+    actual registry (in case a sysadmin removes the entry externally).
+    """
+    from translation_manager import autostart, launcher_prefs
+    if enabled:
+        ok, err = autostart.enable()
+    else:
+        ok, err = autostart.disable()
+    launcher_prefs.set_start_with_os(autostart.is_enabled())
+    return {
+        "ok": ok,
+        "error": err,
+        "startWithOs":   autostart.is_enabled(),
+        "closeBehavior": launcher_prefs.get_close_behavior(),
+    }
 
 
 # ─────────────────────────────────────────────────────────────
@@ -930,13 +1009,28 @@ FRONTEND_DIST = ROOT / "frontend" / "dist"
 
 
 def _on_window_closed(_page: str, _websockets: list) -> None:
-    """Eel close_callback. Force-exits the Python process the moment the
-    last websocket dies — otherwise Chromium's --app subprocess can linger
-    for several seconds as a black leftover window. os._exit(0) skips
-    atexit handlers, which is what we want: every persistence point
-    (games.json, detected_games.json, paths.json) already writes-through
-    on each mutation, so there's nothing left to flush at shutdown."""
+    """Eel close_callback — fires the moment the Chromium window dies.
+
+    Behaviour now depends on the user's persisted close preference:
+
+      - "minimize" → the tray icon is already running; we do NOT exit.
+                     eel.start() returns to main(), which then parks
+                     the process until the tray's "Open" menu spawns
+                     a fresh launcher instance.
+      - "close" or unset → os._exit(0), same as before.
+
+    We can't actually show a React modal HERE — by the time this fires
+    the Chromium window is gone, so there's no UI to render on. The
+    first-time preference modal is shown on launcher BOOT (when no
+    preference exists yet); the saved choice then drives this callback
+    silently on every subsequent close.
+    """
     import os
+    from translation_manager import launcher_prefs
+    pref = launcher_prefs.get_close_behavior()
+    if pref == "minimize":
+        print("[eel] Window closed → minimised to tray (process stays alive).", flush=True)
+        return
     print("[eel] Window closed — exiting.", flush=True)
     os._exit(0)
 
@@ -946,7 +1040,17 @@ def main() -> None:
     ap.add_argument("--dev", action="store_true",
                     help="Skip frontend serving — assume Vite dev server on :5173")
     ap.add_argument("--port", type=int, default=8765)
+    ap.add_argument("--silent", action="store_true",
+                    help="Boot hidden in the system tray (no Chromium window). "
+                         "Used by the autostart Run-key entry when the app launches at "
+                         "Windows logon — user explicitly opts in via the settings toggle.")
     args = ap.parse_args()
+
+    # Tray icon — always spawn it, regardless of how main() reaches eel.start.
+    # The tray is the lifeline for both --silent boots (no main window at
+    # all) and minimize-to-tray (window closes, tray stays).
+    from translation_manager import tray as _tray
+    _tray.start(title="Translation Manager")
 
     # game_detector seeds its cache from disk at import time (no work to do
     # here). We deliberately do NOT run an automatic scan on boot — the user
@@ -955,6 +1059,16 @@ def main() -> None:
     if not _has_any_cache() and not _ping_api():
         _show_no_internet_dialog()
         sys.exit(1)
+
+    # --silent boot (Windows autostart). No Chromium window opens — the
+    # process sits with just the tray icon until the user double-clicks
+    # it. The tray callback relaunches us WITHOUT --silent so the second
+    # run opens normally.
+    if args.silent:
+        print("[boot] --silent — tray-only mode, no main window.", flush=True)
+        import time
+        while True:
+            time.sleep(3600)
 
     if args.dev:
         # Vite dev mode — Eel only serves /eel.js + JSON-RPC; the React app
@@ -999,6 +1113,17 @@ def main() -> None:
                       close_callback=_on_window_closed)
         except (SystemExit, KeyboardInterrupt):
             pass
+
+    # Reached only if _on_window_closed returned without os._exit — i.e.
+    # the user picked "minimize to tray". Park here until the tray's
+    # "Open" menu relaunches us as a fresh process (and os._exits this
+    # one) or "Quit" tears the tray down with os._exit.
+    from translation_manager import launcher_prefs
+    if launcher_prefs.get_close_behavior() == "minimize":
+        print("[boot] Parked in tray after window close.", flush=True)
+        import time
+        while True:
+            time.sleep(3600)
 
 
 if __name__ == "__main__":

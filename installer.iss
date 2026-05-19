@@ -91,8 +91,12 @@ Name: "startmenuicon"; Description: "Start Menu shortcut";                    Gr
 Name: "autorun";       Description: "הפעל את התוכנה אוטומטית עם הפעלת Windows"; GroupDescription: "אפשרויות נוספות:"; Flags: unchecked
 
 [Files]
-; Main bundled executable produced by PyInstaller.
-Source: "dist\{#AppExeName}";          DestDir: "{app}"; Flags: ignoreversion
+; Onedir bundle produced by PyInstaller — copies the whole directory
+; tree (TranslationManager.exe + _internal/) into the install folder.
+; recursesubdirs + createallsubdirs is what makes the Inno Setup install
+; progress bar stream a rapid list of files instead of hanging on a
+; single multi-hundred-MB encrypted blob.
+Source: "dist\TranslationManager\*";   DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; License / readme (optional — only copied if present at compile time)
 Source: "README.md";                   DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 ; The branding icon copy that the launcher can reference at runtime

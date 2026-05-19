@@ -1,5 +1,8 @@
 customtkinter>=5.2.0
 Pillow>=10.0.0
+# Cross-platform system tray icon. Used by translation_manager.tray to
+# host the "minimize to tray" runtime. Pillow is its image dependency.
+pystray>=0.19
 opencv-python>=4.8.0
 pyinstaller>=6.0.0
 eel>=0.16

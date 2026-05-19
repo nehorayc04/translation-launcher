@@ -80,6 +80,19 @@ export interface Software {
   featured?:      boolean;
   showOnWebsite?: boolean;
   showOnLauncher?: boolean;
+  /** Local-presence flags from software_detector. Present when the
+   *  catalog feed has been enriched server-side; absent on plain
+   *  catalog pulls (treat as "unknown" / not installed). */
+  installed?:     boolean;
+  installPath?:   string;
+  installExe?:    string;
+}
+
+/** Launcher window/lifecycle prefs snapshot (eel.getLauncherPrefs). */
+export interface LauncherPrefs {
+  /** null = unset → first-launch modal needs to ask the user. */
+  closeBehavior: "minimize" | "close" | null;
+  startWithOs:   boolean;
 }
 
 export interface OpResult {

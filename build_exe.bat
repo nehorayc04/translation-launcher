@@ -86,56 +86,18 @@ echo.
 echo === [3/4]  Cleaning previous PyInstaller output ===
 if exist build      rmdir /s /q build
 if exist dist       rmdir /s /q dist
-if exist TranslationManager.spec del /q TranslationManager.spec
+REM Spec is hand-maintained (--onedir layout, see TranslationManager.spec).
+REM Do NOT delete it here.
 
 echo.
-echo === [4/4]  Running PyInstaller ===
-REM  --windowed         : no console window (GUI app)
-REM  --onefile          : single self-extracting .exe
-REM  --noconfirm        : don't prompt before overwriting
-REM  --add-data SRC;DST : ship the built React app + games/news/updates JSON
-REM  --collect-data eel : Eel ships its own eel.js — make sure it's bundled
-REM  --collect-submodules eel : Eel uses dynamic imports under the hood
-REM  --hidden-import bottle / gevent... : Eel's transport deps
-REM
-REM  NOTE: on Windows the --add-data separator is ";", not ":"
-python -m PyInstaller ^
-    --noconfirm ^
-    --windowed ^
-    --onefile ^
-    --clean ^
-    --name "TranslationManager" ^
-    --icon "build_assets\app.ico" ^
-    --add-data "frontend\dist;frontend/dist" ^
-    --add-data "games.json;." ^
-    --add-data "news.json;." ^
-    --add-data "updates.json;." ^
-    --add-data "translation_manager;translation_manager" ^
-    --collect-data eel ^
-    --collect-submodules eel ^
-    --collect-submodules translation_manager.auth ^
-    --collect-submodules keyring ^
-    --collect-submodules keyring.backends ^
-    REM --copy-metadata is REQUIRED for keyring: it discovers backends
-    REM via importlib.metadata entry_points, which need the dist-info
-    REM (METADATA, RECORD, entry_points.txt) bundled in the EXE.
-    REM Without this, keyring falls through to a null backend at
-    REM runtime and storage.py raises "no backend available".
-    --copy-metadata keyring ^
-    --hidden-import bottle ^
-    --hidden-import bottle_websocket ^
-    --hidden-import gevent ^
-    --hidden-import gevent.monkey ^
-    --hidden-import gevent.queue ^
-    --hidden-import geventwebsocket ^
-    --hidden-import geventwebsocket.handler ^
-    --hidden-import keyring.backends.Windows ^
-    --hidden-import keyring.backends.macOS ^
-    --hidden-import keyring.backends.SecretService ^
-    --collect-submodules cryptography ^
-    --hidden-import cryptography.fernet ^
-    --hidden-import cryptography.hazmat.backends.openssl ^
-    main_eel.py
+echo === [4/4]  Running PyInstaller (onedir, via spec) ===
+REM Driven by TranslationManager.spec so the EXE + COLLECT split stays
+REM under source control. Onedir layout writes:
+REM   dist\TranslationManager\TranslationManager.exe   (thin bootstrap)
+REM   dist\TranslationManager\_internal\...            (binaries + datas)
+REM installer.iss bundles the whole directory tree so Inno Setup shows a
+REM streaming progress bar instead of stalling on a single huge file.
+python -m PyInstaller --noconfirm --clean TranslationManager.spec
 
 if errorlevel 1 (
     echo.
@@ -145,10 +107,10 @@ if errorlevel 1 (
 
 echo.
 echo === BUILD SUCCESS ===
-if exist "dist\TranslationManager.exe" (
-    for %%I in ("dist\TranslationManager.exe") do echo Output: %%~fI   ^(%%~zI bytes^)
+if exist "dist\TranslationManager\TranslationManager.exe" (
+    for %%I in ("dist\TranslationManager\TranslationManager.exe") do echo Output: %%~fI   ^(%%~zI bytes^)
 ) else (
-    echo [WARN] dist\TranslationManager.exe not found — check PyInstaller output above.
+    echo [WARN] dist\TranslationManager\TranslationManager.exe not found — check PyInstaller output above.
     exit /b 1
 )
 

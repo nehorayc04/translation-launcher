@@ -1,0 +1,166 @@
+"""
+System tray icon for the launcher.
+
+Runs on a background daemon thread (pystray's `run_detached` model)
+so it never blocks Eel's gevent loop. The icon is created from
+`build_assets/app.ico` so the tray and taskbar share the same artwork.
+
+Menu:
+  - "פתח את התוכנה" → relaunches the launcher as a new subprocess and
+                       exits the current one. Used after the user
+                       minimised-to-tray (the previous Chromium window
+                       is dead at that point so we can't just un-hide).
+  - "סגור לצמיתות"  → tray.stop() + os._exit(0).
+
+Why subprocess-relaunch instead of un-hiding a hidden window?
+  Eel + Chrome `--app` mode doesn't expose a way to programmatically
+  un-hide a window that the user already closed. The window IS the
+  process; once it dies, only a new launch can bring it back. We trade
+  a quick boot for a clean lifecycle (single instance, no zombie state).
+"""
+
+from __future__ import annotations
+
+import logging
+import os
+import subprocess
+import sys
+import threading
+from pathlib import Path
+from typing import Callable, Optional
+
+log = logging.getLogger(__name__)
+
+_icon: Optional[object] = None        # pystray.Icon — typed loosely so the
+                                      # module imports cleanly when pystray
+                                      # isn't installed.
+_thread: Optional[threading.Thread] = None
+_on_show_request: Optional[Callable[[], None]] = None
+_on_quit_request: Optional[Callable[[], None]] = None
+
+
+# ─────────────────────────────────────────────────────────────
+def _icon_path() -> Path | None:
+    """Find the launcher's .ico file (works in dev + PyInstaller bundle)."""
+    candidates: list[Path] = []
+    # Frozen bundle: PyInstaller sets _MEIPASS to the extraction dir.
+    base = getattr(sys, "_MEIPASS", None)
+    if base:
+        candidates.append(Path(base) / "build_assets" / "app.ico")
+    # Repo / dev layout.
+    here = Path(__file__).parent.parent
+    candidates.append(here / "build_assets" / "app.ico")
+    for p in candidates:
+        if p.exists():
+            return p
+    return None
+
+
+def _load_icon_image():
+    """Load app.ico as a PIL.Image. Falls back to a generated square if missing."""
+    from PIL import Image
+    p = _icon_path()
+    if p is not None:
+        try:
+            return Image.open(p)
+        except OSError as e:
+            log.warning("tray: cannot open %s — %s", p, e)
+    # Bare-fallback: 64x64 solid yellow square (matches brand-yellow #fff700).
+    img = Image.new("RGB", (64, 64), (255, 247, 0))
+    return img
+
+
+# ─────────────────────────────────────────────────────────────
+def _relaunch_self() -> None:
+    """Spawn a fresh launcher process and quit this one.
+
+    Used by the "Open" tray menu after the user minimised to tray, since
+    we cannot revive the dead Chromium window in-process. The new
+    instance picks up persisted state from disk and starts visible.
+    """
+    try:
+        if getattr(sys, "frozen", False):
+            # Frozen build: just relaunch the same exe (no --silent so it
+            # opens visible). PyInstaller onedir/onefile both honour this.
+            subprocess.Popen([sys.executable], close_fds=True)
+        else:
+            # Dev / source run: re-invoke `python main_eel.py`.
+            entry = Path(sys.argv[0]).resolve()
+            subprocess.Popen([sys.executable, str(entry)], close_fds=True)
+    except Exception as e:                                # pragma: no cover
+        log.warning("tray: relaunch failed — %s", e)
+
+
+def _menu_open(icon, _item) -> None:
+    """Fired by tray menu → 'פתח את התוכנה' (also bound to default-click)."""
+    if _on_show_request is not None:
+        try: _on_show_request()
+        except Exception as e: log.warning("tray show callback failed — %s", e)
+    icon.stop()
+    _relaunch_self()
+    # Exit AFTER the new process is spawned so there's never a moment
+    # with zero launcher processes (would briefly drop the tray icon).
+    os._exit(0)
+
+
+def _menu_quit(icon, _item) -> None:
+    """Fired by tray menu → 'סגור לצמיתות'."""
+    if _on_quit_request is not None:
+        try: _on_quit_request()
+        except Exception as e: log.warning("tray quit callback failed — %s", e)
+    icon.stop()
+    os._exit(0)
+
+
+# ─────────────────────────────────────────────────────────────
+def start(
+    title: str = "Translation Manager",
+    on_show: Callable[[], None] | None = None,
+    on_quit: Callable[[], None] | None = None,
+) -> bool:
+    """Spawn the tray icon on a daemon thread. Returns True on success.
+
+    Safe to call multiple times — subsequent calls are no-ops while a
+    tray is already running.
+    """
+    global _icon, _thread, _on_show_request, _on_quit_request
+    if _icon is not None:
+        return True
+
+    try:
+        import pystray
+    except ImportError as e:
+        log.warning("tray: pystray not installed (%s) — running without tray", e)
+        return False
+
+    _on_show_request = on_show
+    _on_quit_request = on_quit
+
+    image = _load_icon_image()
+    menu = pystray.Menu(
+        pystray.MenuItem("פתח את התוכנה", _menu_open, default=True),
+        pystray.MenuItem("סגור לצמיתות",  _menu_quit),
+    )
+    _icon = pystray.Icon("translation-manager", image, title, menu)
+
+    def _runner():
+        try:
+            _icon.run()      # type: ignore[union-attr]
+        except Exception as e:
+            log.warning("tray runner crashed — %s", e)
+
+    _thread = threading.Thread(target=_runner, daemon=True, name="tray")
+    _thread.start()
+    return True
+
+
+def stop() -> None:
+    """Stop the tray icon if running. Safe to call when none was started."""
+    global _icon
+    if _icon is None:
+        return
+    try:
+        _icon.stop()         # type: ignore[union-attr]
+    except Exception:
+        pass
+    _icon = None

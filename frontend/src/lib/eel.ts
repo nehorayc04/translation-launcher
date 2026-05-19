@@ -1,6 +1,6 @@
 // Thin wrapper around window.eel that adds typings + promise interop.
 // All Python @eel.expose functions are wrapped here.
-import type { Game, OpResult, ScanResult, Software } from "./types";
+import type { Game, OpResult, ScanResult, Software, LauncherPrefs } from "./types";
 
 // Eel attaches functions to window.eel.<name>. Calling them returns a thunk
 // that, when called with (), starts an async RPC; resolving requires
@@ -123,6 +123,19 @@ export const api = {
   /** Software catalog (Steam, etc.) — sister of getAllGames. Backend
    *  pulls /api/software with showOnLauncher filtering. */
   getAllSoftware:   ()                          => call<Software[]>("get_all_software"),
+  /** Re-runs the local fingerprint sweep (registry + path checks)
+   *  for every software entry. Returns the refreshed catalog. */
+  scanSoftware:     ()                          => call<{ software: Software[] }>("scan_software"),
+
+  // ── Launcher window/lifecycle prefs ───────────────────────
+  /** Snapshot of close-behavior + autostart state. Frontend reads it
+   *  on boot to know whether to show the first-launch close-behavior
+   *  modal (closeBehavior === null). */
+  getLauncherPrefs: ()                          => call<LauncherPrefs>("get_launcher_prefs"),
+  /** Persist the close-behavior choice. Pass `null` to reset. */
+  setCloseBehavior: (b: "minimize" | "close" | null) => call<{ ok: boolean; closeBehavior: LauncherPrefs["closeBehavior"]; startWithOs: boolean }>("set_close_behavior", b),
+  /** Toggle the HKCU autostart Run-key entry. */
+  setStartWithOs:   (enabled: boolean) => call<{ ok: boolean; error?: string; startWithOs: boolean; closeBehavior: LauncherPrefs["closeBehavior"] }>("set_start_with_os", enabled),
   getLiveProgress:  (id: string)                => call<ProgressSnapshot | null>("get_live_progress", id),
   startDownload:    (id: string)                => call<{ok: boolean; error?: string}>("start_download", id),
   cancelDownload:   (id: string)                => call<{ok: boolean; error?: string}>("cancel_download", id),

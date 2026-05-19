@@ -14,8 +14,9 @@ import DownloadsView     from "./views/DownloadsView";
 import PersonalAreaView  from "./views/PersonalAreaView";
 import GameDetailPanel   from "./views/GameDetailPanel";
 import SoftwareDetailPanel from "./views/SoftwareDetailPanel";
+import CloseBehaviorModal from "./components/CloseBehaviorModal";
 import { api }           from "./lib/eel";
-import type { Game, Software } from "./lib/types";
+import type { Game, Software, LauncherPrefs } from "./lib/types";
 import { SiteConfigProvider } from "./lib/useSiteConfig";
 import { LauncherAuthProvider } from "./lib/useLauncherAuth";
 
@@ -31,6 +32,9 @@ export default function App() {
   const [selectedSoftware, setSelectedSoftware] = useState<Software | null>(null);
   const [status,   setStatus]   = useState<string | undefined>(undefined);
   const [loading,  setLoading]  = useState(true);
+  /** Launcher window/lifecycle prefs. `null` while we haven't loaded
+   *  yet (don't show the modal during the brief pre-load window). */
+  const [launcherPrefs, setLauncherPrefs] = useState<LauncherPrefs | null>(null);
   // Bumped every time the sidebar refresh button completes successfully.
   // Views that fetch their own slice of data (NewsSection, DownloadsView)
   // include this in their effect deps so they re-pull instead of waiting
@@ -56,7 +60,16 @@ export default function App() {
   useEffect(() => {
     let attempts = 0;
     const tryBoot = async () => {
-      if (api.ready()) { await refresh(); return; }
+      if (api.ready()) {
+        // Pull catalog + launcher prefs in parallel so the
+        // first-launch close-behavior modal can show as soon as we
+        // know the user hasn't picked yet.
+        await Promise.all([
+          refresh(),
+          api.getLauncherPrefs().then(setLauncherPrefs).catch((e) => console.error("[prefs]", e)),
+        ]);
+        return;
+      }
       if (++attempts > 50) { setLoading(false); return; }
       setTimeout(tryBoot, 100);
     };
@@ -200,6 +213,8 @@ export default function App() {
               reportStatus={reportStatus}
               onRefresh={refresh}
               version={APP_VERSION}
+              launcherPrefs={launcherPrefs}
+              onPrefsChange={setLauncherPrefs}
             />
           )}
         </main>
@@ -210,6 +225,15 @@ export default function App() {
           onRefresh={handleRefreshFromServer}
         />
       </div>
+
+      {/* First-launch close-behavior modal. Shows ONLY when the
+          backend reports no persisted preference (closeBehavior === null).
+          Setting a choice via the modal (or via SettingsView later)
+          flips closeBehavior to "minimize" | "close" and the modal
+          stops rendering. */}
+      {launcherPrefs && launcherPrefs.closeBehavior === null && (
+        <CloseBehaviorModal onResolved={setLauncherPrefs} />
+      )}
 
       {/* Floating status toast — top-center, replaces the heavy bottom bar */}
       {status && (

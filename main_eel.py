@@ -1008,6 +1008,126 @@ ROOT = Path(__file__).parent
 FRONTEND_DIST = ROOT / "frontend" / "dist"
 
 
+# ─────────────────────────────────────────────────────────────
+# Single-instance guard (Windows).
+# ─────────────────────────────────────────────────────────────
+# Without a guard, a second instance (e.g. user clicks the Start-menu
+# shortcut while the launcher is already running silently in the tray)
+# would call eel.start → gevent tries to bind localhost:8765 → it's
+# already bound → WinError 10048 surfaces as a fatal Python traceback
+# in a console pop-up. Awful UX.
+#
+# Strategy:
+#   1. CreateMutexW with a stable session-scoped name. If GetLastError
+#      reports ERROR_ALREADY_EXISTS, another instance owns the mutex.
+#   2. The non-owner signals a named auto-reset event "show me" and
+#      exits cleanly with code 0 (no traceback).
+#   3. The owner (first instance) spawns a daemon thread that waits on
+#      the same event. When triggered, it follows the exact same code
+#      path as the tray menu's "Open" item — `tray._relaunch_self()`
+#      then `os._exit(0)`. That works for both --silent (no window) and
+#      visible (existing window) starts: the next process boots
+#      visible, bringing focus to the new Chromium window.
+#
+# We DELIBERATELY use ctypes (no pywin32 dep). PyInstaller ships
+# ctypes by default, so there's nothing extra to bundle.
+_INSTANCE_MUTEX_HANDLE = None      # kept alive for the process lifetime
+_MUTEX_NAME            = "TranslationManagerLauncher_SingleInstance_v1"
+_SHOW_EVENT_NAME       = "TranslationManagerLauncher_ShowEvent_v1"
+
+
+def _acquire_single_instance_mutex() -> bool:
+    """Returns True iff THIS process is the first / sole instance.
+
+    Side effect on True: stashes the OS handle in a module global so
+    Windows keeps the mutex alive until process exit. Caller must NOT
+    close it.
+    """
+    if sys.platform != "win32":
+        return True                                    # non-Windows: no-op
+    try:
+        import ctypes
+        from ctypes import wintypes
+    except Exception:
+        return True                                    # ctypes broken: don't block boot
+    global _INSTANCE_MUTEX_HANDLE
+    ERROR_ALREADY_EXISTS = 183
+    kernel32 = ctypes.windll.kernel32
+    kernel32.CreateMutexW.restype  = wintypes.HANDLE
+    kernel32.CreateMutexW.argtypes = [ctypes.c_void_p, wintypes.BOOL, wintypes.LPCWSTR]
+    handle = kernel32.CreateMutexW(None, False, _MUTEX_NAME)
+    if not handle:
+        return True                                    # CreateMutex failed → don't block boot
+    if kernel32.GetLastError() == ERROR_ALREADY_EXISTS:
+        kernel32.CloseHandle(handle)
+        return False
+    _INSTANCE_MUTEX_HANDLE = handle
+    return True
+
+
+def _signal_show_to_existing_instance() -> None:
+    """Open the named auto-reset event and SetEvent. The running
+    instance's waiter wakes up, kills this orphan process, and relaunches
+    itself visibly. Best-effort — failures are swallowed because we're
+    about to sys.exit anyway."""
+    if sys.platform != "win32":
+        return
+    try:
+        import ctypes
+        from ctypes import wintypes
+        kernel32 = ctypes.windll.kernel32
+        kernel32.OpenEventW.restype  = wintypes.HANDLE
+        kernel32.OpenEventW.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.LPCWSTR]
+        EVENT_MODIFY_STATE = 0x0002
+        h = kernel32.OpenEventW(EVENT_MODIFY_STATE, False, _SHOW_EVENT_NAME)
+        if h:
+            kernel32.SetEvent(h)
+            kernel32.CloseHandle(h)
+    except Exception:
+        pass
+
+
+def _start_show_event_listener() -> None:
+    """First-instance side: spawn a daemon thread that waits on the
+    named event. When signaled, relaunch visibly + exit so the next
+    process owns the screen."""
+    if sys.platform != "win32":
+        return
+    try:
+        import ctypes
+        import threading
+        from ctypes import wintypes
+        kernel32 = ctypes.windll.kernel32
+        kernel32.CreateEventW.restype  = wintypes.HANDLE
+        kernel32.CreateEventW.argtypes = [
+            ctypes.c_void_p, wintypes.BOOL, wintypes.BOOL, wintypes.LPCWSTR,
+        ]
+        # bManualReset=False (auto-reset), bInitialState=False (unsignalled)
+        handle = kernel32.CreateEventW(None, False, False, _SHOW_EVENT_NAME)
+        if not handle:
+            return
+
+        def _waiter() -> None:
+            INFINITE = 0xFFFFFFFF
+            while True:
+                kernel32.WaitForSingleObject(handle, INFINITE)
+                # Same code path as tray "Open": spawn a fresh visible
+                # instance, then kill this one so Chromium hands input
+                # focus to the new window.
+                try:
+                    from translation_manager import tray as _tray
+                    _tray._relaunch_self()
+                except Exception as e:                     # pragma: no cover
+                    print(f"[single-instance] relaunch failed: {e}", flush=True)
+                import os
+                os._exit(0)
+
+        t = threading.Thread(target=_waiter, daemon=True, name="show-event-listener")
+        t.start()
+    except Exception as e:                                 # pragma: no cover
+        print(f"[single-instance] listener setup failed: {e}", flush=True)
+
+
 def _on_window_closed(_page: str, _websockets: list) -> None:
     """Eel close_callback — fires the moment the Chromium window dies.
 
@@ -1045,6 +1165,17 @@ def main() -> None:
                          "Used by the autostart Run-key entry when the app launches at "
                          "Windows logon — user explicitly opts in via the settings toggle.")
     args = ap.parse_args()
+
+    # Single-instance guard. If another instance already owns the named
+    # mutex, signal it to show its window and exit THIS process cleanly.
+    # Otherwise: install the named-event listener so the next time the
+    # user clicks the Start-menu shortcut, the running instance hears
+    # about it instead of port 8765 colliding into a Python traceback.
+    if not _acquire_single_instance_mutex():
+        print("[boot] Another launcher instance is running — signalling it to show.", flush=True)
+        _signal_show_to_existing_instance()
+        sys.exit(0)
+    _start_show_event_listener()
 
     # Tray icon — always spawn it, regardless of how main() reaches eel.start.
     # The tray is the lifeline for both --silent boots (no main window at

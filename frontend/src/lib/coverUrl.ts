@@ -10,6 +10,15 @@
 // a bare filename like "cyberpunk.jpg" resolves to the eel root and
 // 404s — the file is actually bundled at /covers/cyberpunk.jpg.
 // This helper normalises every shape to a usable launcher path/URL.
+//
+// Root-relative paths (case 2) target files served by the live website
+// (e.g. software covers seeded after the launcher build). They CANNOT
+// just pass through, because in eel the origin is localhost. We prepend
+// the live website base URL so the browser fetches from Vercel instead
+// of trying to serve from the launcher's local HTTP root.
+
+const REMOTE_BASE = 'https://hebrew-translation-hub.vercel.app';
+
 export function resolveCoverUrl(
   cover:   string | null | undefined,
   gameId?: string | null,
@@ -17,8 +26,9 @@ export function resolveCoverUrl(
   if (cover) {
     // (1) absolute URL — admin upload, external host — pass through.
     if (/^https?:\/\//i.test(cover)) return cover;
-    // (2) already a root-relative path — pass through.
-    if (cover.startsWith('/'))       return cover;
+    // (2) root-relative path — file lives on the live site; prepend
+    //     the remote origin so eel doesn't try to serve from localhost.
+    if (cover.startsWith('/'))       return `${REMOTE_BASE}${cover}`;
     // (3) bare filename — map to the bundled /covers/<filename>.
     const stripped = cover.replace(/^covers\//i, '');
     return `/covers/${stripped}`;

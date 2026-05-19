@@ -17,7 +17,7 @@
 
 #define AppName        "Translation Manager"
 #define AppNameHe      "מנהל התרגומים"
-#define AppVersion     "1.0.9"
+#define AppVersion     "1.1.0"
 #define AppPublisher   "Nahorai"
 #define AppExeName     "TranslationManager.exe"
 #define AppURL         "https://hebrew-translation-hub.vercel.app/"

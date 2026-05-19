@@ -13,17 +13,22 @@ import SettingsView      from "./views/SettingsView";
 import DownloadsView     from "./views/DownloadsView";
 import PersonalAreaView  from "./views/PersonalAreaView";
 import GameDetailPanel   from "./views/GameDetailPanel";
+import SoftwareDetailPanel from "./views/SoftwareDetailPanel";
 import { api }           from "./lib/eel";
-import type { Game }     from "./lib/types";
+import type { Game, Software } from "./lib/types";
 import { SiteConfigProvider } from "./lib/useSiteConfig";
 import { LauncherAuthProvider } from "./lib/useLauncherAuth";
 
-export const APP_VERSION = "v1.0.9";
+export const APP_VERSION = "v1.1.0";
 
 export default function App() {
   const [view,     setView]     = useState<NavKey>("home");
   const [games,    setGames]    = useState<Game[]>([]);
   const [selected, setSelected] = useState<Game | null>(null);
+  /** Currently-opened software card (parallel to `selected` for games).
+   *  When non-null we render <SoftwareDetailPanel/> in place of the
+   *  software grid, matching how a selected game replaces the library. */
+  const [selectedSoftware, setSelectedSoftware] = useState<Software | null>(null);
   const [status,   setStatus]   = useState<string | undefined>(undefined);
   const [loading,  setLoading]  = useState(true);
   // Bumped every time the sidebar refresh button completes successfully.
@@ -91,11 +96,16 @@ export default function App() {
 
   const handleNavigate = (key: NavKey) => {
     setSelected(null);
+    setSelectedSoftware(null);
     setView(key);
   };
   const handleOpenGame = (g: Game) => {
     setSelected(g);
     setView("games");
+  };
+  const handleOpenSoftware = (s: Software) => {
+    setSelectedSoftware(s);
+    setView("apps");
   };
 
   const gamesCountHe = (n: number) =>
@@ -151,6 +161,12 @@ export default function App() {
               reportStatus={reportStatus}
               refreshNonce={refreshNonce}
             />
+          ) : selectedSoftware ? (
+            <SoftwareDetailPanel
+              software={selectedSoftware}
+              onBack={() => setSelectedSoftware(null)}
+              reportStatus={reportStatus}
+            />
           ) : view === "home" ? (
             <HomeView
               games={games}
@@ -165,7 +181,11 @@ export default function App() {
               onScanDeep={handleScanDeep}
             />
           ) : view === "apps" ? (
-            <AppsView reportStatus={reportStatus} />
+            <AppsView
+              reportStatus={reportStatus}
+              refreshNonce={refreshNonce}
+              onOpenSoftware={handleOpenSoftware}
+            />
           ) : view === "downloads" ? (
             <DownloadsView refreshNonce={refreshNonce} />
           ) : view === "personal" ? (

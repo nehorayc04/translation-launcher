@@ -16,9 +16,11 @@ type ReportStatus = (text: string, warn?: boolean) => void;
 interface Props {
   reportStatus?: ReportStatus;
   refreshNonce?: number;
+  /** Click on a card → caller opens the full-screen detail panel. */
+  onOpenSoftware?: (s: Software) => void;
 }
 
-export default function AppsView({ reportStatus, refreshNonce = 0 }: Props) {
+export default function AppsView({ reportStatus, refreshNonce = 0, onOpenSoftware }: Props) {
   const [items, setItems] = useState<Software[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -73,7 +75,12 @@ export default function AppsView({ reportStatus, refreshNonce = 0 }: Props) {
       {items !== null && items.length > 0 && (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-5">
           {items.map((s) => (
-            <SoftwareCard key={s.id} s={s} reportStatus={reportStatus} />
+            <SoftwareCard
+              key={s.id}
+              s={s}
+              reportStatus={reportStatus}
+              onOpen={onOpenSoftware}
+            />
           ))}
         </div>
       )}
@@ -87,13 +94,28 @@ export default function AppsView({ reportStatus, refreshNonce = 0 }: Props) {
 
 // ---------------------------------------------------------------- card
 
-function SoftwareCard({ s, reportStatus }: { s: Software; reportStatus?: ReportStatus }) {
+function SoftwareCard({
+  s, reportStatus, onOpen,
+}: {
+  s: Software;
+  reportStatus?: ReportStatus;
+  onOpen?: (s: Software) => void;
+}) {
   const [busy, setBusy] = useState(false);
   const accent = s.accentColor || "#66c0f4";
   const cover  = resolveCoverUrl(s.cover, s.id);
   const handler = INSTALL_HANDLERS[s.id];
 
-  const onClick = async () => {
+  // Card body click → open the detail panel (parity with how
+  // LibraryView's GameCard opens GameDetailPanel). The bottom CTA
+  // button stops propagation so the install action doesn't double-fire
+  // with the open-panel action.
+  const onCardClick = () => {
+    if (onOpen) onOpen(s);
+  };
+
+  const onCtaClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (busy) return;
     if (handler) {
       setBusy(true);
@@ -114,8 +136,13 @@ function SoftwareCard({ s, reportStatus }: { s: Software; reportStatus?: ReportS
 
   return (
     <div
-      className="glass rounded-2xl p-5 flex flex-col gap-4 transition
-                 hover:scale-[1.015] hover:shadow-[0_18px_40px_-18px_rgba(0,0,0,0.6)]"
+      role="button"
+      tabIndex={0}
+      onClick={onCardClick}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onCardClick(); }}
+      className="glass rounded-2xl p-5 flex flex-col gap-4 transition cursor-pointer
+                 hover:scale-[1.015] hover:shadow-[0_18px_40px_-18px_rgba(0,0,0,0.6)]
+                 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
       style={{ borderTop: `2px solid ${accent}55` }}
     >
       {/* Cover plate */}
@@ -168,7 +195,7 @@ function SoftwareCard({ s, reportStatus }: { s: Software; reportStatus?: ReportS
 
       {/* CTA */}
       <button
-        onClick={onClick}
+        onClick={onCtaClick}
         disabled={busy || (!handler && !s.downloadUrl)}
         className="w-full py-2.5 rounded-xl text-sm font-bold transition
                    disabled:opacity-60 disabled:cursor-wait

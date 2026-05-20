@@ -28,10 +28,41 @@ function cache_refreshed(kind, data, subKey) {
   }
 }
 
+// ── Mod install progress (new) ───────────────────────────────
+// Python calls eel.mod_install_progress(phase, pct, detail)() during a
+// Steam-mod install / enable / disable. AppsView registers a callback
+// into __eelModHandlers (via lib/eel.ts onModProgress) to drive its
+// progress bar. phase ∈ {"download","verify","extract","apply"}.
+window.__eelModHandlers = [];
+
+function mod_install_progress(phase, pct, detail) {
+  var list = window.__eelModHandlers || [];
+  for (var i = 0; i < list.length; i++) {
+    try { list[i](phase, pct, detail); } catch (e) { /* swallow */ }
+  }
+}
+
+// ── Launcher self-update progress (new) ──────────────────────
+// Python calls eel.launcher_update_progress(phase, pct, detail)() while
+// the in-app updater downloads + verifies + runs the installer. The
+// DownloadsView self-update panel registers a callback into
+// __eelLauncherUpdateHandlers (via lib/eel.ts onLauncherUpdateProgress).
+// phase ∈ {"download","verify","launch","error"}.
+window.__eelLauncherUpdateHandlers = [];
+
+function launcher_update_progress(phase, pct, detail) {
+  var list = window.__eelLauncherUpdateHandlers || [];
+  for (var i = 0; i < list.length; i++) {
+    try { list[i](phase, pct, detail); } catch (e) { /* swallow */ }
+  }
+}
+
 (function register() {
   if (window.eel && typeof window.eel.expose === "function") {
     eel.expose(update_download_progress, "update_download_progress");
     eel.expose(cache_refreshed,          "cache_refreshed");
+    eel.expose(mod_install_progress,     "mod_install_progress");
+    eel.expose(launcher_update_progress, "launcher_update_progress");
   } else {
     setTimeout(register, 50);
   }

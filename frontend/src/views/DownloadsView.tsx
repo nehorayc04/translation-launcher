@@ -2,8 +2,14 @@
 // HTML/CSS progress bar driven by Python's update_download_progress push.
 // The list itself is SWR-cached: instant first paint from the on-disk
 // snapshot, then quietly refreshed in the background.
-import { useEffect, useMemo, useState } from "react";
-import { api, type UpdateItem } from "../lib/eel";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  api,
+  onLauncherUpdateProgress,
+  type UpdateItem,
+  type LauncherUpdateInfo,
+  type LauncherUpdateProgress,
+} from "../lib/eel";
 import { useDownloadProgress } from "../lib/useDownloadProgress";
 import { useSWRSource } from "../lib/useSWRSource";
 
@@ -37,6 +43,10 @@ export default function DownloadsView({ refreshNonce = 0 }: Props) {
         <h1 className="text-3xl font-extrabold text-white">הורדות ועדכונים</h1>
       </div>
 
+      {/* Persistent self-update panel — always on top, independent of
+          the translation/system update list below. */}
+      <SelfUpdatePanel />
+
       {loading ? (
         <Loader />
       ) : items.length === 0 ? (
@@ -45,6 +55,191 @@ export default function DownloadsView({ refreshNonce = 0 }: Props) {
         <div className="space-y-8">
           <Section title="עדכוני מערכת"     accent="#fff700" items={system}       progress={progress} />
           <Section title="עדכוני תרגומים"  accent="#00ffe0" items={translations} progress={progress} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Self-update panel — checks the release feed, downloads the
+// installer in-app (live progress), and runs it silently. No
+// external installer window: the .exe runs with /VERYSILENT, its
+// PrepareToInstall hook closes this process, and its [Run] entry
+// relaunches the freshly-installed version.
+function SelfUpdatePanel() {
+  const [info, setInfo]         = useState<LauncherUpdateInfo | null>(null);
+  const [checking, setChecking] = useState(true);
+  const [updating, setUpdating] = useState(false);
+  const [progress, setProgress] = useState<LauncherUpdateProgress | null>(null);
+
+  const check = useCallback(async () => {
+    setChecking(true);
+    setProgress(null);
+    try {
+      setInfo(await api.getLauncherUpdateInfo());
+    } catch (e) {
+      setInfo({
+        currentVersion: "—", latestVersion: "—", updateAvailable: false,
+        downloadUrl: null, sizeBytes: 0, sizeMb: 0, notes: "", sha256: null,
+        error: String(e),
+      });
+    } finally {
+      setChecking(false);
+    }
+  }, []);
+
+  useEffect(() => { check(); }, [check]);
+
+  // Progress stream from Python's launcher_update_progress pushes.
+  useEffect(() => {
+    return onLauncherUpdateProgress((p) => {
+      setProgress(p);
+      if (p.phase === "error") setUpdating(false);
+    });
+  }, []);
+
+  const startUpdate = async () => {
+    setUpdating(true);
+    setProgress({ phase: "download", pct: 0, detail: "מתחיל בהורדה…" });
+    try {
+      const r = await api.startLauncherUpdate();
+      if (!r.ok) {
+        setUpdating(false);
+        setProgress({ phase: "error", pct: 0, detail: r.error || "כשל בהפעלת העדכון" });
+      }
+    } catch (e) {
+      setUpdating(false);
+      setProgress({ phase: "error", pct: 0, detail: String(e) });
+    }
+  };
+
+  const failed   = progress?.phase === "error";
+  const launching = progress?.phase === "launch";
+  const verifying = progress?.phase === "verify";
+  const barPct   = Math.min(100, Math.max(0, progress?.pct ?? 0));
+  const accent   = info?.updateAvailable ? "#fff700" : "#00ffe0";
+
+  return (
+    <div
+      className="rounded-2xl p-5 mb-8 border relative overflow-hidden"
+      style={{
+        borderColor: `${accent}44`,
+        background: `linear-gradient(135deg, ${accent}0e, transparent 70%), rgba(255,255,255,0.02)`,
+      }}
+    >
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-lg" aria-hidden>⬆️</span>
+            <h2 className="text-lg font-bold text-white">עדכון התוכנה</h2>
+          </div>
+          <p className="text-[12px] text-slate-400 mt-1">
+            גרסה מותקנת:{" "}
+            <span className="font-mono text-slate-200" dir="ltr">
+              v{info?.currentVersion ?? "—"}
+            </span>
+            {info && info.latestVersion !== info.currentVersion && (
+              <>
+                {"  ·  "}גרסה אחרונה:{" "}
+                <span className="font-mono" style={{ color: accent }} dir="ltr">
+                  v{info.latestVersion}
+                </span>
+              </>
+            )}
+          </p>
+        </div>
+
+        {/* Right-side action / status */}
+        {!updating && !checking && (
+          info?.updateAvailable ? (
+            <button
+              onClick={startUpdate}
+              className="px-5 py-2.5 rounded-xl text-sm font-bold transition
+                         text-brand-ink hover:brightness-110 shrink-0
+                         shadow-[0_6px_15px_-6px_rgba(255,247,0,0.5)]"
+              style={{ background: accent }}
+            >
+              עדכן עכשיו{info.sizeMb ? ` · ${info.sizeMb.toFixed(0)} MB` : ""}
+            </button>
+          ) : info?.error ? (
+            <button
+              onClick={check}
+              className="px-4 py-2 rounded-xl text-sm font-bold transition shrink-0
+                         border border-white/15 text-slate-200 hover:bg-white/5"
+            >
+              בדוק שוב
+            </button>
+          ) : (
+            <span className="text-[13px] font-bold px-4 py-2 rounded-xl shrink-0
+                             bg-emerald-500/15 text-emerald-200 ring-1 ring-emerald-400/30">
+              ✓ התוכנה מעודכנת
+            </span>
+          )
+        )}
+        {checking && (
+          <span className="text-[12px] text-slate-400 flex items-center gap-2 shrink-0">
+            <span className="w-4 h-4 border-2 border-slate-500 border-t-transparent rounded-full animate-spin" />
+            בודק עדכונים…
+          </span>
+        )}
+      </div>
+
+      {/* Release notes for an available update */}
+      {!updating && info?.updateAvailable && info.notes && (
+        <p className="mt-3 text-[12px] leading-relaxed text-slate-300 border-t border-white/5 pt-3">
+          {info.notes}
+        </p>
+      )}
+
+      {/* Check-failed note */}
+      {!updating && !checking && info?.error && (
+        <p className="mt-3 text-[12px] text-amber-300/90 border-t border-white/5 pt-3">
+          לא ניתן לבדוק עדכונים כרגע — בדוק את החיבור לאינטרנט ונסה שוב.
+        </p>
+      )}
+
+      {/* Live progress while updating */}
+      {(updating || failed) && progress && (
+        <div className="mt-4 border-t border-white/5 pt-4">
+          <div className="flex justify-between text-[11px] mb-1.5">
+            <span dir="ltr" className="font-mono text-slate-300">
+              {progress.detail}
+            </span>
+            <span
+              className="font-bold"
+              style={{ color: failed ? "#f87171" : accent }}
+            >
+              {failed ? "שגיאה"
+                : launching ? "מתקין…"
+                : verifying ? "מאמת…"
+                : `${barPct.toFixed(0)}%`}
+            </span>
+          </div>
+          <div className="h-2 bg-white/5 rounded-full overflow-hidden ring-1 ring-white/5">
+            <div
+              className="h-full rounded-full transition-all duration-200"
+              style={{
+                width: failed ? "100%" : launching || verifying ? "100%" : `${barPct}%`,
+                background: failed ? "#ef4444" : `linear-gradient(90deg, ${accent}, #fff)`,
+                boxShadow: failed ? "none" : `0 0 12px ${accent}80`,
+              }}
+            />
+          </div>
+          {failed && (
+            <button
+              onClick={startUpdate}
+              className="mt-3 px-4 py-1.5 rounded-lg text-[12px] font-bold transition
+                         bg-rose-500/15 text-rose-200 hover:bg-rose-500/30"
+            >
+              נסה שוב
+            </button>
+          )}
+          {launching && (
+            <p className="mt-2 text-[11px] text-slate-400">
+              האפליקציה תיסגר אוטומטית ותיפתח מחדש בגרסה החדשה — אין צורך לעשות דבר.
+            </p>
+          )}
         </div>
       )}
     </div>

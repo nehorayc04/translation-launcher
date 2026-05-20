@@ -44,6 +44,7 @@ import argparse
 import json
 import os
 import pathlib
+import shutil
 import subprocess
 import sys
 from dataclasses import asdict
@@ -53,8 +54,10 @@ import eel
 import requests
 
 from translation_manager import downloads as _downloads
+from translation_manager import mod_source as _mod_source
 from translation_manager import paths as user_paths
 from translation_manager import steam_apply as _steam_apply
+from translation_manager import steam_mod as _steam_mod
 from translation_manager import swr_cache
 from translation_manager.config import GAMES as GAME_CONFIGS
 from translation_manager.config import GameConfig
@@ -83,6 +86,11 @@ from translation_manager.cp2077_language import (
 # Arabic-slot flip is specific to that game's Hebrew mod and must
 # never trigger for any other title.
 _CP2077_ID = "cyberpunk"
+
+# Installed launcher version. MUST stay in lock-step with
+# installer.iss `#define AppVersion`. The in-app self-updater
+# (get_launcher_update_info) compares this against the release feed.
+LAUNCHER_VERSION = "1.1.0"
 
 # Optional auth subsystem — if Supabase isn't configured (e.g. local
 # dev without env vars), the bridge stays installed but every call
@@ -114,6 +122,7 @@ REMOTE_CATALOG_URL  = "https://hebrew-translation-hub.vercel.app/api/games"
 REMOTE_SOFTWARE_URL = "https://hebrew-translation-hub.vercel.app/api/software"
 REMOTE_NEWS_URL     = "https://hebrew-translation-hub.vercel.app/api/news"
 REMOTE_UPDATES_URL  = "https://hebrew-translation-hub.vercel.app/api/updates"
+REMOTE_LAUNCHER_URL = "https://hebrew-translation-hub.vercel.app/api/launcher"
 REMOTE_TIMEOUT     = 3.0   # seconds — keep short so offline boot isn't slow
 _REMOTE_CACHE_TTL  = 30    # in-memory hot-window. Below this, swr returns
                            # the cached value without firing a background
@@ -487,10 +496,59 @@ def clear_custom_path(game_id: str) -> dict:
     return _game_payload(game_id)
 
 
+def _mod_progress_cb(phase: str, pct: float, detail: str) -> None:
+    """Forward a steam_mod / mod_source progress tick to the React UI.
+    Wrapped so a UI hiccup can never crash the install worker."""
+    try:
+        eel.mod_install_progress(phase, round(pct, 1), detail)  # exposed JS sink
+    except Exception:
+        pass
+
+
 @eel.expose
 def apply_steam_translation() -> dict:
-    """Copy compiled steam_hebrew_output/* into the live Steam install."""
-    return _steam_apply.apply()
+    """Install the Hebrew Steam translation.
+
+    Cache-first: if the local cache is already populated, just enable it.
+    On a cache miss, fetch the archive from the private GitHub repo via
+    the Cloudflare Worker proxy (download → verify SHA-256 → extract),
+    populate the cache, then enable."""
+    if not _steam_mod.is_cached():
+        try:
+            extracted, version = _mod_source.fetch_and_extract(_mod_progress_cb)
+        except _mod_source.IntegrityError as e:
+            return {"ok": False, "error": f"כשל אימות שלמות הקובץ: {e}"}
+        except _mod_source.ModSourceError as e:
+            return {"ok": False, "error": f"כשל הורדה מ-GitHub: {e}"}
+        try:
+            r = _steam_mod.populate_cache(extracted, version)
+        finally:
+            # Always remove the temp dir (archive zip + extracted tree),
+            # whether populate_cache succeeded or not — no clutter left.
+            shutil.rmtree(extracted.parent, ignore_errors=True)
+        if not r.get("ok"):
+            return r
+    return _steam_mod.enable(_mod_progress_cb)
+
+
+@eel.expose
+def get_steam_mod_state() -> dict:
+    """{cached, enabled, version} — drives the AppsView button state machine."""
+    return _steam_mod.status()
+
+
+@eel.expose
+def set_steam_mod_enabled(enabled: bool) -> dict:
+    """Toggle the mod on/off — pure local file ops, no re-download."""
+    if enabled:
+        return _steam_mod.enable(_mod_progress_cb)
+    return _steam_mod.disable(_mod_progress_cb)
+
+
+@eel.expose
+def clear_steam_mod_cache() -> dict:
+    """Revert Steam to its originals and delete the local mod cache."""
+    return _steam_mod.clear_cache()
 
 
 @eel.expose
@@ -750,6 +808,198 @@ def start_download(item_id: str) -> dict:
 @eel.expose
 def cancel_download(item_id: str) -> dict:
     return _downloads.cancel(item_id)
+
+
+# ─────────────────────────────────────────────────────────────
+# Launcher self-update — in-app download + silent install.
+# ─────────────────────────────────────────────────────────────
+# The "הורדות ועדכונים" tab carries a persistent panel that checks the
+# /api/launcher release feed, downloads the installer in-app with a
+# live progress bar, verifies its SHA-256, then runs it silently
+# (/VERYSILENT — no external wizard window). The installer's
+# PrepareToInstall hook force-closes this process; its [Run] entry
+# relaunches the freshly-installed version.
+
+def _parse_version(v: str) -> tuple:
+    """'v1.2.3' / '1.2.3' → (1, 2, 3). Non-numeric junk → 0."""
+    cleaned = (v or "").strip().lstrip("vV")
+    out: list[int] = []
+    for part in cleaned.split(".")[:4]:
+        digits = "".join(ch for ch in part if ch.isdigit())
+        out.append(int(digits) if digits else 0)
+    while len(out) < 3:
+        out.append(0)
+    return tuple(out)
+
+
+def _version_is_newer(latest: str, current: str) -> bool:
+    try:
+        return _parse_version(latest) > _parse_version(current)
+    except Exception:
+        return False
+
+
+@eel.expose
+def get_launcher_update_info() -> dict:
+    """Check the release feed. Returns current-vs-latest version and
+    whether an update is available. Network failures come back as a
+    soft `error` string — the panel degrades gracefully, never throws."""
+    info: dict = {
+        "currentVersion":  LAUNCHER_VERSION,
+        "latestVersion":   LAUNCHER_VERSION,
+        "updateAvailable": False,
+        "downloadUrl":     None,
+        "sizeBytes":       0,
+        "sizeMb":          0.0,
+        "notes":           "",
+        "sha256":          None,
+        "error":           None,
+    }
+    try:
+        r = requests.get(REMOTE_LAUNCHER_URL, timeout=REMOTE_TIMEOUT)
+        if r.status_code == 204:
+            return info                                  # no release marked current
+        r.raise_for_status()
+        data = r.json()
+        latest = str(data.get("version") or "").strip()
+        info["latestVersion"] = latest or LAUNCHER_VERSION
+        info["downloadUrl"]   = data.get("downloadUrl")
+        info["sizeBytes"]     = int(data.get("sizeBytes") or 0)
+        info["sizeMb"]        = float(data.get("sizeMb") or 0.0)
+        info["notes"]         = data.get("notes") or ""
+        info["sha256"]        = data.get("sha256") or None
+        info["updateAvailable"] = bool(
+            latest
+            and data.get("downloadUrl")
+            and _version_is_newer(latest, LAUNCHER_VERSION)
+        )
+    except Exception as e:                               # pragma: no cover — network
+        info["error"] = str(e)
+    return info
+
+
+def _emit_update_progress(phase: str, pct: float, detail: str) -> None:
+    """Push one progress tick to the React self-update panel. Best-effort."""
+    try:
+        eel.launcher_update_progress(phase, round(float(pct), 1), detail)()  # type: ignore[attr-defined]
+    except Exception:
+        pass
+
+
+def _run_launcher_update() -> None:
+    """Background worker: download installer → verify SHA-256 → run it
+    silently. Streams progress back through launcher_update_progress."""
+    import hashlib
+    import tempfile
+    import time
+
+    info = get_launcher_update_info()
+    url = info.get("downloadUrl")
+    if not url:
+        _emit_update_progress("error", 0, info.get("error") or "אין קישור הורדה זמין")
+        return
+
+    expected_sha = (info.get("sha256") or "").strip().lower()
+    total = int(info.get("sizeBytes") or 0)
+
+    dest_dir = Path(tempfile.gettempdir()) / "translation-manager-update"
+    try:
+        dest_dir.mkdir(parents=True, exist_ok=True)
+    except OSError as e:
+        _emit_update_progress("error", 0, f"לא ניתן ליצור תיקיית הורדה: {e}")
+        return
+    installer = dest_dir / "TranslationManager-Setup-latest.exe"
+
+    # ── Download with live progress ─────────────────────────────
+    try:
+        _emit_update_progress("download", 0, "מתחבר לשרת ההורדות…")
+        with requests.get(url, stream=True, timeout=30) as resp:
+            resp.raise_for_status()
+            if not total:
+                total = int(resp.headers.get("Content-Length") or 0)
+            done = 0
+            start = time.time()
+            last_emit = 0.0
+            with open(installer, "wb") as fh:
+                for chunk in resp.iter_content(chunk_size=262144):
+                    if not chunk:
+                        continue
+                    fh.write(chunk)
+                    done += len(chunk)
+                    now = time.time()
+                    # Throttle UI pushes to ~5/sec so the bridge isn't flooded.
+                    if now - last_emit >= 0.2:
+                        last_emit = now
+                        pct     = (done / total * 100) if total else 0.0
+                        elapsed = max(0.001, now - start)
+                        speed   = done / elapsed                       # bytes/sec
+                        detail  = (
+                            f"{done / 1048576:.1f} / {total / 1048576:.1f} MB"
+                            f"  ·  {speed / 1048576:.1f} MB/s"
+                        ) if total else f"{done / 1048576:.1f} MB"
+                        _emit_update_progress("download", min(pct, 100.0), detail)
+        _emit_update_progress("download", 100, "ההורדה הושלמה")
+    except Exception as e:
+        _emit_update_progress("error", 0, f"שגיאת הורדה: {e}")
+        return
+
+    # ── Verify SHA-256 (skip only if the feed carries no hash) ──
+    if expected_sha:
+        try:
+            _emit_update_progress("verify", 0, "מאמת את תקינות הקובץ…")
+            h = hashlib.sha256()
+            with open(installer, "rb") as fh:
+                for blk in iter(lambda: fh.read(1048576), b""):
+                    h.update(blk)
+            if h.hexdigest().lower() != expected_sha:
+                _emit_update_progress(
+                    "error", 0,
+                    "אימות הקובץ נכשל — ההורדה כנראה פגומה. נסה שוב.",
+                )
+                return
+            _emit_update_progress("verify", 100, "הקובץ אומת בהצלחה")
+        except Exception as e:
+            _emit_update_progress("error", 0, f"שגיאת אימות: {e}")
+            return
+
+    # ── Run the installer silently ──────────────────────────────
+    # /VERYSILENT       — no wizard window at all
+    # /SUPPRESSMSGBOXES — auto-answer prompts
+    # /NORESTART        — never reboot the machine
+    # The installer's PrepareToInstall hook taskkills THIS process
+    # mid-wait; its [Run] entry then launches the new version.
+    try:
+        _emit_update_progress(
+            "launch", 100,
+            "מריץ את ההתקנה — האפליקציה תיסגר ותיפתח מחדש בגרסה החדשה…",
+        )
+        proc = subprocess.Popen(
+            [str(installer), "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART"],
+            close_fds=True,
+        )
+    except Exception as e:
+        _emit_update_progress("error", 0, f"כשל בהפעלת קובץ ההתקנה: {e}")
+        return
+
+    # If the install proceeds, PrepareToInstall kills us during this
+    # wait and we never return. If we DO return, the user declined the
+    # UAC prompt (or the installer aborted) — surface it, stay alive.
+    code = proc.wait()
+    _emit_update_progress(
+        "error", 0,
+        f"ההתקנה לא הושלמה — ייתכן שבוטלה בחלון ההרשאות (קוד {code}).",
+    )
+
+
+@eel.expose
+def start_launcher_update() -> dict:
+    """Kick the self-update on a daemon thread so the eel RPC returns
+    at once; progress streams back via launcher_update_progress."""
+    import threading
+    threading.Thread(
+        target=_run_launcher_update, daemon=True, name="launcher-self-update",
+    ).start()
+    return {"ok": True}
 
 
 @eel.expose

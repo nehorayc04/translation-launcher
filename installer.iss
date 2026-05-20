@@ -118,8 +118,16 @@ Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#AppName}"; Filen
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "TranslationManager"; ValueData: """{app}\{#AppExeName}"""; Tasks: autorun; Flags: uninsdeletevalue
 
 [Run]
-; "Launch now" checkbox on the final wizard page
-Filename: "{app}\{#AppExeName}"; Description: "הפעל את {#AppNameHe} עכשיו"; Flags: nowait postinstall skipifsilent
+; "Launch now" checkbox on the final wizard page.
+;
+; NOTE: deliberately NOT flagged `skipifsilent`. The in-app self-updater
+; runs this installer with /VERYSILENT — and after a silent self-update
+; we WANT the freshly-installed launcher to relaunch automatically (so
+; the user lands back where they were). With `postinstall` + the default
+; checked state and no `skipifsilent`, Inno runs this entry on silent
+; installs too. Interactive installs still show it as the usual
+; "Launch now" checkbox on the Finished page.
+Filename: "{app}\{#AppExeName}"; Description: "הפעל את {#AppNameHe} עכשיו"; Flags: nowait postinstall
 
 [UninstallDelete]
 ; Clean any caches the launcher writes inside its own folder
@@ -135,3 +143,42 @@ english.AppDescription=Hebrew translations manager — bundles community AAA-gam
 
 hebrew.LaunchAfterInstall=הפעל את %1 לאחר ההתקנה
 english.LaunchAfterInstall=Launch %1 after installation
+
+; ============================================================================
+;  Code — force-close a running launcher before the file copy.
+;
+;  The launcher minimises to the system tray on window-close, so Inno's
+;  built-in Restart Manager (CloseApplications=yes) sees the Chromium
+;  window vanish and assumes the app closed — but the Python process is
+;  still alive in the tray, holding _internal\*.pyd handles open. The
+;  copy step then fails with a "file in use" error EVEN AFTER the user
+;  accepted the close-applications prompt. That is exactly the bug being
+;  fixed here.
+;
+;  PrepareToInstall runs right after the user clicks "Install" and right
+;  before any file is touched — the correct, last-chance hook. taskkill
+;  /T tears down the whole process tree (Chromium --app child, gevent
+;  worker, tray thread); /F forces it. The call is best-effort: if the
+;  launcher isn't running, taskkill simply returns non-zero and we move
+;  on. [Code] must be the LAST section in the script — anything after it
+;  is parsed as Pascal.
+; ============================================================================
+[Code]
+procedure KillRunningLauncher;
+var
+  ResultCode: Integer;
+begin
+  Exec(ExpandConstant('{sys}\taskkill.exe'),
+       '/F /T /IM {#AppExeName}',
+       '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+end;
+
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+begin
+  Result := '';
+  KillRunningLauncher;
+  // Let Windows release the file handles the killed process tree held
+  // before Setup starts overwriting the install folder. 1.2s is
+  // comfortably enough for the OS to reap a handful of processes.
+  Sleep(1200);
+end;

@@ -103,6 +103,77 @@ export interface MyPurchase {
   } | null;
 }
 
+/** Local state of the Steam Hebrew mod — returned by get_steam_mod_state. */
+export interface SteamModState {
+  cached:  boolean;            // archive cached locally → no re-download needed
+  enabled: boolean;            // currently applied to the live Steam install
+  version: string | null;
+}
+
+/** One progress tick during a mod install / enable / disable.
+ *  phase ∈ "download" | "verify" | "extract" | "apply". */
+export interface ModProgress {
+  phase:  string;
+  pct:    number;
+  detail: string;
+}
+
+// Subscribe to mod_install_progress events. The actual eel.expose lives
+// in public/eel-bindings.js (window.__eelModHandlers) — same reason as
+// the download-progress registry. Returns an unsubscribe fn.
+export function onModProgress(cb: (p: ModProgress) => void): () => void {
+  const w = window as unknown as {
+    __eelModHandlers?: ((phase: string, pct: number, detail: string) => void)[];
+  };
+  if (!w.__eelModHandlers) w.__eelModHandlers = [];
+  const handler = (phase: string, pct: number, detail: string) =>
+    cb({ phase, pct, detail });
+  w.__eelModHandlers.push(handler);
+  return () => {
+    const i = w.__eelModHandlers?.indexOf(handler) ?? -1;
+    if (i >= 0) w.__eelModHandlers!.splice(i, 1);
+  };
+}
+
+/** Result of get_launcher_update_info — the self-update panel's state. */
+export interface LauncherUpdateInfo {
+  currentVersion:  string;
+  latestVersion:   string;
+  updateAvailable: boolean;
+  downloadUrl:     string | null;
+  sizeBytes:       number;
+  sizeMb:          number;
+  notes:           string;
+  sha256:          string | null;
+  error:           string | null;
+}
+
+/** One progress tick during the in-app launcher self-update.
+ *  phase ∈ "download" | "verify" | "launch" | "error". */
+export interface LauncherUpdateProgress {
+  phase:  string;
+  pct:    number;
+  detail: string;
+}
+
+// Subscribe to launcher_update_progress events (eel.expose lives in
+// public/eel-bindings.js → window.__eelLauncherUpdateHandlers).
+export function onLauncherUpdateProgress(
+  cb: (p: LauncherUpdateProgress) => void,
+): () => void {
+  const w = window as unknown as {
+    __eelLauncherUpdateHandlers?: ((phase: string, pct: number, detail: string) => void)[];
+  };
+  if (!w.__eelLauncherUpdateHandlers) w.__eelLauncherUpdateHandlers = [];
+  const handler = (phase: string, pct: number, detail: string) =>
+    cb({ phase, pct, detail });
+  w.__eelLauncherUpdateHandlers.push(handler);
+  return () => {
+    const i = w.__eelLauncherUpdateHandlers?.indexOf(handler) ?? -1;
+    if (i >= 0) w.__eelLauncherUpdateHandlers!.splice(i, 1);
+  };
+}
+
 export const api = {
   ready:            (): boolean => isEelReady(),
   getAllGames:      ()                          => call<Game[]>("get_all_games"),
@@ -119,7 +190,18 @@ export const api = {
   launchGame:       (id: string)                => call<OpResult>("launch_game", id),
   openFolder:       (p: string)                 => call<OpResult>("open_folder", p),
   applySteamTranslation: ()                     => call<OpResult & {steam_dir?: string}>("apply_steam_translation"),
+  /** Local lifecycle for the Steam Hebrew mod. `getSteamModState`
+   *  drives the AppsView Install/Enable/Disable button; the toggle and
+   *  cache-clear are plain local file ops on the launcher's mod cache. */
+  getSteamModState:   ()                        => call<SteamModState>("get_steam_mod_state"),
+  setSteamModEnabled: (enabled: boolean)        => call<OpResult>("set_steam_mod_enabled", enabled),
+  clearSteamModCache: ()                        => call<OpResult>("clear_steam_mod_cache"),
   listUpdates:      ()                          => call<UpdateItem[]>("list_updates"),
+  /** Launcher self-update: current-vs-latest check + the in-app
+   *  download/verify/silent-install trigger. Progress streams back
+   *  via onLauncherUpdateProgress(). */
+  getLauncherUpdateInfo: ()                      => call<LauncherUpdateInfo>("get_launcher_update_info"),
+  startLauncherUpdate:   ()                      => call<{ ok: boolean; error?: string }>("start_launcher_update"),
   /** Software catalog (Steam, etc.) — sister of getAllGames. Backend
    *  pulls /api/software with showOnLauncher filtering. */
   getAllSoftware:   ()                          => call<Software[]>("get_all_software"),

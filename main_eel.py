@@ -595,6 +595,42 @@ def get_game_mod_state(game_id: str) -> dict:
     }
 
 
+def _cp2077_disable_crash_reporter(game_root) -> None:
+    """Rename bin\\x64\\REDEngineErrorReporter.exe → .bak.
+
+    Running CP2077 in the Arabic locale slot fires CDPR's crash-reporter
+    window on the engine's teardown when quitting — harmless (the
+    session already ended, saves are safe) but ugly. With the reporter
+    exe renamed the engine simply can't spawn it, so no window appears.
+    This is the per-mod equivalent of the manual fix applied to the
+    project's own game copy. Reversible — see the restore fn below."""
+    if not game_root:
+        return
+    try:
+        exe = Path(game_root) / "bin" / "x64" / "REDEngineErrorReporter.exe"
+        bak = exe.with_name(exe.name + ".bak")
+        if exe.is_file() and not bak.exists():
+            exe.rename(bak)
+            print("[cp2077] crash reporter disabled", flush=True)
+    except OSError as e:                                # pragma: no cover
+        print(f"[cp2077] disable crash reporter failed: {e}", flush=True)
+
+
+def _cp2077_restore_crash_reporter(game_root) -> None:
+    """Undo _cp2077_disable_crash_reporter — restore REDEngineErrorReporter.exe
+    so removing the Hebrew mod leaves the game's crash reporting intact."""
+    if not game_root:
+        return
+    try:
+        exe = Path(game_root) / "bin" / "x64" / "REDEngineErrorReporter.exe"
+        bak = exe.with_name(exe.name + ".bak")
+        if bak.is_file() and not exe.exists():
+            bak.rename(exe)
+            print("[cp2077] crash reporter restored", flush=True)
+    except OSError as e:                                # pragma: no cover
+        print(f"[cp2077] restore crash reporter failed: {e}", flush=True)
+
+
 def _run_game_mod_install(game_id: str) -> None:
     """Background worker: download (if needed) + install a game mod.
 
@@ -621,6 +657,7 @@ def _run_game_mod_install(game_id: str) -> None:
                 _cp2077_enable_arabic_slot()
             except Exception as e:                      # pragma: no cover
                 print(f"[cp2077_language] enable failed: {e}", flush=True)
+            _cp2077_disable_crash_reporter(base)
         _mod_progress_cb("done", 100, "ההתקנה הושלמה")
     except Exception as e:                              # pragma: no cover
         _mod_progress_cb("error", 0, f"שגיאה: {e}")
@@ -672,6 +709,11 @@ def set_game_mod_installed(game_id: str, installed: bool) -> dict:
         except Exception as e:                          # pragma: no cover
             print(f"[cp2077_language] toggle failed: {e}", flush=True)
             lang = {"ok": False, "error": str(e)}
+        # Keep the crash-reporter rename in lock-step with the mod state.
+        if installed:
+            _cp2077_disable_crash_reporter(base)
+        else:
+            _cp2077_restore_crash_reporter(base)
     return {**r, "language": lang, "state": get_game_mod_state(game_id)}
 
 
@@ -681,7 +723,8 @@ def clear_game_mod_cache(game_id: str) -> dict:
     cache. A later install must re-download."""
     cfg  = _config_for(game_id)
     base = _install_path(game_id)
-    # If CP2077's mod is currently active, restore the language slot first.
+    # If CP2077's mod is currently active, restore the language slot +
+    # the crash reporter before wiping the mod from the machine.
     if game_id == _CP2077_ID:
         st = _game_mod.status(game_id, base, cfg.mod_files if cfg else [])
         if st.get("installed"):
@@ -689,6 +732,7 @@ def clear_game_mod_cache(game_id: str) -> dict:
                 _cp2077_restore_language()
             except Exception as e:                      # pragma: no cover
                 print(f"[cp2077_language] restore (clear) failed: {e}", flush=True)
+        _cp2077_restore_crash_reporter(base)
     r = _game_mod.clear_cache(game_id, base, cfg.mod_files if cfg else [])
     return {**r, "state": get_game_mod_state(game_id)}
 

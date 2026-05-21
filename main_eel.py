@@ -1615,17 +1615,49 @@ def _on_window_closed(_page: str, _websockets: list) -> None:
     preference exists yet); the saved choice then drives this callback
     silently on every subsequent close.
     """
+    import logging
     import os
     from translation_manager import launcher_prefs
+    log = logging.getLogger("launcher")
     pref = launcher_prefs.get_close_behavior()
+    log.info("window closed — close_behavior=%r", pref)
     if pref == "minimize":
+        log.info("close=minimize → process kept alive")
         print("[eel] Window closed → minimised to tray (process stays alive).", flush=True)
         return
+    log.info("close=%r → os._exit(0)", pref)
     print("[eel] Window closed — exiting.", flush=True)
     os._exit(0)
 
 
+def _setup_file_logging() -> None:
+    """Route Python logging to ~/.translation_manager/launcher.log.
+
+    The frozen build runs console=False, so without a file handler every
+    log line — tray failures, the close-behavior decision, eel.start
+    teardown — is lost. With it, a misbehaving close-to-tray leaves a
+    diagnosable trail."""
+    try:
+        import logging
+        log_path = Path.home() / ".translation_manager" / "launcher.log"
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        logging.basicConfig(
+            filename=str(log_path),
+            filemode="a",
+            level=logging.INFO,
+            format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+            force=True,
+        )
+        logging.getLogger("launcher").info("──────── launcher boot ────────")
+    except Exception:
+        pass
+
+
 def main() -> None:
+    _setup_file_logging()
+    import logging
+    _log = logging.getLogger("launcher")
+
     ap = argparse.ArgumentParser()
     ap.add_argument("--dev", action="store_true",
                     help="Skip frontend serving — assume Vite dev server on :5173")
@@ -1651,7 +1683,8 @@ def main() -> None:
     # The tray is the lifeline for both --silent boots (no main window at
     # all) and minimize-to-tray (window closes, tray stays).
     from translation_manager import tray as _tray
-    _tray.start(title="Translation Manager")
+    _tray_ok = _tray.start(title="Translation Manager")
+    _log.info("tray.start() returned %r", _tray_ok)
 
     # game_detector seeds its cache from disk at import time (no work to do
     # here). We deliberately do NOT run an automatic scan on boot — the user
@@ -1683,6 +1716,10 @@ def main() -> None:
                       close_callback=_on_window_closed)
         except (SystemExit, KeyboardInterrupt):
             pass
+        except Exception:
+            # Any other eel teardown error must NOT crash main() — fall
+            # through to the park check so close-to-tray still works.
+            _log.exception("eel.start() raised")
     else:
         if not FRONTEND_DIST.exists():
             print(f"[eel] frontend/dist/ not built. Run: cd frontend && npm run build")
@@ -1714,17 +1751,25 @@ def main() -> None:
                       close_callback=_on_window_closed)
         except (SystemExit, KeyboardInterrupt):
             pass
+        except Exception:
+            # Any other eel teardown error must NOT crash main() — fall
+            # through to the park check so close-to-tray still works.
+            _log.exception("eel.start() raised")
 
-    # Reached only if _on_window_closed returned without os._exit — i.e.
-    # the user picked "minimize to tray". Park here until the tray's
-    # "Open" menu relaunches us as a fresh process (and os._exits this
-    # one) or "Quit" tears the tray down with os._exit.
+    # Reached when eel.start() returns (the window closed and the eel
+    # server stopped). If the user picked "minimize to tray" we park the
+    # process here so the tray icon stays alive; otherwise main() returns
+    # and the process exits.
     from translation_manager import launcher_prefs
-    if launcher_prefs.get_close_behavior() == "minimize":
+    _behavior = launcher_prefs.get_close_behavior()
+    _log.info("eel.start() returned — close_behavior=%r", _behavior)
+    if _behavior == "minimize":
+        _log.info("parking process in tray (close-to-tray)")
         print("[boot] Parked in tray after window close.", flush=True)
         import time
         while True:
             time.sleep(3600)
+    _log.info("main() returning — process will exit")
 
 
 if __name__ == "__main__":

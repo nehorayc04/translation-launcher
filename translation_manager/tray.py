@@ -145,12 +145,17 @@ def start(
 
     def _runner():
         try:
+            log.info("tray: icon.run() starting")
             _icon.run()      # type: ignore[union-attr]
-        except Exception as e:
-            log.warning("tray runner crashed — %s", e)
+            log.info("tray: icon.run() returned")
+        except Exception:
+            # Full traceback — a silent tray failure is exactly the
+            # "app not in the system tray" bug, so we want it diagnosable.
+            log.exception("tray: icon.run() crashed")
 
     _thread = threading.Thread(target=_runner, daemon=True, name="tray")
     _thread.start()
+    log.info("tray: started (thread spawned)")
     return True
 
 

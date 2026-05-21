@@ -1,13 +1,14 @@
 // "Big Picture" mode — large cover left, descriptive text + actions, right
 // settings sidebar (install path + mod toggles). Rendered inside the main
 // content area (NOT a separate window).
-import type { Game } from "../lib/types";
+import { isInFlight, type Game } from "../lib/types";
 import { accentFor, availabilityLabel, modStateLabel } from "../lib/theme";
 import { resolveCoverUrl } from "../lib/coverUrl";
-import { api } from "../lib/eel";
+import { api, onModProgress } from "../lib/eel";
+import type { GameModState, ModProgress } from "../lib/eel";
 import { resolvePhaseHeadline } from "../lib/phaseLabels";
 import { useLiveGameProgress } from "../lib/useLiveGameProgress";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface Props {
   game: Game;
@@ -31,7 +32,7 @@ export default function GameDetailPanel({ game, onBack, onRefresh, reportStatus,
   // render at 0% so the OLD static `game.progress` doesn't briefly
   // flash before the real number arrives.
   const { snap: liveProgress, loaded: liveLoaded } = useLiveGameProgress(game.id, {
-    enabled:      game.availability === "in-progress",
+    enabled:      isInFlight(game.availability),
     refreshNonce,
   });
 
@@ -75,19 +76,108 @@ export default function GameDetailPanel({ game, onBack, onRefresh, reportStatus,
   const filesHe = (n: number | undefined) =>
     n === 1 ? "קובץ אחד" : `${n ?? 0} קבצים`;
 
+  // Cyberpunk only: append a hint about the locale flip / restore that
+  // happens automatically alongside the file operation. Other titles
+  // get an undefined `language` payload and the suffix collapses away.
+  const langSuffix = (r: { language?: { ok: boolean; previous?: Record<string, string> } | null }, mode: "enable" | "restore") => {
+    const l = r.language;
+    if (!l) return "";
+    if (mode === "enable") {
+      return l.ok ? " · השפה הוגדרה לערבית (סלוט עברי)" : " · עדכון שפה אוטומטי נכשל";
+    }
+    const prev = l.previous?.Text ?? l.previous?.Subtitles;
+    return l.ok
+      ? (prev ? ` · השפה שוחזרה ל-${prev}` : " · השפה שוחזרה")
+      : " · שחזור שפה אוטומטי נכשל";
+  };
+
   const handleEnable    = () => wrap("mod", async () => {
     const r = await api.enableMod(game.id);
-    reportStatus(r.ok ? `התרגום הופעל (${filesHe(r.count)})` : `שגיאה: ${r.error}`, !r.ok);
+    reportStatus(r.ok ? `התרגום הופעל (${filesHe(r.count)})${langSuffix(r, "enable")}` : `שגיאה: ${r.error}`, !r.ok);
   });
   const handleDisable   = () => wrap("mod", async () => {
     const r = await api.disableMod(game.id);
-    reportStatus(r.ok ? `התרגום הושבת (${filesHe(r.count)})` : `שגיאה: ${r.error}`, !r.ok);
+    reportStatus(r.ok ? `התרגום הושבת (${filesHe(r.count)})${langSuffix(r, "restore")}` : `שגיאה: ${r.error}`, !r.ok);
   });
   const handleUninstall = () => wrap("mod", async () => {
     if (!confirm("האם להסיר לצמיתות את התרגום העברי מתיקיית המשחק?")) return;
     const r = await api.uninstallMod(game.id);
-    reportStatus(r.ok ? `התרגום הוסר (${filesHe(r.count)})` : `שגיאה: ${r.error}`, !r.ok);
+    reportStatus(r.ok ? `התרגום הוסר (${filesHe(r.count)})${langSuffix(r, "restore")}` : `שגיאה: ${r.error}`, !r.ok);
   });
+
+  // ── Download-distributed mod (Cyberpunk 2077) ──────────────────
+  // A game whose backend GameConfig carries a `mod_slug` is fetched
+  // through the Cloudflare Worker proxy and managed by game_mod.py.
+  // `gm` is null until the first getGameModState resolves; gm.modSlug
+  // being non-empty is what flips this panel to the download-backed CTA.
+  const [gm, setGm]                   = useState<GameModState | null>(null);
+  const [gmBusy, setGmBusy]           = useState(false);
+  const [gmProgress, setGmProgress]   = useState<ModProgress | null>(null);
+  const [purchasePending, setPurchasePending] = useState(false);
+
+  const refreshGm = useCallback(async () => {
+    try { setGm(await api.getGameModState(game.id)); }
+    catch { setGm(null); }
+  }, [game.id]);
+  useEffect(() => { void refreshGm(); }, [refreshGm]);
+  // Stream download/verify/install progress from the Python worker.
+  useEffect(() => onModProgress(setGmProgress), []);
+
+  const ils = (cents: number) => `${Math.round(cents / 100)} ₪`;
+
+  const handleGmInstall = async () => {
+    setGmBusy(true);
+    setGmProgress({ phase: "download", pct: 0, detail: "מתחיל בהורדה…" });
+    try {
+      const r = await api.downloadAndInstallGameMod(game.id);
+      setGm(r.state);
+      reportStatus(r.ok ? "התרגום הותקן והופעל" : `שגיאה: ${r.error}`, !r.ok);
+      await onRefresh();
+    } catch (e) {
+      reportStatus(`שגיאה: ${String(e)}`, true);
+    } finally {
+      setGmBusy(false);
+      setGmProgress(null);
+    }
+  };
+
+  const handleGmToggle = async (installed: boolean) => {
+    setGmBusy(true);
+    try {
+      const r = await api.setGameModInstalled(game.id, installed);
+      setGm(r.state);
+      reportStatus(
+        r.ok ? (installed ? "התרגום הותקן מחדש" : "התרגום הושבת — הקבצים הועברו למטמון")
+             : `שגיאה: ${r.error}`,
+        !r.ok,
+      );
+      await onRefresh();
+    } finally {
+      setGmBusy(false);
+    }
+  };
+
+  const handleGmClearCache = async () => {
+    if (!confirm(
+      "לנקות את מטמון התרגום? התרגום יוסר מתיקיית המשחק ומהמחשב — " +
+      "התקנה מחדש תדרוש הורדה חוזרת."
+    )) return;
+    setGmBusy(true);
+    try {
+      const r = await api.clearGameModCache(game.id);
+      setGm(r.state);
+      reportStatus(r.ok ? "המטמון נוקה — התרגום הוסר מהמחשב" : `שגיאה: ${r.error}`, !r.ok);
+      await onRefresh();
+    } finally {
+      setGmBusy(false);
+    }
+  };
+
+  const handlePurchase = async () => {
+    await api.openPurchasePage(game.id);
+    setPurchasePending(true);
+    reportStatus("נפתח דף הרכישה בדפדפן — לאחר התשלום לחץ 'כבר שילמתי — רענן'");
+  };
 
   return (
     <div className="h-full overflow-y-auto px-8 py-6 animate-scale-in">
@@ -123,7 +213,7 @@ export default function GameDetailPanel({ game, onBack, onRefresh, reportStatus,
             {game.titleEn}
           </h1>
 
-          <div className="flex gap-2 mb-5 justify-end">
+          <div className="flex gap-2 mb-5 justify-end flex-wrap">
             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${avail.tone}`}>
               {avail.text}
             </span>
@@ -131,10 +221,35 @@ export default function GameDetailPanel({ game, onBack, onRefresh, reportStatus,
                              text-slate-200 ring-1 ring-white/15">
               {game.version}
             </span>
-            {game.has_mod_support && (
-              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${mod.tone}`}>
-                {mod.text}
-              </span>
+            {gm?.modSlug ? (
+              <>
+                <span
+                  className="px-3 py-1 rounded-full text-xs font-semibold ring-1"
+                  style={{
+                    color:      gm.installed ? "#86efac" : gm.cached ? "#fcd34d" : "#cbd5e1",
+                    background: gm.installed ? "rgba(34,197,94,0.18)"
+                              : gm.cached    ? "rgba(245,158,11,0.16)"
+                                             : "rgba(148,163,184,0.18)",
+                    borderColor: gm.installed ? "rgba(34,197,94,0.45)"
+                               : gm.cached    ? "rgba(245,158,11,0.4)"
+                                              : "rgba(148,163,184,0.35)",
+                  }}
+                >
+                  {gm.installed ? "תרגום מותקן" : gm.cached ? "תרגום במטמון" : "תרגום לא מותקן"}
+                </span>
+                {gm.priceCents > 0 && gm.owned && (
+                  <span className="px-3 py-1 rounded-full text-xs font-semibold ring-1
+                                   ring-emerald-400/40 bg-emerald-500/20 text-emerald-200">
+                    ✓ נרכש
+                  </span>
+                )}
+              </>
+            ) : (
+              game.has_mod_support && (
+                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${mod.tone}`}>
+                  {mod.text}
+                </span>
+              )
             )}
           </div>
 
@@ -144,7 +259,7 @@ export default function GameDetailPanel({ game, onBack, onRefresh, reportStatus,
           {/* Progress (in-progress games) — prefers the live /api/progress
               feed (current phase + processed/total) over the static
               `game.progress` catalog value. */}
-          {game.availability === "in-progress" && (() => {
+          {isInFlight(game.availability) && (() => {
             const usingLive = liveProgress && liveProgress.total > 0;
             // First-paint protection: while the live fetch is in flight
             // (`!liveLoaded`) render 0% / a neutral label so the OLD
@@ -212,54 +327,147 @@ export default function GameDetailPanel({ game, onBack, onRefresh, reportStatus,
               ▶ הפעל
             </button>
 
-            {/* Translation actions — only when the game is installed AND a
-                mod package exists. NOT_AVAILABLE titles get a disabled chip. */}
-            {game.is_installed && !game.has_mod_support && (
-              <button
-                disabled
-                className="bg-white/5 text-slate-400 font-bold px-6 py-3 rounded-xl
-                           border border-white/10 cursor-not-allowed"
-                title="חבילת תרגום עוד לא הוכנה לכותר הזה"
-              >
-                התרגום עדיין לא זמין
-              </button>
-            )}
+            {/* Translation actions.
+                gm.modSlug set  → download-distributed mod (CP2077): the
+                  buy / download+install / disable / reinstall flow.
+                otherwise       → the legacy on-disk enable/disable/remove. */}
+            {gm?.modSlug ? (
+              <>
+                {gm.priceCents > 0 && !gm.owned && (
+                  <button
+                    disabled={gmBusy}
+                    onClick={handlePurchase}
+                    className="bg-brand-yellow hover:bg-yellow-300 text-brand-ink font-bold
+                               px-6 py-3 rounded-xl transition disabled:opacity-50"
+                  >
+                    רכישה — {ils(gm.priceCents)}
+                  </button>
+                )}
+                {gm.priceCents > 0 && !gm.owned && purchasePending && (
+                  <button
+                    disabled={gmBusy}
+                    onClick={refreshGm}
+                    className="bg-white/5 hover:bg-white/10 text-slate-200 font-bold
+                               px-6 py-3 rounded-xl border border-white/10 transition"
+                  >
+                    כבר שילמתי — רענן
+                  </button>
+                )}
+                {gm.owned && !gm.installed && (
+                  <button
+                    disabled={gmBusy || !gm.hasPath}
+                    onClick={handleGmInstall}
+                    title={!gm.hasPath ? "הגדר תחילה את נתיב המשחק בהגדרות" : undefined}
+                    className="bg-emerald-500/85 hover:bg-emerald-400 text-white font-bold
+                               px-6 py-3 rounded-xl transition disabled:opacity-50"
+                  >
+                    {gmBusy ? "מתקין…" : gm.cached ? "התקנה מחדש" : "הורד והתקן"}
+                  </button>
+                )}
+                {gm.owned && gm.installed && (
+                  <>
+                    <button
+                      disabled={gmBusy}
+                      onClick={() => handleGmToggle(false)}
+                      className="bg-amber-500/85 hover:bg-amber-400 text-white font-bold
+                                 px-6 py-3 rounded-xl transition disabled:opacity-50"
+                    >
+                      השבתה
+                    </button>
+                    <button
+                      disabled={gmBusy}
+                      onClick={() => handleGmToggle(true)}
+                      className="bg-white/5 hover:bg-white/10 text-slate-200 font-bold
+                                 px-6 py-3 rounded-xl border border-white/10 transition
+                                 disabled:opacity-50"
+                    >
+                      התקנה מחדש
+                    </button>
+                  </>
+                )}
+                {gm.owned && !gm.hasPath && (
+                  <span className="self-center text-xs text-amber-300/90">
+                    ← הגדר תחילה את נתיב המשחק בהגדרות
+                  </span>
+                )}
+              </>
+            ) : (
+              <>
+                {/* NOT_AVAILABLE titles get a disabled chip. */}
+                {game.is_installed && !game.has_mod_support && (
+                  <button
+                    disabled
+                    className="bg-white/5 text-slate-400 font-bold px-6 py-3 rounded-xl
+                               border border-white/10 cursor-not-allowed"
+                    title="חבילת תרגום עוד לא הוכנה לכותר הזה"
+                  >
+                    התרגום עדיין לא זמין
+                  </button>
+                )}
 
-            {game.has_mod_support && game.is_installed &&
-             (game.mod_state === "DISABLED" || game.mod_state === "NOT_INSTALLED") && (
-              <button
-                disabled={busy !== null}
-                onClick={handleEnable}
-                className="bg-emerald-500/85 hover:bg-emerald-400 text-white font-bold
-                           px-6 py-3 rounded-xl transition disabled:opacity-50"
-              >
-                התקנת תרגום
-              </button>
-            )}
-            {game.has_mod_support && game.is_installed && game.mod_state === "ACTIVE" && (
-              <button
-                disabled={busy !== null}
-                onClick={handleDisable}
-                className="bg-amber-500/85 hover:bg-amber-400 text-white font-bold
-                           px-6 py-3 rounded-xl transition disabled:opacity-50"
-              >
-                השבתת תרגום
-              </button>
-            )}
-            {/* "Remove" appears only when there are ACTUAL files on disk to remove */}
-            {game.has_mod_support && game.is_installed &&
-             (game.mod_state === "ACTIVE" || game.mod_state === "DISABLED") && (
-              <button
-                disabled={busy !== null}
-                onClick={handleUninstall}
-                className="bg-rose-500/25 hover:bg-rose-500/40 text-rose-200 font-bold
-                           px-6 py-3 rounded-xl transition disabled:opacity-50
-                           border border-rose-500/40"
-              >
-                הסרת התרגום
-              </button>
+                {game.has_mod_support && game.is_installed &&
+                 (game.mod_state === "DISABLED" || game.mod_state === "NOT_INSTALLED") && (
+                  <button
+                    disabled={busy !== null}
+                    onClick={handleEnable}
+                    className="bg-emerald-500/85 hover:bg-emerald-400 text-white font-bold
+                               px-6 py-3 rounded-xl transition disabled:opacity-50"
+                  >
+                    התקנת תרגום
+                  </button>
+                )}
+                {game.has_mod_support && game.is_installed && game.mod_state === "ACTIVE" && (
+                  <button
+                    disabled={busy !== null}
+                    onClick={handleDisable}
+                    className="bg-amber-500/85 hover:bg-amber-400 text-white font-bold
+                               px-6 py-3 rounded-xl transition disabled:opacity-50"
+                  >
+                    השבתת תרגום
+                  </button>
+                )}
+                {/* "Remove" appears only when there are ACTUAL files on disk to remove */}
+                {game.has_mod_support && game.is_installed &&
+                 (game.mod_state === "ACTIVE" || game.mod_state === "DISABLED") && (
+                  <button
+                    disabled={busy !== null}
+                    onClick={handleUninstall}
+                    className="bg-rose-500/25 hover:bg-rose-500/40 text-rose-200 font-bold
+                               px-6 py-3 rounded-xl transition disabled:opacity-50
+                               border border-rose-500/40"
+                  >
+                    הסרת התרגום
+                  </button>
+                )}
+              </>
             )}
           </div>
+
+          {/* Download / install progress for the distributed mod. */}
+          {gm?.modSlug && (gmBusy || gmProgress) && (
+            <div className="mt-4">
+              <div className="flex justify-between text-[11px] mb-1.5">
+                <span dir="ltr" className="font-mono text-slate-300">
+                  {gmProgress?.detail || "…"}
+                </span>
+                <span className="font-bold" style={{ color: accent }}>
+                  {gmProgress?.phase === "verify"  ? "מאמת…"
+                    : gmProgress?.phase === "apply" ? "מתקין…"
+                    : `${Math.min(100, Math.max(0, gmProgress?.pct ?? 0)).toFixed(0)}%`}
+                </span>
+              </div>
+              <div className="h-2 bg-white/5 rounded-full overflow-hidden ring-1 ring-white/5">
+                <div
+                  className="h-full rounded-full transition-all duration-200"
+                  style={{
+                    width: `${Math.min(100, Math.max(0, gmProgress?.pct ?? 0))}%`,
+                    background: accent,
+                    boxShadow: `0 0 12px ${accent}80`,
+                  }}
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Settings sidebar */}
@@ -305,6 +513,21 @@ export default function GameDetailPanel({ game, onBack, onRefresh, reportStatus,
           >
             פתח תיקיית משחק
           </button>
+
+          {/* Per-mod cache control — lives here in the game's own panel
+              (not in global Settings). Removes the mod from the game
+              folder AND wipes the launcher cache. */}
+          {gm?.modSlug && (gm.cached || gm.installed) && (
+            <button
+              disabled={gmBusy}
+              onClick={handleGmClearCache}
+              className="w-full text-sm px-3 py-2 border border-rose-500/30 text-rose-200
+                         rounded-lg hover:bg-rose-500/10
+                         disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              ניקוי מטמון התרגום
+            </button>
+          )}
 
           {/* Status summary */}
           <div className="border-t border-white/5 pt-4 text-xs space-y-1.5">

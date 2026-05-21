@@ -22,6 +22,11 @@ class GameConfig:
     common_paths: list[str] = field(default_factory=list)
     disabled_suffix: str = ".disabled"
     validation_file: str = ""
+    # When set, the mod is DISTRIBUTED (download-backed): the launcher
+    # fetches it through the Cloudflare Worker proxy under this slug and
+    # manages it via translation_manager.game_mod (cache → install →
+    # disable → clear-cache). Empty = a legacy on-disk-only mod.
+    mod_slug: str = ""
 
     def is_valid_dir(self, base: Path) -> bool:
         return bool(self.validation_file) and (base / self.validation_file).exists()
@@ -35,7 +40,9 @@ GAMES: dict[str, GameConfig] = {
         cover_theme="cyberpunk",
         mod_files=[
             r"archive\pc\mod\z_hebrew_translation.archive",
+            r"archive\pc\mod\z_hebrew_static.archive",
         ],
+        mod_slug="cp2077-hebrew",
         common_paths=[
             r"C:\Program Files (x86)\Steam\steamapps\common\Cyberpunk 2077",
             r"C:\Program Files\Epic Games\Cyberpunk2077",

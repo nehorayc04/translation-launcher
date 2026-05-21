@@ -135,6 +135,26 @@ export function onModProgress(cb: (p: ModProgress) => void): () => void {
   };
 }
 
+/** State of a download-distributed game mod (e.g. Cyberpunk 2077). */
+export interface GameModState {
+  cached:     boolean;   // mod payload present in the launcher cache
+  installed:  boolean;   // mod files present in the game folder
+  version:    string | null;
+  owned:      boolean;   // true for free mods; auth-DRM result for paid
+  priceCents: number;    // 0 = free
+  modSlug:    string;    // "" = not a download-distributed mod
+  hasPath:    boolean;   // the game's install folder is known
+}
+
+/** Result of any game-mod lifecycle action — always carries fresh state. */
+export interface GameModResult {
+  ok:        boolean;
+  error?:    string;
+  count?:    number;
+  language?: { ok: boolean; previous?: Record<string, string> } | null;
+  state:     GameModState;
+}
+
 /** Result of get_launcher_update_info — the self-update panel's state. */
 export interface LauncherUpdateInfo {
   currentVersion:  string;
@@ -196,6 +216,22 @@ export const api = {
   getSteamModState:   ()                        => call<SteamModState>("get_steam_mod_state"),
   setSteamModEnabled: (enabled: boolean)        => call<OpResult>("set_steam_mod_enabled", enabled),
   clearSteamModCache: ()                        => call<OpResult>("clear_steam_mod_cache"),
+
+  // ── Download-distributed game mods (Cyberpunk 2077) ───────
+  /** State of a game's downloadable mod — cached / installed / owned /
+   *  price. Drives the GameDetailPanel CTA. modSlug="" → not distributed. */
+  getGameModState:           (id: string) => call<GameModState>("get_game_mod_state", id),
+  /** Download (if needed) + install the mod. Progress streams over the
+   *  mod_install_progress channel (subscribe via onModProgress). */
+  downloadAndInstallGameMod: (id: string) => call<GameModResult>("download_and_install_game_mod", id),
+  /** Toggle a cached mod: install/reinstall (true) or disable (false). */
+  setGameModInstalled:       (id: string, installed: boolean) =>
+                                call<GameModResult>("set_game_mod_installed", id, installed),
+  /** Remove the mod from the game folder AND wipe the launcher cache. */
+  clearGameModCache:         (id: string) => call<GameModResult>("clear_game_mod_cache", id),
+  /** Open the website checkout in the browser for a paid game mod. */
+  openPurchasePage:          (id: string) =>
+                                call<{ ok: boolean; url?: string; error?: string }>("open_purchase_page", id),
   listUpdates:      ()                          => call<UpdateItem[]>("list_updates"),
   /** Launcher self-update: current-vs-latest check + the in-app
    *  download/verify/silent-install trigger. Progress streams back

@@ -8,6 +8,7 @@
 import { useEffect, useState } from "react";
 import { resolveCoverUrl } from "../lib/coverUrl";
 import { api } from "../lib/eel";
+import type { SteamModState } from "../lib/eel";
 import type { Software } from "../lib/types";
 
 type ReportStatus = (text: string, warn?: boolean) => void;
@@ -58,6 +59,33 @@ export default function SoftwareDetailPanel({
     setInstallPath(s.installPath ?? "");
     setInstalled(Boolean(s.installed));
   }, [s.installPath, s.installed]);
+
+  // Steam mod cache — drives the per-mod "ניקוי מטמון" control in the
+  // settings sidebar (moved here from the global Settings view).
+  const [steamCache, setSteamCache] = useState<SteamModState | null>(null);
+  useEffect(() => {
+    if (s.id !== "steam") return;
+    let alive = true;
+    void api.getSteamModState()
+      .then((st) => { if (alive) setSteamCache(st); })
+      .catch(() => { /* ignore — button just stays hidden */ });
+    return () => { alive = false; };
+  }, [s.id]);
+
+  const onClearCache = async () => {
+    if (!confirm(
+      "לנקות את מטמון התרגום? קבצי Steam ישוחזרו למצב המקורי — " +
+      "התקנה מחדש תדרוש הורדה חוזרת."
+    )) return;
+    setBusy(true);
+    try {
+      const r = await api.clearSteamModCache();
+      reportStatus?.(r.ok ? "המטמון נוקה וקבצי Steam שוחזרו" : (r.error ?? "שגיאה"), !r.ok);
+      setSteamCache(await api.getSteamModState().catch(() => null));
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const onInstall = async () => {
     if (busy) return;
@@ -259,6 +287,20 @@ export default function SoftwareDetailPanel({
           >
             פתח תיקיית התוכנה
           </button>
+
+          {/* Per-mod cache control — lives here in the software's own
+              panel (not in global Settings). */}
+          {s.id === "steam" && steamCache?.cached && (
+            <button
+              disabled={busy}
+              onClick={onClearCache}
+              className="w-full text-sm px-3 py-2 border border-rose-500/30 text-rose-200
+                         rounded-lg hover:bg-rose-500/10
+                         disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              ניקוי מטמון התרגום
+            </button>
+          )}
 
           {/* Status summary */}
           <div className="border-t border-white/5 pt-4 text-xs space-y-1.5">

@@ -54,6 +54,7 @@ import eel
 import requests
 
 from translation_manager import downloads as _downloads
+from translation_manager import game_mod as _game_mod
 from translation_manager import mod_source as _mod_source
 from translation_manager import paths as user_paths
 from translation_manager import steam_apply as _steam_apply
@@ -497,10 +498,12 @@ def clear_custom_path(game_id: str) -> dict:
 
 
 def _mod_progress_cb(phase: str, pct: float, detail: str) -> None:
-    """Forward a steam_mod / mod_source progress tick to the React UI.
-    Wrapped so a UI hiccup can never crash the install worker."""
+    """Forward a steam_mod / game_mod / mod_source progress tick to the
+    React UI. The trailing () is what actually dispatches the eel call —
+    same form as _push_download_progress / _push_cache_event. Wrapped so
+    a UI hiccup can never crash the install worker."""
     try:
-        eel.mod_install_progress(phase, round(pct, 1), detail)  # exposed JS sink
+        eel.mod_install_progress(phase, round(pct, 1), detail)()  # type: ignore[attr-defined]
     except Exception:
         pass
 
@@ -549,6 +552,136 @@ def set_steam_mod_enabled(enabled: bool) -> dict:
 def clear_steam_mod_cache() -> dict:
     """Revert Steam to its originals and delete the local mod cache."""
     return _steam_mod.clear_cache()
+
+
+# ─────────────────────────────────────────────────────────────
+# Download-distributed GAME mods (e.g. Cyberpunk 2077).
+# A game whose GameConfig carries a `mod_slug` is fetched through the
+# Cloudflare Worker proxy and managed via translation_manager.game_mod:
+#   download → cache → install → disable → clear-cache.
+# Paid mods (catalog priceCents > 0) gate install on auth ownership.
+# ─────────────────────────────────────────────────────────────
+def _game_price_cents(game_id: str) -> int:
+    cg = _catalog_by_id(game_id) or {}
+    try:
+        return int(cg.get("priceCents") or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
+@eel.expose
+def get_game_mod_state(game_id: str) -> dict:
+    """State for a download-distributed game mod (drives GameDetailPanel).
+    {cached, installed, version, owned, priceCents, modSlug, hasPath}."""
+    cfg   = _config_for(game_id)
+    base  = _install_path(game_id)
+    price = _game_price_cents(game_id)
+    slug  = cfg.mod_slug if cfg else ""
+    if not slug:
+        return {
+            "cached": False, "installed": False, "version": None,
+            "owned": True, "priceCents": price, "modSlug": "",
+            "hasPath": base is not None,
+        }
+    st = _game_mod.status(game_id, base, cfg.mod_files if cfg else [])
+    # Free mods are always "owned"; paid mods consult the auth DRM check.
+    owned = True if price <= 0 else auth_owns_game(game_id)
+    return {
+        **st,
+        "owned":      owned,
+        "priceCents": price,
+        "modSlug":    slug,
+        "hasPath":    base is not None,
+    }
+
+
+@eel.expose
+def download_and_install_game_mod(game_id: str) -> dict:
+    """Download (if not cached) + install a distributed game mod into the
+    game folder. Progress streams over the mod_install_progress channel."""
+    cfg  = _config_for(game_id)
+    base = _install_path(game_id)
+    if cfg is None or not cfg.mod_slug:
+        return {"ok": False, "error": "המשחק אינו נתמך להורדה אוטומטית",
+                "state": get_game_mod_state(game_id)}
+    if base is None:
+        return {"ok": False, "error": "נתיב המשחק לא הוגדר — הגדר אותו תחילה בהגדרות",
+                "state": get_game_mod_state(game_id)}
+    # DRM gate — defense-in-depth; the UI gates too.
+    if _game_price_cents(game_id) > 0 and not auth_owns_game(game_id):
+        return {"ok": False, "error": "המשחק טרם נרכש",
+                "state": get_game_mod_state(game_id)}
+
+    if not _game_mod.is_cached(game_id):
+        r = _game_mod.download_and_cache(game_id, cfg.mod_slug, _mod_progress_cb)
+        if not r.get("ok"):
+            return {"ok": False, "error": r.get("error"),
+                    "state": get_game_mod_state(game_id)}
+    r = _game_mod.install(game_id, base, _mod_progress_cb)
+    lang = None
+    if r.get("ok") and game_id == _CP2077_ID:
+        try:
+            lang = _cp2077_enable_arabic_slot()
+        except Exception as e:                          # pragma: no cover
+            print(f"[cp2077_language] enable failed: {e}", flush=True)
+            lang = {"ok": False, "error": str(e)}
+    return {**r, "language": lang, "state": get_game_mod_state(game_id)}
+
+
+@eel.expose
+def set_game_mod_installed(game_id: str, installed: bool) -> dict:
+    """Toggle a cached game mod: install/reinstall (cache → game folder)
+    or disable (remove from the game folder, keep the cache copy)."""
+    cfg  = _config_for(game_id)
+    base = _install_path(game_id)
+    if cfg is None or not cfg.mod_slug or base is None:
+        return {"ok": False, "error": "פעולה לא זמינה",
+                "state": get_game_mod_state(game_id)}
+    if installed:
+        r = _game_mod.install(game_id, base, _mod_progress_cb)
+        hook = _cp2077_enable_arabic_slot
+    else:
+        r = _game_mod.disable(game_id, base)
+        hook = _cp2077_restore_language
+    lang = None
+    if r.get("ok") and game_id == _CP2077_ID:
+        try:
+            lang = hook()
+        except Exception as e:                          # pragma: no cover
+            print(f"[cp2077_language] toggle failed: {e}", flush=True)
+            lang = {"ok": False, "error": str(e)}
+    return {**r, "language": lang, "state": get_game_mod_state(game_id)}
+
+
+@eel.expose
+def clear_game_mod_cache(game_id: str) -> dict:
+    """Remove a game mod entirely — from the game folder AND the launcher
+    cache. A later install must re-download."""
+    cfg  = _config_for(game_id)
+    base = _install_path(game_id)
+    # If CP2077's mod is currently active, restore the language slot first.
+    if game_id == _CP2077_ID:
+        st = _game_mod.status(game_id, base, cfg.mod_files if cfg else [])
+        if st.get("installed"):
+            try:
+                _cp2077_restore_language()
+            except Exception as e:                      # pragma: no cover
+                print(f"[cp2077_language] restore (clear) failed: {e}", flush=True)
+    r = _game_mod.clear_cache(game_id, base, cfg.mod_files if cfg else [])
+    return {**r, "state": get_game_mod_state(game_id)}
+
+
+@eel.expose
+def open_purchase_page(game_id: str) -> dict:
+    """Open the website catalog in the browser so the user can buy a paid
+    game mod. After payment the launcher re-checks ownership."""
+    import webbrowser
+    url = "https://hebrew-translation-hub.vercel.app/games"
+    try:
+        webbrowser.open(url)
+        return {"ok": True, "url": url}
+    except Exception as e:                              # pragma: no cover
+        return {"ok": False, "error": str(e)}
 
 
 @eel.expose

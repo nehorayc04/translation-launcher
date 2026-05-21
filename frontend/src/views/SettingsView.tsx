@@ -28,6 +28,10 @@ export default function SettingsView({
   const overridden = games.filter((g) => g.install_path);
   const [busy, setBusy] = useState<"close" | "autostart" | null>(null);
 
+  // Translation-cache management is no longer global — each mod's cache
+  // is cleared from its own detail panel (GameDetailPanel for game mods,
+  // SoftwareDetailPanel for Steam), next to that mod's install path.
+
   const handleOpen = async (p: string) => {
     const r = await api.openFolder(p);
     if (!r.ok) reportStatus(r.error ?? "שגיאה", true);
@@ -156,6 +160,7 @@ export default function SettingsView({
           </ul>
         )}
       </section>
+
     </div>
   );
 }

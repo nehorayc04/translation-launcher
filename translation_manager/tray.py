@@ -71,22 +71,28 @@ def _load_icon_image():
 
 
 # ─────────────────────────────────────────────────────────────
-def _relaunch_self() -> None:
+def _relaunch_self(restored: bool = True) -> None:
     """Spawn a fresh launcher process and quit this one.
 
     Used by the "Open" tray menu after the user minimised to tray, since
     we cannot revive the dead Chromium window in-process. The new
     instance picks up persisted state from disk and starts visible.
+
+    `restored=True` (the default for every tray/single-instance relaunch)
+    passes `--restored` so the new process knows it is NOT a genuine cold
+    start — it shows the disk cache instantly and skips the
+    refresh-on-open. Only the OS launching the exe fresh omits the flag.
     """
+    extra = ["--restored"] if restored else []
     try:
         if getattr(sys, "frozen", False):
             # Frozen build: just relaunch the same exe (no --silent so it
             # opens visible). PyInstaller onedir/onefile both honour this.
-            subprocess.Popen([sys.executable], close_fds=True)
+            subprocess.Popen([sys.executable, *extra], close_fds=True)
         else:
             # Dev / source run: re-invoke `python main_eel.py`.
             entry = Path(sys.argv[0]).resolve()
-            subprocess.Popen([sys.executable, str(entry)], close_fds=True)
+            subprocess.Popen([sys.executable, str(entry), *extra], close_fds=True)
     except Exception as e:                                # pragma: no cover
         log.warning("tray: relaunch failed — %s", e)
 

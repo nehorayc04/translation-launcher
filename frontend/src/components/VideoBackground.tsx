@@ -15,8 +15,19 @@
 //     and toggles `active` once it drops below FADE_LEAD_SECONDS.
 //   • The just-faded-out layer continues looping in the background; by
 //     the time we crossfade back to it, it's already past its seam.
+//
+// Source loading — direct <video src>, NOT fetch()+blob.
+//   The background clip is ~56 MB. The old code did `fetch('/214405.mp4')`
+//   then `.blob()`, which buffers the ENTIRE file into memory before the
+//   <video> ever gets a source. On a slow / contended boot that transfer
+//   stalled, `blobUrl` stayed null, and the screen was just black — and
+//   the in-flight 56 MB starved the cover-image requests. A direct src
+//   lets Chromium stream progressively (HTTP range requests): playback
+//   starts after a few hundred KB and the file keeps buffering in the
+//   background. Far more resilient, and it never blocks other assets.
 import { useEffect, useRef, useState } from "react";
 
+const VIDEO_SRC         = "/214405.mp4";
 const FADE_LEAD_SECONDS = 0.8;   // start crossfade this many sec before end
 const FADE_MS           = 600;   // gentler fade, fully covers a ~350ms reset
 
@@ -25,32 +36,6 @@ export default function VideoBackground() {
   const refB = useRef<HTMLVideoElement>(null);
   const [active, setActive] = useState<"A" | "B">("A");
   const lastSwapRef = useRef<number>(0);
-  // Blob URL keeps the static .mp4 path out of the DOM so IDM-style
-  // sniffers can't grab a downloadable source. Fetched once, shared
-  // between both <video> layers, revoked on unmount.
-  const [blobUrl, setBlobUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    let objectUrl: string | null = null;
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch("/214405.mp4");
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const blob = await res.blob();
-        if (cancelled) return;
-        objectUrl = URL.createObjectURL(blob);
-        setBlobUrl(objectUrl);
-      } catch (e) {
-        console.warn("[VideoBackground] blob fetch failed, falling back to direct src:", e);
-        if (!cancelled) setBlobUrl("/214405.mp4");
-      }
-    })();
-    return () => {
-      cancelled = true;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
-    };
-  }, []);
 
   // Boot: start A at t=0, start B at t=duration/2 so the two layers are
   // permanently out of phase. We wait for metadata so currentTime sticks.
@@ -206,14 +191,14 @@ export default function VideoBackground() {
           autoPlay muted playsInline loop preload="auto"
           className="absolute inset-0 w-full h-full object-cover pointer-events-none"
           style={layerStyle(active === "A")}
-          src={blobUrl ?? undefined}
+          src={VIDEO_SRC}
         />
         <video
           ref={refB}
           autoPlay muted playsInline loop preload="auto"
           className="absolute inset-0 w-full h-full object-cover pointer-events-none"
           style={layerStyle(active === "B")}
-          src={blobUrl ?? undefined}
+          src={VIDEO_SRC}
         />
         <div className="absolute inset-0 z-10 bg-transparent" />
       </div>

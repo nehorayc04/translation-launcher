@@ -130,6 +130,26 @@ def peek(kind: str, *, sub_key: str | None = None) -> Any | None:
     return entry["data"] if entry else None
 
 
+def touch_all() -> None:
+    """Mark every cached entry as freshly-fetched (ts → now).
+
+    Used on a tray-restore boot: the next swr() call then treats the
+    disk cache as hot and SKIPS the on-demand background refresh, so a
+    restore-from-tray shows the cached UI instantly with no
+    refresh-on-open. The periodic poller keeps the data live afterwards.
+    A genuine cold start does NOT call this, so it still refreshes."""
+    now = time.time()
+    for entry in _mem.values():
+        entry["ts"] = now
+
+
+def progress_keys() -> list[str]:
+    """Sub-keys of every cached ('progress', <id>) entry — lets the
+    background poller refresh exactly the games whose progress the UI
+    has already shown, without guessing ids."""
+    return [sk for (kind, sk) in _mem if kind == "progress" and sk is not None]
+
+
 # ─────────────────────────────────────────────────────────────────
 # Internal — disk seed
 # ─────────────────────────────────────────────────────────────────

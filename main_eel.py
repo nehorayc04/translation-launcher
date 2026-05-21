@@ -342,13 +342,24 @@ def _force_refresh(kind: str, url: str) -> str:
 
 
 def _push_cache_event(kind: str, data, sub_key) -> None:
-    """SWR's background refresher calls this when fresh data differs from
-    the cached value. We forward it to the frontend's `cache_refreshed`
-    handler (registered in frontend/public/eel-bindings.js). Wrapped in
-    try/except because the call is meaningless until the React app has
-    connected — early background firings before the websocket exists
-    will just be no-ops."""
+    """SWR's background refresher / the idle poller call this when fresh
+    data differs from the cached value. We forward it to the frontend's
+    `cache_refreshed` handler (registered in frontend/public/eel-bindings.js).
+
+    'games' and 'software' are re-enriched here with THIS machine's
+    install/mod state: the SWR cache stores only the bare remote
+    catalog, but the frontend's setGames()/setSoftware() expect the full
+    enriched shape — pushing a bare row would silently drop every
+    install/mod badge on a live update.
+
+    Wrapped in try/except because the call is meaningless until the
+    React app has connected — early firings before the websocket exists
+    are just no-ops."""
     try:
+        if kind == "games" and isinstance(data, list):
+            data = _enrich_catalog(data)
+        elif kind == "software" and isinstance(data, list):
+            data = _enrich_software(data)
         eel.cache_refreshed(kind, data, sub_key)()         # type: ignore[attr-defined]
     except Exception:
         pass
@@ -404,21 +415,29 @@ def _mod_state(game_id: str) -> str:
     return detect_state(cfg, base)
 
 
-def _game_payload(game_id: str) -> dict:
-    """Catalog entry enriched with install path + mod state."""
-    cg = _catalog_by_id(game_id)
-    if cg is None:
-        return {}
-    base = _install_path(game_id)
-    cfg  = _config_for(game_id)
+def _enrich_game_row(cg: dict) -> dict:
+    """Enrich one bare catalog row with THIS machine's install path + mod
+    state. Shared by _game_payload, get_all_games and the cache_refreshed
+    push so every path emits an identical, fully-shaped game dict."""
+    gid  = cg.get("id", "")
+    base = _install_path(gid)
+    cfg  = _config_for(gid)
     has_mod = cfg is not None and bool(cfg.mod_files)
     return {
         **cg,
         "install_path": str(base) if base else None,
         "is_installed": base is not None,
         "has_mod_support": has_mod,
-        "mod_state": _mod_state(game_id),
+        "mod_state": _mod_state(gid),
     }
+
+
+def _game_payload(game_id: str) -> dict:
+    """Catalog entry enriched with install path + mod state."""
+    cg = _catalog_by_id(game_id)
+    if cg is None:
+        return {}
+    return _enrich_game_row(cg)
 
 
 # ═════════════════════════════════════════════════════════════
@@ -427,16 +446,21 @@ def _game_payload(game_id: str) -> dict:
 _AVAIL_RANK = {"available": 0, "in-progress": 1, "coming-soon": 2, "planned": 3}
 
 
-@eel.expose
-def get_all_games() -> list[dict]:
-    """Full catalog (sorted by availability) enriched with install + mod state."""
-    items = _load_catalog()
+def _enrich_catalog(items: list[dict]) -> list[dict]:
+    """Bare remote catalog → sorted, install/mod-enriched list — the exact
+    shape get_all_games() returns and the frontend's setGames() expects."""
     items_sorted = sorted(
         items,
         key=lambda g: (_AVAIL_RANK.get(g.get("availability", ""), 99),
                        g.get("titleEn", "")),
     )
-    return [_game_payload(g["id"]) for g in items_sorted if "id" in g]
+    return [_enrich_game_row(g) for g in items_sorted if g.get("id")]
+
+
+@eel.expose
+def get_all_games() -> list[dict]:
+    """Full catalog (sorted by availability) enriched with install + mod state."""
+    return _enrich_catalog(_load_catalog())
 
 
 @eel.expose
@@ -871,23 +895,19 @@ def list_updates() -> list[dict]:
     return _load_updates()
 
 
-@eel.expose
-def get_all_software() -> list[dict]:
-    """Software catalog visible to the launcher. Returns the same shape
-    as /api/software but filtered to entries flagged show_on_launcher.
-
-    Every entry is enriched with a local-presence snapshot
-    (`installed`, `path`, `exe`) from `software_detector.scan_all()`
-    so the React side can render an "installed" chip without a
-    separate round-trip on first paint."""
+def _enrich_software(items: list[dict]) -> list[dict]:
+    """Tag each software row with THIS machine's install presence
+    (`installed` / `installPath` / `installExe`), honouring the user's
+    "forgotten" list. Works on COPIES so the bare SWR cache stays clean
+    (mutating it in place would poison the poller's change-detection)."""
     from translation_manager import software_detector
     from translation_manager import launcher_prefs
-    items = _load_software()
-    presence = software_detector.scan_all([s.get("id", "") for s in items if s.get("id")])
+    out = [dict(s) for s in items]
+    presence = software_detector.scan_all([s.get("id", "") for s in out if s.get("id")])
     # Software ids the user "forgot" in Settings → report as not-installed
     # (path blanked) until the next full scan re-detects them.
     cleared = set(launcher_prefs.get_cleared_software())
-    for s in items:
+    for s in out:
         sid = s.get("id")
         if isinstance(sid, str):
             if sid in cleared:
@@ -899,7 +919,19 @@ def get_all_software() -> list[dict]:
                 s["installed"]    = bool(info.get("installed"))
                 s["installPath"]  = info.get("path") or ""
                 s["installExe"]   = info.get("exe")  or ""
-    return items
+    return out
+
+
+@eel.expose
+def get_all_software() -> list[dict]:
+    """Software catalog visible to the launcher. Returns the same shape
+    as /api/software but filtered to entries flagged show_on_launcher.
+
+    Every entry is enriched with a local-presence snapshot
+    (`installed`, `path`, `exe`) from `software_detector.scan_all()`
+    so the React side can render an "installed" chip without a
+    separate round-trip on first paint."""
+    return _enrich_software(_load_software())
 
 
 @eel.expose
@@ -1479,6 +1511,60 @@ FRONTEND_DIST = ROOT / "frontend" / "dist"
 
 
 # ─────────────────────────────────────────────────────────────
+# Idle live-refresh poller.
+# ─────────────────────────────────────────────────────────────
+# swr()'s cache_refreshed push only fires as a SIDE-EFFECT of a frontend
+# call (get_all_games on a component mount). Nothing re-triggers it on a
+# timer — so without this greenlet the launcher UI only updated when the
+# user left and re-entered a view. This loop re-fetches the dynamic
+# catalogs every _POLL_INTERVAL seconds and hands them to
+# swr_cache.put(), which diffs against the cache and pushes
+# cache_refreshed ONLY when something actually changed → genuine live
+# updates while the window is open, no spinner, no polling from React.
+_POLL_INTERVAL = 60   # seconds
+
+
+def _start_catalog_poller() -> None:
+    """Spawn the idle live-refresh greenlet on the launcher's gevent hub.
+
+    Runs as a GREENLET (not an OS thread): swr_cache.put → _push_cache_event
+    → eel.cache_refreshed(...)() is bound to the main gevent hub and fails
+    silently from a separate thread. The fetchers' `requests` calls yield
+    cooperatively, so the loop never pins the websocket server."""
+    import gevent
+    import logging
+    log = logging.getLogger("launcher")
+
+    def _loop() -> None:
+        while True:
+            gevent.sleep(_POLL_INTERVAL)
+            try:
+                games = _fetch_catalog_live_first()
+                if games is not None:
+                    swr_cache.put("games", games)
+                software = _try_software_remote()
+                if software is not None:
+                    swr_cache.put("software", software)
+                news = _try_remote(REMOTE_NEWS_URL)
+                if news is not None:
+                    swr_cache.put("news", news)
+                updates = _try_remote(REMOTE_UPDATES_URL)
+                if updates is not None:
+                    swr_cache.put("updates", updates)
+                # Progress for whichever games the UI has already shown.
+                for gid in swr_cache.progress_keys():
+                    try:
+                        swr_cache.put("progress", _fetch_progress(gid), sub_key=gid)
+                    except Exception:                          # noqa: BLE001
+                        pass
+            except Exception:                                  # noqa: BLE001
+                log.exception("[poller] tick failed")
+
+    gevent.spawn(_loop)
+    log.info("catalog poller started (every %ds)", _POLL_INTERVAL)
+
+
+# ─────────────────────────────────────────────────────────────
 # Single-instance guard (Windows).
 # ─────────────────────────────────────────────────────────────
 # Without a guard, a second instance (e.g. user clicks the Start-menu
@@ -1586,7 +1672,7 @@ def _start_show_event_listener() -> None:
                 # focus to the new window.
                 try:
                     from translation_manager import tray as _tray
-                    _tray._relaunch_self()
+                    _tray._relaunch_self(restored=True)
                 except Exception as e:                     # pragma: no cover
                     print(f"[single-instance] relaunch failed: {e}", flush=True)
                 import os
@@ -1666,7 +1752,22 @@ def main() -> None:
                     help="Boot hidden in the system tray (no Chromium window). "
                          "Used by the autostart Run-key entry when the app launches at "
                          "Windows logon — user explicitly opts in via the settings toggle.")
+    ap.add_argument("--restored", action="store_true",
+                    help="This launch is a restore from a still-running tray "
+                         "instance (tray 'Open' / single-instance re-signal), NOT "
+                         "a genuine cold start. Skips the refresh-on-open: the disk "
+                         "cache is shown instantly and the idle poller keeps it live.")
     args = ap.parse_args()
+
+    # Tray-restore: the previous instance was alive, so the disk cache is
+    # recent. Mark it hot so the first get_all_games() serves it instantly
+    # without a refresh-on-open. A genuine cold start skips this and still
+    # refreshes. Either way the idle poller keeps the UI live afterwards.
+    if args.restored:
+        try:
+            swr_cache.touch_all()
+        except Exception:                                       # noqa: BLE001
+            pass
 
     # Single-instance guard. If another instance already owns the named
     # mutex, signal it to show its window and exit THIS process cleanly.
@@ -1703,6 +1804,11 @@ def main() -> None:
         import time
         while True:
             time.sleep(3600)
+
+    # Idle live-refresh — runs on the gevent hub once eel.start() spins it
+    # up. Spawned here (after the --silent early-return) so it only exists
+    # for a real window session.
+    _start_catalog_poller()
 
     if args.dev:
         # Vite dev mode — Eel only serves /eel.js + JSON-RPC; the React app

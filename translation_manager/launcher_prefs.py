@@ -29,8 +29,11 @@ CloseBehavior = Literal["minimize", "close"]
 
 
 class LauncherPrefs(TypedDict, total=False):
-    close_behavior: CloseBehavior        # None = unset → first-launch modal
-    start_with_os:  bool                 # mirrors the registry state
+    close_behavior:   CloseBehavior      # None = unset → first-launch modal
+    start_with_os:    bool               # mirrors the registry state
+    cleared_software: list[str]          # software ids whose path the user
+                                         # "forgot" — treated as not-installed
+                                         # until the next full scan re-detects
 
 
 _STATE_DIR  = Path.home() / ".translation_manager"
@@ -92,3 +95,31 @@ def set_start_with_os(enabled: bool) -> bool:
     prefs = load()
     prefs["start_with_os"] = bool(enabled)
     return save(prefs)
+
+
+# ── "forgotten" software paths ────────────────────────────────
+# Software install paths are auto-detected (registry/path fingerprints).
+# The user can "forget" one from Settings; it then reports as not-installed
+# until a full scan (which clears the whole forgotten set) re-detects it.
+def get_cleared_software() -> list[str]:
+    val = load().get("cleared_software")
+    return [str(x) for x in val] if isinstance(val, list) else []
+
+
+def add_cleared_software(software_id: str) -> bool:
+    prefs = load()
+    cur = prefs.get("cleared_software")
+    cleared = list(cur) if isinstance(cur, list) else []
+    if software_id and software_id not in cleared:
+        cleared.append(software_id)
+    prefs["cleared_software"] = cleared
+    return save(prefs)
+
+
+def clear_all_cleared_software() -> bool:
+    """Drop the whole forgotten-set — called by a full software scan."""
+    prefs = load()
+    if "cleared_software" in prefs:
+        prefs.pop("cleared_software", None)
+        return save(prefs)
+    return True

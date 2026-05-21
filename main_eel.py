@@ -595,37 +595,59 @@ def get_game_mod_state(game_id: str) -> dict:
     }
 
 
+def _run_game_mod_install(game_id: str) -> None:
+    """Background worker: download (if needed) + install a game mod.
+
+    Runs on a real daemon thread — the same proven pattern as
+    downloads.py and start_launcher_update — so the mod_install_progress
+    ticks dispatch reliably while the work runs (a synchronous @eel.expose
+    function can't stream progress: the bridge only flushes when it
+    returns, which is the "bar stuck at 0%" bug). Emits a terminal
+    'done' / 'error' tick the GameDetailPanel watches for."""
+    cfg  = _config_for(game_id)
+    base = _install_path(game_id)
+    try:
+        if not _game_mod.is_cached(game_id):
+            r = _game_mod.download_and_cache(game_id, cfg.mod_slug, _mod_progress_cb)
+            if not r.get("ok"):
+                _mod_progress_cb("error", 0, r.get("error") or "כשל בהורדת התרגום")
+                return
+        r = _game_mod.install(game_id, base, _mod_progress_cb)
+        if not r.get("ok"):
+            _mod_progress_cb("error", 0, r.get("error") or "כשל בהתקנת התרגום")
+            return
+        if game_id == _CP2077_ID:
+            try:
+                _cp2077_enable_arabic_slot()
+            except Exception as e:                      # pragma: no cover
+                print(f"[cp2077_language] enable failed: {e}", flush=True)
+        _mod_progress_cb("done", 100, "ההתקנה הושלמה")
+    except Exception as e:                              # pragma: no cover
+        _mod_progress_cb("error", 0, f"שגיאה: {e}")
+
+
 @eel.expose
 def download_and_install_game_mod(game_id: str) -> dict:
-    """Download (if not cached) + install a distributed game mod into the
-    game folder. Progress streams over the mod_install_progress channel."""
+    """Kick off download+install on a daemon thread and return at once.
+    Progress + a terminal done/error tick stream over the
+    mod_install_progress channel; the GameDetailPanel drives its bar
+    from onModProgress."""
     cfg  = _config_for(game_id)
     base = _install_path(game_id)
     if cfg is None or not cfg.mod_slug:
-        return {"ok": False, "error": "המשחק אינו נתמך להורדה אוטומטית",
-                "state": get_game_mod_state(game_id)}
+        return {"ok": False, "error": "המשחק אינו נתמך להורדה אוטומטית"}
     if base is None:
-        return {"ok": False, "error": "נתיב המשחק לא הוגדר — הגדר אותו תחילה בהגדרות",
-                "state": get_game_mod_state(game_id)}
+        return {"ok": False, "error": "נתיב המשחק לא הוגדר — הגדר אותו תחילה בהגדרות"}
     # DRM gate — defense-in-depth; the UI gates too.
     if _game_price_cents(game_id) > 0 and not auth_owns_game(game_id):
-        return {"ok": False, "error": "המשחק טרם נרכש",
-                "state": get_game_mod_state(game_id)}
+        return {"ok": False, "error": "המשחק טרם נרכש"}
 
-    if not _game_mod.is_cached(game_id):
-        r = _game_mod.download_and_cache(game_id, cfg.mod_slug, _mod_progress_cb)
-        if not r.get("ok"):
-            return {"ok": False, "error": r.get("error"),
-                    "state": get_game_mod_state(game_id)}
-    r = _game_mod.install(game_id, base, _mod_progress_cb)
-    lang = None
-    if r.get("ok") and game_id == _CP2077_ID:
-        try:
-            lang = _cp2077_enable_arabic_slot()
-        except Exception as e:                          # pragma: no cover
-            print(f"[cp2077_language] enable failed: {e}", flush=True)
-            lang = {"ok": False, "error": str(e)}
-    return {**r, "language": lang, "state": get_game_mod_state(game_id)}
+    import threading
+    threading.Thread(
+        target=_run_game_mod_install, args=(game_id,), daemon=True,
+        name=f"game-mod-install-{game_id}",
+    ).start()
+    return {"ok": True, "started": True}
 
 
 @eel.expose
@@ -814,24 +836,44 @@ def get_all_software() -> list[dict]:
     so the React side can render an "installed" chip without a
     separate round-trip on first paint."""
     from translation_manager import software_detector
+    from translation_manager import launcher_prefs
     items = _load_software()
     presence = software_detector.scan_all([s.get("id", "") for s in items if s.get("id")])
+    # Software ids the user "forgot" in Settings → report as not-installed
+    # (path blanked) until the next full scan re-detects them.
+    cleared = set(launcher_prefs.get_cleared_software())
     for s in items:
         sid = s.get("id")
         if isinstance(sid, str):
-            info = presence.get(sid) or {}
-            s["installed"]    = bool(info.get("installed"))
-            s["installPath"]  = info.get("path") or ""
-            s["installExe"]   = info.get("exe")  or ""
+            if sid in cleared:
+                s["installed"]   = False
+                s["installPath"] = ""
+                s["installExe"]  = ""
+            else:
+                info = presence.get(sid) or {}
+                s["installed"]    = bool(info.get("installed"))
+                s["installPath"]  = info.get("path") or ""
+                s["installExe"]   = info.get("exe")  or ""
     return items
 
 
 @eel.expose
 def scan_software() -> dict:
-    """Re-run the local fingerprint sweep for every software id in the
-    catalog. Used by the "סרוק" button under the תוכנות tab — mirrors
-    the games' scan flow but with no expensive disk walk; just the
-    declared registry/path fingerprints in software_detector."""
+    """Full re-scan of installed software. Used by the "סרוק" button under
+    the תוכנות tab — also clears any "forgotten" software paths so a
+    cleared entry is re-detected and lands back under "מותקנות"."""
+    from translation_manager import launcher_prefs
+    launcher_prefs.clear_all_cleared_software()
+    return {"software": get_all_software()}
+
+
+@eel.expose
+def clear_software_path(software_id: str) -> dict:
+    """"Forget" a software's auto-detected install path. The entry shows
+    as not-installed in the תוכנות catalog until the next full scan
+    (scan_software) re-detects it. Drives the Settings "נקה" button."""
+    from translation_manager import launcher_prefs
+    launcher_prefs.add_cleared_software(software_id)
     return {"software": get_all_software()}
 
 

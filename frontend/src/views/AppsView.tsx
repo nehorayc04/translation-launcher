@@ -7,7 +7,8 @@
 // Steam) keeps its "Install" button; everything else opens the
 // download URL externally.
 import { useEffect, useState } from "react";
-import { api } from "../lib/eel";
+import { api, onModProgress } from "../lib/eel";
+import type { SteamModState, ModProgress } from "../lib/eel";
 import { resolveCoverUrl } from "../lib/coverUrl";
 import type { Software } from "../lib/types";
 
@@ -154,9 +155,12 @@ function SoftwareCard({
     if (onOpen) onOpen(s);
   };
 
+  // paused / archived software isn't installable — CTA reads "לא זמין".
+  const unavailable = s.availability === "paused" || s.availability === "archived";
+
   const onCtaClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (busy) return;
+    if (busy || unavailable) return;
     if (handler) {
       setBusy(true);
       try { await handler(reportStatus); }
@@ -168,9 +172,11 @@ function SoftwareCard({
     onNavigateToDownloads?.();
   };
 
-  const ctaLabel = handler
-    ? (busy ? "מתקין…" : "התקן")
-    : "פתח הורדות";
+  const ctaLabel = unavailable
+    ? "לא זמין"
+    : handler
+      ? (busy ? "מתקין…" : "התקן")
+      : "פתח הורדות";
 
   return (
     <div
@@ -248,48 +254,177 @@ function SoftwareCard({
         </div>
       </div>
 
-      {/* CTA */}
-      <button
-        onClick={onCtaClick}
-        disabled={busy || (!handler && !onNavigateToDownloads)}
-        className="w-full py-2.5 rounded-xl text-sm font-bold transition
-                   disabled:opacity-60 disabled:cursor-wait
-                   text-brand-ink hover:brightness-110"
-        style={{ background: accent }}
-      >
-        {ctaLabel}
-      </button>
+      {/* CTA — Steam has the full install/enable/disable lifecycle; every
+          other software keeps the generic button. */}
+      {s.id === "steam" ? (
+        <SteamCardCta accent={accent} reportStatus={reportStatus} availability={s.availability} />
+      ) : (
+        <button
+          onClick={onCtaClick}
+          disabled={busy || unavailable || (!handler && !onNavigateToDownloads)}
+          className={`w-full py-2.5 rounded-xl text-sm font-bold transition
+                     disabled:opacity-60 disabled:cursor-not-allowed
+                     ${unavailable
+                       ? "bg-white/5 text-slate-400 border border-white/10"
+                       : "text-brand-ink hover:brightness-110"}`}
+          style={unavailable ? undefined : { background: accent }}
+        >
+          {ctaLabel}
+        </button>
+      )}
     </div>
   );
 }
 
 // ---------------------------------------------------------------- handlers
 
-// Software entries with a built-in install action (vs. just an
-// external download link). The catalog row's `id` is the key — the
-// admin can introduce new entries without touching the launcher,
-// but actually wiring an installer is still a code change here.
+// Software entries with a built-in install action (vs. an external
+// download link). Steam is NOT here — it has the richer install/
+// enable/disable lifecycle in <SteamCardCta> below. Add other simple
+// one-shot software installers to this map.
 type InstallHandler = (rs?: ReportStatus) => Promise<void>;
 
-const INSTALL_HANDLERS: Partial<Record<string, InstallHandler>> = {
-  steam: installSteamTranslation,
+const INSTALL_HANDLERS: Partial<Record<string, InstallHandler>> = {};
+
+// ---------------------------------------------------------- Steam lifecycle
+
+// Install-phase → Hebrew label. Only "apply" fires in the local-cache
+// flow; download/verify/extract arrive once the GitHub proxy is wired.
+const PHASE_HE: Record<string, string> = {
+  download: "מוריד",
+  verify:   "מאמת",
+  extract:  "מחלץ",
+  apply:    "מתקין",
 };
 
-// Copies the compiled Hebrew translation files (steam_hebrew_output/*)
-// from the launcher's repo into the user's live Steam install. The
-// AppCard awaits this promise to drive the "מתקין…" spinner; the
-// top-center toast (reportStatus) communicates final success/failure.
-async function installSteamTranslation(reportStatus?: ReportStatus) {
-  reportStatus?.("מתקין תרגום עברי ל-Steam — סגור את Steam לפני שתמשיך…");
-  try {
-    const r = await api.applySteamTranslation();
-    if (r.ok) {
-      const count = r.count ?? 0;
-      reportStatus?.(`✓ הותקנו ${count} קבצים. הפעל מחדש את Steam עם שפה: العربية`);
-    } else {
-      reportStatus?.(r.error || "שגיאה לא ידועה בהתקנה", true);
+/** CTA for the Steam card — a 3-state machine:
+ *    not cached      → "התקן"  (download + enable)
+ *    cached, enabled → "השבת"  (revert Steam to its originals)
+ *    cached, off     → "הפעל"  (re-apply from the local cache)
+ *  While an op runs it shows a phase-aware progress bar fed by
+ *  `mod_install_progress` events. */
+function SteamCardCta({
+  accent, reportStatus, availability,
+}: {
+  accent: string;
+  reportStatus?: ReportStatus;
+  /** Catalog availability — 'paused' / 'archived' disable the CTA. */
+  availability?: string;
+}) {
+  const [state, setState]       = useState<SteamModState | null>(null);
+  const [busy, setBusy]         = useState(false);
+  const [progress, setProgress] = useState<ModProgress | null>(null);
+
+  // When the software is paused/archived in the catalog the install
+  // pipeline is intentionally on hold — the CTA reads "לא זמין".
+  const unavailable = availability === "paused" || availability === "archived";
+
+  const refresh = async () => {
+    try {
+      setState(await api.getSteamModState());
+    } catch {
+      setState({ cached: false, enabled: false, version: null });
     }
-  } catch (e) {
-    reportStatus?.(`כשל בקריאה לשרת: ${String(e)}`, true);
+  };
+  useEffect(() => { void refresh(); }, []);
+
+  // Subscribe to progress ticks only while an operation is in flight.
+  useEffect(() => {
+    if (!busy) return;
+    const off = onModProgress(setProgress);
+    return () => { off(); setProgress(null); };
+  }, [busy]);
+
+  const run = async (action: "install" | "enable" | "disable", e: React.MouseEvent) => {
+    e.stopPropagation();                       // don't also open the detail panel
+    if (busy) return;
+    setBusy(true);
+    try {
+      const r = action === "install"
+        ? await api.applySteamTranslation()
+        : await api.setSteamModEnabled(action === "enable");
+      if (r.ok) {
+        reportStatus?.(action === "disable"
+          ? "התרגום הושבת — Steam חזר לשפת המקור"
+          : "✓ בוצע. הפעל מחדש את Steam עם שפה: العربية");
+        // Derive the new state DIRECTLY from the operation outcome.
+        // A successful install/enable means cached+enabled; disable
+        // means cached+disabled. The post-op refresh() below can't be
+        // relied on alone — its eel round-trip races right after a long
+        // applySteamTranslation() call (the button-stuck-on-התקן bug).
+        setState((prev) => ({
+          cached:  true,
+          enabled: action !== "disable",
+          version: prev?.version ?? null,
+        }));
+      } else {
+        reportStatus?.(r.error || "שגיאה לא ידועה", true);
+      }
+    } catch (err) {
+      reportStatus?.(`כשל בקריאה לשרת: ${String(err)}`, true);
+    } finally {
+      setBusy(false);
+      void refresh();                          // reconcile (version string etc.)
+    }
+  };
+
+  // Paused / archived → flat disabled "לא זמין", no state machine.
+  if (unavailable) {
+    return (
+      <button
+        disabled
+        onClick={(e) => e.stopPropagation()}
+        className="w-full py-2.5 rounded-xl text-sm font-bold transition
+                   bg-white/5 text-slate-400 border border-white/10 cursor-not-allowed"
+      >
+        לא זמין
+      </button>
+    );
   }
+
+  // In-flight → phase-aware progress bar.
+  if (busy) {
+    const phase = progress ? (PHASE_HE[progress.phase] ?? progress.phase) : "מתחיל";
+    const pct   = progress?.pct ?? 0;
+    return (
+      <div
+        className="w-full rounded-xl px-3 py-2"
+        style={{ background: `${accent}22`, border: `1px solid ${accent}55` }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between text-[11px] font-bold mb-1.5">
+          <span className="text-slate-300">{Math.round(pct)}%</span>
+          <span className="text-white">{phase}…</span>
+        </div>
+        <div className="h-1.5 rounded-full bg-black/30 overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all duration-200"
+            style={{ width: `${Math.max(4, pct)}%`, background: accent }}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Idle → state-machine button.
+  let label = "טוען…";
+  let action: "install" | "enable" | "disable" | null = null;
+  if (state) {
+    if (!state.cached)      { label = "התקן"; action = "install"; }
+    else if (state.enabled) { label = "השבת"; action = "disable"; }
+    else                    { label = "הפעל"; action = "enable";  }
+  }
+
+  return (
+    <button
+      onClick={(e) => { if (action) void run(action, e); }}
+      disabled={action === null}
+      className="w-full py-2.5 rounded-xl text-sm font-bold transition
+                 disabled:opacity-60 disabled:cursor-wait
+                 text-brand-ink hover:brightness-110"
+      style={{ background: accent }}
+    >
+      {label}
+    </button>
+  );
 }

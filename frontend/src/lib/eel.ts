@@ -221,9 +221,12 @@ export const api = {
   /** State of a game's downloadable mod — cached / installed / owned /
    *  price. Drives the GameDetailPanel CTA. modSlug="" → not distributed. */
   getGameModState:           (id: string) => call<GameModState>("get_game_mod_state", id),
-  /** Download (if needed) + install the mod. Progress streams over the
-   *  mod_install_progress channel (subscribe via onModProgress). */
-  downloadAndInstallGameMod: (id: string) => call<GameModResult>("download_and_install_game_mod", id),
+  /** Kick off download (if needed) + install on a background thread.
+   *  Returns at once; progress + a terminal done/error tick stream over
+   *  the mod_install_progress channel (subscribe via onModProgress). */
+  downloadAndInstallGameMod: (id: string) =>
+                                call<{ ok: boolean; error?: string; started?: boolean }>(
+                                  "download_and_install_game_mod", id),
   /** Toggle a cached mod: install/reinstall (true) or disable (false). */
   setGameModInstalled:       (id: string, installed: boolean) =>
                                 call<GameModResult>("set_game_mod_installed", id, installed),
@@ -242,8 +245,12 @@ export const api = {
    *  pulls /api/software with showOnLauncher filtering. */
   getAllSoftware:   ()                          => call<Software[]>("get_all_software"),
   /** Re-runs the local fingerprint sweep (registry + path checks)
-   *  for every software entry. Returns the refreshed catalog. */
+   *  for every software entry. Also clears any "forgotten" software
+   *  paths so they re-detect. Returns the refreshed catalog. */
   scanSoftware:     ()                          => call<{ software: Software[] }>("scan_software"),
+  /** "Forget" a software's detected install path — it reports as
+   *  not-installed until the next full scanSoftware(). */
+  clearSoftwarePath: (id: string)               => call<{ software: Software[] }>("clear_software_path", id),
 
   // ── Launcher window/lifecycle prefs ───────────────────────
   /** Snapshot of close-behavior + autostart state. Frontend reads it

@@ -69,8 +69,12 @@ CreateUninstallRegKey=yes
 UsePreviousAppDir=yes
 UsePreviousGroup=yes
 UsePreviousTasks=yes
-CloseApplications=yes
-RestartApplications=yes
+; CloseApplications is OFF on purpose: the launcher minimises to the
+; system tray on window-close, so the Restart Manager closes the WINDOW
+; but the process survives holding _internal\*.pyd open. We kill it
+; ourselves in [Code] (InitializeSetup + PrepareToInstall) instead.
+CloseApplications=no
+RestartApplications=no
 
 ; --- Misc ---
 ShowLanguageDialog=auto
@@ -168,17 +172,31 @@ procedure KillRunningLauncher;
 var
   ResultCode: Integer;
 begin
-  Exec(ExpandConstant('{sys}\taskkill.exe'),
-       '/F /T /IM {#AppExeName}',
+  // Two passes: the launcher minimises to the tray, and a single-instance
+  // relaunch can briefly respawn it — a second kill catches that race.
+  Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /T /IM {#AppExeName}',
        '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Sleep(500);
+  Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /T /IM {#AppExeName}',
+       '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+end;
+
+function InitializeSetup(): Boolean;
+begin
+  // Kill the running launcher BEFORE the wizard even appears, so it can
+  // never hold _internal\*.pyd handles open during the file copy. This
+  // is the primary fix for "installer finishes but the old app is still
+  // running" — CloseApplications=no means the Restart Manager won't.
+  KillRunningLauncher;
+  Result := True;
 end;
 
 function PrepareToInstall(var NeedsRestart: Boolean): String;
 begin
   Result := '';
+  // Kill again right before the copy — covers the user reopening the
+  // launcher while clicking through the wizard pages.
   KillRunningLauncher;
-  // Let Windows release the file handles the killed process tree held
-  // before Setup starts overwriting the install folder. 1.2s is
-  // comfortably enough for the OS to reap a handful of processes.
-  Sleep(1200);
+  // Give Windows a beat to release the handles the killed tree held.
+  Sleep(800);
 end;

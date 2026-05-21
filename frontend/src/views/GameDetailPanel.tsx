@@ -120,8 +120,30 @@ export default function GameDetailPanel({ game, onBack, onRefresh, reportStatus,
     catch { setGm(null); }
   }, [game.id]);
   useEffect(() => { void refreshGm(); }, [refreshGm]);
+
   // Stream download/verify/install progress from the Python worker.
-  useEffect(() => onModProgress(setGmProgress), []);
+  // The worker emits a terminal "done" / "error" tick when the
+  // background install thread finishes — that's what clears the bar
+  // and refreshes the mod state (the install no longer blocks an eel
+  // RPC, so the panel can't just await a result).
+  useEffect(() => {
+    return onModProgress((p) => {
+      if (p.phase === "done") {
+        setGmProgress(null);
+        setGmBusy(false);
+        void refreshGm();
+        void onRefresh();
+        reportStatus("התרגום הותקן והופעל");
+      } else if (p.phase === "error") {
+        setGmProgress(null);
+        setGmBusy(false);
+        void refreshGm();
+        reportStatus(`שגיאה: ${p.detail}`, true);
+      } else {
+        setGmProgress(p);
+      }
+    });
+  }, [refreshGm, onRefresh, reportStatus]);
 
   const ils = (cents: number) => `${Math.round(cents / 100)} ₪`;
 
@@ -130,14 +152,18 @@ export default function GameDetailPanel({ game, onBack, onRefresh, reportStatus,
     setGmProgress({ phase: "download", pct: 0, detail: "מתחיל בהורדה…" });
     try {
       const r = await api.downloadAndInstallGameMod(game.id);
-      setGm(r.state);
-      reportStatus(r.ok ? "התרגום הותקן והופעל" : `שגיאה: ${r.error}`, !r.ok);
-      await onRefresh();
+      // r resolves immediately — the install runs on a background
+      // thread. On a start failure (no path / not owned) clear here;
+      // otherwise progress + the terminal tick arrive via onModProgress.
+      if (!r.ok) {
+        setGmBusy(false);
+        setGmProgress(null);
+        reportStatus(`שגיאה: ${r.error}`, true);
+      }
     } catch (e) {
-      reportStatus(`שגיאה: ${String(e)}`, true);
-    } finally {
       setGmBusy(false);
       setGmProgress(null);
+      reportStatus(`שגיאה: ${String(e)}`, true);
     }
   };
 

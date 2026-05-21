@@ -5,8 +5,8 @@
 // string is fed in from APP_VERSION (locked at v1.1.0) so the small
 // label at the sidebar footer and the "על האפליקציה" block stay in
 // lockstep.
-import { useState } from "react";
-import type { Game, LauncherPrefs } from "../lib/types";
+import { useEffect, useState } from "react";
+import type { Game, LauncherPrefs, Software } from "../lib/types";
 import { api } from "../lib/eel";
 
 interface Props {
@@ -32,6 +32,17 @@ export default function SettingsView({
   // is cleared from its own detail panel (GameDetailPanel for game mods,
   // SoftwareDetailPanel for Steam), next to that mod's install path.
 
+  // Software detected on this PC — for the "תוכנות" path sub-category.
+  const [software, setSoftware] = useState<Software[] | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void api.getAllSoftware()
+      .then((sw) => { if (alive) setSoftware(sw); })
+      .catch(() => { if (alive) setSoftware([]); });
+    return () => { alive = false; };
+  }, []);
+  const softwareWithPath = (software ?? []).filter((sw) => sw.installPath);
+
   const handleOpen = async (p: string) => {
     const r = await api.openFolder(p);
     if (!r.ok) reportStatus(r.error ?? "שגיאה", true);
@@ -41,6 +52,16 @@ export default function SettingsView({
     await api.clearCustomPath(id);
     reportStatus("נתיב נמחק");
     await onRefresh();
+  };
+
+  const handleClearSoftware = async (id: string) => {
+    try {
+      const r = await api.clearSoftwarePath(id);
+      setSoftware(r.software);
+      reportStatus("נתיב התוכנה נמחק — בצע סריקה בטאב 'תוכנות' כדי לאתר מחדש");
+    } catch (e) {
+      reportStatus(`שגיאה: ${(e as Error).message}`, true);
+    }
   };
 
   // ── Lifecycle toggles ────────────────────────────────────
@@ -122,12 +143,16 @@ export default function SettingsView({
 
       <section className="glass rounded-2xl p-6">
         <h2 className="text-lg font-bold text-white mb-4 text-right">נתיבים מותאמים אישית</h2>
+
+        {/* ── משחקים ── */}
+        <h3 className="text-sm font-bold text-slate-200 mb-2 text-right
+                       border-b border-white/10 pb-1.5">משחקים</h3>
         {overridden.length === 0 ? (
-          <div className="text-slate-400 text-sm text-right">
-            אין נתיבים מותאמים. כשתגדיר נתיב ידני בכרטיס משחק הוא יופיע כאן.
+          <div className="text-slate-400 text-sm text-right mb-6 mt-2">
+            אין נתיבי משחקים מותאמים. כשתגדיר נתיב ידני בכרטיס משחק הוא יופיע כאן.
           </div>
         ) : (
-          <ul className="space-y-2">
+          <ul className="space-y-2 mb-6 mt-2">
             {overridden.map((g) => (
               <li
                 key={g.id}
@@ -153,6 +178,49 @@ export default function SettingsView({
                   <div dir="ltr" className="text-white font-semibold text-left">{g.titleEn}</div>
                   <div dir="ltr" className="text-slate-400 text-xs text-left mt-0.5 truncate">
                     {g.install_path}
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {/* ── תוכנות ── */}
+        <h3 className="text-sm font-bold text-slate-200 mb-2 text-right
+                       border-b border-white/10 pb-1.5">תוכנות</h3>
+        {software === null ? (
+          <div className="text-slate-500 text-sm text-right mt-2">טוען…</div>
+        ) : softwareWithPath.length === 0 ? (
+          <div className="text-slate-400 text-sm text-right mt-2">
+            אין תוכנות עם נתיב מזוהה. בצע סריקה בטאב "תוכנות".
+          </div>
+        ) : (
+          <ul className="space-y-2 mt-2">
+            {softwareWithPath.map((sw) => (
+              <li
+                key={sw.id}
+                className="flex items-center justify-between gap-3 bg-white/5 rounded-xl p-3"
+              >
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleClearSoftware(sw.id)}
+                    className="text-xs px-3 py-1.5 border border-rose-500/30 text-rose-200
+                               rounded-lg hover:bg-rose-500/10"
+                  >
+                    נקה
+                  </button>
+                  <button
+                    onClick={() => sw.installPath && handleOpen(sw.installPath)}
+                    className="text-xs px-3 py-1.5 bg-brand-yellow text-brand-ink rounded-lg
+                               font-bold hover:bg-yellow-300"
+                  >
+                    פתח
+                  </button>
+                </div>
+                <div className="flex-1 text-right">
+                  <div dir="ltr" className="text-white font-semibold text-left">{sw.titleEn}</div>
+                  <div dir="ltr" className="text-slate-400 text-xs text-left mt-0.5 truncate">
+                    {sw.installPath}
                   </div>
                 </div>
               </li>

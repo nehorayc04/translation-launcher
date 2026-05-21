@@ -129,9 +129,13 @@ export default function SoftwareDetailPanel({
   };
 
   const availLabel = AVAILABILITY_LABEL[s.availability] ?? s.availability;
-  const ctaLabel = handler
-    ? (busy ? "מתקין…" : "התקן")
-    : "פתח את הורדות";
+  // paused / archived → the install pipeline is on hold; CTA = "לא זמין".
+  const unavailable = s.availability === "paused" || s.availability === "archived";
+  const ctaLabel = unavailable
+    ? "לא זמין"
+    : handler
+      ? (busy ? "מתקין…" : "התקן")
+      : "פתח את הורדות";
 
   return (
     <div className="h-full overflow-y-auto px-8 py-6 animate-scale-in">
@@ -217,12 +221,14 @@ export default function SoftwareDetailPanel({
           {/* Big action buttons — ONLY internal CTAs; no external links. */}
           <div className="flex gap-3 flex-wrap justify-start mt-auto">
             <button
-              disabled={busy}
+              disabled={busy || unavailable}
               onClick={onInstall}
-              className="font-extrabold px-8 py-3 rounded-xl text-lg transition
-                         disabled:opacity-40 disabled:cursor-not-allowed
-                         text-brand-ink hover:brightness-110"
-              style={{
+              className={`font-extrabold px-8 py-3 rounded-xl text-lg transition
+                         disabled:cursor-not-allowed
+                         ${unavailable
+                           ? "bg-white/5 text-slate-400 border border-white/10 disabled:opacity-100"
+                           : "text-brand-ink hover:brightness-110 disabled:opacity-40"}`}
+              style={unavailable ? undefined : {
                 background: accent,
                 boxShadow:  `0 10px 30px -10px ${accent}aa`,
               }}

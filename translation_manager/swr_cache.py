@@ -188,15 +188,28 @@ def _seed_bundled(_bundled_files: dict[str, Path]) -> None:
 # Internal — background refresh
 # ─────────────────────────────────────────────────────────────────
 def _maybe_refresh_bg(key: _Key, fetcher: Callable[[], Any]) -> None:
-    """Spawn a daemon thread to refresh `key` unless one is already running.
+    """Refresh `key` in the background unless a refresh is already running.
     The in-flight lock prevents the thundering-herd problem when 12 game
-    cards all ask for the same progress key in the same React tick."""
+    cards all ask for the same progress key in the same React tick.
+
+    The refresh runs on a gevent GREENLET, not a real OS thread: on a
+    successful refresh `_bg_worker` calls `_push_cb` → eel.cache_refreshed
+    (...)(), and that eel bridge call is bound to the launcher's main
+    gevent hub. Invoking it from a separate OS thread fails silently — so
+    the live UI update never arrives and the data only appears to refresh
+    on the next component re-mount. A greenlet shares the hub; the
+    fetcher's `requests` call still cooperatively yields."""
     with _inflight_lock:
         if key in _inflight:
             return
         _inflight[key] = threading.Event()
 
-    threading.Thread(target=_bg_worker, args=(key, fetcher), daemon=True).start()
+    try:
+        import gevent
+        gevent.spawn(_bg_worker, key, fetcher)
+    except Exception:                                     # pragma: no cover
+        # No gevent (e.g. a non-launcher caller) — fall back to a thread.
+        threading.Thread(target=_bg_worker, args=(key, fetcher), daemon=True).start()
 
 
 def _bg_worker(key: _Key, fetcher: Callable[[], Any]) -> None:
@@ -259,8 +272,16 @@ def _persist_now() -> None:
         try:
             _STORE_DIR.mkdir(parents=True, exist_ok=True)
             tmp = _STORE_FILE.with_suffix(".json.tmp")
-            tmp.write_text(json.dumps(snapshot, ensure_ascii=False, indent=2),
-                           encoding="utf-8")
+            try:
+                payload = json.dumps(snapshot, ensure_ascii=False, indent=2)
+            except UnicodeEncodeError:
+                # A remote field contains lone UTF-16 surrogates (caused by an
+                # earlier mojibake admin save). ensure_ascii=False would emit
+                # those as raw bytes; flip to ascii-safe so we write valid
+                # JSON instead of crashing the SWR loop and breaking the Eel
+                # bridge (which black-screens the launcher).
+                payload = json.dumps(snapshot, ensure_ascii=True, indent=2)
+            tmp.write_text(payload, encoding="utf-8")
             os.replace(tmp, _STORE_FILE)
         except OSError as e:
             log.warning("[swr] disk write to %s failed: %s", _STORE_FILE, e)
@@ -284,4 +305,7 @@ def _build_snapshot() -> dict[str, Any]:
 # Helpers
 # ─────────────────────────────────────────────────────────────────
 def _stable_json(obj: Any) -> str:
-    return json.dumps(obj, sort_keys=True, ensure_ascii=False, default=str)
+    # ensure_ascii=True so a lone surrogate in any field (e.g. corrupted
+    # progress.unit from a mojibake admin save) doesn't raise UnicodeEncodeError
+    # and abort the change-detection diff inside the SWR poll loop.
+    return json.dumps(obj, sort_keys=True, ensure_ascii=True, default=str)

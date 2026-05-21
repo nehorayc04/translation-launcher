@@ -634,15 +634,13 @@ def _cp2077_restore_crash_reporter(game_root) -> None:
 def _run_game_mod_install(game_id: str) -> None:
     """Background worker: download (if needed) + install a game mod.
 
-    Runs on a real daemon thread — the same proven pattern as
-    downloads.py and start_launcher_update — so the mod_install_progress
-    ticks dispatch reliably while the work runs (a synchronous @eel.expose
-    function can't stream progress: the bridge only flushes when it
-    returns, which is the "bar stuck at 0%" bug). Emits a terminal
+    Runs as a gevent GREENLET on the launcher's main hub (see
+    download_and_install_game_mod for why a real thread is wrong here).
+    Streams mod_install_progress ticks as it works and emits a terminal
     'done' / 'error' tick the GameDetailPanel watches for."""
-    cfg  = _config_for(game_id)
-    base = _install_path(game_id)
     try:
+        cfg  = _config_for(game_id)
+        base = _install_path(game_id)
         if not _game_mod.is_cached(game_id):
             r = _game_mod.download_and_cache(game_id, cfg.mod_slug, _mod_progress_cb)
             if not r.get("ok"):
@@ -665,10 +663,9 @@ def _run_game_mod_install(game_id: str) -> None:
 
 @eel.expose
 def download_and_install_game_mod(game_id: str) -> dict:
-    """Kick off download+install on a daemon thread and return at once.
-    Progress + a terminal done/error tick stream over the
-    mod_install_progress channel; the GameDetailPanel drives its bar
-    from onModProgress."""
+    """Kick off download+install and return at once. Progress + a
+    terminal done/error tick stream over the mod_install_progress
+    channel; the GameDetailPanel drives its bar from onModProgress."""
     cfg  = _config_for(game_id)
     base = _install_path(game_id)
     if cfg is None or not cfg.mod_slug:
@@ -679,11 +676,15 @@ def download_and_install_game_mod(game_id: str) -> dict:
     if _game_price_cents(game_id) > 0 and not auth_owns_game(game_id):
         return {"ok": False, "error": "המשחק טרם נרכש"}
 
-    import threading
-    threading.Thread(
-        target=_run_game_mod_install, args=(game_id,), daemon=True,
-        name=f"game-mod-install-{game_id}",
-    ).start()
+    # gevent GREENLET, NOT a real thread: eel's progress callback
+    # (eel.mod_install_progress(...)()) is bound to the launcher's main
+    # gevent hub — invoking it from a separate OS thread throws every
+    # time, so nothing reaches the UI (the install still finishes, but
+    # the bar sits at 0% and only a panel re-mount shows the result).
+    # A greenlet shares the hub: requests cooperatively yields and every
+    # progress tick — and the terminal 'done' — streams live.
+    import gevent
+    gevent.spawn(_run_game_mod_install, game_id)
     return {"ok": True, "started": True}
 
 

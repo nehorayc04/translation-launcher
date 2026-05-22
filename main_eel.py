@@ -93,6 +93,18 @@ _CP2077_ID = "cyberpunk"
 # (get_launcher_update_info) compares this against the release feed.
 LAUNCHER_VERSION = "1.1.0"
 
+# Per-build identity, baked by build_exe.bat into translation_manager/
+# _build_info.py (a fresh UTC timestamp every build). The version string
+# stays "1.1.0" forever — re-released in place — so the self-updater can't
+# tell two builds apart by version alone. BUILD_ID lets it: when the
+# release feed carries a different build-id than this one, an update is
+# offered even though the version is unchanged. Dev runs (no build step)
+# have no _build_info.py → "dev", and the build-id check is skipped.
+try:
+    from translation_manager._build_info import BUILD_ID  # type: ignore[attr-defined]
+except Exception:                                          # noqa: BLE001
+    BUILD_ID = "dev"
+
 # Optional auth subsystem — if Supabase isn't configured (e.g. local
 # dev without env vars), the bridge stays installed but every call
 # returns a "not configured" error rather than crashing the launcher.
@@ -1095,7 +1107,12 @@ def _version_is_newer(latest: str, current: str) -> bool:
 def get_launcher_update_info() -> dict:
     """Check the release feed. Returns current-vs-latest version and
     whether an update is available. Network failures come back as a
-    soft `error` string — the panel degrades gracefully, never throws."""
+    soft `error` string — the panel degrades gracefully, never throws.
+
+    Update detection is version-OR-build: a higher version, OR the SAME
+    version carrying a different build-id than this build. The launcher
+    re-releases in place as v1.1.0, so without the build-id arm the
+    self-updater would never fire on a re-released build."""
     info: dict = {
         "currentVersion":  LAUNCHER_VERSION,
         "latestVersion":   LAUNCHER_VERSION,
@@ -1105,6 +1122,8 @@ def get_launcher_update_info() -> dict:
         "sizeMb":          0.0,
         "notes":           "",
         "sha256":          None,
+        "currentBuildId":  BUILD_ID,
+        "latestBuildId":   None,
         "error":           None,
     }
     try:
@@ -1120,10 +1139,19 @@ def get_launcher_update_info() -> dict:
         info["sizeMb"]        = float(data.get("sizeMb") or 0.0)
         info["notes"]         = data.get("notes") or ""
         info["sha256"]        = data.get("sha256") or None
+        server_build          = str(data.get("buildId") or "").strip()
+        info["latestBuildId"] = server_build or None
+        # Same version but a different build-id is still an update. Skipped
+        # for a dev run (BUILD_ID == "dev") or when the feed has no build-id.
+        build_differs = bool(
+            server_build
+            and BUILD_ID != "dev"
+            and server_build != BUILD_ID
+        )
         info["updateAvailable"] = bool(
             latest
             and data.get("downloadUrl")
-            and _version_is_newer(latest, LAUNCHER_VERSION)
+            and (_version_is_newer(latest, LAUNCHER_VERSION) or build_differs)
         )
     except Exception as e:                               # pragma: no cover — network
         info["error"] = str(e)

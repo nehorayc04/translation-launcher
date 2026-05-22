@@ -131,7 +131,13 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: 
 ; checked state and no `skipifsilent`, Inno runs this entry on silent
 ; installs too. Interactive installs still show it as the usual
 ; "Launch now" checkbox on the Finished page.
-Filename: "{app}\{#AppExeName}"; Description: "הפעל את {#AppNameHe} עכשיו"; Flags: nowait postinstall
+; runasoriginaluser: the installer runs elevated (admin), but the launcher
+; must NOT — running it as admin breaks drag-drop from Explorer and shifts
+; the single-instance mutex namespace. This flag relaunches it with the
+; normal (non-elevated) credentials of the user who started Setup, which is
+; also correct for the in-app self-update path (the launcher spawns the
+; installer non-elevated, it elevates via UAC, then relaunches as the user).
+Filename: "{app}\{#AppExeName}"; Description: "הפעל את {#AppNameHe} עכשיו"; Flags: nowait postinstall runasoriginaluser
 
 [UninstallDelete]
 ; Clean any caches the launcher writes inside its own folder
@@ -168,17 +174,50 @@ english.LaunchAfterInstall=Launch %1 after installation
 ;  is parsed as Pascal.
 ; ============================================================================
 [Code]
+// Best-effort: kill every running launcher process, then wait until the
+// install folder is actually writable. A single taskkill + a fixed Sleep
+// is a guess — taskkill returns before the process tree fully dies, and an
+// antivirus scan of the just-freed _internal\*.pyd / *.dll can re-lock them
+// for a moment. That race is exactly the "file in use" copy failure.
 procedure KillRunningLauncher;
 var
-  ResultCode: Integer;
+  rc, i: Integer;
+  exePath, probePath: String;
 begin
-  // Two passes: the launcher minimises to the tray, and a single-instance
-  // relaunch can briefly respawn it — a second kill catches that race.
-  Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /T /IM {#AppExeName}',
-       '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-  Sleep(500);
-  Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /T /IM {#AppExeName}',
-       '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  // Poll-kill: keep killing until taskkill reports nothing left (exit code
+  // <> 0). Also catches a tray / single-instance respawn between passes.
+  // Bounded so a stuck system can't hang the installer forever.
+  for i := 1 to 25 do
+  begin
+    rc := -1;
+    Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /T /IM {#AppExeName}',
+         '', SW_HIDE, ewWaitUntilTerminated, rc);
+    if rc <> 0 then
+      Break;            // taskkill found no process → launcher is gone
+    Sleep(250);
+  end;
+
+  // Settle: let Windows + antivirus release the handles the killed tree held.
+  Sleep(1500);
+
+  // File-lock probe: renaming the main exe to a temp name and back succeeds
+  // ONLY when nothing holds it open — loop until it does (or give up after a
+  // bounded number of tries and let the copy attempt proceed regardless).
+  exePath   := ExpandConstant('{app}\{#AppExeName}');
+  probePath := exePath + '.killprobe';
+  if FileExists(exePath) then
+  begin
+    DeleteFile(probePath);   // clear any leftover probe from a prior run
+    for i := 1 to 20 do
+    begin
+      if RenameFile(exePath, probePath) then
+      begin
+        RenameFile(probePath, exePath);   // unlocked → put it back, done
+        Break;
+      end;
+      Sleep(300);
+    end;
+  end;
 end;
 
 function InitializeSetup(): Boolean;
@@ -195,8 +234,7 @@ function PrepareToInstall(var NeedsRestart: Boolean): String;
 begin
   Result := '';
   // Kill again right before the copy — covers the user reopening the
-  // launcher while clicking through the wizard pages.
+  // launcher while clicking through the wizard pages. KillRunningLauncher
+  // already settles + lock-probes, so no extra Sleep here.
   KillRunningLauncher;
-  // Give Windows a beat to release the handles the killed tree held.
-  Sleep(800);
 end;

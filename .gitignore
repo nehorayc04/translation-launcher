@@ -26,6 +26,7 @@ frontend/*.tsbuildinfo
 .env.*
 *.env
 translation_manager/auth/_baked.py
+translation_manager/_build_info.py
 ~/.translation_manager/
 cache.json
 *.log

@@ -147,6 +147,17 @@ function SelfUpdatePanel() {
                 </span>
               </>
             )}
+            {/* Same version, different build — the in-app updater detected a
+                re-released build via its build-id. No version delta to show,
+                so spell out that an update is still waiting. */}
+            {info?.updateAvailable && info.latestVersion === info.currentVersion && (
+              <>
+                {"  ·  "}
+                <span className="font-bold" style={{ color: accent }}>
+                  עדכון זמין — build חדש
+                </span>
+              </>
+            )}
           </p>
         </div>
 

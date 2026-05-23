@@ -114,12 +114,77 @@ export default function GameDetailPanel({ game, onBack, onRefresh, reportStatus,
   const [gmBusy, setGmBusy]           = useState(false);
   const [gmProgress, setGmProgress]   = useState<ModProgress | null>(null);
   const [purchasePending, setPurchasePending] = useState(false);
+  /** Burst-poll window after a known purchase trigger. While > 0 we
+   *  re-fetch ownership every ~3s so the BUY → INSTALL CTA flips within
+   *  seconds of a successful payment — without waiting for the 60s
+   *  catalog poller or a manual view-change. */
+  const [pollUntil, setPollUntil]     = useState<number>(0);
 
   const refreshGm = useCallback(async () => {
     try { setGm(await api.getGameModState(game.id)); }
     catch { setGm(null); }
   }, [game.id]);
   useEffect(() => { void refreshGm(); }, [refreshGm]);
+
+  // Burst poller — runs only when pollUntil > now. Stops as soon as
+  // ownership flips true OR the window closes. Window is short (~90s)
+  // and the interval is generous (3s) so we don't hammer the DB.
+  useEffect(() => {
+    if (pollUntil <= Date.now()) return;
+    let cancelled = false;
+    const tick = async () => {
+      if (cancelled) return;
+      try {
+        const s = await api.getGameModState(game.id);
+        if (cancelled) return;
+        setGm(s);
+        if (s.owned) {
+          // Defensive double-check: confirm the purchase row is actually
+          // in the user's purchases list. If not, the launcher caught a
+          // stale / sandbox / cross-account positive — warn instead of
+          // silently flipping the CTA to "install".
+          try {
+            const p = await api.authGetMyPurchases();
+            const found = p.rows.some((r) => r.game_id === game.id);
+            if (!found) {
+              reportStatus("הרכישה זוהתה בשרת אך לא ברשימה האישית — נסה שוב בעוד דקה.", true);
+            } else {
+              reportStatus("✓ הרכישה אומתה — אפשר להתקין");
+            }
+          } catch { /* swallow — UI already shows owned */ }
+          setPollUntil(0);
+          setPurchasePending(false);
+        }
+      } catch {
+        /* keep polling */
+      }
+    };
+    const id = window.setInterval(tick, 3000);
+    void tick();   // run one immediate so the first refresh isn't delayed by 3s
+    return () => { cancelled = true; window.clearInterval(id); };
+  }, [pollUntil, game.id, reportStatus]);
+
+  // Stop the burst once the window expires.
+  useEffect(() => {
+    if (pollUntil <= 0) return;
+    const remaining = pollUntil - Date.now();
+    if (remaining <= 0) { setPollUntil(0); return; }
+    const t = window.setTimeout(() => {
+      setPollUntil(0);
+      if (gm && !gm.owned) {
+        reportStatus("לא נמצאה רכישה. אם השלמת את התשלום, נסה שוב בעוד דקה.", true);
+      }
+    }, remaining);
+    return () => window.clearTimeout(t);
+  }, [pollUntil, gm, reportStatus]);
+
+  /** Kick the burst poller so the next 90s of refresh ticks happen
+   *  automatically without the user clicking "already paid - refresh"
+   *  repeatedly. Also used right after `openPurchasePage()` to catch a
+   *  PayPal success the moment it lands. */
+  const startPurchaseBurst = useCallback(() => {
+    setPollUntil(Date.now() + 90_000);
+  }, []);
 
   // Stream download/verify/install progress from the Python worker.
   // The worker emits a terminal "done" / "error" tick when the
@@ -202,7 +267,13 @@ export default function GameDetailPanel({ game, onBack, onRefresh, reportStatus,
   const handlePurchase = async () => {
     await api.openPurchasePage(game.id);
     setPurchasePending(true);
-    reportStatus("נפתח דף הרכישה בדפדפן — לאחר התשלום לחץ 'כבר שילמתי — רענן'");
+    // Start a 90s burst-poll so the BUY → INSTALL CTA flips within
+    // seconds of a successful PayPal capture, without waiting for the
+    // 60s catalog poller or forcing the user to click "כבר שילמתי".
+    startPurchaseBurst();
+    reportStatus(
+      "נפתח דף הרכישה בדפדפן — לאחר השלמת התשלום הסטטוס יתעדכן אוטומטית כאן",
+    );
   };
 
   return (
@@ -372,11 +443,12 @@ export default function GameDetailPanel({ game, onBack, onRefresh, reportStatus,
                 {gm.priceCents > 0 && !gm.owned && purchasePending && (
                   <button
                     disabled={gmBusy}
-                    onClick={refreshGm}
+                    onClick={() => { startPurchaseBurst(); void refreshGm(); }}
                     className="bg-white/5 hover:bg-white/10 text-slate-200 font-bold
                                px-6 py-3 rounded-xl border border-white/10 transition"
+                    title={pollUntil > Date.now() ? "מחפש רכישה ברקע…" : undefined}
                   >
-                    כבר שילמתי — רענן
+                    {pollUntil > Date.now() ? "בודק…" : "כבר שילמתי — רענן"}
                   </button>
                 )}
                 {gm.owned && !gm.installed && (

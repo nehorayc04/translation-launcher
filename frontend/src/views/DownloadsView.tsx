@@ -92,11 +92,38 @@ function SelfUpdatePanel() {
   useEffect(() => { check(); }, [check]);
 
   // Progress stream from Python's launcher_update_progress pushes.
+  // The "launch" phase means the installer was spawned and is now
+  // waiting for the UAC prompt — on the happy path the installer
+  // taskkills this process within a few seconds. If we're still alive
+  // ~30 s later it means UAC was dismissed (or the installer aborted
+  // before reaching PrepareToInstall), so we surface a meaningful
+  // error instead of leaving the bar stuck on "מתקין…" forever.
   useEffect(() => {
-    return onLauncherUpdateProgress((p) => {
+    let launchTimer: number | null = null;
+    const unsubscribe = onLauncherUpdateProgress((p) => {
       setProgress(p);
-      if (p.phase === "error") setUpdating(false);
+      if (p.phase === "error") {
+        setUpdating(false);
+        if (launchTimer !== null) {
+          window.clearTimeout(launchTimer);
+          launchTimer = null;
+        }
+      } else if (p.phase === "launch") {
+        if (launchTimer !== null) window.clearTimeout(launchTimer);
+        launchTimer = window.setTimeout(() => {
+          setProgress({
+            phase: "error",
+            pct:   0,
+            detail: "ההתקנה לא התחילה — ייתכן שחלון ההרשאות (UAC) נדחה. נסה שוב.",
+          });
+          setUpdating(false);
+        }, 30_000);
+      }
     });
+    return () => {
+      unsubscribe();
+      if (launchTimer !== null) window.clearTimeout(launchTimer);
+    };
   }, []);
 
   const startUpdate = async () => {

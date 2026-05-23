@@ -546,14 +546,21 @@ def _authed_token() -> Optional[tuple]:
     return (cfg, tok.access_token)
 
 
-def get_purchases() -> list[dict]:
+def get_purchases() -> dict:
     """All 'completed' user_purchases rows for the current user, with
-    the joined game catalog row inlined via PostgREST's resource-
-    embedding syntax (`games(*)`). Fail-closed: returns [] on any
-    error so the UI can render an empty state without crashing."""
+    the joined game catalog row inlined via PostgREST resource embedding.
+
+    Returns a discriminated dict so the launcher's personal area can
+    distinguish "empty list" from "signed out" from "network error" —
+    fail-closed used to mask everything as `[]`, which makes the empty
+    state ambiguous (no purchases? wrong account? token expired?).
+
+    Shape: {"rows": list[dict], "reason": str, "detail": str|None}
+    reason ∈ {"signed-out", "ok", "error"}.
+    """
     a = _authed_token()
     if a is None:
-        return []
+        return {"rows": [], "reason": "signed-out", "detail": None}
     cfg, access = a
     url = cfg.rest_url + '/user_purchases'
     try:
@@ -573,15 +580,17 @@ def get_purchases() -> list[dict]:
         )
     except requests.RequestException as e:
         log.warning('get_purchases network error: %s', e)
-        return []
+        return {"rows": [], "reason": "error", "detail": f"network: {e}"}
     if not r.ok:
         log.warning('get_purchases HTTP %d: %s', r.status_code, r.text[:200])
-        return []
+        return {"rows": [], "reason": "error",
+                "detail": f"HTTP {r.status_code}: {r.text[:160]}"}
     try:
         rows = r.json()
-    except ValueError:
-        return []
-    return rows if isinstance(rows, list) else []
+    except ValueError as e:
+        return {"rows": [], "reason": "error", "detail": f"bad-json: {e}"}
+    return {"rows": rows if isinstance(rows, list) else [], "reason": "ok",
+            "detail": None}
 
 
 def get_votes() -> list[str]:

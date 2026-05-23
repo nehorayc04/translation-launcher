@@ -776,10 +776,12 @@ def clear_game_mod_cache(game_id: str) -> dict:
 
 @eel.expose
 def open_purchase_page(game_id: str) -> dict:
-    """Open the website catalog in the browser so the user can buy a paid
-    game mod. After payment the launcher re-checks ownership."""
+    """Open the website ON THE SPECIFIC GAME so the user lands one click away
+    from the PayPal popup. The website's GamesPage reads ?game=<id> and
+    auto-opens that game's modal. After payment the launcher re-checks
+    ownership via the post-purchase burst poll in GameDetailPanel."""
     import webbrowser
-    url = "https://hebrew-translation-hub.vercel.app/games"
+    url = f"https://hebrew-translation-hub.vercel.app/games?game={game_id}&buy=1"
     try:
         webbrowser.open(url)
         return {"ok": True, "url": url}
@@ -1264,7 +1266,18 @@ def _run_launcher_update() -> None:
     # If the install proceeds, PrepareToInstall kills us during this
     # wait and we never return. If we DO return, the user declined the
     # UAC prompt (or the installer aborted) — surface it, stay alive.
-    code = proc.wait()
+    #
+    # Cooperative poll instead of proc.wait() so the gevent hub keeps
+    # serving the websocket + the catalog poller while the installer
+    # works — otherwise the UI freezes for the full install duration on
+    # the rare path where we DON'T get killed mid-wait.
+    import gevent
+    code: int | None = None
+    while True:
+        code = proc.poll()
+        if code is not None:
+            break
+        gevent.sleep(0.3)
     _emit_update_progress(
         "error", 0,
         f"ההתקנה לא הושלמה — ייתכן שבוטלה בחלון ההרשאות (קוד {code}).",
@@ -1273,12 +1286,15 @@ def _run_launcher_update() -> None:
 
 @eel.expose
 def start_launcher_update() -> dict:
-    """Kick the self-update on a daemon thread so the eel RPC returns
-    at once; progress streams back via launcher_update_progress."""
-    import threading
-    threading.Thread(
-        target=_run_launcher_update, daemon=True, name="launcher-self-update",
-    ).start()
+    """Kick the self-update on a gevent GREENLET so the eel RPC returns at
+    once AND progress pushes work — eel.launcher_update_progress(...)()
+    is bound to the main gevent hub; firing it from a separate OS thread
+    silently drops every tick (that's the exact bug that left the
+    download progress bar frozen at 0% for the entire transfer).
+    `requests` is monkey-patched (socket/ssl/select) so its blocking
+    .read()s cooperatively yield, and the greenlet doesn't pin the hub."""
+    import gevent
+    gevent.spawn(_run_launcher_update)
     return {"ok": True}
 
 
@@ -1426,17 +1442,26 @@ def auth_owns_game(game_id: str) -> bool:
 
 
 @eel.expose
-def auth_get_my_purchases() -> list[dict]:
-    """All 'completed' purchases for the signed-in user, with the
-    joined game row embedded. Powers the launcher's Personal Area.
-    Returns [] when signed out or on any error (fail-closed)."""
+def auth_get_my_purchases() -> dict:
+    """All 'completed' purchases for the signed-in user, with the joined
+    game row embedded. Powers the launcher's Personal Area.
+
+    Returns {"rows": list, "reason": str, "detail": str|None}. The
+    reason lets the UI render a meaningful empty state instead of the
+    old fail-closed `[]` that conflated "no purchases", "signed out",
+    "expired token" and "network error" into the same screen."""
+    import logging
+    log = logging.getLogger("launcher")
     if not _auth_available or _auth is None:
-        return []
+        return {"rows": [], "reason": "signed-out", "detail": "auth-unavailable"}
     try:
-        return _auth.get_purchases()
+        out = _auth.get_purchases()
+        log.info("auth_get_my_purchases: reason=%s rows=%d",
+                 out.get("reason"), len(out.get("rows") or []))
+        return out
     except Exception as e:                              # pragma: no cover
-        print(f"[auth_get_my_purchases] failed: {e}", flush=True)
-        return []
+        log.exception("auth_get_my_purchases failed")
+        return {"rows": [], "reason": "error", "detail": str(e)}
 
 
 @eel.expose

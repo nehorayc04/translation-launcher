@@ -9,7 +9,7 @@
 // cache) so an admin who just edits their profile in the browser sees
 // the change here within ~1s.
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { api, type MyPurchase } from "../lib/eel";
+import { api, type MyPurchase, type MyPurchasesResult } from "../lib/eel";
 import { useLauncherAuth } from "../lib/useLauncherAuth";
 import { resolveCoverUrl } from "../lib/coverUrl";
 
@@ -30,13 +30,17 @@ export default function PersonalAreaView({
 }: Props) {
   const { user, signedIn, loading: authLoading, signOut, refresh: refreshAuth } = useLauncherAuth();
 
-  const [purchases, setPurchases] = useState<MyPurchase[] | null>(null);
-  const [votes,     setVotes]     = useState<string[] | null>(null);
-  const [pulling,   setPulling]   = useState(false);
+  const [purchases,       setPurchases]       = useState<MyPurchase[] | null>(null);
+  const [purchasesReason, setPurchasesReason] = useState<MyPurchasesResult["reason"]>("ok");
+  const [purchasesDetail, setPurchasesDetail] = useState<string | null>(null);
+  const [votes,           setVotes]           = useState<string[] | null>(null);
+  const [pulling,         setPulling]         = useState(false);
 
   const pull = useCallback(async () => {
     if (!signedIn) {
       setPurchases([]);
+      setPurchasesReason("signed-out");
+      setPurchasesDetail(null);
       setVotes([]);
       return;
     }
@@ -46,11 +50,19 @@ export default function PersonalAreaView({
       // in the browser propagates immediately. Failures here are
       // non-fatal — the purchases/votes calls handle auth themselves.
       await refreshAuth();
-      const [p, v] = await Promise.all([
-        api.authGetMyPurchases().catch(() => []),
+      // authGetMyPurchases returns a discriminated result so we can
+      // tell "0 purchases" (reason=ok) apart from a token / network
+      // failure (reason=error). The old `.catch(() => [])` swallow
+      // hid every cause under the same empty UI.
+      const [pRes, v] = await Promise.all([
+        api.authGetMyPurchases().catch<MyPurchasesResult>((e) => ({
+          rows: [], reason: "error", detail: String(e),
+        })),
         api.authGetMyVotes().catch(() => []),
       ]);
-      setPurchases(p);
+      setPurchases(pRes.rows);
+      setPurchasesReason(pRes.reason);
+      setPurchasesDetail(pRes.detail);
       setVotes(v);
     } finally {
       setPulling(false);
@@ -106,7 +118,12 @@ export default function PersonalAreaView({
           onRefresh={pull}
         />
 
-        <PurchasesSection rows={purchases} />
+        <PurchasesSection
+          rows={purchases}
+          reason={purchasesReason}
+          detail={purchasesDetail}
+          onRetry={pull}
+        />
 
         <VotesSection ids={votes} />
       </div>
@@ -226,7 +243,14 @@ function Stat({ label, value }: { label: string; value: number }) {
 }
 
 // ── purchases ────────────────────────────────────────────────────
-function PurchasesSection({ rows }: { rows: MyPurchase[] | null }) {
+function PurchasesSection({
+  rows, reason, detail, onRetry,
+}: {
+  rows:    MyPurchase[] | null;
+  reason:  MyPurchasesResult["reason"];
+  detail:  string | null;
+  onRetry: () => void;
+}) {
   if (rows === null) return <SectionSkeleton title="המשחקים שלי" />;
 
   return (
@@ -236,7 +260,23 @@ function PurchasesSection({ rows }: { rows: MyPurchase[] | null }) {
         <span className="text-xs text-slate-500">{rows.length} פריטים</span>
       </div>
 
-      {rows.length === 0 ? (
+      {reason === "error" ? (
+        <div className="rounded-2xl border border-rose-500/30 bg-rose-500/[0.05] p-8 text-center">
+          <div className="text-3xl mb-2">⚠️</div>
+          <p className="text-slate-200 text-sm">לא ניתן לטעון את הרכישות שלך כרגע.</p>
+          {detail && (
+            <p className="text-slate-500 text-[11px] mt-1 font-mono" dir="ltr">{detail}</p>
+          )}
+          <button
+            type="button"
+            onClick={onRetry}
+            className="mt-3 px-4 py-1.5 rounded-lg text-xs font-semibold transition
+                       bg-rose-500/15 text-rose-200 hover:bg-rose-500/25"
+          >
+            נסה שוב
+          </button>
+        </div>
+      ) : rows.length === 0 ? (
         <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-8 text-center">
           <div className="text-3xl mb-2">📦</div>
           <p className="text-slate-300 text-sm">עדיין לא רכשת תרגומים.</p>

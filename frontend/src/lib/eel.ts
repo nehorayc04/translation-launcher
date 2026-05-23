@@ -103,6 +103,14 @@ export interface MyPurchase {
   } | null;
 }
 
+/** Discriminated result the Personal Area uses to distinguish a
+ *  genuinely-empty list from a signed-out / network-error state. */
+export interface MyPurchasesResult {
+  rows:   MyPurchase[];
+  reason: "ok" | "signed-out" | "error";
+  detail: string | null;
+}
+
 /** Local state of the Steam Hebrew mod — returned by get_steam_mod_state. */
 export interface SteamModState {
   cached:  boolean;            // archive cached locally → no re-download needed
@@ -271,9 +279,10 @@ export const api = {
   authLogout:       ()                          => call<{ok: boolean; error?: string}>("auth_logout"),
   authOwnsGame:     (gameId: string)            => call<boolean>("auth_owns_game", gameId),
   /** All 'completed' purchases for the current user with the joined
-   *  game catalog row inlined (Supabase resource embedding). Returns
-   *  [] when signed out. */
-  authGetMyPurchases: ()                        => call<MyPurchase[]>("auth_get_my_purchases"),
+   *  game catalog row inlined (Supabase resource embedding). Returns a
+   *  discriminated result so the personal area can tell "0 purchases"
+   *  apart from "signed out" / "expired token" / "network error". */
+  authGetMyPurchases: ()                        => call<MyPurchasesResult>("auth_get_my_purchases"),
   /** Game-ids the current user has voted for. Returns [] when signed
    *  out. */
   authGetMyVotes:     ()                        => call<string[]>("auth_get_my_votes"),

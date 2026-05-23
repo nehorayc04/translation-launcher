@@ -15,7 +15,7 @@ import PersonalAreaView  from "./views/PersonalAreaView";
 import GameDetailPanel   from "./views/GameDetailPanel";
 import SoftwareDetailPanel from "./views/SoftwareDetailPanel";
 import CloseBehaviorModal from "./components/CloseBehaviorModal";
-import { api }           from "./lib/eel";
+import { api, onModProgress } from "./lib/eel";
 import type { Game, Software, LauncherPrefs } from "./lib/types";
 import { SiteConfigProvider } from "./lib/useSiteConfig";
 import { LauncherAuthProvider } from "./lib/useLauncherAuth";
@@ -124,6 +124,22 @@ export default function App() {
     tryBoot();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // ── Global mod-install terminal hook ─────────────────────────
+  // GameDetailPanel subscribes to onModProgress for the live progress
+  // bar, but if the user navigates AWAY mid-install the panel unmounts
+  // and the "done" / "error" tick has no listener — the next time they
+  // open the panel it shows stale state until something else refreshes
+  // the games list. A second subscription here, never unmounted, calls
+  // refresh() on terminal events so the panel-less side-effect lives
+  // regardless of which view is on screen.
+  useEffect(() => {
+    return onModProgress((p) => {
+      if (p.phase === "done" || p.phase === "error") {
+        void refresh();
+      }
+    });
+  }, [refresh]);
 
   // ── SWR push subscription ────────────────────────────────────
   // Python's background refresh (swr_cache.py) fires cache_refreshed("games", …)

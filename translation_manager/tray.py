@@ -21,15 +21,80 @@ Why subprocess-relaunch instead of un-hiding a hidden window?
 
 from __future__ import annotations
 
+import ctypes
 import logging
 import os
 import subprocess
 import sys
 import threading
+import time
+from ctypes import wintypes
 from pathlib import Path
 from typing import Callable, Optional
 
 log = logging.getLogger(__name__)
+
+
+# ── Toolhelp32 child-process termination ─────────────────────
+# On Windows, child processes do NOT die when their parent exits —
+# so the Chrome `--app` subprocess Eel spawned for the launcher
+# window stays alive (showing a 'site can't be reached' page) after
+# the Python process is gone via os._exit. We use the toolhelp32
+# snapshot API + TerminateProcess to take down direct children
+# explicitly before we exit; that lets the tray menus actually
+# close the visible launcher window.
+class _ProcessEntry32W(ctypes.Structure):
+    _fields_ = [
+        ('dwSize',              wintypes.DWORD),
+        ('cntUsage',            wintypes.DWORD),
+        ('th32ProcessID',       wintypes.DWORD),
+        ('th32DefaultHeapID',   ctypes.c_void_p),
+        ('th32ModuleID',        wintypes.DWORD),
+        ('cntThreads',          wintypes.DWORD),
+        ('th32ParentProcessID', wintypes.DWORD),
+        ('pcPriClassBase',      ctypes.c_long),
+        ('dwFlags',             wintypes.DWORD),
+        ('szExeFile',           wintypes.WCHAR * 260),
+    ]
+
+
+def _kill_my_child_processes() -> None:
+    """Forcefully terminate every direct child of this process.
+
+    Best-effort: silently no-ops on non-Windows / on API failure.
+    Used by the tray's 'Open' (so the relaunch doesn't end up with
+    two Chromium windows) and 'Close permanently' (so the launcher's
+    Chromium window actually closes when the user picks 'close').
+    """
+    if sys.platform != "win32":
+        return
+    try:
+        k = ctypes.windll.kernel32
+        TH32CS_SNAPPROCESS = 0x00000002
+        PROCESS_TERMINATE  = 0x0001
+        INVALID            = ctypes.c_void_p(-1).value
+        snap = k.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)
+        if not snap or snap == INVALID:
+            return
+        try:
+            my_pid = os.getpid()
+            entry = _ProcessEntry32W()
+            entry.dwSize = ctypes.sizeof(_ProcessEntry32W)
+            if not k.Process32FirstW(snap, ctypes.byref(entry)):
+                return
+            while True:
+                if entry.th32ParentProcessID == my_pid:
+                    h = k.OpenProcess(PROCESS_TERMINATE, False,
+                                      entry.th32ProcessID)
+                    if h:
+                        k.TerminateProcess(h, 0)
+                        k.CloseHandle(h)
+                if not k.Process32NextW(snap, ctypes.byref(entry)):
+                    break
+        finally:
+            k.CloseHandle(snap)
+    except Exception:                              # pragma: no cover
+        pass
 
 _icon: Optional[object] = None        # pystray.Icon — typed loosely so the
                                       # module imports cleanly when pystray
@@ -98,23 +163,45 @@ def _relaunch_self(restored: bool = True) -> None:
 
 
 def _menu_open(icon, _item) -> None:
-    """Fired by tray menu → 'פתח את התוכנה' (also bound to default-click)."""
+    """Fired by tray menu → 'פתח את התוכנה' (also bound to default-click).
+
+    Order matters for a smooth UX:
+      1. Kill any old Chrome --app child so we don't end up with two
+         launcher windows after the relaunch.
+      2. Spawn the new launcher subprocess FIRST so its tray icon
+         appears as quickly as possible — minimises the visual gap.
+      3. Sleep briefly so the new tray icon has time to show before we
+         take ours away. Without this the user sees their tray icon
+         vanish and only re-appear 1-2 s later (the "the icon
+         disappears and the app reloads" complaint).
+    """
     if _on_show_request is not None:
         try: _on_show_request()
         except Exception as e: log.warning("tray show callback failed — %s", e)
-    icon.stop()
+    _kill_my_child_processes()
     _relaunch_self()
-    # Exit AFTER the new process is spawned so there's never a moment
-    # with zero launcher processes (would briefly drop the tray icon).
+    try:
+        time.sleep(1.2)        # overlap with the new tray to mask the gap
+    except Exception:
+        pass
+    try: icon.stop()
+    except Exception: pass
     os._exit(0)
 
 
 def _menu_quit(icon, _item) -> None:
-    """Fired by tray menu → 'סגור לצמיתות'."""
+    """Fired by tray menu → 'סגור לצמיתות'.
+
+    Close the Chrome `--app` child FIRST — on Windows it does NOT die
+    with the parent, so without this the user picks "close permanently"
+    and the launcher window stays on screen (showing a dead Eel page).
+    """
     if _on_quit_request is not None:
         try: _on_quit_request()
         except Exception as e: log.warning("tray quit callback failed — %s", e)
-    icon.stop()
+    _kill_my_child_processes()
+    try: icon.stop()
+    except Exception: pass
     os._exit(0)
 
 

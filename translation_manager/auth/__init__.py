@@ -26,6 +26,7 @@ from .manager import (
     login, logout, me, owns_game, abort_login,
     get_last_authorize_url,
     signin_with_password, signup_with_password,
+    get_purchases, get_votes,
     AuthError,
 )
 
@@ -33,5 +34,10 @@ __all__ = [
     'login', 'logout', 'me', 'owns_game', 'abort_login',
     'get_last_authorize_url',
     'signin_with_password', 'signup_with_password',
+    # Used by main_eel.auth_get_my_purchases / auth_get_my_votes — the
+    # personal area showed empty FOREVER without these in __all__:
+    # `_auth.get_purchases()` raised AttributeError, the outer try/except
+    # caught it, and the function returned `[]` like a clean empty list.
+    'get_purchases', 'get_votes',
     'AuthError',
 ]

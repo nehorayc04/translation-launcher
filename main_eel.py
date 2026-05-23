@@ -1725,6 +1725,10 @@ def _start_show_event_listener() -> None:
                 # focus to the new window.
                 try:
                     from translation_manager import tray as _tray
+                    # Close our Chrome --app subprocess FIRST so the
+                    # relaunch doesn't end up with two launcher windows
+                    # (Chrome children survive their parent on Windows).
+                    _tray._kill_my_child_processes()
                     _tray._relaunch_self(restored=True)
                 except Exception as e:                     # pragma: no cover
                     print(f"[single-instance] relaunch failed: {e}", flush=True)

@@ -497,11 +497,14 @@ def owns_game(game_id: str) -> bool:
     # RLS makes this a one-row, user-scoped query: we ask for any
     # 'completed' row for the given game; absence ⇒ no ownership.
     url = cfg.rest_url + '/user_purchases'
+    # Pull more columns so the debug log can show WHICH row matched
+    # (`provider` reveals admin-grant vs paypal, `completed_at` lets us
+    # eyeball whether it's a test grant from earlier development).
     try:
         r = requests.get(
             url,
             params={
-                'select':  'id',
+                'select':  'id,provider,completed_at',
                 'game_id': f'eq.{game_id}',
                 'status':  'eq.completed',
                 'limit':   '1',
@@ -517,13 +520,25 @@ def owns_game(game_id: str) -> bool:
         log.warning('owns_game network error: %s', e)
         return False
     if not r.ok:
-        log.warning('owns_game HTTP %d: %s', r.status_code, r.text[:200])
+        log.warning('owns_game(%s) HTTP %d for user %s: %s',
+                    game_id, r.status_code, getattr(tok, 'user_id', '?'),
+                    r.text[:200])
         return False
     try:
         rows = r.json()
     except ValueError:
         return False
-    return isinstance(rows, list) and len(rows) > 0
+    if not isinstance(rows, list):
+        return False
+    if rows:
+        row = rows[0]
+        log.info("owns_game(%s) → True for user %s · row id=%s provider=%s completed_at=%s",
+                 game_id, getattr(tok, 'user_id', '?'),
+                 row.get('id'), row.get('provider'), row.get('completed_at'))
+        return True
+    log.info("owns_game(%s) → False for user %s · no completed row",
+             game_id, getattr(tok, 'user_id', '?'))
+    return False
 
 
 def _authed_token() -> Optional[tuple]:

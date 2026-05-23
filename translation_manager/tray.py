@@ -162,26 +162,71 @@ def _relaunch_self(restored: bool = True) -> None:
         log.warning("tray: relaunch failed — %s", e)
 
 
+_LAUNCHER_WINDOW_TITLE = "מנהל התרגומים הרשמי"
+
+
+def _find_launcher_window() -> int:
+    """Return the HWND of the running launcher's Chromium --app window,
+    or 0 if it's not currently open. The title matches frontend/index.html
+    `<title>`; if you rename the page, update the constant above."""
+    if sys.platform != "win32":
+        return 0
+    try:
+        hwnd = ctypes.windll.user32.FindWindowW(None, _LAUNCHER_WINDOW_TITLE)
+        return int(hwnd or 0)
+    except Exception:                                # pragma: no cover
+        return 0
+
+
+def _focus_window(hwnd: int) -> bool:
+    """Restore a minimised/hidden window and pull it to the foreground.
+    Returns True on a best-effort success."""
+    if not hwnd or sys.platform != "win32":
+        return False
+    try:
+        u = ctypes.windll.user32
+        SW_RESTORE = 9
+        # ShowWindow un-minimises and un-hides — no-op if already visible.
+        u.ShowWindow(hwnd, SW_RESTORE)
+        # SetForegroundWindow is restricted by Windows; the call still
+        # flashes the taskbar entry which is better than silence even
+        # when the foreground swap is denied.
+        u.SetForegroundWindow(hwnd)
+        u.BringWindowToTop(hwnd)
+        return True
+    except Exception:                                # pragma: no cover
+        return False
+
+
 def _menu_open(icon, _item) -> None:
     """Fired by tray menu → 'פתח את התוכנה' (also bound to default-click).
 
-    Order matters for a smooth UX:
-      1. Kill any old Chrome --app child so we don't end up with two
-         launcher windows after the relaunch.
-      2. Spawn the new launcher subprocess FIRST so its tray icon
-         appears as quickly as possible — minimises the visual gap.
-      3. Sleep briefly so the new tray icon has time to show before we
-         take ours away. Without this the user sees their tray icon
-         vanish and only re-appear 1-2 s later (the "the icon
-         disappears and the app reloads" complaint).
+    If the launcher window is still alive (close-to-tray was triggered by
+    a *temporary* hide, or the user just minimised), bring it to the
+    front via the Windows API — no relaunch, no child-kill, no flicker.
+
+    Only when the window has actually been destroyed (the legacy
+    close-to-tray path closes the Chromium window since Eel/Chrome
+    doesn't expose a hide-window API) do we spawn a fresh process.
     """
     if _on_show_request is not None:
         try: _on_show_request()
         except Exception as e: log.warning("tray show callback failed — %s", e)
-    _kill_my_child_processes()
+
+    # Happy path: focus the live window. NO process relaunch, NO Chrome
+    # child kill — both used to cause the visible "the launcher vanished"
+    # the user reported.
+    hwnd = _find_launcher_window()
+    if hwnd:
+        _focus_window(hwnd)
+        return
+
+    # Cold path: the window is gone — spawn a fresh launcher. Keep our
+    # tray icon alive for ~1.2 s so the new process's tray icon has time
+    # to appear before ours vanishes (otherwise the icon visibly blinks).
     _relaunch_self()
     try:
-        time.sleep(1.2)        # overlap with the new tray to mask the gap
+        time.sleep(1.2)
     except Exception:
         pass
     try: icon.stop()

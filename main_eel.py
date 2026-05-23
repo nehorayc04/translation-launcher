@@ -776,12 +776,13 @@ def clear_game_mod_cache(game_id: str) -> dict:
 
 @eel.expose
 def open_purchase_page(game_id: str) -> dict:
-    """Open the website ON THE SPECIFIC GAME so the user lands one click away
-    from the PayPal popup. The website's GamesPage reads ?game=<id> and
-    auto-opens that game's modal. After payment the launcher re-checks
-    ownership via the post-purchase burst poll in GameDetailPanel."""
+    """Open the website's per-game checkout deep link in the user's
+    default browser. The website's GamesPage component auto-opens the
+    matching modal (one click away from PayPal). After payment the
+    launcher re-checks ownership via the post-purchase burst poll in
+    GameDetailPanel."""
     import webbrowser
-    url = f"https://hebrew-translation-hub.vercel.app/games?game={game_id}&buy=1"
+    url = f"https://hebrew-translation-hub.vercel.app/games/{game_id}?buy=1"
     try:
         webbrowser.open(url)
         return {"ok": True, "url": url}
@@ -1432,12 +1433,24 @@ def auth_logout() -> dict:
 
 @eel.expose
 def auth_owns_game(game_id: str) -> bool:
-    """DRM check — fails closed on any error."""
+    """DRM check — fails closed on any error.
+
+    Logs every call to launcher.log so a "the launcher thinks I own the
+    game but I never paid" report can be diagnosed remotely: the log
+    line shows the boolean result + the game id we checked. Pair with
+    the more detailed log inside `auth.manager.owns_game` (user_id +
+    HTTP status + row count returned)."""
+    import logging
+    log = logging.getLogger("launcher")
     if not _auth_available or _auth is None:
+        log.info("auth_owns_game(%s) → False [auth unavailable]", game_id)
         return False
     try:
-        return bool(_auth.owns_game(str(game_id)))
-    except Exception:
+        result = bool(_auth.owns_game(str(game_id)))
+        log.info("auth_owns_game(%s) → %s", game_id, result)
+        return result
+    except Exception as e:
+        log.warning("auth_owns_game(%s) failed: %s", game_id, e)
         return False
 
 
@@ -1823,6 +1836,21 @@ def main() -> None:
     if args.restored:
         try:
             swr_cache.touch_all()
+        except Exception:                                       # noqa: BLE001
+            pass
+    else:
+        # Cold start (genuine fresh boot, NOT a tray restore) — force a
+        # synchronous catalog refresh so the first paint shows fresh data
+        # instead of whatever was on disk from the previous session. Bg
+        # network failure is non-fatal: swr still serves the cached value
+        # via the normal background-refresh path.
+        try:
+            games_data = _fetch_catalog_live_first()
+            if games_data is not None:
+                swr_cache.put("games", games_data, push=False)
+            sw_data = _try_software_remote()
+            if sw_data is not None:
+                swr_cache.put("software", sw_data, push=False)
         except Exception:                                       # noqa: BLE001
             pass
 

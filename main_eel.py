@@ -1,13 +1,26 @@
 """
-Eel entry point — bridges the React frontend (in `frontend/`) to the existing
-Python engine modules (translation_manager.{games_catalog, game_detector,
-mod_logic, paths, config}).
+Translation Manager backend module - 44 RPC functions + 4 push channels
+that drive the React frontend.
 
-Run in PROD mode (serves built React app):
-    python main_eel.py
+Role under the current architecture (Qt-shell, post-migration):
+  * main_qt.py is the production entry point.
+  * main_qt.py installs translation_manager.qt_shell.eel_shim into
+    sys.modules['eel'] BEFORE importing this file, which makes every
+    `@eel.expose` here a no-op decorator and routes `eel.<push>(...)()`
+    calls into Qt Signals on the Bridge object. The function bodies
+    below are reused 1:1.
+  * Bridge slots in qt_shell/bridge.py delegate to these functions
+    directly - this file remains the single source of truth for what
+    the launcher RPC surface does.
 
-Run in DEV mode (frontend served by Vite on :5173, Eel just exposes the API):
-    python main_eel.py --dev
+Legacy Eel entry point (kept working for reference / emergencies):
+  PROD mode (serves built React app):
+      python main_eel.py
+  DEV mode (Vite on :5173, Eel just exposes the API):
+      python main_eel.py --dev
+  When run as `python main_eel.py`, `import eel` resolves to the real
+  Eel package (no shim is installed), the @eel.expose decorators
+  register normally, and main() opens Eel's Chromium window.
 """
 
 from __future__ import annotations
@@ -131,16 +144,16 @@ ROOT = Path(__file__).parent
 LOCAL_CATALOG_FILE = ROOT / "games.json"
 LOCAL_NEWS_FILE    = ROOT / "news.json"
 LOCAL_UPDATES_FILE = ROOT / "updates.json"
-REMOTE_CATALOG_URL  = "https://hebrew-translation-hub.vercel.app/api/games"
-REMOTE_SOFTWARE_URL = "https://hebrew-translation-hub.vercel.app/api/software"
-REMOTE_NEWS_URL     = "https://hebrew-translation-hub.vercel.app/api/news"
-REMOTE_UPDATES_URL  = "https://hebrew-translation-hub.vercel.app/api/updates"
-REMOTE_LAUNCHER_URL = "https://hebrew-translation-hub.vercel.app/api/launcher"
+REMOTE_CATALOG_URL  = "https://hebrew-translation-hub.com/api/games"
+REMOTE_SOFTWARE_URL = "https://hebrew-translation-hub.com/api/software"
+REMOTE_NEWS_URL     = "https://hebrew-translation-hub.com/api/news"
+REMOTE_UPDATES_URL  = "https://hebrew-translation-hub.com/api/updates"
+REMOTE_LAUNCHER_URL = "https://hebrew-translation-hub.com/api/launcher"
 REMOTE_TIMEOUT     = 3.0   # seconds — keep short so offline boot isn't slow
 _REMOTE_CACHE_TTL  = 30    # in-memory hot-window. Below this, swr returns
                            # the cached value without firing a background
                            # refresh. Above it, return cached + refresh.
-API_BASE = "https://hebrew-translation-hub.vercel.app"
+API_BASE = "https://hebrew-translation-hub.com"
 
 
 def _has_any_cache() -> bool:
@@ -216,6 +229,13 @@ def _shape_supabase_game(row: dict, owned_ids: set[str]) -> dict:
         'next':            bool(row.get('next_up')),
         'featured':        bool(row.get('featured')),
         'sortOrder':       row.get('sort_order') or 1000,
+        # Critical for the DRM gate. Missing this column makes
+        # `_game_price_cents()` return 0 for every game, which collapses
+        # `if price > 0 and not owns(...)` to False — i.e. any user can
+        # install any paid mod without owning it. Build G fix after a
+        # bypass was caught in the wild: the catalog response had every
+        # field EXCEPT priceCents because this mapping skipped it.
+        'priceCents':      int(row.get('price_cents') or 0),
         # New: ownership flag for the DRM gate. Always present (false when
         # signed out or not purchased) so the frontend can branch cleanly.
         'owned':           gid in owned_ids,
@@ -734,6 +754,14 @@ def set_game_mod_installed(game_id: str, installed: bool) -> dict:
         return {"ok": False, "error": "פעולה לא זמינה",
                 "state": get_game_mod_state(game_id)}
     if installed:
+        # DRM gate — mirrors download_and_install_game_mod. Without this,
+        # any user with a stale local cache could re-apply a paid mod by
+        # clicking "Reinstall" even after their purchase was revoked / a
+        # different account signed in. The install RPC must check
+        # ownership at every entry point, not just on the first download.
+        if _game_price_cents(game_id) > 0 and not auth_owns_game(game_id):
+            return {"ok": False, "error": "המשחק טרם נרכש",
+                    "state": get_game_mod_state(game_id)}
         r = _game_mod.install(game_id, base, _mod_progress_cb)
         hook = _cp2077_enable_arabic_slot
     else:
@@ -782,7 +810,7 @@ def open_purchase_page(game_id: str) -> dict:
     launcher re-checks ownership via the post-purchase burst poll in
     GameDetailPanel."""
     import webbrowser
-    url = f"https://hebrew-translation-hub.vercel.app/games/{game_id}?buy=1"
+    url = f"https://hebrew-translation-hub.com/games/{game_id}?buy=1"
     try:
         webbrowser.open(url)
         return {"ok": True, "url": url}
@@ -1030,7 +1058,7 @@ def set_start_with_os(enabled: bool) -> dict:
 # HomeView renders the universal ProgressDashboard instantly from the
 # last-known-good snapshot, with a quiet background refresh.
 # ─────────────────────────────────────────────────────────────
-PROGRESS_API_BASE = "https://hebrew-translation-hub.vercel.app/api/progress"
+PROGRESS_API_BASE = "https://hebrew-translation-hub.com/api/progress"
 
 
 def _fetch_progress(game_id: str) -> dict | None:
@@ -1169,9 +1197,20 @@ def _emit_update_progress(phase: str, pct: float, detail: str) -> None:
         pass
 
 
+# Cancel signal for an in-flight self-update. Cleared on each new
+# start_launcher_update() invocation; set by cancel_launcher_update()
+# when the user clicks the cancel button in the download phase. The
+# worker polls it inside the download chunk loop and before launching
+# the installer. Once the installer is actually running, cancel is a
+# no-op (the install can't be cleanly aborted mid-copy).
+import threading as _su_threading_root
+_launcher_update_cancel = _su_threading_root.Event()
+
+
 def _run_launcher_update() -> None:
     """Background worker: download installer → verify SHA-256 → run it
-    silently. Streams progress back through launcher_update_progress."""
+    silently. Streams progress back through launcher_update_progress.
+    Cancellable up to the moment the installer process is launched."""
     import hashlib
     import tempfile
     import time
@@ -1205,6 +1244,13 @@ def _run_launcher_update() -> None:
             last_emit = 0.0
             with open(installer, "wb") as fh:
                 for chunk in resp.iter_content(chunk_size=262144):
+                    if _launcher_update_cancel.is_set():
+                        # Best-effort: drop the partial file so a retry
+                        # starts clean and doesn't misreport progress %.
+                        try: installer.unlink(missing_ok=True)
+                        except OSError: pass
+                        _emit_update_progress("cancelled", 0, "ההורדה בוטלה")
+                        return
                     if not chunk:
                         continue
                     fh.write(chunk)
@@ -1226,6 +1272,12 @@ def _run_launcher_update() -> None:
         _emit_update_progress("error", 0, f"שגיאת הורדה: {e}")
         return
 
+    if _launcher_update_cancel.is_set():
+        try: installer.unlink(missing_ok=True)
+        except OSError: pass
+        _emit_update_progress("cancelled", 0, "בוטל")
+        return
+
     # ── Verify SHA-256 (skip only if the feed carries no hash) ──
     if expected_sha:
         try:
@@ -1245,44 +1297,115 @@ def _run_launcher_update() -> None:
             _emit_update_progress("error", 0, f"שגיאת אימות: {e}")
             return
 
-    # ── Run the installer silently ──────────────────────────────
-    # /VERYSILENT       — no wizard window at all
-    # /SUPPRESSMSGBOXES — auto-answer prompts
-    # /NORESTART        — never reboot the machine
-    # The installer's PrepareToInstall hook taskkills THIS process
-    # mid-wait; its [Run] entry then launches the new version.
-    try:
-        _emit_update_progress(
-            "launch", 100,
-            "מריץ את ההתקנה — האפליקציה תיסגר ותיפתח מחדש בגרסה החדשה…",
-        )
-        proc = subprocess.Popen(
-            [str(installer), "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART"],
-            close_fds=True,
-        )
-    except Exception as e:
-        _emit_update_progress("error", 0, f"כשל בהפעלת קובץ ההתקנה: {e}")
+    if _launcher_update_cancel.is_set():
+        try: installer.unlink(missing_ok=True)
+        except OSError: pass
+        _emit_update_progress("cancelled", 0, "בוטל")
         return
 
-    # If the install proceeds, PrepareToInstall kills us during this
-    # wait and we never return. If we DO return, the user declined the
-    # UAC prompt (or the installer aborted) — surface it, stay alive.
+    # ── Run the installer via a detached VBScript trampoline ───
+    # History of attempts that failed identically (Inno log stopped at
+    # "Created protected temporary directory", level 3 protected
+    # process never started):
+    #   1. subprocess.Popen([installer, /VERYSILENT, ...])
+    #   2. ShellExecuteExW(runas, SEE_MASK_NOCLOSEPROCESS)
+    #   3. ShellExecuteW(runas) + self-exit 3s later, with /SILENT
+    # Common factor: in EVERY case the launcher's process tree was
+    # still alive when Inno tried to hand off from level 2 SL5 →
+    # level 3 protected Setup. RG in enforcing mode appears to
+    # silently abort the protected handoff when it can detect ANY
+    # surviving relative of the elevation requester. Manual install
+    # works because explorer.exe → consent.exe → installer has no
+    # lingering relative the installer can stumble across.
     #
-    # Cooperative poll instead of proc.wait() so the gevent hub keeps
-    # serving the websocket + the catalog poller while the installer
-    # works — otherwise the UI freezes for the full install duration on
-    # the rare path where we DON'T get killed mid-wait.
-    import gevent
-    code: int | None = None
-    while True:
-        code = proc.poll()
-        if code is not None:
-            break
-        gevent.sleep(0.3)
-    _emit_update_progress(
-        "error", 0,
-        f"ההתקנה לא הושלמה — ייתכן שבוטלה בחלון ההרשאות (קוד {code}).",
+    # The trampoline closes this gap: we write a tiny .vbs that
+    # waits 2s (giving us time to fully exit) and then runs the
+    # installer fresh via WScript.Shell.Run. wscript.exe is used
+    # instead of cmd.exe because cmd briefly flashes a console
+    # window even under CREATE_NO_WINDOW (Windows allocates a hidden
+    # console it sometimes shows for an instant). wscript has NO
+    # console at all, so the user sees nothing between clicking
+    # "Update" and the installer's own UI appearing.
+    #
+    # /LOG= removed: writing to a path inside the user-writable temp
+    # dir is the prime RG suspect, since RG protects exactly against
+    # the parent being able to redirect that path between the
+    # CreateFile and the elevated write. Without /LOG Inno still
+    # logs to its default secure location if anything goes wrong.
+    import logging as _logging
+    import os as _os
+    import subprocess as _subprocess
+    import threading as _threading
+
+    _su_log = _logging.getLogger("launcher")
+
+    # Trampoline VBS. WScript.Shell.Run's third arg `False` means
+    # "don't wait" → the script exits immediately after spawning the
+    # installer. The installer's parent is the (now-dead) wscript,
+    # which makes Windows reparent it to a system process — exactly
+    # the relationship Inno's RG requires for the protected handoff.
+    # VBS strings need doubled quotes around paths containing spaces;
+    # our temp path has none, but doubling defends future-proofs.
+    script_path = dest_dir / "run-update.vbs"
+    installer_esc = str(installer).replace('"', '""')
+    script = (
+        "' Auto-generated by Translation Manager self-updater. Safe to delete.\r\n"
+        "Option Explicit\r\n"
+        "WScript.Sleep 2000\r\n"
+        "Dim shell\r\n"
+        "Set shell = CreateObject(\"WScript.Shell\")\r\n"
+        f"shell.Run \"\"\"{installer_esc}\"\"\" & \" /SILENT /SUPPRESSMSGBOXES /NORESTART\", 1, False\r\n"
     )
+    try:
+        # VBScript reads as ANSI by default. A UTF-8 BOM (EF BB BF) at
+        # the start of the file makes wscript fail with error 800A0408
+        # ("invalid character") at line 1 char 1 — that's not a comment
+        # to VBScript, it's a tokenizer error. Our script body is pure
+        # ASCII (no Hebrew in the script itself), so write as bytes
+        # with NO BOM and no encoding declaration.
+        script_path.write_bytes(script.encode("ascii"))
+    except OSError as e:
+        _su_log.error("[self-update] failed to write trampoline vbs: %s", e)
+        _emit_update_progress("error", 0, f"לא ניתן ליצור סקריפט עדכון: {e}")
+        return
+
+    _emit_update_progress(
+        "launch", 100,
+        "מריץ את ההתקנה — האפליקציה תיסגר ותיפתח מחדש בגרסה החדשה…",
+    )
+
+    DETACHED_PROCESS         = 0x00000008
+    CREATE_NEW_PROCESS_GROUP = 0x00000200
+    CREATE_NO_WINDOW         = 0x08000000
+
+    _su_log.info("[self-update] launching VBS trampoline %s", script_path)
+    try:
+        _subprocess.Popen(
+            ["wscript.exe", str(script_path)],
+            creationflags=(DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW),
+            close_fds=True,
+            cwd=str(dest_dir),
+        )
+    except OSError as e:
+        _su_log.error("[self-update] failed to spawn trampoline: %s", e)
+        _emit_update_progress("error", 0, f"כשל בהפעלת סקריפט עדכון: {e}")
+        return
+
+    _su_log.info("[self-update] trampoline scheduled; self-exiting in 1s")
+
+    # Brief delay so the trampoline cmd's CreateProcess fully detaches
+    # before our process dies (otherwise on rare timing the child can
+    # inherit a dying parent state). 1 s is plenty; the trampoline's
+    # own `timeout /t 2` waits another second after we're gone before
+    # actually launching the installer.
+    def _self_exit() -> None:
+        try:
+            time.sleep(1.0)
+            _su_log.info("[self-update] self-exiting so installer can take over")
+            _os._exit(0)
+        except BaseException:                                  # noqa: BLE001
+            pass
+    _threading.Thread(target=_self_exit, daemon=True).start()
 
 
 @eel.expose
@@ -1295,7 +1418,18 @@ def start_launcher_update() -> dict:
     `requests` is monkey-patched (socket/ssl/select) so its blocking
     .read()s cooperatively yield, and the greenlet doesn't pin the hub."""
     import gevent
+    _launcher_update_cancel.clear()
     gevent.spawn(_run_launcher_update)
+    return {"ok": True}
+
+
+@eel.expose
+def cancel_launcher_update() -> dict:
+    """Set the cancel flag; the download loop polls it and aborts at
+    the next chunk boundary (≤ 256 KB later). No effect once the
+    installer process has already been launched — at that point the
+    install is the installer's responsibility, not ours."""
+    _launcher_update_cancel.set()
     return {"ok": True}
 
 
@@ -1548,6 +1682,33 @@ def auth_signin_password(email: str, password: str) -> dict:
         return {"ok": False, "error": str(e)}
     except Exception as e:                                                    # pragma: no cover
         return {"ok": False, "error": f"unexpected: {e}"}
+
+
+@eel.expose
+def js_log(message: str) -> None:
+    """Write a JS-side console.log line to launcher.log so the user can
+    read it via `type %USERPROFILE%\\.translation_manager\\launcher.log`.
+    Needed because frontend/src/main.tsx disables the right-click
+    context menu globally, blocking DevTools entry in production builds."""
+    try:
+        import logging
+        logging.getLogger("js_console").info(message)
+    except Exception:
+        pass
+
+
+@eel.expose
+def auth_get_access_token() -> str | None:
+    """Current Supabase access token (refreshes on expiry; None when
+    signed out). Surfaced for the launcher's in-window PayPal Smart
+    Buttons - createOrder + capture-order both need a Bearer token to
+    authenticate against the website's /api/paypal endpoints."""
+    if not _auth_available or _auth is None:
+        return None
+    try:
+        return _auth.get_access_token()
+    except Exception:
+        return None
 
 
 @eel.expose

@@ -9,7 +9,7 @@ export interface SiteConfig {
   customCss?: string;
 }
 
-const CONFIG_URL = 'https://hebrew-translation-hub.vercel.app/api/config';
+const CONFIG_URL = 'https://hebrew-translation-hub.com/api/config';
 
 const Ctx = createContext<SiteConfig | null>(null);
 

@@ -1,0 +1,107 @@
+Copyright (c) 2022-23 CD Projekt Red. All Rights Reserved.
+Created in collaboration with CD Projekt Vancouver and Yigsoft LLC
+
+No root specified, using default root path.
+Core: App instance InitializeCore in 0.00 ms
+Continuing without global backend resource depot.
+Core: App instance InitializeResources in 0.00 ms
+Invalid root path found: C:\Users\! This might cause errors while running commands.
+
+No module supplied, please verify the parameters!
+
+
+USAGE
+
+	redMod.exe module [opional params]
+
+Avaliable modules:
+
+	resource-export	- Export resources from engine
+
+	resource-import	- Import resources to the engine
+
+	animation-import	- imports a raw animation resource to an animset file.
+
+	util-hash	- Hashes paths/string with given hash algorithm
+
+	deploy	- Deploys mods to the game by compiling them together.
+
+	help	- Displays help info about the other avaliable modules (use -h or -help on any command)
+
+PARAMETERS
+
+	- root	- Specify the root of the game's directory (most modules require this)
+
+Copyright (c) 2022-23 CD Projekt Red. All Rights Reserved.
+Created in collaboration with CD Projekt Vancouver and Yigsoft LLC
+
+No root specified, using default root path.
+Core: App instance InitializeCore in 0.00 ms
+Continuing without global backend resource depot.
+Core: App instance InitializeResources in 0.00 ms
+Invalid root path found: C:\Users\! This might cause errors while running commands.
+
+
+Missing input file path
+Failure occurred parsing settings from command line.
+
+Commandlet resource-export has failed.
+Copyright (c) 2022-23 CD Projekt Red. All Rights Reserved.
+Created in collaboration with CD Projekt Vancouver and Yigsoft LLC
+
+No root specified, using default root path.
+Core: App instance InitializeCore in 0.00 ms
+Continuing without global backend resource depot.
+Core: App instance InitializeResources in 0.00 ms
+Invalid root path found: C:\Users\! This might cause errors while running commands.
+
+
+MODULE
+
+	resource-export - Export resources from engine
+
+USAGE
+
+	Export resources from the engine
+
+	esource-export -depot=<depot> -input=<resource-path> -output=<file> 
+
+PARAMETERS
+
+	-depot=<depot>				- directory-path to the depot (e.g. "C:\depot")
+
+	-input=<resource-path>		- resource path of the file to export (relative to depot)
+
+	-output=<file>				- absolute path to the output file
+
+MESH PARAMETERS
+
+	-lod=<uint>				- Defines mesh's lod to be exported
+
+	-mesh-skinning=<bool>		- export skinning
+
+XBM PARAMETERS
+
+	-bitmap-mipmap=<uint>		- mipmap selection
+
+	-bitmap-source=<bool>		- export uncooked file (default = false)
+
+	-bitmap-flip=<bool>		- flip texture (default = false)
+
+	-bitmap-gamma=<bool>		- forced gamma setting (default = false)
+
+EXPORTERS
+
+  {extension:mesh, deprecated extension:w2mesh} (Mesh) exportable into 2 file format(s):
+    fbx: Autodesk FBX
+    phys: Extracted mesh' physics data.
+  {extension:rsvg, deprecated extension:svg} (SvgResource) exportable into 1 file format(s):
+    svg: SVG Resource definition file
+  {extension:xbm, deprecated extension:xbm} (Bitmap Texture) exportable into 5 file format(s):
+    dds: DirectDraw Surface
+    bmp: Windows Bitmap
+    jpg: Joint Photographics Experts Group
+    tga: Truevision Targa
+    png: Portable Network Graphics
+
+Commandlet resource-export has succeeded.

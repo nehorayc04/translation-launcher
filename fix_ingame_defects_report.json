@@ -1,0 +1,16 @@
+{
+  "base": {
+    "cuerpo": 74,
+    "cuerpo_entries": 74,
+    "v_to_V": 227,
+    "v_to_V_entries": 220,
+    "kamyon": 10,
+    "kamyon_entries": 10,
+    "project": "base"
+  },
+  "dlc": {
+    "v_to_V": 221,
+    "v_to_V_entries": 209,
+    "project": "dlc"
+  }
+}

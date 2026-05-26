@@ -43,10 +43,11 @@ ROOT       = Path(__file__).resolve().parent
 MOD_DIR    = ROOT / "Cyberpunk 2077" / "archive" / "pc" / "mod"
 OUT_DIR    = ROOT / "release_cp2077"
 
-# The exact payload — both archives, nothing from mod_backups/.
+# The exact payload — all three archives, nothing from mod_backups/.
 _MOD_FILES = [
-    "z_hebrew_translation.archive",   # live translation (~9 MB)
+    "z_hebrew_translation.archive",   # base-game live translation (~9 MB)
     "z_hebrew_static.archive",        # menu names + Arabic intro video (~81 MB)
+    "z_hebrew_dlc.archive",           # Phantom Liberty DLC translation
 ]
 # arcname inside the zip mirrors the game's own tree.
 _ZIP_PREFIX = "archive/pc/mod"

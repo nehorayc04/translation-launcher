@@ -1,0 +1,89 @@
+{
+  "batch_index": 20940,
+  "batch_size": 10,
+  "next_index": 20950,
+  "total_rows": 238556,
+  "progress_pct": 8.782,
+  "rows": [
+    {
+      "project": "base",
+      "section": "onscreens/onscreens.json",
+      "pk": "50784",
+      "field": "femaleVariant",
+      "english": "Contact: Sprenger",
+      "hebrew": "פנו אל: שפרנגר"
+    },
+    {
+      "project": "base",
+      "section": "onscreens/onscreens.json",
+      "pk": "50785",
+      "field": "femaleVariant",
+      "english": "Contact: XXX",
+      "hebrew": "קשר: XXX"
+    },
+    {
+      "project": "base",
+      "section": "onscreens/onscreens.json",
+      "pk": "50786",
+      "field": "femaleVariant",
+      "english": "Contact: Surgeon",
+      "hebrew": "קשר: כירורג"
+    },
+    {
+      "project": "base",
+      "section": "onscreens/onscreens.json",
+      "pk": "50787",
+      "field": "femaleVariant",
+      "english": "Contact: LennyN",
+      "hebrew": "קשר: LennyN"
+    },
+    {
+      "project": "base",
+      "section": "onscreens/onscreens.json",
+      "pk": "50788",
+      "field": "femaleVariant",
+      "english": "Contact: Psych0",
+      "hebrew": "קשר: פסיכו0"
+    },
+    {
+      "project": "base",
+      "section": "onscreens/onscreens.json",
+      "pk": "50789",
+      "field": "femaleVariant",
+      "english": "BLAST FROM THE PAST",
+      "hebrew": "פיצוץ מהעבר"
+    },
+    {
+      "project": "base",
+      "section": "onscreens/onscreens.json",
+      "pk": "50790",
+      "field": "femaleVariant",
+      "english": "\u0003It's BLAST FROM THE PAST, in which we bring you the lyrics of Kerry's",
+      "hebrew": "זה פיצוץ מהעבר, שבו אנו מביאים לכם את מילות השיר של קרי"
+    },
+    {
+      "project": "base",
+      "section": "onscreens/onscreens.json",
+      "pk": "50791",
+      "field": "femaleVariant",
+      "english": "\u0007USER FRIENDLY\\n\\nIn a user-friendly world\\nYou don't have to think\\nDon't have to know\\nAnything\\nAnymore\\n",
+      "hebrew": "ידידותי למשתמש"
+    },
+    {
+      "project": "base",
+      "section": "onscreens/onscreens.json",
+      "pk": "50792",
+      "field": "femaleVariant",
+      "english": "You can't do that right now",
+      "hebrew": "אי אפשר לעשות את זה עכשיו"
+    },
+    {
+      "project": "base",
+      "section": "onscreens/onscreens.json",
+      "pk": "50793",
+      "field": "femaleVariant",
+      "english": "Locked",
+      "hebrew": "נעול"
+    }
+  ]
+}

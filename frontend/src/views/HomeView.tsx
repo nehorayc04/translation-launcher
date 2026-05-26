@@ -1,5 +1,5 @@
 // Landing screen — hero pitch + featured games row + quick stats.
-import type { Game } from "../lib/types";
+import { isInFlight, type Game } from "../lib/types";
 import GameCard from "../components/GameCard";
 import NewsSection from "../components/NewsSection";
 import ProgressDashboard from "../components/ProgressDashboard";
@@ -33,10 +33,10 @@ export default function HomeView({ games, onOpenGame, onOpenLibrary, refreshNonc
 
   const installed = games.filter((g) => g.is_installed).length;
   const withMods  = games.filter((g) => g.mod_state === "ACTIVE").length;
-  const inProg    = games.filter((g) => g.availability === "in-progress").length;
+  const inProg    = games.filter((g) => isInFlight(g.availability)).length;
   // Live progress card mounts only when there's a game in production —
   // hides itself completely otherwise.
-  const inProgGame = games.find((g) => g.availability === "in-progress");
+  const inProgGame = games.find((g) => isInFlight(g.availability));
 
   return (
     <div className="h-full overflow-y-auto px-8 py-6 animate-fade-in">
@@ -69,7 +69,7 @@ export default function HomeView({ games, onOpenGame, onOpenLibrary, refreshNonc
               עיין בספרייה
             </button>
             <a
-              href="https://hebrew-translation-hub.vercel.app/"
+              href="https://hebrew-translation-hub.com/"
               target="_blank"
               rel="noopener noreferrer"
               className="border border-white/15 hover:border-brand-cyan/50

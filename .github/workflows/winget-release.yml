@@ -1,0 +1,58 @@
+name: Publish to WinGet
+
+# Fires whenever a GitHub release is published OR edited. Edits matter
+# because the launcher re-releases v1.1.0 in place (see CLAUDE.md
+# "Re-release rule"); winget-releaser re-resolves the asset URL each
+# time so a new build flowing through the same tag still triggers a
+# fresh PR against microsoft/winget-pkgs.
+on:
+  release:
+    types:
+      - published
+      - edited
+  # Manual trigger for re-runs when an automated submission failed.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to publish to WinGet (e.g. v1.1.0)'
+        required: true
+        default: 'v1.1.0'
+
+jobs:
+  publish:
+    name: Submit manifest to microsoft/winget-pkgs
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Submit package to WinGet community repository
+        uses: vedantmgoyal2009/winget-releaser@v2
+        with:
+          # Must match the PackageIdentifier in the manifest YAMLs.
+          identifier: Nehoray.TranslationManager
+          # Asset selection: the release ships ONE installer named like
+          # TranslationManager-Setup-<version>.exe. The regex matches
+          # any version pattern so we don't have to edit the workflow
+          # on every re-release.
+          installers-regex: 'TranslationManager-Setup-[\d.]+\.exe$'
+          # Pull the version straight from the release's tag, with the
+          # leading 'v' stripped (v1.1.0 -> 1.1.0).
+          version: ${{ github.event.release.tag_name || inputs.tag }}
+          # Fine-Grained PAT with `public_repo` write (so the action
+          # can fork microsoft/winget-pkgs under your account and open
+          # the PR). Stored as a repository secret on
+          # nehorayc04/translation-launcher.
+          token: ${{ secrets.WINGET_TOKEN }}
+          # Mark as a re-release (same version, new build) so the
+          # bot's commit message reads "Update Nehoray.TranslationManager
+          # version 1.1.0" instead of trying to bump.
+          # Set to true only if the GitHub release is flagged as a
+          # pre-release; production releases stay false.
+          fork-user: nehorayc04
+          # The submitted manifests live under
+          # manifests/n/Nehoray/TranslationManager/<version>/ in the
+          # microsoft/winget-pkgs fork; winget-releaser handles the
+          # path layout. We point it at our local seed manifests so
+          # the publisher / locale fields stay consistent across
+          # automated submissions.
+          max-versions-to-keep: 5

@@ -1,0 +1,96 @@
+##############################################################################
+#  CYBERPUNK 2077 — SUBTITLE / TOOLTIP MARKUP ANALYSIS  (escape-aware)
+#  basis for the markup-aware translator
+##############################################################################
+
+==============================================================================
+  <kiroshi>  —  2,922 entries carrying the tag
+==============================================================================
+  parsed cleanly: 2,699    unparsed: 223
+  attributes: l(2,699)  o(2,699)  t(2,698)  b(2,698)  a(2,698)
+  attribute values that embed a nested <Rich> tag: 0
+  leading CR2W control byte on the EN source: 2,474  (0x01:1,797  0x02:461  0x03:161  0x04:40  0x05:15)
+
+  STATE (foreign attr 'o' must stay verbatim; target ['t'] carries the English):
+    correctly translated: 0
+    CORRUPTED (foreign 'o' has Hebrew mixed in): 49
+    still untranslated:   2,650
+
+  --- untranslated samples ---
+    [fb_takemura.json] EN: <kiroshi l="jpn" o="もしもし、Vか" t="Good evening, V." b="" a=""/
+                          HE: <kiroshi l="jpn" o="もしもし、Vか" t="Good evening, V." b="" a=""/>
+    [fb_takemura.json] EN: <kiroshi l="jpn" o="達者でな" t="Goodbye." b="" a=""/>
+                          HE: <kiroshi l="jpn" o="達者でな" t="Goodbye." b="" a=""/>
+    [fb_welles.json] EN: <kiroshi l="mex" o="Cuídate, V." t="Take care, V." b="" a=""/>
+                        HE: <kiroshi l="mex" o="Cuídate, V." t="Take care, V." b="" a=""/>
+    [fb_welles.json] EN: <kiroshi l="mex" o="Ahí te veo, V." t="See you later, V." b="" a=""/
+                        HE: <kiroshi l="mex" o="Ahí te veo, V." t="See you later, V." b="" a=""/>
+
+  --- corrupted samples ---
+    [q101_02_hanako_background.] EN: <kiroshi l="jpn" o="ハナコ様、お会いできて光栄です" t="It is a true honor to meet you, Hanako-sama." b="" a=""/
+                                    HE: <kiroshi l="jpn" o="ハנコ様、お会いできて光栄です" t="It is a true honor to meet you, Hanako-sama." b="" a=""/>
+    [conversation_street_new_tc] EN: <kiroshi l="jpn" o="こないだ3匹を見つけて、捕まえにいこうと思ったらメ
+                                    HE: <kiroshi l="jpn" o="こないだ3匹を見つけて、捕まえにいこうと思ったらメיルストロームのシマだったんだ。趣味のために命を失うつもりはねえよ" t="Nah, last three I found were on Mae
+    [conversation_street_new_tc] EN: <kiroshi l="jpn" o="相変わらずの単細胞ぶりだな。ありゃ粛清だ。あいつはNCPD
+                                    HE: <kiroshi l="jpn" o="相変わらずの単細胞ぶりだな。ありゃ粛清だ。あいつはNCPDのスパיだったんだよ" t="So fajitas equals Valentinos? You gonk, that was us. T
+    [conversation_street_new_tc] EN: <kiroshi l="jpn" o="指をへし折って、インプラントを何個かぶ�
+                                    HE: <kiroshi l="jpn" o="指をへし折って、יンプラントを何個かぶっ壊してやりな。返済が少し遅れるけど、נメられるよりマシだ" t="You break his fingers, bust some of his impla
+
+==============================================================================
+  <mothertongue>  —  492 entries carrying the tag
+==============================================================================
+  parsed cleanly: 414    unparsed: 78
+  attributes: l(414)  m(414)  b(414)  a(414)
+  attribute values that embed a nested <Rich> tag: 9
+  leading CR2W control byte on the EN source: 369  (0x01:326  0x02:37  0x03:6)
+
+  STATE (foreign attr 'm' must stay verbatim; target ['b', 'a'] carries the English):
+    correctly translated: 6
+    CORRUPTED (foreign 'm' has Hebrew mixed in): 0
+    still untranslated:   408
+
+  --- untranslated samples ---
+    [fb_takemura.json] EN: <mothertongue l="jpn" m="kuso-ama" b="Rot in hell, " a="."/>
+                          HE: <mothertongue l="jpn" m="kuso-yarou" b="Rot in hell, " a="."/>
+    [fb_welles.json] EN: <mothertongue l="mex" m="Señor Todopoderoso, escucha a tu humilde servidora, que
+                        HE: <mothertongue l="mex" m="Señor Todopoderoso, escucha a tu humilde servidora, que obra siempre en tu gracia…" b="" a=" 
+    [fb_welles.json] EN: <mothertongue l="mex" m="pez gordo" b="Hey, V. Everyone's telling me you're a " a=" now. A big shot, eh?"/
+                        HE: <mothertongue l="mex" m="pez gordo" b="Hey, V. Everyone's telling me you're a " a=" now. A big shot, eh?"/>
+    [fb_welles.json] EN: <mothertongue l="mex" m="¡Déjate de pendejadas!" b="V! " a=" Straight to voicemail again?!"/
+                        HE: <mothertongue l="mex" m="¡Déjate de pendejadas!" b="V! " a=" Straight to voicemail again?!"/>
+
+  --- translated samples ---
+    [civ_low_m_73_mex_20.json] EN: <mothertongue l="mex" m="hermosa" b="Not now, " a=". Maybe later."/
+                                  HE: <mothertongue l="mex" m="guapo" b="לא עכשיו," a=". אולי אחר כך."/>
+    [gang_val_m_04_mex_40.json] EN: <mothertongue l="mex" m="puta" b="What you comin' at me for with that, " a="?"/
+                                   HE: <mothertongue l="mex" m="puto" b="מה אתה בא אליי עם זה, " a="?"/>
+    [gang_val_m_04_mex_40.json] EN: <mothertongue l="mex" m="puta, puta" b="Stop bein' a fuckin' " a="."/
+                                   HE: <mothertongue l="mex" m="cabrón, cabrón" b="הפסק להיות בן זונה " a="."/>
+    [q000_nomad_03_jackie.json] EN: <mothertongue l="mex" m="chica." b="Le'ss go, " a=" Pop 'er open."/
+                                   HE: <mothertongue l="mex" m="mano" b="יאללה, " a=". פתח את זה."/>
+
+==============================================================================
+  <Rich>  —  1,048 entries carrying the tag
+==============================================================================
+  standalone <Rich> (onscreens tooltips etc.): 1,039
+  <Rich> nested inside <kiroshi>/<mothertongue>: 9
+  leading control byte: 408
+  <Rich> opens per entry: 0:243  1:778  2:9  3:10  4:2  5:6
+  closer tokens: </> = 588   </Rich> = 10
+  entries that also contain a {placeholder}: 379
+
+  standalone <Rich> samples (text node between <Rich ...> and </> is the translate target; tags + {placeholders} preserved):
+    [onscreens.json] להתקרב לאויב שלא מודע ייתן לך את האפשרות לתפוס אותו ב<Rich color="MainColors.Gold">grappple</>
+    [onscreens.json] Sneaking up to an unaware enemy will give you the option to <Rich color="MainColors.Gold">grapple</> the
+    [onscreens.json] <Rich color="MainColors.Gold">השהייה</> <Input actionName="VisionHold" color="Tutorial.Inp
+    [onscreens.json] הדגשה מיוחדת <Rich color="MainColors.MildGreen"> </> מציינת מכשירים עם פגיעויות שאתה יכול לנצל
+    [onscreens.json] <Rich color="MainColors.Gold">לחץ</> <Input actionName="ToggleCrouch" color="Tutorial.InputHint" hold="Hide"
+    [onscreens.json] אויבים שלא מודעים לנוכחותך ימשיכו בשגרתם. <Rich color="MainColors.Gold">שימו לב אליהם
+
+##############################################################################
+#  TRANSLATE-TARGET MAP (for the markup-aware translator)
+##############################################################################
+  <kiroshi l o t b a/>   : translate t (+b/a if present); keep l, o verbatim
+  <mothertongue l m b a/>: translate b, a; keep l, m (the foreign phrase)
+  <Rich attr...>TEXT</>  : translate TEXT node(s); keep tags, attrs, </>
+  ALWAYS preserve: leading 0x01-0x05 control byte, {placeholders}, \" escapes

@@ -1,0 +1,223 @@
+{
+  "cuerpo_spanish": {
+    "base": 81,
+    "dlc": 0,
+    "samples": [
+      {
+        "project": "base",
+        "section": "onscreens/onscreens.json",
+        "pk": "5785",
+        "value": "תקיפות cuerpo a cuerpo מהירות עם רובים ותת-מקלע גורמות ל-{int_0}% נזק נוסף"
+      },
+      {
+        "project": "base",
+        "section": "onscreens/onscreens.json",
+        "pk": "5849",
+        "value": "+{int_0}% נזק cuerpo a cuerpo"
+      },
+      {
+        "project": "base",
+        "section": "onscreens/onscreens.json",
+        "pk": "5850",
+        "value": "מצמצם את כמות סיבולת הנצרכת בעת חסימת מתקפות cuerpo a cuerpo ב-{int_0}%"
+      },
+      {
+        "project": "base",
+        "section": "onscreens/onscreens.json",
+        "pk": "5867",
+        "value": "מגדיל נזק cuerpo a cuerpo ב-{int_1}% לכל %{int_0}% של חיים שאבדו"
+      },
+      {
+        "project": "base",
+        "section": "onscreens/onscreens.json",
+        "pk": "5885",
+        "value": "התקפה ראשונה עם נשק cuerpo-a-cuerpo טעון לחלוטין מבטיחה פגיעת קריט"
+      },
+      {
+        "project": "base",
+        "section": "onscreens/onscreens.json",
+        "pk": "5901",
+        "value": "בזמן ש-Cold Blood פעיל, מגדיל נזק עם נשקי לחימה cuerpo a cuerpo ב-{int_0}%"
+      },
+      {
+        "project": "base",
+        "section": "onscreens/onscreens.json",
+        "pk": "15020",
+        "value": "מכות cuerpo a cuerpo מהירות עם נשק לטווח רחוק גורמות לאויבים להתנדנד, ומאפשרות לך לתפוס אותם"
+      },
+      {
+        "project": "base",
+        "section": "onscreens/onscreens.json",
+        "pk": "40130",
+        "value": "מפחית את עלות הסיבולת של התקפות cuerpo a cuerpo."
+      }
+    ]
+  },
+  "kamyon_creole": {
+    "base": 10,
+    "dlc": 0,
+    "samples": [
+      {
+        "project": "base",
+        "section": "subtitles/quest/q110/q110_04_netrunners_den.json",
+        "pk": "1550228574742114304",
+        "value": "<mothertongue l=\"creo\" m=\"kamyonèt\" b=\"אנחנו מנסים ללמוד איפה\" a=\"מגיע מ\"/>"
+      },
+      {
+        "project": "base",
+        "section": "subtitles/quest/q110/q110_04_netrunners_den.json",
+        "pk": "1550236065014083584",
+        "value": "<mothertongue l=\"creo\" m=\"kamyonèt\" b=\"ממה. התחל עם ה\" a=\".\"/>"
+      },
+      {
+        "project": "base",
+        "section": "subtitles/quest/q110/q110_04_netrunners_den.json",
+        "pk": "1561859197400059904",
+        "value": "<kiroshi l=\"creo\" o=\"De kamyonèt.\" t=\"הרכב.\" b=\"\" a=\"\"/>"
+      },
+      {
+        "project": "base",
+        "section": "subtitles/quest/q110/q110_04_netrunners_den.json",
+        "pk": "1561859699626020864",
+        "value": "<kiroshi l=\"creo\" o=\"De kamyonèt\" t=\"הרכב.\" b=\"\" a=\"\"/>"
+      },
+      {
+        "project": "base",
+        "section": "subtitles/quest/q110/q110_06_the_mall_intro.json",
+        "pk": "1509882913661931520",
+        "value": "<mothertongue l=\"creo\" m=\"kamyonèt\" b=\"אני מבין. דה\" a=\"בגדול.\"/>"
+      },
+      {
+        "project": "base",
+        "section": "subtitles/quest/q110/q110_07_agent_noticed.json",
+        "pk": "1533040390586781696",
+        "value": "<mothertongue l=\"creo\" m=\"kamyonèt\" b=\"מהר. תראה ל-\" a=\".\"/>"
+      },
+      {
+        "project": "base",
+        "section": "subtitles/quest/q110/q110_07a_placide_contextual_lines.json",
+        "pk": "1680696329686241280",
+        "value": "<mothertongue l=\"creo\" m=\"kamyonèt\" b=\"ה vestibule הראשי. חפש את ה\" a=\".\"/>"
+      },
+      {
+        "project": "base",
+        "section": "subtitles/quest/q110/q110_07a_placide_contextual_lines.json",
+        "pk": "1761715877378400256",
+        "value": "<mothertongue l=\"creo\" m=\"kamyonèt\" b=\"יש שעריה מאחורי\" a=\"אפתח את זה.\"/>"
+      }
+    ]
+  },
+  "V_as_vey": {
+    "base": 578,
+    "dlc": 222,
+    "samples": [
+      {
+        "project": "base",
+        "section": "onscreens/onscreens.json",
+        "pk": "6820",
+        "value": "וי"
+      },
+      {
+        "project": "base",
+        "section": "onscreens/onscreens.json",
+        "pk": "15526",
+        "value": "וי"
+      },
+      {
+        "project": "base",
+        "section": "onscreens/onscreens.json",
+        "pk": "28022",
+        "value": "וי לניצחון"
+      },
+      {
+        "project": "base",
+        "section": "onscreens/onscreens.json",
+        "pk": "28782",
+        "value": "איי וי"
+      },
+      {
+        "project": "base",
+        "section": "onscreens/onscreens.json",
+        "pk": "32247",
+        "value": "וי"
+      },
+      {
+        "project": "base",
+        "section": "onscreens/onscreens.json",
+        "pk": "32248",
+        "value": "וי"
+      },
+      {
+        "project": "base",
+        "section": "onscreens/onscreens.json",
+        "pk": "32491",
+        "value": "וי"
+      },
+      {
+        "project": "base",
+        "section": "onscreens/onscreens.json",
+        "pk": "33166",
+        "value": "וי אייפי"
+      }
+    ]
+  },
+  "spanish_a_prep": {
+    "base": 0,
+    "dlc": 0,
+    "samples": []
+  },
+  "latin_mid_heb": {
+    "base": 2024,
+    "dlc": 909,
+    "samples": [
+      {
+        "project": "base",
+        "section": "onscreens/onscreens.json",
+        "pk": "1407",
+        "value": "סריקה של זיכרון RAM בטלפון"
+      },
+      {
+        "project": "base",
+        "section": "onscreens/onscreens.json",
+        "pk": "1412",
+        "value": "מפ menghasilkan רעש חזק והבהובים"
+      },
+      {
+        "project": "base",
+        "section": "onscreens/onscreens.json",
+        "pk": "2046",
+        "value": "מפ menghasilkan רעש חזק שיכול להחריש אויבים"
+      },
+      {
+        "project": "base",
+        "section": "onscreens/onscreens.json",
+        "pk": "3590",
+        "value": "יש לו רצועת אכזריות. כמו הבעלים הראשון שלו. מתקפת לחימה מהירה מדליקה את האויב ומ inflict נזק אדיר"
+      },
+      {
+        "project": "base",
+        "section": "onscreens/onscreens.json",
+        "pk": "3842",
+        "value": "משקפי GRAFFITI עם זכוכית מצופה"
+      },
+      {
+        "project": "base",
+        "section": "onscreens/onscreens.json",
+        "pk": "3882",
+        "value": "מסכת גז Mox עם שכבת הגנה מותאמת אישית"
+      },
+      {
+        "project": "base",
+        "section": "onscreens/onscreens.json",
+        "pk": "3914",
+        "value": "בנדנה GRAFFITI עמידה לקרעים"
+      },
+      {
+        "project": "base",
+        "section": "onscreens/onscreens.json",
+        "pk": "3941",
+        "value": "כובע קאובוי של Gunslinger עם ריפוד מחוזק"
+      }
+    ]
+  }
+}

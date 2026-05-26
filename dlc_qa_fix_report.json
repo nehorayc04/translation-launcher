@@ -1,0 +1,925 @@
+{
+  "generated_at": "2026-05-24 08:08:59",
+  "dry_run": true,
+  "by_kind": {
+    "GARBLED": 8,
+    "DOUBLE_LANG": 3,
+    "LENGTH_ANOMALY": 13,
+    "UNTRANSLATED": 90
+  },
+  "fixed": 0,
+  "samples": [
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "88045",
+      "field": "femaleVariant",
+      "kind": "GARBLED",
+      "src": "During combat, you can now detect <Rich color=\"TooltipText.cyberwareDescriptionHighlightColor\" style=\"Semi-Bold\">Vulnera",
+      "trans": "במהלך קרב, עכשיו אתה יכול לזהות<Rich color=\"TooltipText.cyberwareDescriptionHighlightColor\" style=\"Semi-Bold\">נקודות תור"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "88046",
+      "field": "femaleVariant",
+      "kind": "GARBLED",
+      "src": "Destroying an enemy's <Rich color=\"TooltipText.cyberwareDescriptionHighlightColor\" style=\"Semi-Bold\">Vulnerability</> gr",
+      "trans": "להשמיד אויב של<Rich color=\"TooltipText.cyberwareDescriptionHighlightColor\" style=\"Semi-Bold\">חולשה</>גראנטים:<Rich color"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "82776",
+      "field": "femaleVariant",
+      "kind": "GARBLED",
+      "src": "Priority: P0\\nPersonal details: Anne Marie Gould, automation and robotics engineer\\nCyberware: Second Heart\\nDifficulty:",
+      "trans": "פריוריטי: P0<br>פרטים אישיים: אן מארי גולד, מהנדסת אוטומציה ורובוטיקה<br>סייברוור: לב שני<br>קושי: 7/10<br><br>פריוריטי:"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "84138",
+      "field": "femaleVariant",
+      "kind": "GARBLED",
+      "src": "Day 1\\nLunar safari (Ocean storm - mass driver!, Copernicus, Sea of Vapors\\n\\nDay 2\\nWatching an Earth-rise!!! Museum of",
+      "trans": "יום 1<br>ספארי ירחי (סערה באוקיינוס - תותח מסלול!, קופרניקוס, ים האדים<br><br>יום 2<br>צפייה בזריחה של כדור הארץ!!! מוזי"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "84553",
+      "field": "femaleVariant",
+      "kind": "GARBLED",
+      "src": "Origin: RDO\\nDestination: NCX\\nFlight no: n/a\\nWeight:17.9 lb\\nColor: Yellow\\nNotes: Orbital Air personnel cannot be hel",
+      "trans": "מקור: RDO<br>יעד: NCX<br>מספר טיסה: n/a<br>משקל: 17.9 פאונד<br>צבע: צהוב<br>הערות: אנשי צוות אוויר אורביטל אינם נושאים ב"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "87443",
+      "field": "femaleVariant",
+      "kind": "GARBLED",
+      "src": "Isaiah Gunn – decent choom, works Mondays and Wednesdays 12 AM to 8 AM\\nJulian Pratt – greedy bastard, gotta grease his ",
+      "trans": "אייז ayah גאן – צ'ום סביר, עובד בימים שני ושלישי בין חצות לשמונה בבוקר<br>ג'וליאן פראט – חזיר רעב, צריך לשמן את כפות ידי"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "88045",
+      "field": "femaleVariant",
+      "kind": "GARBLED",
+      "src": "During combat, you can now detect <Rich color=\"TooltipText.cyberwareDescriptionHighlightColor\" style=\"Semi-Bold\">Vulnera",
+      "trans": "במהלך קרב, אתה יכול עכשיו לזהות<Rich color=\"TooltipText.cyberwareDescriptionHighlightColor\" style=\"Semi-Bold\">נקודות תור"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "88046",
+      "field": "femaleVariant",
+      "kind": "GARBLED",
+      "src": "Destroying an enemy's <Rich color=\"TooltipText.cyberwareDescriptionHighlightColor\" style=\"Semi-Bold\">Vulnerability</> gr",
+      "trans": "להרוג אויב<Rich color=\"TooltipText.cyberwareDescriptionHighlightColor\" style=\"Semi-Bold\">פגיעות</>גראנטים:<Rich color=\"T"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "92359",
+      "field": "femaleVariant",
+      "kind": "DOUBLE_LANG",
+      "src": "Info for everyone so it’s clear to you and the clients. We got basically the same drug, but two different strengths. Dee",
+      "trans": "מידע לכל אחד כדי שיהיה ברור לכם וללקוחות. יש לנו בסך הכל את אותו סם, אבל בשתי עוצמות שונות. Deep Dive זה הקפיצה הראשונה "
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "82680",
+      "field": "femaleVariant",
+      "kind": "DOUBLE_LANG",
+      "src": "Choom, real sorry but here’s the deal. Shoulda had the balls to just tell you straight to your face but I know the sitch",
+      "trans": "צ'ום, ממש מצטער אבל הנה העניין. היה צריך פשוט להגיד לך ישר בפנים אבל אני מכיר את המצב שאתה נמצא בו ולא יכולתי. היה עליי "
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "84011",
+      "field": "femaleVariant",
+      "kind": "DOUBLE_LANG",
+      "src": "BF Pacifica Studio\\nWeek 22\\nPrio: \"Doppelgangbanger\" @ Brainporium ASAP\\nTuesday: \"Easy as fucking\" balcony scene\\nWedn",
+      "trans": "BF פאסיפיקה סטודיו\nשבוע 22\nפריו: \"דופלגנגבנגר\" @ בריינפוריום ASAP\nשלישי: סצנת מרפסת \"קל כמו לעזאזל\"\nרביעי: \"גוללים עם הס"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "82722",
+      "field": "femaleVariant",
+      "kind": "LENGTH_ANOMALY",
+      "src": "1. Connect the compressor to the recuperator\\n2. Connect the recuperator to the turbine\\n3. Close the circuit\\n4. Place ",
+      "trans": "חבר את הקומפריסטור לרקופרטור"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "83000",
+      "field": "femaleVariant",
+      "kind": "LENGTH_ANOMALY",
+      "src": "1. The clusters you  prepped have adequate power, but we'll need older soft on one (Mt-313) to be compatible with this u",
+      "trans": "הקלאסטרים שערכת מוכנים עם הספק מספיק, אבל נצטרך תוכנה ישנה יותר באחד מהם (Mt-313) כדי שיהיה תואם ליחידה הזאת. בנוסף, נצט"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "83126",
+      "field": "femaleVariant",
+      "kind": "LENGTH_ANOMALY",
+      "src": "1. Dynalar subdermal coprocessor (nb. only v.3.45222 and up)\\n2. Drivers for nano-optics in modified netrunner suits (Mi",
+      "trans": "מעבד משנה דיינלר תת-עורי (שים לב: רק גרסה 3.45222 ומעלה)"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "85412",
+      "field": "femaleVariant",
+      "kind": "LENGTH_ANOMALY",
+      "src": "The combat zone known as Dogtown was meant to be Night City's proud calling card. Today, it's but a stain on its conscie",
+      "trans": "אזור הלחימה שנודע בשם דוגטאון נועד להיות כרטיס הביקור הגאה של נייט סיטי. היום, זהו רק כתם על מצפונו, נשכח על ידי נייט סי"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "87687",
+      "field": "femaleVariant",
+      "kind": "LENGTH_ANOMALY",
+      "src": "1. Recording of the interrogation of Arasaka agent Okimoto Yasushi [DOWNLOAD FILE]\\n2. Recording of the interrogation of",
+      "trans": "הקלטת חקירה של סוכן אראסאקה אוקימוטו יאסושי [הורד קובץ]"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "89998",
+      "field": "femaleVariant",
+      "kind": "LENGTH_ANOMALY",
+      "src": "Have you lost weight?",
+      "trans": "הרזת?"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "93526",
+      "field": "femaleVariant",
+      "kind": "LENGTH_ANOMALY",
+      "src": "1. test thermal breakers (P4, no rush)\\n2. program remote activation for night vison and hyperkinetics (P2, because fuck",
+      "trans": "בדוק מפרידי חום (P4, בלי לחץ)"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "82722",
+      "field": "femaleVariant",
+      "kind": "LENGTH_ANOMALY",
+      "src": "1. Connect the compressor to the recuperator\\n2. Connect the recuperator to the turbine\\n3. Close the circuit\\n4. Place ",
+      "trans": "חבר את הקומפריסטור לרקופרטור"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "83000",
+      "field": "femaleVariant",
+      "kind": "LENGTH_ANOMALY",
+      "src": "1. The clusters you  prepped have adequate power, but we'll need older soft on one (Mt-313) to be compatible with this u",
+      "trans": "הקלאסטרים שערכת מוכנים עם הספק מספיק, אבל נצטרך תוכנה ישנה יותר באחד מהם (Mt-313) כדי שיהיה תואם ליחידה הזאת. בנוסף, נצט"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "83126",
+      "field": "femaleVariant",
+      "kind": "LENGTH_ANOMALY",
+      "src": "1. Dynalar subdermal coprocessor (nb. only v.3.45222 and up)\\n2. Drivers for nano-optics in modified netrunner suits (Mi",
+      "trans": "פרוצסור משנה עמוק Dynalar (שימו לב: רק גרסה 3.45222 ומעלה)"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "85412",
+      "field": "femaleVariant",
+      "kind": "LENGTH_ANOMALY",
+      "src": "The combat zone known as Dogtown was meant to be Night City's proud calling card. Today, it's but a stain on its conscie",
+      "trans": "אזור הלחימה שנודע בשם דוגטאון נועד להיות כרטיס הביקור הגאה של נייט סיטי. היום זהו רק כתם על מצפונו, נשכח על ידי נייט סיט"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "87687",
+      "field": "femaleVariant",
+      "kind": "LENGTH_ANOMALY",
+      "src": "1. Recording of the interrogation of Arasaka agent Okimoto Yasushi [DOWNLOAD FILE]\\n2. Recording of the interrogation of",
+      "trans": "הקלטת חקירה של סוכן אראסאקה אוקימוטו יאסושי [הורד קובץ]"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "89998",
+      "field": "femaleVariant",
+      "kind": "LENGTH_ANOMALY",
+      "src": "Have you lost weight?",
+      "trans": "הרזת?"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "79081",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Kenny, save us! We’re all out of ROMVLVS – sold every single bottle last weekend. What’s the upcoming schedule for BARGH",
+      "trans": "Kenny, save us! We’re all out of ROMVLVS – sold every single bottle last weekend. What’s the upcoming schedule for BARGH"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "83101",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "ahYGotoSpie&#LL^djBS_ARE_YOU_HERE_WITH_ME?jam\\nHBklo:\"jes*tHSHBXG\\n(*&SGStuX^Nndh^hsjs{jQQQ]>##\\nnvprabHSw7da65*S*j:\"SS!",
+      "trans": "ahYGotoSpie&#LL^djBS_ARE_YOU_HERE_WITH_ME?jam\\nHBklo:\"jes*tHSHBXG\\n(*&SGStuX^Nndh^hsjs{jQQQ]>##\\nnvprabHSw7da65*S*j:\"SS!"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "83635",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "GARRY BATES: they wanna kill me\\nGARRY BATES: they’re out to get me\\nGARRY BATES: but Im too smart for em\\nGARRY BATES: ",
+      "trans": "GARRY BATES: they wanna kill me\\nGARRY BATES: they’re out to get me\\nGARRY BATES: but Im too smart for em\\nGARRY BATES: "
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "84148",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Preview a taste of what awaits you at your destination. Crystal Palace is proud to offer you its seasonal in-flight menu",
+      "trans": "Preview a taste of what awaits you at your destination. Crystal Palace is proud to offer you its seasonal in-flight menu"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "85403",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Fans of professional sports often say that Night City is the only large metropolis in America without a football team, e",
+      "trans": "Fans of professional sports often say that Night City is the only large metropolis in America without a football team, e"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "85427",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "The body of a young Haitian woman was found near the entrance to the Terra Cognita Technology Park. Her body was strung ",
+      "trans": "The body of a young Haitian woman was found near the entrance to the Terra Cognita Technology Park. Her body was strung "
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "86165",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "The more fiery half of the of the netrunner duo that go by the name of Skylight in cyberspace. Relatively wealthy by bir",
+      "trans": "The more fiery half of the of the netrunner duo that go by the name of Skylight in cyberspace. Relatively wealthy by bir"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "86199",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Song So Mi (Korean -  송소미), codenamed \"Songbird\", is a netrunner in the FIA. She started out as a freelance netrunner, t",
+      "trans": "Song So Mi (Korean -  송소미), codenamed \"Songbird\", is a netrunner in the FIA. She started out as a freelance netrunner, t"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "86428",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Song So Mi (Korean -  송소미), codenamed \"Songbird\", is a netrunner in the FIA. She started out as a freelance netrunner, t",
+      "trans": "Song So Mi (Korean -  송소미), codenamed \"Songbird\", is a netrunner in the FIA. She started out as a freelance netrunner, t"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "87832",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "struct CPLX_DIGIT { OLD_NET_FORMAT rl, cplx; };\\n\\nZ_FORMAT PACKAGE_UPLOAD(){\\n\tOLD_NET_FORMAT D2 = 1 << 1;\\nZ_FORMAT DA",
+      "trans": "struct CPLX_DIGIT { OLD_NET_FORMAT rl, cplx; };\\n\\nZ_FORMAT PACKAGE_UPLOAD(){\\n\tOLD_NET_FORMAT D2 = 1 << 1;\\nZ_FORMAT DA"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "90641",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "p2PKaQKoO_SO_EASY_782a\\n3r4_TO_TAKE_CONTROL_aAh6aNw3kcH_THEY_THINK_j\\nnbeMFax2A2",
+      "trans": "p2PKaQKoO_SO_EASY_782a\\n3r4_TO_TAKE_CONTROL_aAh6aNw3kcH_THEY_THINK_j\\nnbeMFax2A2"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "90644",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "mnh&&S&+SDdu&37hsy76J*_ARE_SO_WEAK_A&A&sdfeSX\\n(x)_SO_RUDIMENTARY_<s3>2zbznL;OIS_SO_FRAGILE_ssa^wie2J\\nZxLK&@1100111eu9S",
+      "trans": "mnh&&S&+SDdu&37hsy76J*_ARE_SO_WEAK_A&A&sdfeSX\\n(x)_SO_RUDIMENTARY_<s3>2zbznL;OIS_SO_FRAGILE_ssa^wie2J\\nZxLK&@1100111eu9S"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "90650",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "OKHSVVo_WE_HEAR_YOU_8mS4kLORXOpr\\nAllWyYfchn_YOURE_ON_THE_OTHER_SIDE_tHfknRwaS\\nXiz8GF_WAIT_FOR_US_pvLmq3c5jZ2sHFW",
+      "trans": "OKHSVVo_WE_HEAR_YOU_8mS4kLORXOpr\\nAllWyYfchn_YOURE_ON_THE_OTHER_SIDE_tHfknRwaS\\nXiz8GF_WAIT_FOR_US_pvLmq3c5jZ2sHFW"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "91432",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "In recent times we have witnessed the expansion of Zetatech in Night City, but few know of the corporation's secret agre",
+      "trans": "In recent times we have witnessed the expansion of Zetatech in Night City, but few know of the corporation's secret agre"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "91445",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "A gigantic heap of radioactive trash is heading directly for North America's west coast. Of course, no corporation claim",
+      "trans": "A gigantic heap of radioactive trash is heading directly for North America's west coast. Of course, no corporation claim"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "91588",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "It wasn't easy at the start. If you were in Night City in 2070, you saw the smoldering pile of rubble that became of sou",
+      "trans": "It wasn't easy at the start. If you were in Night City in 2070, you saw the smoldering pile of rubble that became of sou"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "91589",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "What will the future bring? Most likely another attempt to torpedo out initiatives, along with acts of sabtoage, provoca",
+      "trans": "What will the future bring? Most likely another attempt to torpedo out initiatives, along with acts of sabtoage, provoca"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "92057",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Hey Dr. Anderson,\\nThe cold storage area's all set up, just like we agreed. The air conditioning's set to 40 degrees, yo",
+      "trans": "Hey Dr. Anderson,\\nThe cold storage area's all set up, just like we agreed. The air conditioning's set to 40 degrees, yo"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "92254",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "yo that handyman choom LeKill3rFou got flatlined. burnt to a crisp, guy was a jack of all trades, now he’s a pile of ash",
+      "trans": "yo that handyman choom LeKill3rFou got flatlined. burnt to a crisp, guy was a jack of all trades, now he’s a pile of ash"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "92391",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Hey kid. Looks like me and NC need to take a break. Hook me up with a little place to lay low for a while? Pissed off mo",
+      "trans": "Hey kid. Looks like me and NC need to take a break. Hook me up with a little place to lay low for a while? Pissed off mo"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "92925",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Sam, people die, loves are lost, things pass. That’s life. You wanted to be a merc, enter the major leagues, drink at th",
+      "trans": "Sam, people die, loves are lost, things pass. That’s life. You wanted to be a merc, enter the major leagues, drink at th"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "92965",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "PIERRE-LOUIS DUVAL: yeah?\\nJOHNNY AUGUSTE: what’re you doing?\\nPIERRE-LOUIS DUVAL: chilling\\nPIERRE-LOUIS DUVAL: like I ",
+      "trans": "PIERRE-LOUIS DUVAL: yeah?\\nJOHNNY AUGUSTE: what’re you doing?\\nPIERRE-LOUIS DUVAL: chilling\\nPIERRE-LOUIS DUVAL: like I "
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "92978",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "MILITECH CAPTAIN: We wait for further orders.\\nMILITECH FIRST OFFICER: We should leave Pacifica now.\\nMILITECH FIRST OFF",
+      "trans": "MILITECH CAPTAIN: We wait for further orders.\\nMILITECH FIRST OFFICER: We should leave Pacifica now.\\nMILITECH FIRST OFF"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "93950",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "%%%RECOVERING ARCHIVES%%%AUDIO TRANSCRIPT%%%Erwin Kirsch, entry #0000001%%%\\nTest, test, test...\\n[Clears throat] My nam",
+      "trans": "%%%RECOVERING ARCHIVES%%%AUDIO TRANSCRIPT%%%Erwin Kirsch, entry #0000001%%%\\nTest, test, test...\\n[Clears throat] My nam"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "93953",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "%%%RECOVERING ARCHIVES%%%AUDIO TRANSCRIPT%%%Erwin Kirsch, entry #0003451%%%\\nWho would've thought? Top of my class, pres",
+      "trans": "%%%RECOVERING ARCHIVES%%%AUDIO TRANSCRIPT%%%Erwin Kirsch, entry #0003451%%%\\nWho would've thought? Top of my class, pres"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "93957",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "%%%RECOVERING ARCHIVES%%%AUDIO TRANSCRIPT%%%Erwin Kirsch, entry #0024567%%%\\n\"Uncanny.\" One day, when you're older, you'",
+      "trans": "%%%RECOVERING ARCHIVES%%%AUDIO TRANSCRIPT%%%Erwin Kirsch, entry #0024567%%%\\n\"Uncanny.\" One day, when you're older, you'"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "93961",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "%%%RECOVERING ARCHIVES%%%AUDIO TRANSCRIPT%%%Erwin Kirsch, entry #0039543%%%\\nI knew this day would come and still I am n",
+      "trans": "%%%RECOVERING ARCHIVES%%%AUDIO TRANSCRIPT%%%Erwin Kirsch, entry #0039543%%%\\nI knew this day would come and still I am n"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "93973",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "%%% \"BARGHEST WARHOUND\" FIREWALL UPDATED%%%UNAUTHORIZED COMMUNICATIONS WITH COMBAT BOT 1R-0NC-LAD DETECTED%%%TERMINATING",
+      "trans": "%%% \"BARGHEST WARHOUND\" FIREWALL UPDATED%%%UNAUTHORIZED COMMUNICATIONS WITH COMBAT BOT 1R-0NC-LAD DETECTED%%%TERMINATING"
+    },
+    {
+      "section": "ep1/onscreens/onscreens.json",
+      "pk": "94394",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Tell me, do we wear bellbottom jeans and flowers in our hair? Then why do we act like a fucking hippie commune? I heard ",
+      "trans": "Tell me, do we wear bellbottom jeans and flowers in our hair? Then why do we act like a fucking hippie commune? I heard "
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "79081",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Kenny, save us! We’re all out of ROMVLVS – sold every single bottle last weekend. What’s the upcoming schedule for BARGH",
+      "trans": "Kenny, save us! We’re all out of ROMVLVS – sold every single bottle last weekend. What’s the upcoming schedule for BARGH"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "81843",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "how’s it goin hon\\n\\n-----\\n\\nFrom: Aneta Daehler-Cross\\nTo: Paulie Cross\\nRE: u ok?\\n\\nhuge explosion a minute ago, tho",
+      "trans": "how’s it goin hon\\n\\n-----\\n\\nFrom: Aneta Daehler-Cross\\nTo: Paulie Cross\\nRE: u ok?\\n\\nhuge explosion a minute ago, tho"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "81950",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "MASON BLACK: fuckin' preem\\nMASON BLACK: just how the hell did you crack that security protocol\\nPHIL KOCH: got my ways\\",
+      "trans": "MASON BLACK: fuckin' preem\\nMASON BLACK: just how the hell did you crack that security protocol\\nPHIL KOCH: got my ways\\"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "82401",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "the fuck happened with that drop? waited around all night yesterday with my dick in my hand and sky's clear - didn't a s",
+      "trans": "the fuck happened with that drop? waited around all night yesterday with my dick in my hand and sky's clear - didn't a s"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "82476",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "alan, you scramble your goddamn brain? fuckin with a barghest drop? we have a fucking deal - their shit is off limits. i",
+      "trans": "alan, you scramble your goddamn brain? fuckin with a barghest drop? we have a fucking deal - their shit is off limits. i"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "82826",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Your mother's asking when you’re going to come see us. It’s been six months. You’re always working. Visit us sometime.\\n",
+      "trans": "Your mother's asking when you’re going to come see us. It’s been six months. You’re always working. Visit us sometime.\\n"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "82957",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "I've received several inquiries and offers about the DY-X-77.9, one of which practically leapt off my screen. I sent out",
+      "trans": "I've received several inquiries and offers about the DY-X-77.9, one of which practically leapt off my screen. I sent out"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "83052",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Steven, why do you suddenly want your netrunners controlling the technical bots? Our techies need to control those bots ",
+      "trans": "Steven, why do you suddenly want your netrunners controlling the technical bots? Our techies need to control those bots "
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "83101",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "ahYGotoSpie&#LL^djBS_ARE_YOU_HERE_WITH_ME?jam\\nHBklo:\"jes*tHSHBXG\\n(*&SGStuX^Nndh^hsjs{jQQQ]>##\\nnvprabHSw7da65*S*j:\"SS!",
+      "trans": "ahYGotoSpie&#LL^djBS_ARE_YOU_HERE_WITH_ME?jam\\nHBklo:\"jes*tHSHBXG\\n(*&SGStuX^Nndh^hsjs{jQQQ]>##\\nnvprabHSw7da65*S*j:\"SS!"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "83635",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "GARRY BATES: they wanna kill me\\nGARRY BATES: they’re out to get me\\nGARRY BATES: but Im too smart for em\\nGARRY BATES: ",
+      "trans": "GARRY BATES: they wanna kill me\\nGARRY BATES: they’re out to get me\\nGARRY BATES: but Im too smart for em\\nGARRY BATES: "
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "83661",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "JACOB BERNARD: can’t find my championship ring\\nMARTHA BERNARD: mhm\\nJACOB BERNARD: I need it\\nMARTHA BERNARD: mhm\\nJACO",
+      "trans": "JACOB BERNARD: can’t find my championship ring\\nMARTHA BERNARD: mhm\\nJACOB BERNARD: I need it\\nMARTHA BERNARD: mhm\\nJACO"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "84106",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Greetings,\\n\\nOn behalf of the Board of Night City International and Translunar, I'd like to file a report on the progre",
+      "trans": "Greetings,\\n\\nOn behalf of the Board of Night City International and Translunar, I'd like to file a report on the progre"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "84128",
+      "field": "maleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Minute 009. N54 News broadcast vehicle arrives.\\nMinute 087. Sounds of gunfire from around the corner.\\nMinute 091. Trau",
+      "trans": "Minute 009. N54 News broadcast vehicle arrives.\\nMinute 087. Sounds of gunfire from around the corner.\\nMinute 091. Trau"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "84148",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Preview a taste of what awaits you at your destination. Crystal Palace is proud to offer you its seasonal in-flight menu",
+      "trans": "Preview a taste of what awaits you at your destination. Crystal Palace is proud to offer you its seasonal in-flight menu"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "84326",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Misty, think about it, would ya? We make a great team. It doesn't have to change, you know. New customers could use some",
+      "trans": "Misty, think about it, would ya? We make a great team. It doesn't have to change, you know. New customers could use some"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "84951",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Damir,\\n\\nlemme get straight to it. Those syn-lungs you picked up yesterday? Already modded by our choom from Vladivosto",
+      "trans": "Damir,\\n\\nlemme get straight to it. Those syn-lungs you picked up yesterday? Already modded by our choom from Vladivosto"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "85203",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Fact 1: Crystal Palace is the longest-functioning space station. The first module was launched into orbit in 2000. Const",
+      "trans": "Fact 1: Crystal Palace is the longest-functioning space station. The first module was launched into orbit in 2000. Const"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "85403",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Fans of professional sports often say that Night City is the only large metropolis in America without a football team, e",
+      "trans": "Fans of professional sports often say that Night City is the only large metropolis in America without a football team, e"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "85416",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "First time at Night City International & Translunar?\\nNot to worry – we're here to help you find your way to the stars!\\",
+      "trans": "First time at Night City International & Translunar?\\nNot to worry – we're here to help you find your way to the stars!\\"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "85427",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "The body of a young Haitian woman was found near the entrance to the Terra Cognita Technology Park. Her body was strung ",
+      "trans": "The body of a young Haitian woman was found near the entrance to the Terra Cognita Technology Park. Her body was strung "
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "85460",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Hello! This is Leland, your Creative Assistant!\\nBeing a language-based framework, I am able to generate a large number ",
+      "trans": "Hello! This is Leland, your Creative Assistant!\\nBeing a language-based framework, I am able to generate a large number "
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "85782",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Hansen’s lapdogs are buzzing like an angry hornets’ nest. They’re recruiting left and right, buying Stadium combat impla",
+      "trans": "Hansen’s lapdogs are buzzing like an angry hornets’ nest. They’re recruiting left and right, buying Stadium combat impla"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "85806",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Hello Chester,\\nI must admit that I knew nothing about your commanding officer’s affinity for exploring underground bunk",
+      "trans": "Hello Chester,\\nI must admit that I knew nothing about your commanding officer’s affinity for exploring underground bunk"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "85923",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Choom, listen, I'd hold out with chipping in that skeletal muscle implant, because according to the latest research, it'",
+      "trans": "Choom, listen, I'd hold out with chipping in that skeletal muscle implant, because according to the latest research, it'"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "86165",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "The more fiery half of the of the netrunner duo that go by the name of Skylight in cyberspace. Relatively wealthy by bir",
+      "trans": "The more fiery half of the of the netrunner duo that go by the name of Skylight in cyberspace. Relatively wealthy by bir"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "86197",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "A brilliant Voodoo Boy netrunner who was once the right hand of Maman Brigitte before they clashed over ideals. Brigitte",
+      "trans": "A brilliant Voodoo Boy netrunner who was once the right hand of Maman Brigitte before they clashed over ideals. Brigitte"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "86199",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Song So Mi (Korean -  송소미), codenamed \"Songbird\", is a netrunner in the FIA. She started out as a freelance netrunner, t",
+      "trans": "Song So Mi (Korean -  송소미), codenamed \"Songbird\", is a netrunner in the FIA. She started out as a freelance netrunner, t"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "86229",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "If Villefort ever needed to be advertised, it might use \"less is more\" as a slogan to promote its coupé model. But Ville",
+      "trans": "If Villefort ever needed to be advertised, it might use \"less is more\" as a slogan to promote its coupé model. But Ville"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "86306",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "In the 2020s Militech established a secret, experimental military project in this part of Pacifica, constructing bunkers",
+      "trans": "In the 2020s Militech established a secret, experimental military project in this part of Pacifica, constructing bunkers"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "86394",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "The more fiery half of the of the netrunner duo that go by the name of Skylight in cyberspace. Relatively wealthy by bir",
+      "trans": "The more fiery half of the of the netrunner duo that go by the name of Skylight in cyberspace. Relatively wealthy by bir"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "86426",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "A brilliant Voodoo Boy netrunner who was once the right hand of Maman Brigitte before they clashed over ideals. Brigitte",
+      "trans": "A brilliant Voodoo Boy netrunner who was once the right hand of Maman Brigitte before they clashed over ideals. Brigitte"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "86428",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Song So Mi (Korean -  송소미), codenamed \"Songbird\", is a netrunner in the FIA. She started out as a freelance netrunner, t",
+      "trans": "Song So Mi (Korean -  송소미), codenamed \"Songbird\", is a netrunner in the FIA. She started out as a freelance netrunner, t"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "86456",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Dear Dr. Vargas,\\nWe need your help. Our daughter Jennifer Haley spent three years of her life in your facility, but unf",
+      "trans": "Dear Dr. Vargas,\\nWe need your help. Our daughter Jennifer Haley spent three years of her life in your facility, but unf"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "86817",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Lorraine, listen, I’m trying to get to the bottom of this phant stuff. How it works, what the mechanism of addiction is.",
+      "trans": "Lorraine, listen, I’m trying to get to the bottom of this phant stuff. How it works, what the mechanism of addiction is."
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "87830",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Got an idea bro. Pretty clever one, if I do say so myself. We set up a simple radar system, track the AVs and figure out",
+      "trans": "Got an idea bro. Pretty clever one, if I do say so myself. We set up a simple radar system, track the AVs and figure out"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "87832",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "struct CPLX_DIGIT { OLD_NET_FORMAT rl, cplx; };\\n\\nZ_FORMAT PACKAGE_UPLOAD(){\\n\tOLD_NET_FORMAT D2 = 1 << 1;\\nZ_FORMAT DA",
+      "trans": "struct CPLX_DIGIT { OLD_NET_FORMAT rl, cplx; };\\n\\nZ_FORMAT PACKAGE_UPLOAD(){\\n\tOLD_NET_FORMAT D2 = 1 << 1;\\nZ_FORMAT DA"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "88836",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Think this is it? The end of the story? Can we finally stop looking over our shoulders? Are we... free? I'd like to thin",
+      "trans": "Think this is it? The end of the story? Can we finally stop looking over our shoulders? Are we... free? I'd like to thin"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "88866",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Reed, sending you data on the \"package\" bein delivered to Los Padres. Courtesy of a benevolent runner. Hope it has what ",
+      "trans": "Reed, sending you data on the \"package\" bein delivered to Los Padres. Courtesy of a benevolent runner. Hope it has what "
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "89426",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "You will go see a netrunner who will decrypt the chipset. Her compensation and pledge of secrecy have been taken care of",
+      "trans": "You will go see a netrunner who will decrypt the chipset. Her compensation and pledge of secrecy have been taken care of"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "89435",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "You will go see a netrunner who will decrypt the chipset. You are acquainted with one another - a fact we deemed not ins",
+      "trans": "You will go see a netrunner who will decrypt the chipset. You are acquainted with one another - a fact we deemed not ins"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "90330",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Branko, that kiroshi optic from Rinder is as good as scrap. There's a virus on it, the nerves have latency - probably al",
+      "trans": "Branko, that kiroshi optic from Rinder is as good as scrap. There's a virus on it, the nerves have latency - probably al"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "90395",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Padded bolero blazer with detachable mesh lining",
+      "trans": "Padded bolero blazer with detachable mesh lining"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "90638",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "gylcrE34FUzU2R_OUR_CHOICES_STEER_yz\\nEXa02bw3kqx8An_THEIR_FREE_WILL_3N\\nHie33oOVL0XAVvPEX6",
+      "trans": "gylcrE34FUzU2R_OUR_CHOICES_STEER_yz\\nEXa02bw3kqx8An_THEIR_FREE_WILL_3N\\nHie33oOVL0XAVvPEX6"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "90641",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "p2PKaQKoO_SO_EASY_782a\\n3r4_TO_TAKE_CONTROL_aAh6aNw3kcH_THEY_THINK_j\\nnbeMFax2A2",
+      "trans": "p2PKaQKoO_SO_EASY_782a\\n3r4_TO_TAKE_CONTROL_aAh6aNw3kcH_THEY_THINK_j\\nnbeMFax2A2"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "90644",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "mnh&&S&+SDdu&37hsy76J*_ARE_SO_WEAK_A&A&sdfeSX\\n(x)_SO_RUDIMENTARY_<s3>2zbznL;OIS_SO_FRAGILE_ssa^wie2J\\nZxLK&@1100111eu9S",
+      "trans": "mnh&&S&+SDdu&37hsy76J*_ARE_SO_WEAK_A&A&sdfeSX\\n(x)_SO_RUDIMENTARY_<s3>2zbznL;OIS_SO_FRAGILE_ssa^wie2J\\nZxLK&@1100111eu9S"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "90647",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "09iuY[..]@[........])(>>>ssjh2_EASY_TO_BREAK_-----&&#&#((\\n(@jjdjhyaya_THEY_WONT_SEE_IT_COMING[{}]21jj2mqyaiaod_____",
+      "trans": "09iuY[..]@[........])(>>>ssjh2_EASY_TO_BREAK_-----&&#&#((\\n(@jjdjhyaya_THEY_WONT_SEE_IT_COMING[{}]21jj2mqyaiaod_____"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "90650",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "OKHSVVo_WE_HEAR_YOU_8mS4kLORXOpr\\nAllWyYfchn_YOURE_ON_THE_OTHER_SIDE_tHfknRwaS\\nXiz8GF_WAIT_FOR_US_pvLmq3c5jZ2sHFW",
+      "trans": "OKHSVVo_WE_HEAR_YOU_8mS4kLORXOpr\\nAllWyYfchn_YOURE_ON_THE_OTHER_SIDE_tHfknRwaS\\nXiz8GF_WAIT_FOR_US_pvLmq3c5jZ2sHFW"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "91432",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "In recent times we have witnessed the expansion of Zetatech in Night City, but few know of the corporation's secret agre",
+      "trans": "In recent times we have witnessed the expansion of Zetatech in Night City, but few know of the corporation's secret agre"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "91445",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "A gigantic heap of radioactive trash is heading directly for North America's west coast. Of course, no corporation claim",
+      "trans": "A gigantic heap of radioactive trash is heading directly for North America's west coast. Of course, no corporation claim"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "91589",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "What will the future bring? Most likely another attempt to torpedo out initiatives, along with acts of sabtoage, provoca",
+      "trans": "What will the future bring? Most likely another attempt to torpedo out initiatives, along with acts of sabtoage, provoca"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "92057",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Hey Dr. Anderson,\\nThe cold storage area's all set up, just like we agreed. The air conditioning's set to 40 degrees, yo",
+      "trans": "Hey Dr. Anderson,\\nThe cold storage area's all set up, just like we agreed. The air conditioning's set to 40 degrees, yo"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "92391",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Hey kid. Looks like me and NC need to take a break. Hook me up with a little place to lay low for a while? Pissed off mo",
+      "trans": "Hey kid. Looks like me and NC need to take a break. Hook me up with a little place to lay low for a while? Pissed off mo"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "92598",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "RAHEEL FRAYRE: any news from Alan?\\nJULIO KINGI: radio silence\\nJULIO KINGI: guy dropped off the radar\\nRAHEEL FRAYRE: w",
+      "trans": "RAHEEL FRAYRE: any news from Alan?\\nJULIO KINGI: radio silence\\nJULIO KINGI: guy dropped off the radar\\nRAHEEL FRAYRE: w"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "92925",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Sam, people die, loves are lost, things pass. That’s life. You wanted to be a merc, enter the major leagues, drink at th",
+      "trans": "Sam, people die, loves are lost, things pass. That’s life. You wanted to be a merc, enter the major leagues, drink at th"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "92965",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "PIERRE-LOUIS DUVAL: yeah?\\nJOHNNY AUGUSTE: what’re you doing?\\nPIERRE-LOUIS DUVAL: chilling\\nPIERRE-LOUIS DUVAL: like I ",
+      "trans": "PIERRE-LOUIS DUVAL: yeah?\\nJOHNNY AUGUSTE: what’re you doing?\\nPIERRE-LOUIS DUVAL: chilling\\nPIERRE-LOUIS DUVAL: like I "
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "93950",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "%%%RECOVERING ARCHIVES%%%AUDIO TRANSCRIPT%%%Erwin Kirsch, entry #0000001%%%\\nTest, test, test...\\n[Clears throat] My nam",
+      "trans": "%%%RECOVERING ARCHIVES%%%AUDIO TRANSCRIPT%%%Erwin Kirsch, entry #0000001%%%\\nTest, test, test...\\n[Clears throat] My nam"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "93953",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "%%%RECOVERING ARCHIVES%%%AUDIO TRANSCRIPT%%%Erwin Kirsch, entry #0003451%%%\\nWho would've thought? Top of my class, pres",
+      "trans": "%%%RECOVERING ARCHIVES%%%AUDIO TRANSCRIPT%%%Erwin Kirsch, entry #0003451%%%\\nWho would've thought? Top of my class, pres"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "93957",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "%%%RECOVERING ARCHIVES%%%AUDIO TRANSCRIPT%%%Erwin Kirsch, entry #0024567%%%\\n\"Uncanny.\" One day, when you're older, you'",
+      "trans": "%%%RECOVERING ARCHIVES%%%AUDIO TRANSCRIPT%%%Erwin Kirsch, entry #0024567%%%\\n\"Uncanny.\" One day, when you're older, you'"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "93961",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "%%%RECOVERING ARCHIVES%%%AUDIO TRANSCRIPT%%%Erwin Kirsch, entry #0039543%%%\\nI knew this day would come and still I am n",
+      "trans": "%%%RECOVERING ARCHIVES%%%AUDIO TRANSCRIPT%%%Erwin Kirsch, entry #0039543%%%\\nI knew this day would come and still I am n"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "93973",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "%%% \"BARGHEST WARHOUND\" FIREWALL UPDATED%%%UNAUTHORIZED COMMUNICATIONS WITH COMBAT BOT 1R-0NC-LAD DETECTED%%%TERMINATING",
+      "trans": "%%% \"BARGHEST WARHOUND\" FIREWALL UPDATED%%%UNAUTHORIZED COMMUNICATIONS WITH COMBAT BOT 1R-0NC-LAD DETECTED%%%TERMINATING"
+    },
+    {
+      "section": "ep1/onscreens/onscreens_final.json",
+      "pk": "94394",
+      "field": "femaleVariant",
+      "kind": "UNTRANSLATED",
+      "src": "Tell me, do we wear bellbottom jeans and flowers in our hair? Then why do we act like a fucking hippie commune? I heard ",
+      "trans": "Tell me, do we wear bellbottom jeans and flowers in our hair? Then why do we act like a fucking hippie commune? I heard "
+    }
+  ]
+}

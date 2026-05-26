@@ -1,0 +1,842 @@
+{
+  "total": 119,
+  "by_kind": {
+    "missing": 115,
+    "english_leak": 4
+  },
+  "defects": [
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "22113",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "26426",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "28199",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "28439",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "28719",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "29533",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "29545",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "36258",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "39261",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "41558",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "42275",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "42471",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "42474",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "42528",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "42539",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "42554",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "43635",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "46913",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "48203",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "48413",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "48417",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "48423",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "49042",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "49043",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "50971",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "51455",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "77660",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "77661",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "79387",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "81191",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "91992",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "95137",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "95292",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "95635",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "96896",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens.json",
+      "pk": "8129",
+      "field": "femaleVariant",
+      "kind": "english_leak",
+      "detail": "Drugs are"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "10546",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "20107",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "22113",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "22118",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "22221",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "26426",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "28199",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "28439",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "28719",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "29533",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "29545",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "32836",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "32837",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "36258",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "37909",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "blank — English source exists"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "39686",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "39689",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "39692",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "40745",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "41558",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "42275",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "42471",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "42474",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "42528",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "42539",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "42554",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "43635",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "46913",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "47737",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "47738",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "48203",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "48413",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "48417",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "48423",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "48559",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "49042",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "49043",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "50971",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "51455",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "53296",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "blank — English source exists"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "77660",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "77661",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "79387",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "81191",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "91992",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "95137",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "95292",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "95295",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "95635",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "96896",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "onscreens/onscreens_final.json",
+      "pk": "8129",
+      "field": "femaleVariant",
+      "kind": "english_leak",
+      "detail": "Drugs are"
+    },
+    {
+      "section": "subtitles/media/quests/sq017_03_kerry_collaboration.json",
+      "pk": "1802311699667861504",
+      "field": "femaleVariant",
+      "kind": "english_leak",
+      "detail": "Cracks Off the"
+    },
+    {
+      "section": "subtitles/open_world/street_stories/sts_wat_nid_04_gottfrid_fredrik.json",
+      "pk": "1671051628319707136",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "subtitles/open_world/voicesets/gang_scv_m_09_rus_25_mt.json",
+      "pk": "1898000636657131524",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "subtitles/open_world/voicesets/gang_val_m_08_mex_40_mt.json",
+      "pk": "2235002627082559492",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "subtitles/quest/cp77/cp77_chicken_test.json",
+      "pk": "3609957169350270976",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "subtitles/quest/cp77/cp77_debug_central.json",
+      "pk": "1472075932989673472",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "subtitles/quest/mq000/mq000_00_chickentest.json",
+      "pk": "2398153442537152512",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "subtitles/quest/mq000/mq000_00_chickentest.json",
+      "pk": "2398162355433152584",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "subtitles/quest/mq000/mq000_00_chickentest.json",
+      "pk": "2398172325830631492",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "subtitles/quest/mq000/mq000_00_chickentest.json",
+      "pk": "2398294047250620480",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "subtitles/quest/mq000/mq000_00_chickentest.json",
+      "pk": "2398298152970919936",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "subtitles/quest/mq000/mq000_00_chickentest.json",
+      "pk": "2398298152970919948",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "subtitles/quest/mq000/mq000_00_chickentest.json",
+      "pk": "2398298152970919960",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "subtitles/quest/mq000/mq000_00_chickentest.json",
+      "pk": "2398298152970919972",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "subtitles/quest/mq000/mq000_00_chickentest.json",
+      "pk": "2398298152987697172",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "subtitles/quest/mq000/mq000_00_chickentest.json",
+      "pk": "2398301344534274108",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "subtitles/quest/mq000/mq000_00_chickentest.json",
+      "pk": "2398307856090570776",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "subtitles/quest/mq000/mq000_00_chickentest.json",
+      "pk": "2398307856107347968",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "subtitles/quest/mq000/mq000_00_chickentest.json",
+      "pk": "2398335512190296096",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "subtitles/quest/mq000/mq000_00_chickentest.json",
+      "pk": "2398335512190296108",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "subtitles/quest/mq000/mq000_00_chickentest.json",
+      "pk": "2398335512190296120",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "subtitles/quest/mq000/mq000_00_chickentest.json",
+      "pk": "2398335512190296132",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "subtitles/quest/mq000/mq000_00_chickentest.json",
+      "pk": "2476307276731686912",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "subtitles/quest/mq000/mq000_00_chickentest.json",
+      "pk": "2476307276731686924",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "subtitles/quest/mq000/mq000_00_chickentest.json",
+      "pk": "2476321195143634992",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "subtitles/quest/mq000/mq000_00_chickentest.json",
+      "pk": "2476461186096209944",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "subtitles/quest/mq023/mq023_03_street_vendor.json",
+      "pk": "1883578928325181440",
+      "field": "femaleVariant",
+      "kind": "english_leak",
+      "detail": "Never Fade Away Dancing with"
+    },
+    {
+      "section": "subtitles/quest/q115/q115_00_chickentest.json",
+      "pk": "1866327767030702080",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "subtitles/quest/q115/q115_00_chickentest.json",
+      "pk": "1922858652244385792",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "subtitles/quest/sq018/sq018_03_funeral.json",
+      "pk": "1856158611717017600",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "subtitles/quest/sq026/sq026_chicken_test.json",
+      "pk": "1883834444803981312",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    },
+    {
+      "section": "subtitles/quest/sq026/sq026_chicken_test.json",
+      "pk": "1883834444803981328",
+      "field": "femaleVariant",
+      "kind": "missing",
+      "detail": "untranslated — no Hebrew"
+    }
+  ]
+}

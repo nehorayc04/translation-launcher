@@ -1,7 +1,9 @@
-customtkinter>=5.2.0
 Pillow>=10.0.0
-# Cross-platform system tray icon. Used by translation_manager.tray to
-# host the "minimize to tray" runtime. Pillow is its image dependency.
+# Cross-platform system tray icon. Used by the legacy Eel build
+# (translation_manager.tray) for the "minimize to tray" runtime. The
+# Qt shell uses QSystemTrayIcon directly and does NOT depend on
+# pystray; keep this entry so both builds remain installable from
+# the same requirements file. Pillow is pystray's image dependency.
 pystray>=0.19
 opencv-python>=4.8.0
 pyinstaller>=6.0.0

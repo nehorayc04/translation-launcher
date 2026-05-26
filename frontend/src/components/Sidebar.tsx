@@ -89,9 +89,14 @@ export default function Sidebar({ current, onNavigate, onRefresh, version }: Pro
           {/* אפקט הארה פנימי במעבר עכבר שמונח מעל התמונה */}
           <div className="absolute inset-0 bg-gradient-to-br from-[#00ffe0]/30 to-[#fff700]/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none" />
 
-          {/* התמונה מהאתר (וודא שהשם profile.png תואם לקובץ ששמת בתיקיית public) */}
+          {/* התמונה מהאתר. שמורה ב-frontend/public/profile.png ומועתקת
+              ע"י Vite ל-dist/. נתיב יחסי "./" עובד גם תחת Eel (HTTP origin,
+              גועצ מצרת מ-dist) וגם תחת ה-Qt shell (file://, נטען ליד
+              index.html). נתיב מוחלט "/profile.png" היה נפתר ל-file:///C:/
+              ב-file:// — drive root — ומחזיר 404, מה שגרם ל-onError לסיים
+              ב-fallback "ת". */}
           <img
-            src="/profile.png"
+            src="./profile.png"
             alt="User Profile"
             className="w-full h-full object-cover relative z-0"
             onError={(e) => {

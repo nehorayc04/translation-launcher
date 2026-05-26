@@ -1,0 +1,6 @@
+# Cloudflare Worker — steam-hebrew-mods proxy.
+# Deployed URL will be:  https://steam-hebrew-mods.<account-subdomain>.workers.dev
+# The GitHub PAT is NOT here — set it as a secret:  wrangler secret put GITHUB_TOKEN
+name = "steam-hebrew-mods"
+main = "src/index.js"
+compatibility_date = "2026-05-20"

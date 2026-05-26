@@ -561,6 +561,18 @@ def _authed_token() -> Optional[tuple]:
     return (cfg, tok.access_token)
 
 
+def get_access_token() -> Optional[str]:
+    """Public accessor for the current Supabase access token. Refreshes
+    on expiry. Returns None when signed out.
+
+    Exposed to the launcher's React frontend so the in-launcher PayPal
+    Smart Buttons can authenticate against /api/paypal?action=create-order
+    / capture-order. The token is short-lived (1h) and scoped to the
+    signed-in user — same posture as the website's BuyButton."""
+    pair = _authed_token()
+    return pair[1] if pair else None
+
+
 def get_purchases() -> dict:
     """All 'completed' user_purchases rows for the current user, with
     the joined game catalog row inlined via PostgREST resource embedding.
@@ -582,9 +594,13 @@ def get_purchases() -> dict:
         r = requests.get(
             url,
             params={
-                'select': 'id,game_id,status,created_at,games(id,title_en,title_he,cover_url,version,version_label,download_url,price_cents)',
+                # `created_at:purchased_at` is a PostgREST column alias —
+                # the table column is `purchased_at` (default now() on the
+                # initial pending row), but the JS shape keeps `created_at`
+                # so we don't churn the frontend MyPurchase interface.
+                'select': 'id,game_id,status,created_at:purchased_at,games(id,title_en,title_he,cover_url,version,version_label,download_url,price_cents)',
                 'status': 'eq.completed',
-                'order':  'created_at.desc',
+                'order':  'purchased_at.desc',
             },
             headers={
                 'apikey':        cfg.anon_key,

@@ -15,7 +15,7 @@ import PersonalAreaView  from "./views/PersonalAreaView";
 import GameDetailPanel   from "./views/GameDetailPanel";
 import SoftwareDetailPanel from "./views/SoftwareDetailPanel";
 import CloseBehaviorModal from "./components/CloseBehaviorModal";
-import { api, onModProgress } from "./lib/eel";
+import { api, onModProgress, onCatalogRefreshComplete } from "./lib/eel";
 import type { Game, Software, LauncherPrefs } from "./lib/types";
 import { SiteConfigProvider } from "./lib/useSiteConfig";
 import { LauncherAuthProvider } from "./lib/useLauncherAuth";
@@ -201,21 +201,45 @@ export default function App() {
     }
   }, [reportStatus]);
 
-  // Sidebar refresh button — forces the Python backend to bypass its 30s
-  // in-process cache and re-fetch games + news + updates from the server.
+  // Sidebar refresh button — fire-and-forget on the Qt shell. The
+  // backend dispatches the 3 HTTP fetches to QThreadPool and returns
+  // immediately with {ok, pending:true}; games/news/updates flow back
+  // progressively via cache_refreshed signals (existing subscriber
+  // above auto-merges them into state), and the per-source toast
+  // labels arrive via onCatalogRefreshComplete (effect below). On the
+  // legacy Eel build the slot blocks until completion and returns the
+  // payload synchronously - we apply it inline as a fallback so both
+  // transports still work from one button.
   const handleRefreshFromServer = useCallback(async () => {
     reportStatus("מרענן מהשרת...");
     try {
       const r = await api.refreshCatalog();
-      setGames(r.games);
-      setRefreshNonce((n) => n + 1);   // re-run fetch effects in child views
-      const fromRemote =
-        r.catalog_source === "remote" ||
-        r.news_source    === "remote";
-      reportStatus(fromRemote ? "עודכן מהשרת" : "אין חיבור — נטען מקבצים מקומיים", !fromRemote);
+      if (r && Array.isArray(r.games)) {
+        // Legacy Eel path: full payload arrived. Apply directly + toast now.
+        setGames(r.games);
+        setRefreshNonce((n) => n + 1);
+        const fromRemote =
+          r.catalog_source === "remote" ||
+          r.news_source    === "remote";
+        reportStatus(fromRemote ? "עודכן מהשרת" : "אין חיבור — נטען מקבצים מקומיים", !fromRemote);
+      }
+      // Qt-shell path: {ok, pending:true}. Toast + nonce-bump live in
+      // the onCatalogRefreshComplete effect below.
     } catch (e) {
       reportStatus(String(e), true);
     }
+  }, [reportStatus]);
+
+  // Qt-shell fire-and-forget completion. Updates the toast + bumps
+  // refreshNonce so per-view effects (live progress, etc.) re-run.
+  // Games themselves arrive via the cache_refreshed handler above
+  // before this fires.
+  useEffect(() => {
+    return onCatalogRefreshComplete((catalog, news, _updates) => {
+      setRefreshNonce((n) => n + 1);
+      const fromRemote = catalog === "remote" || news === "remote";
+      reportStatus(fromRemote ? "עודכן מהשרת" : "אין חיבור — נטען מקבצים מקומיים", !fromRemote);
+    });
   }, [reportStatus]);
 
   return (
@@ -274,7 +298,7 @@ export default function App() {
             <PersonalAreaView
               refreshNonce={refreshNonce}
               onBack={() => setView("home")}
-              webProfileUrl="https://hebrew-translation-hub.vercel.app/profile"
+              webProfileUrl="https://hebrew-translation-hub.com/profile"
             />
           ) : (
             <SettingsView
@@ -315,12 +339,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Tiny corner version — non-obtrusive */}
-      <div className="fixed bottom-2 right-3 text-[10px] text-slate-500/60
-                      font-mono pointer-events-none select-none"
-           style={{ zIndex: 5 }}>
-        {APP_VERSION}
-      </div>
     </div>
     </LauncherAuthProvider>
     </SiteConfigProvider>

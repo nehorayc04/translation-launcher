@@ -1,0 +1,918 @@
+==============================================================================
+CYBERPUNK 2077 — Deep English-Tail Audit (Base game only)
+==============================================================================
+Generated:       2026-05-23 14:09:52
+Run time:        24.0 s
+Source JSON:     C:\Users\nc528\סקריפטים\תרגום משחקים\תרגום_משחקים\source\resources\localization_translated.json
+Source size:     53,731,343 bytes (mtime: 2026-05-23 14:09:09)
+Mod main:        C:\Users\nc528\סקריפטים\תרגום משחקים\Cyberpunk 2077\archive\pc\mod\z_hebrew_translation.archive
+Mod static:      C:\Users\nc528\סקריפטים\תרגום משחקים\Cyberpunk 2077\archive\pc\mod\z_hebrew_static.archive
+
+─── totals per category ───
+  A. fixable_missing                  — אנגלית 'אמיתית' שעדיין יש לתרגם       0
+  B. fixable_english_leak             — פרגמנט אנגלי בתוך משפט עברי           4
+  C. foreign_voiceset                 — <kiroshi/mothertongue l=...> אודיו זר בכוונה      3
+  D. code_or_acronym                  — HDR10 / ISO 100 / NC484 / Mk.31 — לא לתרגום     82
+  E. dev_junk                         — chickentest / IGNORE / [db_db] — שאריות פיתוח CDPR     30
+  F. dropped_markup_wrapper           — type-A: עברית תקינה, ה-wrapper נפל    276
+  G. bake_drift                       — חוסר התאמה בין המקור לארכיב המבושל      5
+  H. foreign_script                   — קרסה / יוונית / CJK בעברית            0
+  I. loose_game_text                  — טקסט אנגלי בקובץ קונפיג/מוד בתיקיית המשחק      0
+  J. structural_markup                — markup damaged (parse_slots rejected)      0
+  K. translated_but_not_in_base_bake  — תורגם אבל לא נכלל בארכיב הבסיס (DLC overflow)  1,305
+  L. orphan_or_other                  — לא מיופה לקטגוריה                     0
+  TOTAL                                                                   1,705
+
+─── bake stats (Layer 2) ───
+  archive: main
+    path:           C:\Users\nc528\סקריפטים\תרגום משחקים\Cyberpunk 2077\archive\pc\mod\z_hebrew_translation.archive
+    exists:         True
+    sections baked: 3,085
+    sections w/ findings: 3
+    common pks vs source: 196,264
+
+  archive: static
+    path:           C:\Users\nc528\סקריפטים\תרגום משחקים\Cyberpunk 2077\archive\pc\mod\z_hebrew_static.archive
+    exists:         True
+    sections baked: 36
+    sections w/ findings: 0
+    common pks vs source: 18
+
+==============================================================================
+A. fixable_missing                  — אנגלית 'אמיתית' שעדיין יש לתרגם
+count: 0
+==============================================================================
+  (none)
+
+==============================================================================
+B. fixable_english_leak             — פרגמנט אנגלי בתוך משפט עברי
+count: 4
+==============================================================================
+Top sections:
+      1  onscreens/onscreens.json
+      1  onscreens/onscreens_final.json
+      1  subtitles/media/quests/sq017_03_kerry_collaboration.json
+      1  subtitles/quest/mq023/mq023_03_street_vendor.json
+
+- [source/src/english_leak] onscreens/onscreens.json pk=8129 field=femaleVariant
+    VL: היי נט\nתבדקי את האתר "Drugs are bad". כשאת שם תלחצי על התמונה, האדומה עם האנשים בה\n\n----\nמ:נטלי\nל:bRandy\nRE: זה די מטורף XD\n\nמה לעזאזל זה? איזשהי כת? כמו איך בכלל מצאת את זה?\n\n----\n\nמ: bRandy\nל: נטלי\nRE: זה מטורף XD\n\nפשוט ג…
+    >>  Drugs are
+- [source/src/english_leak] onscreens/onscreens_final.json pk=8129 field=femaleVariant
+    VL: היי נט\nתבדקי את האתר "Drugs are bad". כשאת שם תלחצי על התמונה, האדומה עם האנשים בה\n\n----\nמ:נטלי\nל:bRandy\nRE: זה די מטורף XD\n\nמה לעזאזל זה? איזשהי כת? כמו איך בכלל מצאת את זה?\n\n----\n\nמ: bRandy\nל: נטלי\nRE: זה מטורף XD\n\nפשוט ג…
+    >>  Drugs are
+- [source/src/english_leak] subtitles/media/quests/sq017_03_kerry_collaboration.json pk=1802311699667861504 field=femaleVariant
+    EN: And with who? With the kickass cuties from Us Cracks! They did a collab
+    VL: ועם מי? עם הכוכבות המדהימות מ-Us Cracks! הן עשו שיתוף פעולה בלהיט הקאלט "Off the Leash" אבל עם פיתול חדש, פרוע ופרוע!
+    >>  Cracks Off the
+- [source/src/english_leak] subtitles/quest/mq023/mq023_03_street_vendor.json pk=1883578928325181440 field=femaleVariant
+    EN: Kid, you even gotta ask?! "Never Fade Away," "Dancing with my Ax," "Chippin' In"! You name it, we got it
+    VL: ילד, אתה בכלל צריך לשאול?! "Never Fade Away", "Dancing with my Ax", "Chippin' In"! מה שאתה רוצה, יש לנו את זה!
+    >>  Never Fade Away Dancing with
+
+==============================================================================
+C. foreign_voiceset                 — <kiroshi/mothertongue l=...> אודיו זר בכוונה
+count: 3
+==============================================================================
+Top sections:
+      1  subtitles/open_world/voicesets/gang_scv_m_09_rus_25_mt.json
+      1  subtitles/open_world/voicesets/gang_val_m_08_mex_40_mt.json
+      1  subtitles/quest/sq018/sq018_03_funeral.json
+
+- [source/src/missing] subtitles/open_world/voicesets/gang_scv_m_09_rus_25_mt.json pk=1898000636657131524 field=femaleVariant
+    EN: <kiroshi l="rus" o="А-а-а... пусти... с-сука..." t="Argh… let go… shithead…" b="" a=""/
+    VL: <kiroshi l="rus" o="А-а-а... пусти... с-сука..." t="Argh… let go… shithead…" b="" a=""/>
+    >>  untranslated — no Hebrew
+- [source/src/missing] subtitles/open_world/voicesets/gang_val_m_08_mex_40_mt.json pk=2235002627082559492 field=femaleVariant
+    EN: <kiroshi l="mex" o="¡Está cansado! ¡Sigan presionando!" t="He's worn out! Keep pushing!" b="" a=""/
+    VL: <kiroshi l="mex" o="¡Está cansado! ¡Sigan presionando!" t="He's worn out! Keep pushing!" b="" a=""/>
+    >>  untranslated — no Hebrew
+- [source/src/missing] subtitles/quest/sq018/sq018_03_funeral.json pk=1856158611717017600 field=femaleVariant
+    EN: <mothertongue l="mex" m="pulpo" b="He was conscious when I get there. So many tubes coming out of him,
+    VL: <mothertongue l="mex" m="pulpo" b="He was conscious when I get there. So many tubes coming out of him, he look like a... like a " a=", like an octopus or something."/>
+    >>  untranslated — no Hebrew
+
+==============================================================================
+D. code_or_acronym                  — HDR10 / ISO 100 / NC484 / Mk.31 — לא לתרגום
+count: 82
+==============================================================================
+Top sections:
+     48  onscreens/onscreens_final.json
+     33  onscreens/onscreens.json
+      1  subtitles/open_world/street_stories/sts_wat_nid_04_gottfrid_fredrik.json
+
+- [source/src/missing] onscreens/onscreens.json pk=22113 field=femaleVariant
+    EN: ISO 100
+    VL: ISO 100
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=26426 field=femaleVariant
+    EN: 87DM1101
+    VL: 87DM1101
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=28199 field=femaleVariant
+    EN: 543XRS
+    VL: 543XRS
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=28439 field=femaleVariant
+    EN: C10H16ClN
+    VL: C10H16ClN
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=28719 field=femaleVariant
+    EN: SQ021.DK.PT
+    VL: SQ021.DK.PT
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=29533 field=femaleVariant
+    EN: 52/102 mmHg
+    VL: 52/102 mmHg
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=29545 field=femaleVariant
+    EN: 58/114 mmHg
+    VL: 58/114 mmHg
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=36258 field=femaleVariant
+    EN: 8ug8ear
+    VL: 8ug8ear
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=39261 field=femaleVariant
+    EN: PDA
+    VL: PDA
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=41558 field=femaleVariant
+    EN: CFO
+    VL: CFO
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=42275 field=femaleVariant
+    EN: R-134a
+    VL: R-134a
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=42471 field=femaleVariant
+    EN: 435254DR
+    VL: 435254DR
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=42474 field=femaleVariant
+    EN: NC484326623SU4322562
+    VL: NC484326623SU4322562
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=42528 field=femaleVariant
+    EN: NC484326623SU4322562
+    VL: NC484326623SU4322562
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=42539 field=femaleVariant
+    EN: CH4376D3343276C37243
+    VL: CH4376D3343276C37243
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=43635 field=femaleVariant
+    EN: VSync
+    VL: VSync
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=46913 field=femaleVariant
+    EN: RC32
+    VL: RC32
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=48203 field=femaleVariant
+    EN: 12:00 AM
+    VL: 12:00 AM
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=48413 field=femaleVariant
+    EN: LN454400-N
+    VL: LN454400-N
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=48417 field=femaleVariant
+    EN: NC985510-C
+    VL: NC985510-C
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=48423 field=femaleVariant
+    EN: NC488402-V
+    VL: NC488402-V
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=49042 field=femaleVariant
+    EN: MLT 503
+    VL: MLT 503
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=49043 field=femaleVariant
+    EN: 40C48WD0
+    VL: 40C48WD0
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=50971 field=femaleVariant
+    EN: HDR
+    VL: HDR
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=51455 field=femaleVariant
+    EN: DLSS
+    VL: DLSS
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=77660 field=femaleVariant
+    EN: HDR10 PQ
+    VL: HDR10 PQ
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=77661 field=femaleVariant
+    EN: HDR10 scRGB
+    VL: HDR10 scRGB
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=79387 field=femaleVariant
+    EN: FPS:
+    VL: FPS:
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=81191 field=femaleVariant
+    EN: CTO
+    VL: CTO
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=91992 field=femaleVariant
+    EN: TRN_TCLAS_800095
+    VL: TRN_TCLAS_800095
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=95292 field=femaleVariant
+    EN: BFC 9000
+    VL: BFC 9000
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=95635 field=femaleVariant
+    EN: xoxo
+    VL: xoxo
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=96896 field=femaleVariant
+    EN: ASM-R250
+    VL: ASM-R250
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens_final.json pk=10546 field=femaleVariant
+    EN: 8ug8ear
+    VL: 8ug8ear
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens_final.json pk=20107 field=femaleVariant
+    EN: 8ug8ear
+    VL: 8ug8ear
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens_final.json pk=22113 field=femaleVariant
+    EN: ISO 100
+    VL: ISO 100
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens_final.json pk=22118 field=femaleVariant
+    EN: HD\nF 5.6\nISO 100
+    VL: HD\nF 5.6\nISO 100
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens_final.json pk=22221 field=femaleVariant
+    EN: HD\nF 5.6\nISO 100
+    VL: HD\nF 5.6\nISO 100
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens_final.json pk=26426 field=femaleVariant
+    EN: 87DM1101
+    VL: 87DM1101
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens_final.json pk=28199 field=femaleVariant
+    EN: 543XRS
+    VL: 543XRS
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens_final.json pk=28439 field=femaleVariant
+    EN: C10H16ClN
+    VL: C10H16ClN
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens_final.json pk=28719 field=femaleVariant
+    EN: SQ021.DK.PT
+    VL: SQ021.DK.PT
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens_final.json pk=29533 field=femaleVariant
+    EN: 52/102 mmHg
+    VL: 52/102 mmHg
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens_final.json pk=29545 field=femaleVariant
+    EN: 58/114 mmHg
+    VL: 58/114 mmHg
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens_final.json pk=32836 field=femaleVariant
+    EN: 8ug8ear
+    VL: 8ug8ear
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens_final.json pk=32837 field=femaleVariant
+    EN: 8ug8ear
+    VL: 8ug8ear
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens_final.json pk=36258 field=femaleVariant
+    EN: 8ug8ear
+    VL: 8ug8ear
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens_final.json pk=37909 field=femaleVariant
+    EN: SCSM
+    >>  blank — English source exists
+- [source/src/missing] onscreens/onscreens_final.json pk=39686 field=femaleVariant
+    EN: 8ug8ear
+    VL: 8ug8ear
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens_final.json pk=39689 field=femaleVariant
+    EN: 8ug8ear
+    VL: 8ug8ear
+    >>  untranslated — no Hebrew
+  … and 32 more not shown
+
+==============================================================================
+E. dev_junk                         — chickentest / IGNORE / [db_db] — שאריות פיתוח CDPR
+count: 30
+==============================================================================
+Top sections:
+     20  subtitles/quest/mq000/mq000_00_chickentest.json
+      2  onscreens/onscreens.json
+      2  onscreens/onscreens_final.json
+      2  subtitles/quest/q115/q115_00_chickentest.json
+      2  subtitles/quest/sq026/sq026_chicken_test.json
+      1  subtitles/quest/cp77/cp77_chicken_test.json
+      1  subtitles/quest/cp77/cp77_debug_central.json
+
+- [source/src/missing] onscreens/onscreens.json pk=42554 field=femaleVariant
+    EN: 5as4 2asd1
+    VL: 5as4 2asd1
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens.json pk=95137 field=femaleVariant
+    EN: xoxo ;)
+    VL: xoxo ;)
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens_final.json pk=42554 field=femaleVariant
+    EN: 5as4 2asd1
+    VL: 5as4 2asd1
+    >>  untranslated — no Hebrew
+- [source/src/missing] onscreens/onscreens_final.json pk=95137 field=femaleVariant
+    EN: xoxo ;)
+    VL: xoxo ;)
+    >>  untranslated — no Hebrew
+- [source/src/missing] subtitles/quest/cp77/cp77_chicken_test.json pk=3609957169350270976 field=femaleVariant
+    EN: [db_db]EP1
+    VL: [db_db]EP1
+    >>  untranslated — no Hebrew
+- [source/src/missing] subtitles/quest/cp77/cp77_debug_central.json pk=1472075932989673472 field=femaleVariant
+    EN: [db_db]sq004_riders
+    VL: [db_db]sq004_riders
+    >>  untranslated — no Hebrew
+- [source/src/missing] subtitles/quest/mq000/mq000_00_chickentest.json pk=2398153442537152512 field=femaleVariant
+    EN: [db_db][<<Back]
+    VL: [db_db][<<חזרה]
+    >>  untranslated — no Hebrew
+- [source/src/missing] subtitles/quest/mq000/mq000_00_chickentest.json pk=2398162355433152584 field=femaleVariant
+    EN: [db_db][<<Back]
+    VL: [db_db][<<חזרה]
+    >>  untranslated — no Hebrew
+- [source/src/missing] subtitles/quest/mq000/mq000_00_chickentest.json pk=2398172325830631492 field=femaleVariant
+    EN: [db_db][<<Back]
+    VL: [db_db][<<חזרה]
+    >>  untranslated — no Hebrew
+- [source/src/missing] subtitles/quest/mq000/mq000_00_chickentest.json pk=2398294047250620480 field=femaleVariant
+    EN: [db_db][<<Back]
+    VL: [db_db][<<חזרה]
+    >>  untranslated — no Hebrew
+- [source/src/missing] subtitles/quest/mq000/mq000_00_chickentest.json pk=2398298152970919936 field=femaleVariant
+    EN: [db_db]wns_news_07
+    VL: [db_db]wns_news_07
+    >>  untranslated — no Hebrew
+- [source/src/missing] subtitles/quest/mq000/mq000_00_chickentest.json pk=2398298152970919948 field=femaleVariant
+    EN: [db_db]wns_news_08
+    VL: [db_db]wns_news_08
+    >>  untranslated — no Hebrew
+- [source/src/missing] subtitles/quest/mq000/mq000_00_chickentest.json pk=2398298152970919960 field=femaleVariant
+    EN: [db_db]wns_news_09
+    VL: [db_db]wns_news_09
+    >>  untranslated — no Hebrew
+- [source/src/missing] subtitles/quest/mq000/mq000_00_chickentest.json pk=2398298152970919972 field=femaleVariant
+    EN: [db_db]wns_news_10
+    VL: [db_db]wns_news_10
+    >>  untranslated — no Hebrew
+- [source/src/missing] subtitles/quest/mq000/mq000_00_chickentest.json pk=2398298152987697172 field=femaleVariant
+    EN: [db_db][<<Back]
+    VL: [db_db][<<חזרה]
+    >>  untranslated — no Hebrew
+- [source/src/missing] subtitles/quest/mq000/mq000_00_chickentest.json pk=2398301344534274108 field=femaleVariant
+    EN: [db_db][<<Back]
+    VL: [db_db][<<חזרה]
+    >>  untranslated — no Hebrew
+- [source/src/missing] subtitles/quest/mq000/mq000_00_chickentest.json pk=2398307856090570776 field=femaleVariant
+    EN: [db_db]wns_sq_021_03_quest_hook_b
+    VL: [db_db]wns_sq_021_03_quest_hook_b
+    >>  untranslated — no Hebrew
+- [source/src/missing] subtitles/quest/mq000/mq000_00_chickentest.json pk=2398307856107347968 field=femaleVariant
+    EN: [db_db][<<Back]
+    VL: [db_db][<<חזרה]
+    >>  untranslated — no Hebrew
+- [source/src/missing] subtitles/quest/mq000/mq000_00_chickentest.json pk=2398335512190296096 field=femaleVariant
+    EN: [db_db]your_business_04
+    VL: [db_db]your_business_04
+    >>  untranslated — no Hebrew
+- [source/src/missing] subtitles/quest/mq000/mq000_00_chickentest.json pk=2398335512190296108 field=femaleVariant
+    EN: [db_db]your_business_05
+    VL: [db_db]your_business_05
+    >>  untranslated — no Hebrew
+- [source/src/missing] subtitles/quest/mq000/mq000_00_chickentest.json pk=2398335512190296120 field=femaleVariant
+    EN: [db_db]your_business_06
+    VL: [db_db]your_business_06
+    >>  untranslated — no Hebrew
+- [source/src/missing] subtitles/quest/mq000/mq000_00_chickentest.json pk=2398335512190296132 field=femaleVariant
+    EN: [db_db][<<Back]
+    VL: [db_db][<<חזרה]
+    >>  untranslated — no Hebrew
+- [source/src/missing] subtitles/quest/mq000/mq000_00_chickentest.json pk=2476307276731686912 field=femaleVariant
+    EN: [db_db]guns_n_horses_01
+    VL: [db_db]guns_n_horses_01
+    >>  untranslated — no Hebrew
+- [source/src/missing] subtitles/quest/mq000/mq000_00_chickentest.json pk=2476307276731686924 field=femaleVariant
+    EN: [db_db]guns_n_horses_02
+    VL: [db_db]guns_n_horses_02
+    >>  untranslated — no Hebrew
+- [source/src/missing] subtitles/quest/mq000/mq000_00_chickentest.json pk=2476321195143634992 field=femaleVariant
+    EN: [db_db][<<Back]
+    VL: [db_db][<<חזרה]
+    >>  untranslated — no Hebrew
+- [source/src/missing] subtitles/quest/mq000/mq000_00_chickentest.json pk=2476461186096209944 field=femaleVariant
+    EN: [db_db][<<Back]
+    VL: [db_db][<<חזרה]
+    >>  untranslated — no Hebrew
+- [source/src/missing] subtitles/quest/q115/q115_00_chickentest.json pk=1866327767030702080 field=femaleVariant
+    EN: [db_db]AV
+    VL: [db_db]AV
+    >>  untranslated — no Hebrew
+- [source/src/missing] subtitles/quest/q115/q115_00_chickentest.json pk=1922858652244385792 field=femaleVariant
+    EN: [db_db][...........]
+    VL: [db_db][...........]
+    >>  untranslated — no Hebrew
+- [source/src/missing] subtitles/quest/sq026/sq026_chicken_test.json pk=1883834444803981312 field=femaleVariant
+    EN: [db_db]F
+    VL: [db_db]F
+    >>  untranslated — no Hebrew
+- [source/src/missing] subtitles/quest/sq026/sq026_chicken_test.json pk=1883834444803981328 field=femaleVariant
+    EN: [db_db]M
+    VL: [db_db]M
+    >>  untranslated — no Hebrew
+
+==============================================================================
+F. dropped_markup_wrapper           — type-A: עברית תקינה, ה-wrapper נפל
+count: 276
+==============================================================================
+Top sections:
+     20  subtitles/open_world/voicesets/gang_val_f_03_mex_30_mt.json
+     12  subtitles/open_world/voicesets/gang_val_m_01_mex_30_mt.json
+     11  subtitles/open_world/voicesets/gang_tcl_m_09_jap_40_mt.json
+     11  subtitles/open_world/voicesets/gang_val_m_05_mex_30_mt.json
+      9  subtitles/open_world/voicesets/gang_val_f_04_mex_20_mt.json
+      9  subtitles/open_world/voicesets/gang_val_m_08_mex_40_mt.json
+      9  subtitles/quest/q110/q110_15_vdb_fight.json
+      8  subtitles/open_world/voicesets/gang_scv_f_03_rus_30_fat.json
+      8  subtitles/open_world/voicesets/gang_scv_m_09_rus_25_mt.json
+      8  subtitles/open_world/voicesets/gang_val_m_02_mex_30_mt.json
+
+- [wrappers/dropped_markup_wrapper] subtitles/media/finalboards/fb_welles.json pk=1801184732545531904 field=femaleVariant
+    EN: <kiroshi l="mex" o="... Y acéptala en compañía de tus santos. Amén." t="...
+    VL: ... יקבלנה בחברת קדושיך. אמן.
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/media/finalboards/fb_welles.json pk=1801189440651771904 field=femaleVariant
+    EN: <mothertongue l="mex" m="mija" b="Have you lost your mind, " a="?"/
+    VL: מיו, האם ש noct  אתה משוגע?
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/media/finalboards/fb_welles.json pk=1801190182473154560 field=femaleVariant
+    EN: <mothertongue l="mex" m="Estás loca, eh!" b="" a=" Crazy, completely crazy."/
+    VL: אתה משוגע, אה! משוגע לגמרי.
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/street_stories/sts_wat_kab_04_obtaining_data.json pk=1674975310322700288 field=femaleVariant
+    EN: <kiroshi l="rus" o="Ты её убила! Сука!" t="You killed her! You bitch!" b="" a=""/
+    VL: הרגת אותה! נוכל!
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/vendors/elcoyote_barman_default.json pk=1857640142820253696 field=femaleVariant
+    EN: <mothertongue l="mex" m="hermana" b="Discount's already added, " a="."/
+    VL: הנחה כבר נוספה,
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/civ_low_f_68_mex_20.json pk=1908163693197664260 field=femaleVariant
+    EN: <mothertongue l="mex" m="zorra." b="Back in your panties, " a=""/
+    VL: חזרה למכנסיים שלך, פנדחו.
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/civ_low_f_68_mex_20.json pk=1908163693734535172 field=femaleVariant
+    EN: <mothertongue l="mex" m="pendeja." b="Control yourself, " a=""/
+    VL: תשלוט בעצמך, פנדחו.
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/civ_low_m_114_car_30_mt.json pk=1922945583909707780 field=femaleVariant
+    EN: <kiroshi l="creo" o="Manzé ap touye m!" t="She'll kill me!" b="" a=""/
+    VL: י giết אותי!
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/civ_low_m_66_mex_40_mt.json pk=1922658313898041348 field=femaleVariant
+    EN: <kiroshi l="mex" o="Largo, pendeja." t="Buzz off, kid." b="" a=""/
+    VL: לרגו, פנדחו.
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/civ_low_m_66_mex_40_rep.json pk=1896691432276107264 field=femaleVariant
+    EN: <kiroshi l="mex" o="¿Tal vez trepó por aquí...?" t="Maybe she climbed in here…?" b="" a=""/
+    VL: אולי טיפס לכאן...?
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/civ_low_m_66_mex_40_rep.json pk=1896691432963973124 field=femaleVariant
+    EN: <kiroshi l="mex" o="¡Intrusa! ¿Me escuchas?" t="Intruder! You hear me?" b="" a=""/
+    VL: פולש! אתה שומע אותי?
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/civ_mid_m_50_chn_30_fat_mt.json pk=1948969782995443716 field=femaleVariant
+    EN: <kiroshi l="chin" o="掉咗佢嘅武器！" t="Disarm her!" b="" a=""/
+    VL: נטרל את הנשק שלו!
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/civ_mid_m_85_mex_30_mt.json pk=2209933764050059272 field=femaleVariant
+    EN: <kiroshi l="mex" o="¡Tiene un arma! ¡Corran!" t="She's got a gun! Ruuun!" b="" a=""/
+    VL: יש לו אקדח! רצים!
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_6th_f_02_mex_25.json pk=1789969747615780868 field=femaleVariant
+    EN: <mothertongue l="mex" m="chica" b="You're on real fuckin' thin ice, " a="."/
+    VL: אתה על קרח ממש דק,
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_ani_m_09_rus_50_big.json pk=1627396744999702528 field=femaleVariant
+    EN: <mothertongue l="bra" m="bebezinha!" b="Here, here, my little " a=""/
+    VL: אמא שלי!
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_ani_m_10_bra_20_big.json pk=1640311965766488064 field=femaleVariant
+    EN: <mothertongue l="bra" m="Piranha" b="" a=", I'm about to lose it with you."/
+    VL: סיאו אסקרוטו, אני עומד לאבד את זה איתך.
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_ani_m_10_bra_20_big.json pk=1640311966504685568 field=femaleVariant
+    EN: <mothertongue l="bra" m="Sua puta" b="I can't... Can't fuckin... " a="... Lemme go..."/
+    VL: בויולה דו קארליו, אני לא יכול... לא יכול לעזאזל... ...תן לי ללכת...
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_ani_m_10_bra_20_big.json pk=1640311966588571648 field=femaleVariant
+    EN: <kiroshi l="bra" o="Quebra essa puta no meio!" t="Fuck the bitch up!" b="" a=""/
+    VL: ארגאצ'ה את הקוזאו הזה!
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_ani_m_10_bra_20_big.json pk=1640311966722789376 field=femaleVariant
+    EN: <kiroshi l="bra" o="Ei, sua piranha!" t="Hey, pussy!" b="" a=""/
+    VL: היי, סתום!
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_ani_m_10_bra_20_big.json pk=1772214181803954176 field=femaleVariant
+    EN: <kiroshi l="bra" o="Ah-húúú! Pega ela!" t="Ah-wooooo! Get her!" b="" a=""/
+    VL: אה-הוו! תופסים אותו!
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_ani_m_13_rus_20_big.json pk=1640542156753309696 field=femaleVariant
+    EN: <kiroshi l="rus" o="Эта пизда уже рядом!" t="She's closin' in on us!" b="" a=""/
+    VL: הוא מתקרב אלינו!
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_ani_m_13_rus_20_big.json pk=1772282829205770240 field=femaleVariant
+    EN: <kiroshi l="rus" o="Мочи её, ну!" t="Knock her on her ass, now!" b="" a=""/
+    VL: תן לו מכות, עכשיו!
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_ani_m_14_mex_25_big.json pk=1639025450893545472 field=femaleVariant
+    EN: <mothertongue l="mex" m="Chica" b="" a=", back up. Don't make me knock your teeth out."/
+    VL: גווי, אחורה. אל תעשה לי שום דבר.
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_ani_m_14_mex_25_big.json pk=1639025451027763200 field=femaleVariant
+    EN: <mothertongue l="mex" m="Perra" b="" a=", you got three seconds before I rip your spine outta your ass!"/
+    VL: קברון, יש לך שלוש שניות לפני שאני קורע לך את עמוד השדרה מהתחת!
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_ani_m_14_mex_25_big.json pk=1639025451094872064 field=femaleVariant
+    EN: <mothertongue l="mex" m="mamacitas" b="Ey, we need more good " a=" like you."/
+    VL: היי, אנחנו צריכים עוד טובים כמוך, קברונים.
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_ani_m_14_mex_25_big.json pk=1639025451363307520 field=femaleVariant
+    EN: <mothertongue l="mex" m="putita" b="Where're you hiding, little " a="?"/
+    VL: איפה אתה מסתתר בן זונה?
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_ani_m_14_mex_25_big.json pk=1639025451380084736 field=femaleVariant
+    EN: <mothertongue l="mex" m="pinche zorra" b="Come out and face me, " a="!"/
+    VL: תצא ותתמודד איתי!
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_ani_m_14_mex_25_big.json pk=1639025451715629056 field=femaleVariant
+    EN: <kiroshi l="mex" o="¡Te voy a freír, cabrona!" t="I'll fuckin' kill you!" b="" a=""/
+    VL: אני אהרוג אותך סחלב!
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_scv_f_03_rus_30_fat.json pk=1898309689954394116 field=femaleVariant
+    EN: <kiroshi l="rus" o="О, да ты не глухая. Вот и уёбывай тог
+    VL: אוה, אתה לא חירש. לך מכאן!
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_scv_f_03_rus_30_fat.json pk=1898309690289938436 field=femaleVariant
+    EN: <kiroshi l="rus" o="Это ты до меня доебалась?!" t="What's it to me?! Fuck!" b="" a=""/
+    VL: מה זה לעניינך? תזדיין!
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_scv_f_03_rus_30_fat.json pk=1898309690726146052 field=femaleVariant
+    EN: <kiroshi l="rus" o="Окружай её, уроды!" t="Trap her, dammit!" b="" a=""/
+    VL: תקיפו אותו, מפלצות!
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_scv_f_03_rus_30_fat.json pk=2232113090207555588 field=femaleVariant
+    EN: <kiroshi l="rus" o="Ну, сука, ты мне за это ответишь!" t="You killed them! You bitch!" b="" a=""/
+    VL: נו, עייזוב, אתה חייב לי על זה
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_scv_f_03_rus_30_fat.json pk=2232113090526322688 field=femaleVariant
+    EN: <kiroshi l="rus" o="Ага! Прям по пизде!" t="Right in the pussy! Hahaha!" b="" a=""/
+    VL: אהה! ישר לביצים!
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_scv_f_03_rus_30_fat.json pk=2232113090710872068 field=femaleVariant
+    EN: <kiroshi l="rus" o="Вали её! Она полудохлая!" t="Don't stop! She's almost down!" b="" a=""/
+    VL: תן לו! הוא כמעט מת!
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_scv_f_03_rus_30_fat.json pk=2232113090845089796 field=femaleVariant
+    EN: <kiroshi l="rus" o="Смотри-ка, зассала!" t="Look! She's scared!" b="" a=""/
+    VL: תסתכל, הוא מפחד!
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_scv_f_03_rus_30_fat.json pk=2232113091147079684 field=femaleVariant
+    EN: <kiroshi l="rus" o="Она нам ща импланты заглючит!" t="She's going for our implants!" b="" a=""/
+    VL: הוא הולך להרוס לנו את האימפלנטים!
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_scv_m_09_rus_25_mt.json pk=1898000635684052996 field=femaleVariant
+    EN: <kiroshi l="rus" o="Только дёрнись, сука, и я в тебе пару новых дырок сдел
+    VL: רק תזוז סתום ואני אעיף לך את הביצים
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_scv_m_09_rus_25_mt.json pk=1898000636204146692 field=femaleVariant
+    EN: <kiroshi l="rus" o="Пришейте её, и я простав
+    VL: תופרים אותו ואני אשלם
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_scv_m_09_rus_25_mt.json pk=1898000636220923908 field=femaleVariant
+    EN: <kiroshi l="rus" o="Мочи эту суку!" t="Pop the bitch!" b="" a=""/
+    VL: תחסל את הזונה הזאת!
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_scv_m_09_rus_25_mt.json pk=2232147384716107780 field=femaleVariant
+    EN: <kiroshi l="rus" o="Ну, ты мне ответишь, манда!" t="You killed them, you cunt!" b="" a=""/
+    VL: תמות, בן זונה!
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_scv_m_09_rus_25_mt.json pk=2232147385118760964 field=femaleVariant
+    EN: <kiroshi l="rus" o="Я её зацепил!" t="Got a hit off her!" b="" a=""/
+    VL: פגעתי בו!
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_scv_m_09_rus_25_mt.json pk=2232147385353641984 field=femaleVariant
+    EN: <kiroshi l="rus" o="Ну, не раскисать! Она ща п�
+    VL: לא להתייאש! הוא עכשיו י...
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_scv_m_09_rus_25_mt.json pk=2232147385605300228 field=femaleVariant
+    EN: <kiroshi l="rus" o="Она нас взламывает!" t="She's hacking us!" b="" a=""/
+    VL: הוא מפרץ אותנו!
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_scv_m_09_rus_25_mt.json pk=2232147385806626820 field=femaleVariant
+    EN: <kiroshi l="rus" o="Да она нетраннерша!" t="She's a netrunner!" b="" a=""/
+    VL: הוא נטראנר!
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_scv_m_11_rus_40_mt.json pk=1898039436267610116 field=femaleVariant
+    EN: <kiroshi l="rus" o="Пиздец тебе, подруга!" t="I'm taking you out, girlfriend!" b="" a=""/
+    VL: אני לוקח אותך החוצה, נוכל!
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_scv_m_11_rus_40_mt.json pk=1898039436955475972 field=femaleVariant
+    EN: <kiroshi l="rus" o="Мочи суку, мочи!" t="Run the motherfucker down!" b="" a=""/
+    VL: תרוץ על הבן זונה הזה!
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_scv_m_11_rus_40_mt.json pk=2232151300769980420 field=femaleVariant
+    EN: <kiroshi l="rus" o="Ха-ха-ха! Есть! Попал!" t="Hahaha! I did it! I hit her!" b="" a=""/
+    VL: hahaha! עשיתי את זה! פגעתי בו!
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_scv_m_11_rus_40_mt.json pk=2232151301004861444 field=femaleVariant
+    EN: <kiroshi l="rus" o="Мы ей кровь пустили! Добиваем!" t="She's wounded! Don't stop now!" b="" a=""/
+    VL: פצענו אותו! אל תפסיקו עכשיו!
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_scv_m_11_rus_40_mt.json pk=2232151301139079172 field=femaleVariant
+    EN: <kiroshi l="rus" o="Сразу обоссалась!" t="She's pissing herself!" b="" a=""/
+    VL: היא התשתטה!
+    >>  source secondaryKey is markup; value is plain Hebrew
+- [wrappers/dropped_markup_wrapper] subtitles/open_world/voicesets/gang_scv_m_11_rus_40_mt.json pk=2232151301474623492 field=femaleVariant
+    EN: <kiroshi l="rus" o="Ничего не вижу! Она меня ос�
+    VL: לא רואה כלום! הוא העלים אותי
+    >>  source secondaryKey is markup; value is plain Hebrew
+  … and 226 more not shown
+
+==============================================================================
+G. bake_drift                       — חוסר התאמה בין המקור לארכיב המבושל
+count: 5
+==============================================================================
+Top sections:
+      3  onscreens/onscreens.json
+      1  onscreens/onscreens_final.json
+      1  subtitles/quest/mq028/mq028_02_park.json
+
+- [baked_main/bake_english] onscreens/onscreens.json pk=87898 field=femaleVariant
+    EN: Unlocks <Rich color="TooltipText.cyberwareDescriptionHighlightColor" style="Semi-Bold">Focus</> mode. This mode au
+    VL: Unlocks <Rich color="TooltipText.cyberwareDescriptionHighlightColor" style="Semi-Bold">Focus</> mode. This mode au
+    >>  source has Hebrew; baked output is English / non-Hebrew
+- [baked_main/bake_arabic_skeleton] onscreens/onscreens.json pk=95358 field=femaleVariant
+    EN: GPS hash
+    VL: شفرة بيانات نظام تحديد مواقع
+    >>  source has Hebrew; baked output is the AR skeleton
+- [baked_main/bake_english] onscreens/onscreens.json pk=77919 field=femaleVariant
+    EN: Hazards are highlighted in <Rich color="MainColors.Red" style="Bold">Red</>.\n\nHackable objects are highlighted 
+    VL: Hazards are highlighted in <Rich color="MainColors.Red" style="Bold">Red</>.\n\nHackable objects are highlighted 
+    >>  source has Hebrew; baked output is English / non-Hebrew
+- [baked_main/bake_arabic_skeleton] onscreens/onscreens_final.json pk=95358 field=femaleVariant
+    EN: GPS hash
+    VL: شفرة بيانات نظام تحديد مواقع
+    >>  source has Hebrew; baked output is the AR skeleton
+- [baked_main/bake_arabic_skeleton] subtitles/quest/mq028/mq028_02_park.json pk=1975313822573043712 field=femaleVariant
+    EN: [Say nothing]
+    VL: [التزمي الصمت]
+    >>  source has Hebrew; baked output is the AR skeleton
+
+==============================================================================
+H. foreign_script                   — קרסה / יוונית / CJK בעברית
+count: 0
+==============================================================================
+  (none)
+
+==============================================================================
+I. loose_game_text                  — טקסט אנגלי בקובץ קונפיג/מוד בתיקיית המשחק
+count: 0
+==============================================================================
+  (none)
+
+==============================================================================
+J. structural_markup                — markup damaged (parse_slots rejected)
+count: 0
+==============================================================================
+  (none)
+
+==============================================================================
+K. translated_but_not_in_base_bake  — תורגם אבל לא נכלל בארכיב הבסיס (DLC overflow)
+count: 1,305
+==============================================================================
+Top sections:
+    686  onscreens/onscreens_final.json
+    619  onscreens/onscreens.json
+
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=83260 field=femaleVariant
+    EN: Story-base-journal-contacts-mr_hands-Mq304_hands_followup_title
+    VL: עסקים בטאונ דוג
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=91989 field=femaleVariant
+    EN: Story-base-journal-contacts-mr_hands-Q303_paradise_comment_title
+    VL: כניסה מרשימה
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=92810 field=femaleVariant
+    EN: Story-base-journal-contacts-judy-24b_ch_working_text
+    VL: אפשר כבר להרגיש משהו - זה באמת עובד <3
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=90973 field=femaleVariant
+    EN: Story-base-journal-contacts-mr_hands-Answer_positive_text
+    VL: בטח, אהיה שם בקרוב.
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=90645 field=femaleVariant
+    EN: Story-base-journal-contacts-muamar_el_capitan_reyes-Courier_outro_fail_vehicle_destroyed_text
+    VL: ישו כריסט. הרסת הכל וי, תברח משם
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=83474 field=femaleVariant
+    EN: alfa
+    VL: אלפא
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=91826 field=femaleVariant
+    EN: Story-base-journal-contacts-regina_jones-V_answer_rinder_dead_regina_variant_02_text
+    VL: תאונה בעבודה. זה קורה
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=87294 field=femaleVariant
+    EN: Story-base-journal-contacts-mr_hands-03b_ch_v_kills_bree_text
+    VL: הכל בסדר. מצטער, זה לא יקרה שוב.
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=83063 field=femaleVariant
+    EN: Story-base-journal-contacts-rogue-Mq301_02_msg_power_generators_text
+    VL: שמעת משהו על גנרטורים למכירה? חושבת שתוכלי לעזור לי להשיג כמה?
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=90640 field=femaleVariant
+    EN: Story-base-journal-contacts-muamar_el_capitan_reyes-Courier_outro_reponse_02_text
+    VL: בסדר, רק אל תשאיר צ'ום מחכה. הג'יג גדול.
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=83073 field=femaleVariant
+    EN: Story-base-journal-contacts-river_ward-Mq301_04_msg_need_generators_2_text
+    VL: לזה אני צריך 4 גנרטורים
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=88083 field=femaleVariant
+    EN: Story-base-journal-contacts-mr_hands-Combat_zone_reward_answer_b_text
+    VL: די עסוק כרגע
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=92169 field=femaleVariant
+    EN: Story-base-journal-contacts-muamar_el_capitan_reyes-Courier_loop_randomiser_failed_01_text
+    VL: בוא נגיד שהוראות שלי היו ברורות כמו יום בהיר, לא? אני מנחש שאולי הייתי צריך להפשיט אותן יותר מדי... לפחות סיים מה שאתה התחלת, בסדר?
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=82843 field=femaleVariant
+    EN: Story-base-journal-contacts-mr_hands-Comission_received_text
+    VL: הלקוח מרוצה. מעביר את הכספים שלך.
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=92876 field=femaleVariant
+    EN: Story-base-journal-contacts-panam-05ca_panam_jeesh_text
+    VL: וואו, בסדר, רציתי רק לדבר. אני די רחוק מנייט סיטי, משעמם לי קצת, התחלתי לחשוב עליך...
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=86496 field=femaleVariant
+    EN: Story-base-journal-contacts-panam-Q307_reachout_04_romance_text
+    VL: אני צריך שתגיד לי ישר – את רוצה שאשאר? אם כן, אז זה מסודר. אני פשוט צריך לדעת מה זה אומר בדיוק. מה יבוא מזה הבחירה…
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=83630 field=femaleVariant
+    EN: Gameplay-Clothing-Outfit-DisplayName-q304TheoOutfit
+    VL: באגסיי
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=91891 field=femaleVariant
+    EN: Story-base-journal-contacts-regina_jones-Rinder_dead_regina_answer_v_text
+    VL: זמן לגדול, V. וזמן להתחיל לקחת אותי ברצינות.
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=88047 field=femaleVariant
+    EN: Gameplay-RPG-CharDev-New_Perks-Names-Relic-Espionage_Left_Milestone_Perk
+    VL: פרוטוקול חושי
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=90992 field=femaleVariant
+    EN: Story-base-journal-contacts-sandra_dorsett-Response_positive_text
+    VL: בסדר, אהיה שם tout de suite אמצא אותך
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=86915 field=femaleVariant
+    EN: Story-base-journal-contacts-panam-Q307_panam_pre_05_b_text
+    VL: פעם אחת בלי סכנה. :) אסביר לך ברגע שאחזור, אבל עכשיו חייב להיעלם
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=92914 field=femaleVariant
+    EN: Story-base-journal-contacts-river_ward-10b_ch_nusa_president_text
+    VL: באגסיי
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=83065 field=femaleVariant
+    EN: Story-base-journal-contacts-rogue-Mq301_04_msg_high_demand_2_text
+    VL: גנרטורים תמיד בביקוש גבוה - קנייה או מכירה שלהם כמעט אף פעם לא דורשת פיקוח של מתקן. בעבודתי זה עודף קטן.
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=82844 field=femaleVariant
+    EN: Story-base-journal-contacts-mr_hands-V_kills_bree_text
+    VL: אני מצטער, אתה לא מרגיש טוב, V? אתה פשוט נתת ללקוח שלנו להירצח, נכון?\n\nודאי שהדרך המקצועית ביותר היתה להודות מראש כשמשימה קשה מדי בשבילך. אני מבין אותך?
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=86477 field=femaleVariant
+    EN: Story-base-journal-contacts-takemura-Q307_reachout_complete_01_text
+    VL: אנחנו חייבים לדבר - זה דחוף
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=81672 field=femaleVariant
+    EN: Gameplay-Clothing-Outfit-DisplayName-Q301KurtMilitiaH1
+    VL: באגסיי
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=92894 field=femaleVariant
+    EN: Story-base-journal-contacts-river_ward-04ba_ch_bigger_than_expected_text
+    VL: עדיין יש המון דברים שאני לא יודע זה מצב מסובך אספר לך הכל מאוחר יותר
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=91623 field=femaleVariant
+    EN: Gameplay-Achievements-displayName-Dirty work
+    VL: מעשים רעים
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=92809 field=femaleVariant
+    EN: Story-base-journal-contacts-judy-24a_ch_finish_early_text
+    VL: נראה שנראה - אולי עם העזרה שלך אני אסיים מהר יותר...?
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=92171 field=femaleVariant
+    EN: Story-base-journal-contacts-muamar_el_capitan_reyes-Courier_loop_regular_start_01_text
+    VL: לא יכולים לקבל מספיק משימות כאלה, אה? אתה חלאה בצמא לכסף? haha, אני זורק לך את הקואורדינטות, לך!
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=88688 field=femaleVariant
+    EN: Story-base-journal-contacts-mr_hands-V_answer_biomonitor_not_destroyed_var_1_text
+    VL: אני מנחש שיש לי נקודה רכה לצ'ומים שבאמת מאמינים במשהו. היה צריך לתת לה את הביומון.
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=86471 field=femaleVariant
+    EN: Story-base-journal-contacts-kerry_eurodyne-Q307_reachout_06_text
+    VL: לא מצחיק V
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=86905 field=femaleVariant
+    EN: Story-base-journal-contacts-river_ward-Q307_river_pre_05_a_text
+    VL: אעשה כמיטב יכולתי
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=86916 field=femaleVariant
+    EN: Story-base-journal-contacts-panam-Q307_panam_pre_06_a_text
+    VL: אתה חייב.
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=93460 field=femaleVariant
+    EN: Story-base-journal-contacts-muamar_el_capitan_reyes-Courier_outro_chase_delivery_done_cannot_call_in_text
+    VL: איבדנו את החום, טוב! עכשיו תביא את התחת שלך לכאן.
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=86499 field=femaleVariant
+    EN: Story-base-journal-contacts-panam-Q307_reachout_07_text
+    VL: תראה… אני מצטער. הרוגז שלי השתלט עלי.
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=86472 field=femaleVariant
+    EN: Story-base-journal-contacts-kerry_eurodyne-Q307_reachout_07_text
+    VL: 13 שיחות שלא נענו מ: קארי יורודיין
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=87958 field=femaleVariant
+    EN: Story-base-journal-contacts-mr_hands-Mq304_followup_jago_terra_text
+    VL: אני חייב להודות לך, V. אתה יודע מי עבר למשרד שלי לכוס תה ושיחה? ג'אגו, הכלב החדש של דוגטאון. הוא רצה לדון בכמה נושאים עסקיים של השכונה. יחס כזה מבשר טובות לעתיד. הכי טוב להתיידד עם השכנים שלך, לא אתה חושב? יחד, אני מאמין שנוכל להשיב את הסד…
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=92490 field=femaleVariant
+    EN: Story-base-journal-contacts-victor_vector-Q307_q115_06_text
+    VL: אני מקווה שאתה צודק.
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=92878 field=femaleVariant
+    EN: Story-base-journal-contacts-panam-06caa_ch_i_know_text
+    VL: אני יודע, מצטער. העבודה מסובכת יותר ממה שחשבתי.
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=92867 field=femaleVariant
+    EN: Story-base-journal-contacts-panam-03c_panam_no_reply_text
+    VL: V, "אני בסדר" היה מספיק. אני מתחיל לדאוג.
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=91636 field=femaleVariant
+    EN: Gameplay-Achievements-Localized Description-Dirty work
+    VL: השלם כל משימה בדוגטאון.
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=83164 field=femaleVariant
+    EN: Story-base-journal-contacts-panam-Mq301_01_msg_transport_gig_text
+    VL: יש לי בקשה עסקית בשבילך. צריך להזיז משלוח מסויים. אתה יכול לארגן הסעה?
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=87550 field=femaleVariant
+    EN: podpułkownik
+    VL: סגן אלוף
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=93247 field=femaleVariant
+    EN: Gameplay-Consumables-Skilbooks-DisplayName-BDFarmersMate
+    VL: חברו של החקלאי
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=82840 field=femaleVariant
+    EN: Story-base-journal-contacts-mr_hands-01_Briefing_about_Bree_text
+    VL: וי. הלקוחה שלך היא ברי ויטני, עיתונאית. היא אומרת שהיא מרגישה שאנשים מחברות גדולות רודפים אחריה וזקוקה לעזרה, אבל מסרבת לספק פרטים נוספים. לפני שאתה נפגש איתה, קח את כרטיס הגישה מדירתה: 18 סקייליין וסט, קומה חמישית, הדלת האחרונה מימין. הכר…
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=95097 field=femaleVariant
+    EN: Gameplay-Weapons-Mods-GameplayDescription-Base_Osprey_Gameplay_Description
+    VL: נשק כבד. קצת מפחית את מהירות התנועה. החזקת ההדק בזמן ירי מירכיים מאפשרת לו לירות באוטומט מלא.
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=92768 field=femaleVariant
+    EN: Story-base-journal-contacts-judy-03a_judy_msg_snark_text
+    VL: מלכת התשובות הקצרות -_-
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=86911 field=femaleVariant
+    EN: Story-base-journal-contacts-panam-Q307_panam_pre_03_ch_b_text
+    VL: לא בטוח בדיוק. הם לא אמרו
+    >>  source has translated entry but baked CR2W has no such pk
+- [baked_main/bake_missing_entry] onscreens/onscreens.json pk=85177 field=femaleVariant
+    EN: Story-base-journal-contacts-panam-Mq301_02b_msg_transport_gig_2_lovers_panam_contd_text
+    VL: או שיט כריס עזוב את זה אני כל כך גרוע בזה פשוט תדמיין שלא כתבתי את זה ונתעלם מזה לעולם
+    >>  source has translated entry but baked CR2W has no such pk
+  … and 1,255 more not shown
+
+==============================================================================
+L. orphan_or_other                  — לא מיופה לקטגוריה
+count: 0
+==============================================================================
+  (none)

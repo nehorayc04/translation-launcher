@@ -1,0 +1,569 @@
+[
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "5785",
+    "field": "femaleVariant",
+    "EN": "\u0001Quick Melee Attacks with Rifles and Submachine Guns deal {int_0}% more damage",
+    "HE": "תקיפות cuerpo a cuerpo מהירות עם רובים ותת-מקלע גורמות ל-{int_0}% נזק נוסף"
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "5849",
+    "field": "femaleVariant",
+    "EN": "+{int_0}% melee damage",
+    "HE": "+{int_0}% נזק cuerpo a cuerpo"
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "5850",
+    "field": "femaleVariant",
+    "EN": "\u0001Reduces the amount of Stamina consumed when blocking melee attacks by {int_0}%",
+    "HE": "מצמצם את כמות סיבולת הנצרכת בעת חסימת מתקפות cuerpo a cuerpo ב-{int_0}%"
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "5867",
+    "field": "femaleVariant",
+    "EN": "\u0001Increases melee damage by {int_1}% for every {int_0}% of Health lost",
+    "HE": "מגדיל נזק cuerpo a cuerpo ב-{int_1}% לכל %{int_0}% של חיים שאבדו"
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "5885",
+    "field": "femaleVariant",
+    "EN": "\u0001The first attack with a fully charged melee weapon guarantees a Crit Hit",
+    "HE": "התקפה ראשונה עם נשק cuerpo-a-cuerpo טעון לחלוטין מבטיחה פגיעת קריט"
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "5901",
+    "field": "femaleVariant",
+    "EN": "\u0001While Cold Blood is active, increases damage with melee weapons by {int_0}%",
+    "HE": "בזמן ש-Cold Blood פעיל, מגדיל נזק עם נשקי לחימה cuerpo a cuerpo ב-{int_0}%"
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "15020",
+    "field": "femaleVariant",
+    "EN": "\u0001Quick Melee Attacks with ranged weapons stagger enemies, giving you an opportunity to grapple them",
+    "HE": "מכות cuerpo a cuerpo מהירות עם נשק לטווח רחוק גורמות לאויבים להתנדנד, ומאפשרות לך לתפוס אותם"
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "40130",
+    "field": "femaleVariant",
+    "EN": "Reduces the Stamina cost of melee attacks.",
+    "HE": "מפחית את עלות הסיבולת של התקפות cuerpo a cuerpo."
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "40833",
+    "field": "femaleVariant",
+    "EN": "\u0001<Rich color=\"TooltipText.cyberwareDescriptionHighlightColor\" style=\"Semi-Bold\">+{int_0}% damage</> with melee weapons",
+    "HE": "<Rich color=\"TooltipText.cyberwareDescriptionHighlightColor\" style=\"Semi-Bold\">+{int_0}% נזק</> עם נשקי לחימה cuerpo a cuerpo"
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "40841",
+    "field": "femaleVariant",
+    "EN": "Increases body weight and the power behind melee attacks.",
+    "HE": "מגדיל את משקל הגוף ואת הכוח מאחורי התקפות cuerpo a cuerpo."
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "40859",
+    "field": "femaleVariant",
+    "EN": "Improves agility in melee combat.",
+    "HE": "משפר זריזות בקרב cuerpo a cuerpo."
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "43683",
+    "field": "femaleVariant",
+    "EN": "Melee Weapon Vendor",
+    "HE": "סוחר נשק cuerpo a cuerpo"
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "43771",
+    "field": "femaleVariant",
+    "EN": "Melee Weapon Mod Slot",
+    "HE": "חריץ למוד נשק cuerpo a cuerpo"
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "45156",
+    "field": "femaleVariant",
+    "EN": "Melee Weapon Vendor",
+    "HE": "סוחר נשק cuerpo a cuerpo"
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "45174",
+    "field": "femaleVariant",
+    "EN": "Melee Weapon Vendor",
+    "HE": "סוחר נשק cuerpo-a-cuerpo"
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "45292",
+    "field": "femaleVariant",
+    "EN": "Reduces the Stamina cost of melee attacks by {stat_0}%.",
+    "HE": "מפחית את עלות הסיבולת של התקפות cuerpo a cuerpo ב-{stat_0}%."
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "45293",
+    "field": "femaleVariant",
+    "EN": "Reduces Stamina cost for blocking melee attacks by {stat_0}%.",
+    "HE": "מפחית את עלות הסיבולת לחסימת התקפות cuerpo a cuerpo ב-{stat_0}%."
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "45380",
+    "field": "femaleVariant",
+    "EN": "Quick Melee Attack",
+    "HE": "מתקפת cuerpo a cuerpo מהירה"
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "49398",
+    "field": "femaleVariant",
+    "EN": "Allows you to craft a melee weapon.",
+    "HE": "מאפשר לך לייצר נשק cuerpo a cuerpo."
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "51088",
+    "field": "femaleVariant",
+    "EN": "Determines how much the game assists your aim in melee combat.",
+    "HE": "קובע עד כמה המשחק מסייע לאחיזה שלך בקרב cuerpo a cuerpo."
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "51904",
+    "field": "femaleVariant",
+    "EN": "Tech Melee Weapon",
+    "HE": "נשק cuerpo-ל-גוף טכנולוגי"
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "51905",
+    "field": "femaleVariant",
+    "EN": "Smart Melee Weapon",
+    "HE": "נשק cuerpo-ל-גוף חכם"
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "51906",
+    "field": "femaleVariant",
+    "EN": "Power Melee Weapon",
+    "HE": "נשק cuerpo-ל-גוף כוח"
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "52238",
+    "field": "femaleVariant",
+    "EN": "\u0002During melee combat, the enemy is able to grab you – preventing you from making any ",
+    "HE": "במהלך קרב cuerpo a cuerpo, האויב מסוגל לתפוס אותך - מונע ממך לבצע כל פעולה"
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "52475",
+    "field": "femaleVariant",
+    "EN": "Quick Melee Attack",
+    "HE": "מתקפת cuerpo a cuerpo מהירה"
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "53674",
+    "field": "femaleVariant",
+    "EN": "Melee attacks deal {int_0}% more damage when Berserk is active.",
+    "HE": "מתקפות cuerpo a cuerpo גורמות ל-%{int_0} נזק נוסף כאשר Berserk פעיל."
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "77781",
+    "field": "femaleVariant",
+    "EN": "Melee Attack",
+    "HE": "מתקפת cuerpo a cuerpo"
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "77878",
+    "field": "femaleVariant",
+    "EN": "++ Melee Dmg, ++ Armor, ++ Acc",
+    "HE": "++ נזק cuerpo a cuerpo, ++ שריון, ++ דיוק"
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "79390",
+    "field": "femaleVariant",
+    "EN": "Melee Damage Resistance",
+    "HE": "עמידות לנזק cuerpo a cuerpo"
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "81886",
+    "field": "femaleVariant",
+    "EN": "Melee Damage Resistance",
+    "HE": "עמידות בפני נזק cuerpo a cuerpo"
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "86448",
+    "field": "femaleVariant",
+    "EN": "Melee Weapon Mod",
+    "HE": "מוד נשק cuerpo a cuerpo"
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "87706",
+    "field": "femaleVariant",
+    "EN": "\u0001Repeated hits increase fire rate and Crit Chance. Quick Melee Attacks deal massive damage when ammo is empty",
+    "HE": "פגיעות חוזרות עולות את קצב הירי ומקרה הפגיעה הקריטית. התקפות cuerpo a cuerpo מהירות גורמות לנזק אדיר כאשר התחמושת ריקה"
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "89258",
+    "field": "femaleVariant",
+    "EN": "\u0002+{stat_0}% Armor penetration with melee attacks.\\n\\nThrown attacks hav",
+    "HE": "+{stat_0}% חדירה של שריון עם התקפות cuerpo a cuerpo.\n\nהתקפות זריקת"
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "91271",
+    "field": "femaleVariant",
+    "EN": "\u0001When attacking from midair or while time is slowed, low Stamina does not affect ranged accuracy or melee attack speed",
+    "HE": "כאשר תוקפים מהאוויר או בזמן שהזמן מואט, סיבולת נמוכה לא משפיעה על דיוק טווח או מהירות התקפת cuerpo a cuerpo"
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "91461",
+    "field": "femaleVariant",
+    "EN": "Melee Damage",
+    "HE": "נזק cuerpo a cuerpo"
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "91955",
+    "field": "femaleVariant",
+    "EN": "\u0004Stamina now affects both melee and ranged combat.\\n\\nShooting range weapon",
+    "HE": "סיבולת כעת משפיעה על לחימה בשני סוגים: cuerpo a cuerpo וטווח רחוק."
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "92666",
+    "field": "femaleVariant",
+    "EN": "Deals bonus melee damage.",
+    "HE": "גורם נזק cuerpo-a-cuerpo בונוס."
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "93093",
+    "field": "femaleVariant",
+    "EN": "+{int_0}% melee damage\\n+{int_1}% damage received",
+    "HE": "+{int_0}% נזק cuerpo a cuerpo\\n+{int_1}% נזק התקבל"
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "93401",
+    "field": "femaleVariant",
+    "EN": "Melee attack speed and damage is reduced when out of stamina.",
+    "HE": "מהירות התקפת cuerpo a cuerpo ונזק פוחתים כאשר החוזק אזל."
+  },
+  {
+    "sec": "onscreens/onscreens.json",
+    "pk": "93403",
+    "field": "femaleVariant",
+    "EN": "\u0001Each ranged and melee weapon has a different Stamina cost per attack",
+    "HE": "לכל נשק טווח ולנשק cuerpo a cuerpo יש עלות סיבולת שונה לכל התקפה"
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "775",
+    "field": "femaleVariant",
+    "EN": "Melee Weapon",
+    "HE": "נשק cuerpo a cuerpo"
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "5785",
+    "field": "femaleVariant",
+    "EN": "\u0001Quick Melee Attacks with Rifles and Submachine Guns deal {int_0}% more damage",
+    "HE": "התקפות cuerpo a cuerpo עם רובים ורובי תת-מקלע גורמות ל-{int_0}% נזק נוסף"
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "5849",
+    "field": "femaleVariant",
+    "EN": "+{int_0}% melee damage",
+    "HE": "+{int_0}% נזק cuerpo a cuerpo"
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "5850",
+    "field": "femaleVariant",
+    "EN": "\u0001Reduces the amount of Stamina consumed when blocking melee attacks by {int_0}%",
+    "HE": "מפחית את כמות הסיבולת הנצרכת בעת חסימת התקפות cuerpo a cuerpo ב-{int_0}%"
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "5867",
+    "field": "femaleVariant",
+    "EN": "\u0001Increases melee damage by {int_1}% for every {int_0}% of Health lost",
+    "HE": "מגדיל נזק של לחימה cuerpo a cuerpo ב-{int_1}% לכל {int_0}% של חיים שאבדו"
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "5885",
+    "field": "femaleVariant",
+    "EN": "\u0001The first attack with a fully charged melee weapon guarantees a Crit Hit",
+    "HE": "המתקפה הראשונה עם נשק cuerpo a cuerpo טעון לחלוטין מבטיחה פגיעה קריטית"
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "5901",
+    "field": "femaleVariant",
+    "EN": "\u0001While Cold Blood is active, increases damage with melee weapons by {int_0}%",
+    "HE": "בזמן ש\"דם קר\" פעיל, מגדיל נזק עם נשקי לחימה cuerpo-a-cuerpo ב-{int_0}%"
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "15020",
+    "field": "femaleVariant",
+    "EN": "\u0001Quick Melee Attacks with ranged weapons stagger enemies, giving you an opportunity to grapple them",
+    "HE": "מתקפות cuerpo a cuerpo מהירות עם נשקים לטווח ארוך גורמות לאויבים להתנדנד, ומאפשרות לך לתפוס אותם"
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "28035",
+    "field": "femaleVariant",
+    "EN": "With a Melee Weapon",
+    "HE": "עם נשק cuerpo a cuerpo"
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "35142",
+    "field": "femaleVariant",
+    "EN": "Melee Weapon Vendor",
+    "HE": "סוחר נשק cuerpo a cuerpo"
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "40130",
+    "field": "femaleVariant",
+    "EN": "Reduces the Stamina cost of melee attacks.",
+    "HE": "מפחית את עלות הסיבולת של התקפות cuerpo a cuerpo."
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "40841",
+    "field": "femaleVariant",
+    "EN": "Increases body weight and the power behind melee attacks.",
+    "HE": "מגדיל את משקל הגוף ואת הכוח מאחורי התקפות cuerpo a cuerpo."
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "40859",
+    "field": "femaleVariant",
+    "EN": "Improves agility in melee combat.",
+    "HE": "משפר זריזות בקרב cuerpo a cuerpo."
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "43771",
+    "field": "femaleVariant",
+    "EN": "Melee Weapon Mod Slot",
+    "HE": "חריץ לשדרוג נשק cuerpo a cuerpo"
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "45166",
+    "field": "femaleVariant",
+    "EN": "Melee Weapon Vendor",
+    "HE": "ספק כלי נשק cuerpo a cuerpo"
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "45292",
+    "field": "femaleVariant",
+    "EN": "Reduces the Stamina cost of melee attacks by {stat_0}%.",
+    "HE": "מפחית את עלות הסיבולת של התקפות cuerpo a cuerpo ב-{stat_0}%."
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "45293",
+    "field": "femaleVariant",
+    "EN": "Reduces Stamina cost for blocking melee attacks by {stat_0}%.",
+    "HE": "מפחית את עלות הסיבולת לחסימת מתקפות cuerpo a cuerpo ב-{stat_0}%."
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "45380",
+    "field": "femaleVariant",
+    "EN": "Quick Melee Attack",
+    "HE": "מתקפת cuerpo a cuerpo מהירה"
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "49398",
+    "field": "femaleVariant",
+    "EN": "Allows you to craft a melee weapon.",
+    "HE": "מאפשר לך ליצור נשק cuerpo a cuerpo."
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "51088",
+    "field": "femaleVariant",
+    "EN": "Determines how much the game assists your aim in melee combat.",
+    "HE": "קובע עד כמה המשחק מסייע לאחיזה שלך בקרב cuerpo a cuerpo."
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "51904",
+    "field": "femaleVariant",
+    "EN": "Tech Melee Weapon",
+    "HE": "נשק cuerpo-ל-גוף טכנולוגי"
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "51905",
+    "field": "femaleVariant",
+    "EN": "Smart Melee Weapon",
+    "HE": "נשק cuerpo-ל-גוף חכם"
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "51906",
+    "field": "femaleVariant",
+    "EN": "Power Melee Weapon",
+    "HE": "נשק cuerpo-ל-גוף כוח"
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "52238",
+    "field": "femaleVariant",
+    "EN": "\u0002During melee combat, the enemy is able to grab you – preventing you from making any ",
+    "HE": "במהלך קרב cuerpo a cuerpo, האויב מסוגל לתפוס אותך - מונע ממך לבצע כל פעולה"
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "52475",
+    "field": "femaleVariant",
+    "EN": "Quick Melee Attack",
+    "HE": "מתקפת cuerpo a cuerpo מהירה"
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "53674",
+    "field": "femaleVariant",
+    "EN": "Melee attacks deal {int_0}% more damage when Berserk is active.",
+    "HE": "מתקפות cuerpo a cuerpo גורמות ל-%{int_0} נזק נוסף כאשר Berserk פעיל."
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "77781",
+    "field": "femaleVariant",
+    "EN": "Melee Attack",
+    "HE": "מתקפת cuerpo a cuerpo"
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "77878",
+    "field": "femaleVariant",
+    "EN": "++ Melee Dmg, ++ Armor, ++ Acc",
+    "HE": "++ נזק cuerpo a cuerpo, ++ שריון, ++ דיוק"
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "79390",
+    "field": "femaleVariant",
+    "EN": "Melee Damage Resistance",
+    "HE": "עמידות לנזק cuerpo a cuerpo"
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "81886",
+    "field": "femaleVariant",
+    "EN": "Melee Damage Resistance",
+    "HE": "עמידות בפני נזק cuerpo a cuerpo"
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "86448",
+    "field": "femaleVariant",
+    "EN": "Melee Weapon Mod",
+    "HE": "מוד נשק cuerpo a cuerpo"
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "87706",
+    "field": "femaleVariant",
+    "EN": "\u0001Repeated hits increase fire rate and Crit Chance. Quick Melee Attacks deal massive damage when ammo is empty",
+    "HE": "פגיעות חוזרות עולות את קצב הירי ומקרה הפגיעה הקריטית. התקפות cuerpo a cuerpo מהירות גורמות לנזק אדיר כאשר התחמושת ריקה"
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "89258",
+    "field": "femaleVariant",
+    "EN": "\u0002+{stat_0}% Armor penetration with melee attacks.\\n\\nThrown attacks hav",
+    "HE": "+{stat_0}% חדירה של שריון עם התקפות cuerpo a cuerpo.\n\nהתקפות זריקת"
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "91271",
+    "field": "femaleVariant",
+    "EN": "\u0001When attacking from midair or while time is slowed, low Stamina does not affect ranged accuracy or melee attack speed",
+    "HE": "כאשר תוקפים מהאוויר או בזמן שהזמן מואט, סיבולת נמוכה לא משפיעה על דיוק טווח או מהירות התקפת cuerpo a cuerpo"
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "91461",
+    "field": "femaleVariant",
+    "EN": "Melee Damage",
+    "HE": "נזק cuerpo a cuerpo"
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "91955",
+    "field": "femaleVariant",
+    "EN": "\u0004Stamina now affects both melee and ranged combat.\\n\\nShooting range weapon",
+    "HE": "סיבולת כעת משפיעה על לחימה בשני סוגים: cuerpo a cuerpo וטווח רחוק."
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "92666",
+    "field": "femaleVariant",
+    "EN": "Deals bonus melee damage.",
+    "HE": "גורם נזק cuerpo-a-cuerpo בונוס."
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "93093",
+    "field": "femaleVariant",
+    "EN": "+{int_0}% melee damage\\n+{int_1}% damage received",
+    "HE": "+{int_0}% נזק cuerpo a cuerpo\\n+{int_1}% נזק התקבל"
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "93401",
+    "field": "femaleVariant",
+    "EN": "Melee attack speed and damage is reduced when out of stamina.",
+    "HE": "מהירות התקפת cuerpo a cuerpo ונזק פוחתים כאשר החוזק אזל."
+  },
+  {
+    "sec": "onscreens/onscreens_final.json",
+    "pk": "93403",
+    "field": "femaleVariant",
+    "EN": "\u0001Each ranged and melee weapon has a different Stamina cost per attack",
+    "HE": "לכל נשק טווח ולנשק cuerpo a cuerpo יש עלות סיבולת שונה לכל התקפה"
+  },
+  {
+    "sec": "subtitles/open_world/scenes/conversation_street_new_val_09.json",
+    "pk": "2276542212266434584",
+    "field": "femaleVariant",
+    "EN": "\u0002<kiroshi l=\"mex\" o=\"Madres... Lo tiene que haber sentido en todo el cuerpo...\" t=\"",
+    "HE": "<kiroshi l=\"mex\" o=\"Madres... Lo tiene que haber sentido en todo el cuerpo...\" t=\"תזיין אותי... בטח הרגיש את זה בכל הגוף שלו...\" b=\"\" a=\"\"/>"
+  }
+]

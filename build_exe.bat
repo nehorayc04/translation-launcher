@@ -1,22 +1,25 @@
 @echo off
 REM ============================================================================
-REM  Translation Manager — Windows EXE build
+REM  Translation Manager — Windows EXE build (Qt-shell build)
 REM
 REM  1) Reads Supabase URL + anon key from .env.build (gitignored) and
 REM     generates translation_manager\auth\_baked.py (also gitignored) so
 REM     the launcher boots out-of-the-box for end users without env vars.
 REM  2) Builds the React frontend (npm run build) → frontend/dist/
-REM  3) Bundles main_eel.py + translation_manager package + frontend/dist into
-REM     a single TranslationManager.exe using PyInstaller.
+REM  3) Bundles main_qt.py + translation_manager package + frontend/dist into
+REM     a single TranslationManager.exe using PyInstaller + TranslationManager_qt.spec.
+REM     (The Eel-era spec TranslationManager.spec is retained for reference but
+REM     no longer driven from here.)
 REM
 REM  Requirements (one-time):
-REM     pip install -r translation_manager\requirements.txt
+REM     py -3.12 -m venv .venv
+REM     .venv\Scripts\python -m pip install -r translation_manager\requirements.txt PySide6
 REM     cd frontend && npm install
 REM
 REM  Required local files:
 REM     .env.build  — must contain SUPABASE_URL=... and SUPABASE_ANON_KEY=...
 REM
-REM  Output: dist\TranslationManager.exe
+REM  Output: dist\TranslationManager\TranslationManager.exe (onedir layout)
 REM ============================================================================
 
 setlocal enableextensions enabledelayedexpansion
@@ -110,14 +113,24 @@ REM Spec is hand-maintained (--onedir layout, see TranslationManager.spec).
 REM Do NOT delete it here.
 
 echo.
-echo === [4/4]  Running PyInstaller (onedir, via spec) ===
-REM Driven by TranslationManager.spec so the EXE + COLLECT split stays
-REM under source control. Onedir layout writes:
+echo === [4/4]  Running PyInstaller (onedir, via TranslationManager_qt.spec) ===
+REM Driven by TranslationManager_qt.spec - the Qt-shell build that
+REM replaced the Eel shell. Onedir layout writes:
 REM   dist\TranslationManager\TranslationManager.exe   (thin bootstrap)
-REM   dist\TranslationManager\_internal\...            (binaries + datas)
+REM   dist\TranslationManager\_internal\...            (binaries + datas, incl. QtWebEngine)
 REM installer.iss bundles the whole directory tree so Inno Setup shows a
 REM streaming progress bar instead of stalling on a single huge file.
-python -m PyInstaller --noconfirm --clean TranslationManager.spec
+REM
+REM Uses the project venv (.venv) where PySide6 + PyInstaller are pinned.
+REM The global Python on the build machine may not have either - the
+REM Qt-shell build is venv-only by design.
+if not exist ".venv\Scripts\python.exe" (
+    echo [build_exe] .venv missing. Create it with:
+    echo                 py -3.12 -m venv .venv
+    echo                 .venv\Scripts\python -m pip install -r translation_manager\requirements.txt PySide6
+    exit /b 1
+)
+.venv\Scripts\python.exe -m PyInstaller --noconfirm --clean TranslationManager_qt.spec
 
 if errorlevel 1 (
     echo.

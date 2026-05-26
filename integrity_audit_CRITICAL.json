@@ -1,0 +1,1237 @@
+[
+  {
+    "project": "dlc",
+    "section": "ep1/onscreens/onscreens.json",
+    "pk": "85412",
+    "field": "femaleVariant",
+    "signals": [
+      "CUT_MID_SENTENCE",
+      "MISSING_TERMINAL",
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 4232,
+    "trans_len": 1204,
+    "ratio": 0.284,
+    "src_sentences": 34,
+    "trans_sentences": 16,
+    "EN_source": "The combat zone known as Dogtown was meant to be Night City's proud calling card. Today, it's but a stain on its conscience, forgotten by NC and its residents, who consider it a monument to grand but futile designs, failed investments and complete loss of control. Dubbed \"Serenisands\" to convey a sense of tranquil ocean shores, it became everything but – a haven for the excluded, fugitives and common criminals. It was only a matter of time before someone capitalized on this mess and took over the district. That \"someone\" was, of course, colonel Kurt Hansen and his BARGHEST unit. This is the story of the district's downfall and subsequent rise of Hansen's criminal empire.\\n\\nIn order to paint the full picture, we have to start at the time of the Fourth Corporate War. Pacifica is being flooded with refugees from Night City proper. They seek shelter on the outskirts of the metropolis, but it quickly becomes clear they aren't welcome there. The constant influx of people creates tension, leading to a conflict with Pacifica's security forces that quickly escalates into full-blown riots. Streets are littered with bodies after violent clashes that often last for days on end. Wealthy locals and investors fear the situation is getting out of hand and decide to leave the district for good, thus expediting its downfall. Pacifica finds itself on a downward spiral and falls into ruin.\\n\\nFast forward to the 2050s. The Night City Council works to restore Pacifica to its former glory. New investors appear, enticing the city officials with bold plans and promises of prosperity. The decade begins with wide-scale construction spearheaded by Militech. Modern buildings replace dilapidated relics of the past and a high-speed road network connects Pacifica to NC and beyond. The investment is meant to be a display of Night City's economic strength, but any such act inevitably breeds resistance. A large explosion under the construction site for the local entertainment complex ruins the buoyant moods of the Night City Council and Pacifica investors. An extensive investigation does not provide any answers and results in doubling the local security detail. More importantly, the council-members decide to build a wall separating Serenisands from the rest of the city. Construction work resumes and for a time, it seems the new measures are enough to bring the investment to completion.\\n\\nHowever, just a few years later, the Unification War breaks out, halting progress once again. Investors back out as completing the construction of a luxury resort drops down the financial priority list. The area, devoid of any law enforcement, becomes a criminal haven controlled by the Voodoo Boys. A lawless, walled-out district neighboring an enemy city seemed like a perfect place for a military assault. Militech also seems to share this view and in 2070, the corporation sends their troops to Serenisands. A full-scale attack on Night City seems to be imminent, but it never happens, in large part thanks to Arasaka's supercarrier, entering Coronado Bay as a result of an agreement signed with Saburo Arasaka by the then-councilman Lucius Rhyne. Militech orders retreat, but a large number of troops decide to ignore the directive and remain in the area.\\n\\nThe Arvin Accord turns Night City into a fully autonomous metropolis. The abandoned district becomes no-man's land and this is the perfect opportunity for Colonel Kurt Hansen and his ex-Militech unit to take over what is now known as Dogtown. Soon, along with his veteran comrades, he establishes BARGHEST, growing his newly-found army by first recruiting mercenaries and later – all willing renegades and gangoons. The district once again becomes a sanctuary for refugees, fugitives and travellers.\\n\\nToday, Dogtown has its own law enforcement and trade relations with Night City, the NUSA and other countries. NC officials are in no hurry to address the issue of the city's noisy neighbors and chances of rebuilding Serenisands in the future are illusory at best. It's much easier to simply look the other way, towards greener pastures. New, exciting opportunities are easier to sell to investors than troublesome combat zones. They'd much rather start from scratch.",
+    "HE_current_truncated": "אזור הלחימה שנודע בשם דוגטאון נועד להיות כרטיס הביקור הגאה של נייט סיטי. היום, זהו רק כתם על מצפונו, נשכח על ידי נייט סיטי ותושביו, אשר רואים בו אנדרטה לעיצובים גדולים אך לשווא, להשקעות כושלות ואובדן שליטה מוחלט. קראו לו \"סרניזאנדס\" כדי להעביר תחושה של חופים אוקיאניים שקטים, הוא הפך לכל but – מקלט למנודים, פליטים ופושעים רגילים. זה היה רק עניין של זמן עד שמישהו ינצל את המצב הזה וייקח שליטה על המחוז. אותו \"מישהו\" היה, כמובן, קולונל קורט הנסן ויחידת BARGHEST שלו. זו סיפורו של נפילת המחוז ועליית האימפריה הפלילית של הנסן.\n\nכדי לצבוע את התמונה המלאה, עלינו להתחיל בזמן מלחמת תאגידים רביעית. פאסיפיקה מוצפת בפליטים מנייט סיטי עצמה. הם מחפשים מקלט בפאתי המטרופולין, אך מהר מאוד ברור שהם לא רצויים שם. זרימת האנשים הקבועה יוצרת מתח, המוביל לסכסוך עם כוחות הביטחון של פאסיפיקה שמתגבר במהירות למרדפים מלאים. הרחובות מפוזרים בגופות לאחר התנגשויות אלימות שאיתן נמשכות לעתים ימים רצופים. תושבים עשירים ומשקיעים חוששים שהמצב יוצא משליטה ומחליטים לעזוב את המחוז לתמיד, ובכך מאיצים את נפילתו. פאסיפיקה מוצאת עצמה בספירלה יורדת ונופלת לחורבן.\n\nקדימה לשנות ה-2050. מועצת נייט סיטי עובדת לשחזר את פאסיפיקה ליושנה. משקיעים חדשים מופיעים, ומפתים את פקידי העיר עם תוכניות נועזות והבטחות לשגשוג. העשור מתחיל בבנייה רחבת ה",
+    "suggested_fix": "Re-translate fully — source has 34 sentences but Hebrew has 16. Preserve any \\n line breaks; do not exceed ~5501 chars (safe buffer)."
+  },
+  {
+    "project": "dlc",
+    "section": "ep1/onscreens/onscreens.json",
+    "pk": "83000",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 540,
+    "trans_len": 145,
+    "ratio": 0.269,
+    "src_sentences": 8,
+    "trans_sentences": 2,
+    "EN_source": "1. The clusters you  prepped have adequate power, but we'll need older soft on one (Mt-313) to be compatible with this unit. Plus we'll need protection against CPU burnout.\\n\\n2. The manipulator you proposed is too imprecise. We need something that used to work on Militech production lines. Something from OA might work. I also checked the robotic arm provided -- latency is relatively high, so risk of damaging the mainframe definitely isn't zero.\\n\\nBesides that, other hardware in place looks passable. I'll make new requests if needed.",
+    "HE_current_truncated": "הקלאסטרים שערכת מוכנים עם הספק מספיק, אבל נצטרך תוכנה ישנה יותר באחד מהם (Mt-313) כדי שיהיה תואם ליחידה הזאת. בנוסף, נצטרך הגנה מפני כוויות מעבד.",
+    "suggested_fix": "Re-translate fully — source has 8 sentences but Hebrew has 2. Preserve any \\n line breaks; do not exceed ~702 chars (safe buffer)."
+  },
+  {
+    "project": "dlc",
+    "section": "ep1/onscreens/onscreens.json",
+    "pk": "83126",
+    "field": "femaleVariant",
+    "signals": [
+      "MISSING_TERMINAL",
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 519,
+    "trans_len": 56,
+    "ratio": 0.108,
+    "src_sentences": 9,
+    "trans_sentences": 1,
+    "EN_source": "1. Dynalar subdermal coprocessor (nb. only v.3.45222 and up)\\n2. Drivers for nano-optics in modified netrunner suits (Militech is best)\\n3. Cannisters with CB-Net300 coolant - must be CB version from Militech, since only those were used by them in military installations. Apparently you can get some from Africa from their abandoned warehouses, but I got a tip that we can even find some here. We'll just have to dig beneath Dogtown to find one of those bunkers. Dig deep, and quiet. And who better to do that than you?",
+    "HE_current_truncated": "מעבד משנה דיינלר תת-עורי (שים לב: רק גרסה 3.45222 ומעלה)",
+    "suggested_fix": "Re-translate fully — source has 9 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~674 chars (safe buffer)."
+  },
+  {
+    "project": "dlc",
+    "section": "ep1/onscreens/onscreens.json",
+    "pk": "93526",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 481,
+    "trans_len": 29,
+    "ratio": 0.06,
+    "src_sentences": 8,
+    "trans_sentences": 1,
+    "EN_source": "1. test thermal breakers (P4, no rush)\\n2. program remote activation for night vison and hyperkinetics (P2, because fuck yeah)\\n3. order 50 hydraulic load sensors (P1, expect shipment delays)\\n4. define max load capacity (P5, see dependency in item 3)\\n5. update combat soft - shotguns, pistols (P0, for Milko!!)\\n6. review last week's error logs (P1)\\n7. organize mandatory lesson for bug reporting: how to reproduce the bug, add labels, determine frequency and urgency, etc. (P1)",
+    "HE_current_truncated": "בדוק מפרידי חום (P4, בלי לחץ)",
+    "suggested_fix": "Re-translate fully — source has 8 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~625 chars (safe buffer)."
+  },
+  {
+    "project": "dlc",
+    "section": "ep1/onscreens/onscreens.json",
+    "pk": "87687",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 385,
+    "trans_len": 55,
+    "ratio": 0.143,
+    "src_sentences": 4,
+    "trans_sentences": 1,
+    "EN_source": "1. Recording of the interrogation of Arasaka agent Okimoto Yasushi [DOWNLOAD FILE]\\n2. Recording of the interrogation of Zetatech agent Elise Ribie [DOWNLOAD FILE]\\n3. Recording of the interrogation of an Intelligence of the Federative Republic of Brazil agent [DOWNLOAD FILE]\\n4. Recording of the interrogation of Arasaka agent Tanabe Kin [DOWNLOAD FILE]\\nInterrogator: Katya Karelina",
+    "HE_current_truncated": "הקלטת חקירה של סוכן אראסאקה אוקימוטו יאסושי [הורד קובץ]",
+    "suggested_fix": "Re-translate fully — source has 4 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~500 chars (safe buffer)."
+  },
+  {
+    "project": "dlc",
+    "section": "ep1/onscreens/onscreens.json",
+    "pk": "82722",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 238,
+    "trans_len": 28,
+    "ratio": 0.118,
+    "src_sentences": 7,
+    "trans_sentences": 1,
+    "EN_source": "1. Connect the compressor to the recuperator\\n2. Connect the recuperator to the turbine\\n3. Close the circuit\\n4. Place in casing\\n5. Refill coolant\\n6. Perform a test run (DO NOT cover the vent!)\\n7. Enter the serial number in the system",
+    "HE_current_truncated": "חבר את הקומפריסטור לרקופרטור",
+    "suggested_fix": "Re-translate fully — source has 7 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~309 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/scenes/wat_lch_chat_025.json",
+    "pk": "2156527537136889856",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 126,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 4,
+    "trans_sentences": 1,
+    "EN_source": "\u0002<kiroshi l=\"mex\" o=\"Veinte añosss... La mitad... La mitad de mi vida... Y me echan como a un perro.\" t=\"Twenny yearsss... Hal",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"Veinte añosss... La mitad... La mitad de mi vida... Y me echan como a un perro.\" t=\"עשרים שנה... חצי... חצי מהחיים שלי... והם זרקו אותי כמו כלב.\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 4 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~163 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/quest/mama/mama_welles_default.json",
+    "pk": "1954593662007320576",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 124,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 3,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<mothertongue l=\"mex\" m=\"¿excéntrica?\" b=\"Hmm. She's a little bit... \" a=\"? Said my home sits on a natural energy source.\"/",
+    "HE_current_truncated": "<mothertongue l=\"mex\" m=\"¿excéntrica?\" b=\"hmm היא קצת...\" a=\"אמרו שהבית שלי יושב על מקור אנרגיה טבעי\"/>",
+    "suggested_fix": "Re-translate fully — source has 3 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~161 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/scenes/conversation_street_new_val_07.json",
+    "pk": "2276541826893783068",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 123,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 4,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<kiroshi l=\"mex\" o=\"Madres. ¿Y los demás? ¿Escaparon con vida?\" t=\"Shit. And the rest? They make it out alive?\" b=\"\" a=\"\"/",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"Madres. ¿Y los demás? ¿Escaparon con vida?\" t=\"זין. והאחרים? הם יצאו בחיים?\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 4 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~159 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/street_stories/sts_wat_kab_05_enemies.json",
+    "pk": "1595423599094112256",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 123,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 3,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<mothertongue l=\"rus\" m=\"Govno\" b=\"Eyes need an artist's touch. Besides, kidneys? Phew… \" a=\". This one guy had stones--\"/",
+    "HE_current_truncated": "<mothertongue l=\"rus\" m=\"Govno\" b=\"עיניים צריכות נגיעה של אמן. בכלל, כליות? פיו\" a=\"לגבר הזה היו ביצים\"/>",
+    "suggested_fix": "Re-translate fully — source has 3 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~159 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/gang_vdb_m_10_car_20_mt.json",
+    "pk": "1948999081434062852",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 123,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 3,
+    "trans_sentences": 1,
+    "EN_source": "\u0002<kiroshi l=\"creo\" o=\"Men règ jwèt la. Ou sispann pale jouda epi mwen pap touye w. Ha Ha Ha!\" t=\"Here's the rules. You stif",
+    "HE_current_truncated": "<kiroshi l=\"creo\" o=\"Men règ jwèt la. Ou sispann pale jouda epi mwen pap touye w. Ha Ha Ha!\" t=\"הנה הכללים. תדחף את הסקרנות שלך, ולא א öld אותך. hahahaha\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 3 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~159 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/gang_val_m_02_mex_30_mt.json",
+    "pk": "2234992076931604484",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 121,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 6,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<kiroshi l=\"mex\" o=\"¿Sí? ¿Qué? No llamé a nadie. Ya déjalo.\" t=\"Yeah? What? Didn't call anyone. Break it up.\" b=\"\" a=\"\"/",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"¿Sí? ¿Qué? No llamé a nadie. Ya déjalo.\" t=\"כן? מה? לא הזמנתי אף אחד. תפסיקו את זה.\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 6 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~157 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/scenes/wat_lch_chat_025.json",
+    "pk": "2172328382295687168",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 120,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 4,
+    "trans_sentences": 1,
+    "EN_source": "\u0002<kiroshi l=\"mex\" o=\"¿Eran cuatro para qué? Para... ¡Hip! ¿Para el perro? El del millón de edis...\" t=\"The fuck was four",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"¿Eran cuatro para qué? Para... ¡Hip! ¿Para el perro? El del millón de edis...\" t=\"למה ארבעה היו בשביל? בשביל - היק! - הכלב? כלב מיליון אדס...\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 4 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~156 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/gang_val_f_04_mex_20_mt.json",
+    "pk": "1806657710958698500",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 120,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 7,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<kiroshi l=\"mex\" o=\"Argh... Te voy a... puta madre... matar...\" t=\"Argh... I'ma... fuckin'... kill... ech..\" b=\"\" a=\"\"/",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"Argh... Te voy a... puta madre... matar...\" t=\"ארג... אימא... פאקינג... להרוג... אץ...\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 7 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~156 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/community/e3_q110_repairing_car_chat.json",
+    "pk": "1711258448356233216",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 118,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 4,
+    "trans_sentences": 1,
+    "EN_source": "\u0002<kiroshi l=\"creo\" o=\"Ugh, ou memn tou? Non, mwen pa konnen. Li pa pi bon o pi mal. Jis diferan?\" t=\"Ugh, you too? No,",
+    "HE_current_truncated": "<kiroshi l=\"creo\" o=\"Ugh, ou memn tou? Non, mwen pa konnen. Li pa pi bon o pi mal. Jis diferan?\" t=\"יא, גם אתה? לא, אני לא יודע. הוא לא היה יותר טוב או גרוע. פשוט שונה.\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 4 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~153 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/scenes/conversation_street_new_val_10.json",
+    "pk": "2276542429346832384",
+    "field": "femaleVariant",
+    "signals": [
+      "MISSING_TERMINAL",
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 118,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 3,
+    "trans_sentences": 1,
+    "EN_source": "\u0002<kiroshi l=\"mex\" o=\"Y un Valentino. Qué puedo decir... la cárcel no tiene por qué ser algo malo.\" t=\"And a Valentino.",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"Y un Valentino. Qué puedo decir... la cárcel no tiene por qué ser algo malo.\" t=\"ואולדנטינו. מה אגיד לך, כלא לא תמיד דבר רע.\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 3 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~153 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/gang_val_m_01_mex_30_mt.json",
+    "pk": "2234985195068596224",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 118,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 4,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<kiroshi l=\"mex\" o=\"¡Aaah! ¡Me siento bien chingón! Ja, ja, ja, ja.\" t=\"Wooh! I feel fuckin' alive! Haha!\" b=\"\" a=\"\"/",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"¡Aaah! ¡Me siento bien chingón! Ja, ja, ja, ja.\" t=\"וואו! אני מרגיש חי כגיהינום! hahaha!\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 4 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~153 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/quest/q005/q005_01a_slice_of_afterlife.json",
+    "pk": "1690852384559452160",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 117,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 3,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<mothertongue l=\"mex\" m=\"¿Que no?\" b=\"Yeah, neither does Mr. Welles, heheh. But sometimes you gotta, holmes. \" a=\"\"/",
+    "HE_current_truncated": "<mothertongue l=\"mex\" m=\"¿Que no?\" b=\"כן, גם מר וולס לא, ה eheh. אבל לפעמים צריך, שותף.\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 3 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~152 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/quest/sq017/sq017_18_premiere.json",
+    "pk": "1834680753844776960",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 117,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 3,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<mothertongue l=\"jpn\" m=\"Suteki! Kakkoii! Kawaii!\" b=\"Kerry-san is most sweet, most lovely man in the world! \" a=\"\"/",
+    "HE_current_truncated": "<mothertongue l=\"jpn\" m=\"Suteki! Kakkoii! Kawaii!\" b=\"קארי-סאן הוא האיש הכי מתוק, הכי יפה בעולם!\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 3 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~152 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/community/e3_q110_pauring_slops_chat.json",
+    "pk": "1711246917023354880",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 116,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 3,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<kiroshi l=\"creo\" o=\"M ka toujou sa pou'w fe. Pa vre? Hm?\" t=\"I can still give you advice, can't I? Hm?\" b=\"\" a=\"\"/",
+    "HE_current_truncated": "<kiroshi l=\"creo\" o=\"M ka toujou sa pou'w fe. Pa vre? Hm?\" t=\"עוד יכול לתת לך עצות, לא? אה?\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 3 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~150 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/civ_low_m_66_mex_40_rep.json",
+    "pk": "1896691432477433860",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 116,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 4,
+    "trans_sentences": 1,
+    "EN_source": "\u0002<kiroshi l=\"mex\" o=\"Ya verás... Tengo amigos... ¡Diablos, no...! ¿Qué...? ¡No es así de fácil!\" t=\"I'll get you… I ",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"Ya verás... Tengo amigos... ¡Diablos, no...! ¿Qué...? ¡No es así de fácil!\" t=\"אמצא אותך… יש לי חברים… גיהינום לא…! מה…? זה לא כל כך קל!\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 4 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~150 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/civ_low_f_66_mex_40_mt.json",
+    "pk": "1908139519511109632",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 114,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 4,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<kiroshi l=\"mex\" o=\"¿Conoces a alguien? ¿No? Entonces, adiós.\" t=\"You know someone? No? Then bye-bye.\" b=\"\" a=\"\"/",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"¿Conoces a alguien? ¿No? Entonces, adiós.\" t=\"אתה מכיר מישהו? לא? אז שלום לך.\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 4 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~148 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/scenes/hey_rey_chat_027.json",
+    "pk": "2227642471483281408",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 112,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 3,
+    "trans_sentences": 1,
+    "EN_source": "\u0002<kiroshi l=\"mex\" o=\"Pero dijiste... Nuestro... ¿Le dijiste que estamos en la misma torre?\" t=\"But you said... S",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"Pero dijiste... Nuestro... ¿Le dijiste que estamos en la misma torre?\" t=\"אבל אמרת... אמרת שאנחנו... אמרת לו שאנחנו מאותו מגדל?\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 3 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~145 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/gang_val_m_08_mex_40_mt.json",
+    "pk": "1805588012292759556",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 112,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 8,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<kiroshi l=\"mex\" o=\"Agh... agh... agh... puta... madre...\" t=\"Ecch... ecch... echh.. fuck... off...\" b=\"\" a=\"\"/",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"Agh... agh... agh... puta... madre...\" t=\"אק... אק... אק... תזיין... לך...\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 8 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~145 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/gang_val_f_04_mex_20_mt.json",
+    "pk": "1867572177183301632",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 111,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 4,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<kiroshi l=\"mex\" o=\"¿Cuándo...? Sale... Órale… Va, va, va… Va que va...\" t=\"When...? OK... sure...\" b=\"\" a=\"\"/",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"¿Cuándo...? Sale... Órale… Va, va, va… Va que va...\" t=\"מתי...? בסדר... בטח...\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 4 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~144 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/gang_vdb_m_10_car_20_mt.json",
+    "pk": "1948999081652166656",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 111,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 6,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<kiroshi l=\"creo\" o=\"Chita. Rete trankil. Roule. Ha, ha, ha.\" t=\"Sit. Stay. Roll over. Ha, ha, ha.\" b=\"\" a=\"\"/",
+    "HE_current_truncated": "<kiroshi l=\"creo\" o=\"Chita. Rete trankil. Roule. Ha, ha, ha.\" t=\"שב. הישב. התהפך. הא הא הא.\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 6 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~144 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/street_stories/sts_hey_gle_04_bouncer.json",
+    "pk": "1814051202397609996",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 110,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 3,
+    "trans_sentences": 1,
+    "EN_source": "\u0002<mothertongue l=\"mex\" m=\"Güey\" b=\"Jackie fucking Welles! Hahaha! \" a=\" was like a brother to us. Mourned him ",
+    "HE_current_truncated": "<mothertongue l=\"mex\" m=\"Güey\" b=\"ג'קי וואלס המזדיין! hahaha!\" a=\"היה כמו אח לנו אבל אבל התאבלנו עליו פעם אחת כשעזב את הוולנטינוס בפעם השנייה כשא\"/>",
+    "suggested_fix": "Re-translate fully — source has 3 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~143 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/civ_low_f_99_jap_30.json",
+    "pk": "1949171655233282052",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 110,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 5,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<mothertongue l=\"jpn\" m=\"Majide...? Honnto?\" b=\"Ohhh…! No way…! They got together…? \" a=\" Sweet…! Amazing…!\"/",
+    "HE_current_truncated": "<mothertongue l=\"jpn\" m=\"Majide...? Honnto?\" b=\"וואו... אין מצב... הם ביחד?\" a=\"מתוק...! מדהים...!\"/>",
+    "suggested_fix": "Re-translate fully — source has 5 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~143 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/gang_val_f_04_mex_20_mt.json",
+    "pk": "2234971242330464260",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 109,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 4,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<kiroshi l=\"mex\" o=\"¿Sí? ¿Qué pasa? ¿Necesitas algo?\" t=\"Yeah? What is it? Something the matter?\" b=\"\" a=\"\"/",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"¿Sí? ¿Qué pasa? ¿Necesitas algo?\" t=\"כן? מה קורה? יש בעיה?\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 4 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~141 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/ncpd_low_f_08_mex_20_mt.json",
+    "pk": "1864599590002089988",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 108,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 4,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<kiroshi l=\"mex\" o=\"Sangre, tanta sangre... no... no...\" t=\"Blood, so much blood... no... no...\" b=\"\" a=\"\"/",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"Sangre, tanta sangre... no... no...\" t=\"דם, כל כך הרבה דם... לא... לא...\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 4 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~140 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/civ_low_m_111_car_25_mt.json",
+    "pk": "1922940306401533956",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 107,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 4,
+    "trans_sentences": 1,
+    "EN_source": "\u0002<kiroshi l=\"creo\" o=\"Donk…? W achte li…? Pa menm yon sèl grenn…? Sa m pral di granpapa?\" t=\"So…? Did you b",
+    "HE_current_truncated": "<kiroshi l=\"creo\" o=\"Donk…? W achte li…? Pa menm yon sèl grenn…? Sa m pral di granpapa?\" t=\"אז...? קנית...? אפילו אחד...? מה אגיד לסבא?\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 4 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~139 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/scenes/wat_nid_chat_026.json",
+    "pk": "2172062988918046720",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 106,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 3,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<kiroshi l=\"mex\" o=\"Nel, es un virus. Apostaría lo que sea.\" t=\"Nah. Virus. Bet eddies on it.\" b=\"\" a=\"\"/",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"Nel, es un virus. Apostaría lo que sea.\" t=\"לא. וירוס. הימור על אדיז.\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 3 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~137 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/gang_val_m_02_mex_30_mt.json",
+    "pk": "2234992078424776708",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 106,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 4,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<kiroshi l=\"mex\" o=\"¡Chingada madre! ¿Viste eso? ¡Carajo!\" t=\"Holy shit! You see that?! Fuck!\" b=\"\" a=\"\"/",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"¡Chingada madre! ¿Viste eso? ¡Carajo!\" t=\"לעזאזל! ראית את זה?! לעזאזל!\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 4 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~137 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/gang_val_m_05_mex_30_mt.json",
+    "pk": "1805496789183881220",
+    "field": "femaleVariant",
+    "signals": [
+      "MISSING_TERMINAL",
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 106,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 4,
+    "trans_sentences": 1,
+    "EN_source": "\u0002<kiroshi l=\"mex\" o=\"Entendido... Vamos a tener que wacharnos... Ya sabes dónde... Mmm...\" t=\"I got it... ",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"Entendido... Vamos a tener que wacharnos... Ya sabes dónde... Mmm...\" t=\"נתראה... אתה יודע איפה... hmm...\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 4 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~137 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/scenes/conversation_street_new_val_11.json",
+    "pk": "2276542635807252504",
+    "field": "femaleVariant",
+    "signals": [
+      "MISSING_TERMINAL",
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 104,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 4,
+    "trans_sentences": 1,
+    "EN_source": "\u0002<kiroshi l=\"mex\" o=\"¡Pff! Órale, sabes que yo no lo busqué, ¿verdad? Él me buscó a mí.\" t=\"Pf! Please. ",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"¡Pff! Órale, sabes que yo no lo busqué, ¿verdad? Él me buscó a mí.\" t=\"פ! בבקשה. את יודעת שלא באתי אליו, נכון? הוא בא אליי.\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 4 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~135 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/civ_low_f_69_mex_25.json",
+    "pk": "1949085008076070916",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 104,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 3,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<mothertongue l=\"mex\" m=\"¡Chale!\" b=\"Talk to me babe… We doin' this…? Ha…! Hell yeah…! \" a=\" Awesome!\"/",
+    "HE_current_truncated": "<mothertongue l=\"mex\" m=\"¡Chale!\" b=\"תדברי אליי יקירה... אנחנו עושים את זה...? haha... כן גבר!\" a=\"מדהים!\"/>",
+    "suggested_fix": "Re-translate fully — source has 3 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~135 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/gang_val_m_08_mex_40_mt.json",
+    "pk": "1805588012057878532",
+    "field": "femaleVariant",
+    "signals": [
+      "MISSING_TERMINAL",
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 104,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 4,
+    "trans_sentences": 1,
+    "EN_source": "\u0002<kiroshi l=\"mex\" o=\"¿Hola? ¡Hola! Carajo, ¿qué chingados hice para tener un hijo así?\" t=\"Hello? Hello.",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"¿Hola? ¡Hola! Carajo, ¿qué chingados hice para tener un hijo así?\" t=\"שלום? שלום... לעזאזל, מה עשיתי כדי לקבל בן זונה כזה?\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 4 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~135 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/civ_low_m_79_mex_25_mt.json",
+    "pk": "1922664503633780740",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 103,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 4,
+    "trans_sentences": 1,
+    "EN_source": "\u0002<kiroshi l=\"mex\" o=\"¿Adónde voy...? No lo veo... Aaaah... Ándale... Entonces me perdí.\" t=\"Where do I ",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"¿Adónde voy...? No lo veo... Aaaah... Ándale... Entonces me perdí.\" t=\"לאן אני הולך...? אני לא רואה... אהה... בסדר... אז אני אבוד.\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 4 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~133 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/ncpd_low_f_08_mex_20_mt.json",
+    "pk": "1864599590455074820",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 103,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 6,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<kiroshi l=\"mex\" o=\"Aggg... Yo... no... En serio...\" t=\"Aargh... I... nothing... really...\" b=\"\" a=\"\"/",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"Aggg... Yo... no... En serio...\" t=\"ארג... אני... כלום... באמת...\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 6 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~133 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/gang_ani_m_13_rus_20_big.json",
+    "pk": "1640542156283547648",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 100,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 6,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<kiroshi l=\"rus\" o=\"Раз! Два! Пять! Я иду искать!\" t=\"Three! Two! One! Baba Yaga comes!\" b=\"\" a=\"\"/",
+    "HE_current_truncated": "<kiroshi l=\"rus\" o=\"Раз! Два! Пять! Я иду искать!\" t=\"שלישה! שתיים! אחת! באבא יאגה מגיעה!\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 6 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~130 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/gang_scv_m_11_rus_40_mt.json",
+    "pk": "2232151301625618436",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 100,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 3,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<kiroshi l=\"rus\" o=\"Ну чё, я как новенький! Ха-ха!\" t=\"Ahh! Feel brand new again! Haha!\" b=\"\" a=\"\"/",
+    "HE_current_truncated": "<kiroshi l=\"rus\" o=\"Ну чё, я как новенький! Ха-ха!\" t=\"אה! מרגיש כמו חדש לגמרי! hahaha!\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 3 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~130 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/gang_scv_m_11_rus_40_mt.json",
+    "pk": "2232151299947896836",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 99,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 3,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<kiroshi l=\"rus\" o=\"Съебите отсюда! Ну? Быстро!\" t=\"Fuck outta here! C'mon, hop to it!\" b=\"\" a=\"\"/",
+    "HE_current_truncated": "<kiroshi l=\"rus\" o=\"Съебите отсюда! Ну? Быстро!\" t=\"תזיין תלך מכאן! בוא נעשה את זה מהר!\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 3 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~128 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/gang_vdb_m_06_car_20_mt.json",
+    "pk": "1963482483879608324",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 98,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 4,
+    "trans_sentences": 1,
+    "EN_source": "\u0002<kiroshi l=\"creo\" o=\"Aaghh…Li pi …...bon..si w..touye mwen... Ale w ….. Lan... mèd... \" t=\"Aarghh",
+    "HE_current_truncated": "<kiroshi l=\"creo\" o=\"Aaghh…Li pi …...bon..si w..touye mwen... Ale w ….. Lan... mèd... \" t=\"אררghh... טוב יותר... אם אתה... הורג אותי... תזדיין... אה...\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 4 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~127 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/gang_tcl_f_04_jap_25_mt.json",
+    "pk": "1876550966419398660",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 97,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 4,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<kiroshi l=\"jpn\" o=\"ああ… くっ… やめ… やめ… て…\" t=\"arghhh. Khhh.. Stop... Khhhh... Ssssstop…\" b=\"\" a=\"\"/",
+    "HE_current_truncated": "<kiroshi l=\"jpn\" o=\"ああ… くっ… やめ… やめ… て…\" t=\"ארגghh. קך.. עצור... קך.. סתים..\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 4 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~126 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/gang_val_f_03_mex_30_mt.json",
+    "pk": "1867569717710544896",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 97,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 3,
+    "trans_sentences": 1,
+    "EN_source": "\u0002<kiroshi l=\"mex\" o=\"Mmm... exacto... ¿Sabes qué? Me aburres, mejor me largo la chingada.\" t=\"Mhm",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"Mmm... exacto... ¿Sabes qué? Me aburres, mejor me largo la chingada.\" t=\"ממ... בדיוק... יודע מה? משעמם אותי, אני הולך.\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 3 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~126 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/gang_val_m_01_mex_30_mt.json",
+    "pk": "2234985195907457028",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 97,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 3,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<kiroshi l=\"mex\" o=\"¡Uuuuh! ¡Ahora sí! Ja, ja, ja, ja.\" t=\"Ooooh! Now we're talking!\" b=\"\" a=\"\"/",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"¡Uuuuh! ¡Ahora sí! Ja, ja, ja, ja.\" t=\"וואו! עכשיו אנחנו מדברים!\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 3 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~126 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/gang_val_f_04_mex_20_mt.json",
+    "pk": "2234971243823636484",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 96,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 3,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<kiroshi l=\"mex\" o=\"¡Fff, arghm! ¡Venga! ¡Estoy lista, venga!\" t=\"Wooh! Let's roll!\" b=\"\" a=\"\"/",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"¡Fff, arghm! ¡Venga! ¡Estoy lista, venga!\" t=\"יופי! בוא נגלגל!\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 3 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~124 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/gang_vdb_f_05_car_25_mt.json",
+    "pk": "1949062121252757508",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 96,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 4,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<kiroshi l=\"creo\" o=\"Pran yo sou kote! Sou kote! Sou kote!\" t=\"Flank! Flank! Flank!\" b=\"\" a=\"\"/",
+    "HE_current_truncated": "<kiroshi l=\"creo\" o=\"Pran yo sou kote! Sou kote! Sou kote!\" t=\"אגף! אגף! אגף!\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 4 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~124 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/gang_scv_f_03_rus_30_fat.json",
+    "pk": "1898309690977804292",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 94,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 4,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<kiroshi l=\"rus\" o=\"Пх-х... кх-х... на хер иди...\" t=\"Ekhhh…. Khhh... Fuck you...\" b=\"\" a=\"\"/",
+    "HE_current_truncated": "<kiroshi l=\"rus\" o=\"Пх-х... кх-х... на хер иди...\" t=\"אכ... קך... תזדיין\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 4 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~122 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/gang_val_m_01_mex_30_mt.json",
+    "pk": "1805357762770231300",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 94,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 4,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<kiroshi l=\"mex\" o=\"Aughh... Su puta... madre...\" t=\"Aughh... mother... fucker...\" b=\"\" a=\"\"/",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"Aughh... Su puta... madre...\" t=\"אווו... אמא... שלך...\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 4 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~122 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/ncpd_low_f_08_mex_20_mt.json",
+    "pk": "1864599590153084932",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 94,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 3,
+    "trans_sentences": 1,
+    "EN_source": "\u0002<kiroshi l=\"mex\" o=\"Mmm... sí... Pero, ¿dónde conseguiste mi número? Entiendo...\" t=\"Mhm...Ye",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"Mmm... sí... Pero, ¿dónde conseguiste mi número? Entiendo...\" t=\"אהם...כן... אבל רגע, איך קיבלת את המספר שלי...? אני מבין...\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 3 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~122 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/quest/mq028/mq028_02_park.json",
+    "pk": "1816910463932473344",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 94,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 5,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<mothertongue l=\"jpn\" m=\"San... Ni... Ichi... Chi-zu!\" b=\"Haha! Awesome! \" a=\" There we go!\"/",
+    "HE_current_truncated": "<mothertongue l=\"jpn\" m=\"San... Ni... Ichi... Chi-zu!\" b=\"אהאה! מעולה!\" a=\"הנה אנחנו!\"/>",
+    "suggested_fix": "Re-translate fully — source has 5 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~122 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/gang_tcl_m_15_jap_40_mt.json",
+    "pk": "1876460779404271620",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 93,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 3,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<kiroshi l=\"jpn\" o=\"ううっ… くっ… この… 卑怯者…\" t=\"Arggh… ekhhh.. Kkh... You... Coward...\" b=\"\" a=\"\"/",
+    "HE_current_truncated": "<kiroshi l=\"jpn\" o=\"ううっ… くっ… この… 卑怯者…\" t=\"ארגghh.. אקכhh.. קךh.. אתה.. פחדן..\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 3 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~120 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/ncpd_low_f_08_mex_20_mt.json",
+    "pk": "1864599589985312772",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 92,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 4,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<kiroshi l=\"mex\" o=\"¡Auch! ¡Me duele! No puedo...\" t=\"Oww! It hurts! I can't...\" b=\"\" a=\"\"/",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"¡Auch! ¡Me duele! No puedo...\" t=\"אוי! כואב! אני לא יכול...\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 4 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~119 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/gang_val_m_02_mex_30_mt.json",
+    "pk": "1805407380883234820",
+    "field": "femaleVariant",
+    "signals": [
+      "MISSING_TERMINAL",
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 91,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 5,
+    "trans_sentences": 1,
+    "EN_source": "\u0002<kiroshi l=\"mex\" o=\"Sipi... seguro... No hay bronca... Mmm, mmm... Ahí estaré...\" t=\"Yep..",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"Sipi... seguro... No hay bronca... Mmm, mmm... Ahí estaré...\" t=\"כן... בטח... אין בעיה... מהם... מהם... אהיה שם...\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 5 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~118 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/gang_val_m_10_mex_20.json",
+    "pk": "1805627393854529540",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 89,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 3,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<mothertongue l=\"mex\" m=\"lurias\" b=\"Yeah... Mhm... Shiiiiit... Choom you fuckin \" a=\"!\"/",
+    "HE_current_truncated": "<mothertongue l=\"mex\" m=\"lurias\" b=\"יא... אה... שיט... צ'ום אתה זיין\" a=\"!\"/>",
+    "suggested_fix": "Re-translate fully — source has 3 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~115 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "onscreens/onscreens.json",
+    "pk": "47952",
+    "field": "femaleVariant",
+    "signals": [
+      "MISSING_TERMINAL",
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 87,
+    "trans_len": 6,
+    "ratio": 0.069,
+    "src_sentences": 33,
+    "trans_sentences": 1,
+    "EN_source": "\u0004//ROOT\\n//ACCESSING . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ",
+    "HE_current_truncated": "//שורש",
+    "suggested_fix": "Re-translate fully — source has 33 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~113 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/scenes/hey_spr_chat_018.json",
+    "pk": "2218604652769153024",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 87,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 3,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<kiroshi l=\"jpn\" o=\"ロ・シ・ア・語・は・話せませーん\" t=\"I. DOOON'T. SPEEEAK. RUUUSSIAAAN.\" b=\"\" a=\"\"/",
+    "HE_current_truncated": "<kiroshi l=\"jpn\" o=\"ロ・シ・ア・語・は・話せませーん\" t=\"אני לא מדבר רוסית.\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 3 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~113 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/gang_val_m_02_mex_30_mt.json",
+    "pk": "1805407381151670276",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 87,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 4,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<kiroshi l=\"mex\" o=\"Agh... grave... error...\" t=\"Echh... big... mistake...\" b=\"\" a=\"\"/",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"Agh... grave... error...\" t=\"אך... טעות... גדולה...\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 4 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~113 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/civ_low_m_75_mex_30.json",
+    "pk": "1896705197008756740",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 84,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 4,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<mothertongue l=\"mex\" m=\"Jesús.\" b=\"So... ? What debts? Pfft, I can pay it! \" a=\"\"/",
+    "HE_current_truncated": "<mothertongue l=\"mex\" m=\"Jesús.\" b=\"אז...? איזה חובות? פף, אני יכול לשלם!\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 4 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~109 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/gang_vdb_m_03_car_30_mt.json",
+    "pk": "1948980258303680516",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 84,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 3,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<kiroshi l=\"creo\" o=\"Bò isit! Vini jwenn mwen! \" t=\"To me! Rally to me!\" b=\"\" a=\"\"/",
+    "HE_current_truncated": "<kiroshi l=\"creo\" o=\"Bò isit! Vini jwenn mwen! \" t=\"אלי! התאספו אלי!\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 3 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~109 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/scenes/playing_games_chat_019.json",
+    "pk": "2182442728439668736",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 83,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 6,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<kiroshi l=\"rus\" o=\"Ай! Нет! Чёрт! Блин…\" t=\"Ow! No! Shit! Not good...\" b=\"\" a=\"\"/",
+    "HE_current_truncated": "<kiroshi l=\"rus\" o=\"Ай! Нет! Чёрт! Блин…\" t=\"אוי! לא! שטויות! לא טוב...\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 6 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~107 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/gang_tcl_f_01_jap_25.json",
+    "pk": "1876477122291703812",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 83,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 3,
+    "trans_sentences": 1,
+    "EN_source": "\u0001<mothertongue l=\"jpn\" m=\"Gomi-kuzu\" b=\"Hey! \" a=\"! What you lookin at? He he he.\"/",
+    "HE_current_truncated": "<mothertongue l=\"jpn\" m=\"Gomi-kuzu\" b=\"היי!\" a=\"מה אתה מסתכל? חחח\"/>",
+    "suggested_fix": "Re-translate fully — source has 3 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~107 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/gang_vdb_m_03_car_30_mt.json",
+    "pk": "1948980258941214724",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 83,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 5,
+    "trans_sentences": 1,
+    "EN_source": "\u0002<kiroshi l=\"creo\" o=\"Ahkh…. Khhh.... Non... pitye... Non... Mwen pa vle...\" t=\"Khh",
+    "HE_current_truncated": "<kiroshi l=\"creo\" o=\"Ahkh…. Khhh.... Non... pitye... Non... Mwen pa vle...\" t=\"קק.. קק.. לא.. רחמים.. לא.. אל.. רוצה..\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 5 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~107 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/civ_low_f_126_mex_40_mt.json",
+    "pk": "1949203003998248964",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 81,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 3,
+    "trans_sentences": 1,
+    "EN_source": "\u0003<kiroshi l=\"mex\" o=\"¿Estás demente...? ¡¿Yo...?! Ay, no me chingues... ¡Jamás en",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"¿Estás demente...? ¡¿Yo...?! Ay, no me chingues... ¡Jamás en la vida...! ¡Prefiero morirme!\" t=\"אתה משוגע...? אני...?! אתה מתבדח... לעולם בחיים שלי...! אני מעדיף למות!\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 3 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~105 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/civ_low_m_66_mex_40_rep.json",
+    "pk": "1896691432460656644",
+    "field": "femaleVariant",
+    "signals": [
+      "MISSING_TERMINAL",
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 81,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 3,
+    "trans_sentences": 1,
+    "EN_source": "\u0003<kiroshi l=\"mex\" o=\"¡Qué, chinga tu madre...! ¡Me robaste la pinche hierba! ¡No.",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"¡Qué, chinga tu madre...! ¡Me robaste la pinche hierba! ¡No...! ¡No me mientas, cabrón!\" t=\"מה לעזאזל…! גנבת ממני חמישים…! לא…! אל תשקר לי, נוכל!\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 3 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~105 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/scenes/wat_lch_chat_025.json",
+    "pk": "2172327044681809920",
+    "field": "femaleVariant",
+    "signals": [
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 80,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 3,
+    "trans_sentences": 1,
+    "EN_source": "\u0003<kiroshi l=\"mex\" o=\"O no, peor... Los perros valen muchos edis... Pero un... ¿u",
+    "HE_current_truncated": "<kiroshi l=\"mex\" o=\"O no, peor... Los perros valen muchos edis... Pero un... ¿un empleado leal? ¡No vale nada!\" t=\"או לא, גרוע יותר... כלב שווה המון אדס... אבל עובד נאמן? כלום!\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 3 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~104 chars (safe buffer)."
+  },
+  {
+    "project": "base",
+    "section": "subtitles/open_world/voicesets/gang_vdb_m_01_car_30_mt.json",
+    "pk": "1948964900473708544",
+    "field": "femaleVariant",
+    "signals": [
+      "MISSING_TERMINAL",
+      "SENTENCE_COUNT_LOSS",
+      "LENGTH_TRUNCATION"
+    ],
+    "src_len": 80,
+    "trans_len": 0,
+    "ratio": 0.0,
+    "src_sentences": 3,
+    "trans_sentences": 1,
+    "EN_source": "\u0002<kiroshi l=\"creo\" o=\"Fè rabè? Ou vle volè m zami…? Se sa m kwè...\" t=\"Discount?",
+    "HE_current_truncated": "<kiroshi l=\"creo\" o=\"Fè rabè? Ou vle volè m zami…? Se sa m kwè...\" t=\"הנחה? מנסה לשדוד חבר…? זה מה שחשבתי…\" b=\"\" a=\"\"/>",
+    "suggested_fix": "Re-translate fully — source has 3 sentences but Hebrew has 1. Preserve any \\n line breaks; do not exceed ~104 chars (safe buffer)."
+  }
+]

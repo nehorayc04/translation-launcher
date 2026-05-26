@@ -27,6 +27,7 @@ from .manager import (
     get_last_authorize_url,
     signin_with_password, signup_with_password,
     get_purchases, get_votes,
+    get_access_token,
     AuthError,
 )
 
@@ -39,5 +40,9 @@ __all__ = [
     # `_auth.get_purchases()` raised AttributeError, the outer try/except
     # caught it, and the function returned `[]` like a clean empty list.
     'get_purchases', 'get_votes',
+    # get_access_token surfaces the current Supabase JWT so the
+    # launcher's React-side PayPal SDK can call /api/paypal create-order
+    # and capture-order. Same security posture as the website.
+    'get_access_token',
     'AuthError',
 ]

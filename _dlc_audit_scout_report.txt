@@ -1,0 +1,142 @@
+DLC quality scout — defect counts:
+  EMPTY                28,282
+  OK                   19,846
+  CODE_LIKE               269
+  IDENTIFIER_LEAK         226
+  UNTRANSLATED            178
+  LEAD_TRANSLIT            49
+  DOUBLE_LANG              27
+  LENGTH_ANOMALY           27
+
+--- CODE_LIKE samples (20) ---
+  [ep1/onscreens/onscreens.json  ] f src='10x high-caliber NIGHTCRAWLER sniper rifle (12.7mm, col'  trans='10x רובה צלפים NIGHTCRAWLER קליבר גבוה (12.7 מ"מ, כוונו'  (10x high-caliber NIGHTCRAWLER sniper rifle (12.7mm, collimat)
+  [ep1/onscreens/onscreens.json  ] f src='Archived Conversation: Pvt. Jacquelyn Dennis and Senior'  trans="שיחה מארכיונים: פרטית ג'קלין דניס וסמל ראשון קאט מנדז; "  (Archived Conversation: Pvt. Jacquelyn Dennis and Senior NCO )
+  [ep1/onscreens/onscreens.json  ] f src='Hello. Seeing as the deadline to commence mass producti'  trans='שלום. בהתחשב בכך שהמועד להתחלת ייצור המוני של הרקולס מת'  (Hello. Seeing as the deadline to commence mass production of)
+  [ep1/onscreens/onscreens.json  ] f src='RUSSELL BORA: check if 6th streets on the move\\nCHUCK D'  trans="רוסל בורה: בדוק אם שישי סטריטס בתנועה\nצ'אק דרמונד: הם י"  (RUSSELL BORA: check if 6th streets on the move\nCHUCK DERMON)
+  [ep1/onscreens/onscreens.json  ] f src='The grand opening is scheduled to take place 10th April'  trans='הפתיחה הגדולה מתוכננת ליום 10 באפריל 2069! היינו רוצים '  (The grand opening is scheduled to take place 10th April 2069)
+  [ep1/onscreens/onscreens.json  ] f src='The year is 2058. In South Pacifica, real estate develo'  trans='השנה היא 2058. בדרום פאסיפיקה, יזמי נדל"ן מנסים להגשים '  (The year is 2058. In South Pacifica, real estate developers )
+  [ep1/onscreens/onscreens.json  ] f src='Border Guard Report - A0567-9H'  trans='דו"ח משמר הגבול - A0567-9H'  (Border Guard Report - A0567-9H)
+  [ep1/onscreens/onscreens.json  ] f src='We need a 14-7A Risk Assessment upon landing in DC.\\n\\n'  trans='אנחנו צריכים הערכת סיכונים 14-7A בנחיתה בוושינגטון די.ס'  (We need a 14-7A Risk Assessment upon landing in DC.\n\n-----)
+  [ep1/onscreens/onscreens.json  ] f src='3-9 March 2014\\nHeat Exchanger Fluid Level Control (Rem'  trans='3-9 מרץ 2014\nבקרת רמת נוזל מחליף חום (זכרו! אל תשבו ותב'  (3-9 March 2014\nHeat Exchanger Fluid Level Control (Remember)
+  [ep1/onscreens/onscreens.json  ] f src='06/12/14\\nI can’t believe the entire cooling system use'  trans='06/12/14\\nלא ייאמן שהמערכת הקרורית כולה הייתה פעם מפוצל'  (06/12/14\nI can’t believe the entire cooling system used to )
+  [ep1/onscreens/onscreens.json  ] f src='List of goods for your first transport:\\n\\nTETRATRONIC '  trans='רשימת סחורות למשלוח הראשון שלך:\n\nטטרהטרוניק MK. II x20\n'  (List of goods for your first transport:\n\nTETRATRONIC MK. I)
+  [ep1/onscreens/onscreens.json  ] f src='We know how difficult the past few months have been, es'  trans='ידענו כמה הקשים היו החודשים האחרונים, במיוחד אחרי מצב ה'  (We know how difficult the past few months have been, especia)
+  [ep1/onscreens/onscreens.json  ] f src='Purchase confirmation for one (1) ticket to the event J'  trans="אישור רכישה לכרטיס אחד (1) לאירוע ג'וני סילברהאנד: סולו"  (Purchase confirmation for one (1) ticket to the event JOHNNY)
+  [ep1/onscreens/onscreens.json  ] f src="Bree Whitney's address: 18 Skyline West, 5th floor, las"  trans='כתובת ברי ויטני: 18 סקיילן וסט, קומה 5, הדלת האחרונה מי'  (Bree Whitney's address: 18 Skyline West, 5th floor, last doo)
+  [ep1/onscreens/onscreens.json  ] f src="RE: Chimera\\n\\nIn order to breach the Chimera's ICE, we"  trans='לגבי כימרה\n\nכדי לפרוץ את ה-ICE של הכימרה נצטרך אשכול גד'  (RE: Chimera\n\nIn order to breach the Chimera's ICE, we'll n)
+  [ep1/onscreens/onscreens.json  ] f src='ANYA: You on patrol?\\nEVANS: Yeah. Wassup?\\nANYA: Got s'  trans='אניה: אתה בשיטור?\nאוונס: כן. מה קורה?\nאניה: יש לי משהו '  (ANYA: You on patrol?\nEVANS: Yeah. Wassup?\nANYA: Got someth)
+  [ep1/onscreens/onscreens.json  ] f src='R.'  trans='ר'  (R.)
+  [ep1/onscreens/onscreens.json  ] f src="Mainframe's well preserved, minimal external damage (tw"  trans='הזיכרון הראשי נשמר היטב, נזק חיצוני מינימלי (שריטות עמו'  (Mainframe's well preserved, minimal external damage (two dee)
+  [ep1/onscreens/onscreens.json  ] f src='Keywords: Serenisands, Night City, Dogtown, Kurt Hansen'  trans='מילות מפתח: סרניזנדס, נייט סיטי, דוגטאון, קורט הנסן, בר'  (Keywords: Serenisands, Night City, Dogtown, Kurt Hansen, BAR)
+  [ep1/onscreens/onscreens.json  ] f src='Potential locations Colleen could rebuild her lab:\\n- B'  trans='מיקומים אפשריים שבהם קולין יכולה לשחזר את המעבדה שלה:\n-'  (Potential locations Colleen could rebuild her lab:\n- Barghe)
+
+--- UNTRANSLATED samples (20) ---
+  [ep1/onscreens/onscreens.json  ] f src='xXx_82'  trans='xXx_82'
+  [ep1/onscreens/onscreens.json  ] f src='Kenny, save us! We’re all out of ROMVLVS – sold every s'  trans='Kenny, save us! We’re all out of ROMVLVS – sold every s'
+  [ep1/onscreens/onscreens.json  ] f src='SPAx2'  trans='SPAx2'
+  [ep1/onscreens/onscreens.json  ] f src='FIA AV'  trans='FIA AV'
+  [ep1/onscreens/onscreens.json  ] f src='how’s it goin hon\\n\\n-----\\n\\nFrom: Aneta Daehler-Cross'  trans='how’s it goin hon\\n\\n-----\\n\\nFrom: Aneta Daehler-Cross'
+  [ep1/onscreens/onscreens.json  ] f src="MASON BLACK: fuckin' preem\\nMASON BLACK: just how the h"  trans="MASON BLACK: fuckin' preem\\nMASON BLACK: just how the h"
+  [ep1/onscreens/onscreens.json  ] f src='the fuck happened with that drop? waited around all nig'  trans='the fuck happened with that drop? waited around all nig'
+  [ep1/onscreens/onscreens.json  ] f src='x_x'  trans='x_x'
+  [ep1/onscreens/onscreens.json  ] f src="Your mother's asking when you’re going to come see us. "  trans="Your mother's asking when you’re going to come see us. "
+  [ep1/onscreens/onscreens.json  ] f src='Been thinking, maybe we mix things up for the next scre'  trans='Been thinking, maybe we mix things up for the next scre'
+  [ep1/onscreens/onscreens.json  ] f src="I've received several inquiries and offers about the DY"  trans="I've received several inquiries and offers about the DY"
+  [ep1/onscreens/onscreens.json  ] f src="__djdUHSDdu&373m^^&wpus&cSsza!THEIR_NERVOUS_SYSTEMS_23'"  trans="__djdUHSDdu&373m^^&wpus&cSsza!THEIR_NERVOUS_SYSTEMS_23'"
+  [ep1/onscreens/onscreens.json  ] f src='ahYGotoSpie&#LL^djBS_ARE_YOU_HERE_WITH_ME?jam\\nHBklo:"j'  trans='ahYGotoSpie&#LL^djBS_ARE_YOU_HERE_WITH_ME?jam\\nHBklo:"j'
+  [ep1/onscreens/onscreens.json  ] f src='<< encrypted data packet received >>'  trans='<< encrypted data packet received >>'
+  [ep1/onscreens/onscreens.json  ] f src='GARRY BATES: they wanna kill me\\nGARRY BATES: they’re o'  trans='GARRY BATES: they wanna kill me\\nGARRY BATES: they’re o'
+  [ep1/onscreens/onscreens.json  ] f src='Greetings,\\n\\nOn behalf of the Board of Night City Inte'  trans='Greetings,\\n\\nOn behalf of the Board of Night City Inte'
+  [ep1/onscreens/onscreens.json  ] f src='Preview a taste of what awaits you at your destination.'  trans='Preview a taste of what awaits you at your destination.'
+  [ep1/onscreens/onscreens.json  ] f src='<3 xo'  trans='<3 xo'
+  [ep1/onscreens/onscreens.json  ] f src='Damir,\\n\\nlemme get straight to it. Those syn-lungs you'  trans='Damir,\\n\\nlemme get straight to it. Those syn-lungs you'
+  [ep1/onscreens/onscreens.json  ] f src='According to international law, space belongs to everyb'  trans='According to international law, space belongs to everyb'
+
+--- IDENTIFIER_LEAK samples (20) ---
+  [ep1/onscreens/onscreens.json  ] f src='BARGHEST'  trans='ברגסט'  (BARGHEST)
+  [ep1/onscreens/onscreens.json  ] f src='ANSWER'  trans='ענה'  (ANSWER)
+  [ep1/onscreens/onscreens.json  ] f src='MAINTENANCE'  trans='תחזוקה'  (MAINTENANCE)
+  [ep1/onscreens/onscreens.json  ] f src='EVACUATE'  trans='פונו!'  (EVACUATE)
+  [ep1/onscreens/onscreens.json  ] f src='New, unused'  trans='חדש, לא בשימוש'  (New, unused)
+  [ep1/onscreens/onscreens.json  ] f src='OBSOLETE'  trans='מיושן'  (OBSOLETE)
+  [ep1/onscreens/onscreens.json  ] f src='ALEX'  trans='אלכס'  (ALEX)
+  [ep1/onscreens/onscreens.json  ] f src='NCX'  trans='נקס'  (NCX)
+  [ep1/onscreens/onscreens.json  ] f src='ALEX'  trans='אלכס'  (ALEX)
+  [ep1/onscreens/onscreens.json  ] f src='TV'  trans='טלוויזיה'  (TV)
+  [ep1/onscreens/onscreens.json  ] f src='BARGHEST'  trans='ברגסט'  (BARGHEST)
+  [ep1/onscreens/onscreens.json  ] f src='BARGHEST'  trans='ברגסט'  (BARGHEST)
+  [ep1/onscreens/onscreens.json  ] f src='[image]'  trans='[תמונה]'  ([image])
+  [ep1/onscreens/onscreens.json  ] f src="[...] we're still calibrating the methods and intensity"  trans='[...] אנחנו עדיין מתאימים את השיטות ועוצמת הקירור של הל'  ([...] we're still calibrating the methods and intensity of c)
+  [ep1/onscreens/onscreens.json  ] f src='MM'  trans='ממ'  (MM)
+  [ep1/onscreens/onscreens.json  ] f src='[COORDINATES]'  trans='[קואורדינטות]'  ([COORDINATES])
+  [ep1/onscreens/onscreens.json  ] f src='FAILED'  trans='נכשל'  (FAILED)
+  [ep1/onscreens/onscreens.json  ] f src='COMPLETE'  trans='שלם'  (COMPLETE)
+  [ep1/onscreens/onscreens.json  ] f src='COMPLETE'  trans='שלם'  (COMPLETE)
+  [ep1/onscreens/onscreens.json  ] f src='CONFISCATED'  trans='מוחBPS'  (CONFISCATED)
+
+--- LEAD_TRANSLIT samples (20) ---
+  [ep1/onscreens/onscreens.json  ] f src='MaxTac Transport Vehicle'  trans='כלי רכב הובלה של מקסתק'  (MaxTac Transport Vehicle → כלי רכב הובלה של מקסתק)
+  [ep1/onscreens/onscreens.json  ] f src='MaxTac convoy datashard'  trans='שארד נתונים של שיירה של מקסתק'  (MaxTac convoy datashard → שארד נתונים של שיירה של מקסתק)
+  [ep1/onscreens/onscreens.json  ] f src='TooLina'  trans='טולינא'  (TooLina → טולינא)
+  [ep1/onscreens/onscreens.json  ] f src='NorCal camp located in the garage.\\nArea secured.\\nCasu'  trans='מחנה נורקאל ממוקם בחניון.\\nהאזור מאובטח.\\nנפגעים: 4 הרו'  (NorCal camp located in the gar → מחנה נורקאל ממוקם בחניון.\nהאז)
+  [ep1/onscreens/onscreens.json  ] f src='LeAnn Ramsey'  trans='ליאן רמזי'  (LeAnn Ramsey → ליאן רמזי)
+  [ep1/onscreens/onscreens.json  ] f src='ChromeKilla'  trans='כרום קילה'  (ChromeKilla → כרום קילה)
+  [ep1/onscreens/onscreens.json  ] f src='AnthonyC@cynosure.mil.corp'  trans='אנתוניC@סיינוסור.מיל.קורפו'  (AnthonyC@cynosure.mil.corp → אנתוניC@סיינוסור.מיל.קורפו)
+  [ep1/onscreens/onscreens.json  ] f src='MalinaMerch'  trans="מלינאמרצ'"  (MalinaMerch → מלינאמרצ')
+  [ep1/onscreens/onscreens.json  ] f src='ChromeKilla'  trans='כרום קילר'  (ChromeKilla → כרום קילר)
+  [ep1/onscreens/onscreens.json  ] f src='EuroBank'  trans='יורובנק'  (EuroBank → יורובנק)
+  [ep1/onscreens/onscreens.json  ] f src='WorldSat CommNet'  trans='וורלדסאט קוםנט'  (WorldSat CommNet → וורלדסאט קוםנט)
+  [ep1/onscreens/onscreens.json  ] f src='SovOil'  trans='סובאויל'  (SovOil → סובאויל)
+  [ep1/onscreens/onscreens.json  ] f src='LifePod launched prior to impact'  trans='פוד החירום שוגר לפני ההתנגשות'  (LifePod launched prior to impa → פוד החירום שוגר לפני ההתנגשות)
+  [ep1/onscreens/onscreens.json  ] f src='MaxTac Bot'  trans='מקסתק בוט'  (MaxTac Bot → מקסתק בוט)
+  [ep1/onscreens/onscreens.json  ] f src='MaxTac Transporter'  trans='משאית מקסתק'  (MaxTac Transporter → משאית מקסתק)
+  [ep1/onscreens/onscreens.json  ] f src='ClaudiaW@cynosure.mil.corp'  trans='קלאודיהW@סינוסור.מיל.קורפו'  (ClaudiaW@cynosure.mil.corp → קלאודיהW@סינוסור.מיל.קורפו)
+  [ep1/onscreens/onscreens.json  ] f src='ManuelB@cynosure.mil.corp'  trans='מנואלB@סינוסר.מיל.קורפו'  (ManuelB@cynosure.mil.corp → מנואלB@סינוסר.מיל.קורפו)
+  [ep1/onscreens/onscreens.json  ] f src='AlexisD@cynosure.mil.corp'  trans='אלכסיסD@סינוסר.מיל.קורפו'  (AlexisD@cynosure.mil.corp → אלכסיסD@סינוסר.מיל.קורפו)
+  [ep1/onscreens/onscreens.json  ] f src='gylcrE34FUzU2R_OUR_CHOICES_STEER_yz\\nEXa02bw3kqx8An_THE'  trans='גילקרי34FUzU2R_OUR_CHOICES_STEER_yz\\nEXa02bw3kqx8An_THE'  (gylcrE34FUzU2R_OUR_CHOICES_STE → גילקרי34FUzU2R_OUR_CHOICES_STE)
+  [ep1/onscreens/onscreens.json  ] f src='MineMegaLina'  trans='מאין מגה לינה'  (MineMegaLina → מאין מגה לינה)
+
+--- DOUBLE_LANG samples (20) ---
+  [ep1/onscreens/onscreens.json  ] f src='Choom, real sorry but here’s the deal. Shoulda had the '  trans="צ'ום, ממש מצטער אבל הנה העניין. היה צריך פשוט להגיד לך "  (going to kick you out)
+  [ep1/onscreens/onscreens.json  ] f src='Please enjoy our brand new, hand-picked selection of ar'  trans='תהנו מבחירת משחקי הארקייד והמכונות להימורים החדשה שלנו,'  (Heart of the Valkyrie)
+  [ep1/onscreens/onscreens.json  ] f src="My dear Farida,\\n\\nI know it's been ages and I'm truly "  trans='פרידה יקרה שלי,\n\nאני יודע שזה עבר המון זמן ואני באמת מצ'  (Come as Sunshine)
+  [ep1/onscreens/onscreens.json  ] f src='1. Generous croupier (gold cowboy hat):\\nXerzeX - "Heav'  trans='קרופייה נדיבה (כובע καουבוי זהב):\\nXerzeX - "Heave Ho"\\'  (On My Way to Hell)
+  [ep1/onscreens/onscreens.json  ] f src='Misty, think about it, would ya? We make a great team. '  trans='מיסטי, תחשבי על זה רגע, אה? אנחנו צוות מצוין. לא חייב ל'  (ll think about it)
+  [ep1/onscreens/onscreens.json  ] f src='Fact 1: Crystal Palace is the longest-functioning space'  trans='עובדה 1: קריסטל פאלאס היא תחנת החלל הפועלת הממושכת ביות'  (WANT MORE)
+  [ep1/onscreens/onscreens.json  ] f src='TARA ANDERSON: Anthony? Where are you? Some people from'  trans='טרה אנדרסון: אנתוני? איפה אתה? כמה אנשים מבית החולים הי'  (ACCOUNT DOES NOT EXIST)
+  [ep1/onscreens/onscreens.json  ] f src="I'll be watchin in rea SHIT HOLD ON MY PIZZAS HERE"  trans='אהיה עוקב ב rea SHIT HOLD ON MY PIZZAS HERE'  (rea SHIT HOLD ON MY PIZZAS HERE)
+  [ep1/onscreens/onscreens.json  ] f src="Hey, something big came up. I'm gonna call again and I "  trans='היי, משהו גדול קרה. אני going to התקשר שוב ואני צריך שת'  (going to)
+  [ep1/onscreens/onscreens.json  ] f src='Lorraine, listen, I’m trying to get to the bottom of th'  trans='לוריין, שמעי, אני מנסה להבין את העניין הזה של פנט. איך '  (those new Arasaka liver boosters)
+  [ep1/onscreens/onscreens.json  ] f src="ROY BUSH: ok but there's one thing I don't get\\nKELSEY "  trans='רוי בוש: בסדר אבל יש דבר אחד שלא אני מבין\nקלסי אוסטין: '  (MAINTENANCE YOU GONK)
+  [ep1/onscreens/onscreens.json  ] f src='Fact 2: The Crystal Palace rotates on its own axis 7.5 '  trans='עובדה 2: ארמון הקריסטל מסתובב על צירו ב-7.5 מעלות כל שע'  (WANT MORE)
+  [ep1/onscreens/onscreens.json  ] f src='Fact 4: The Crystal Palace is powered by solar cells, w'  trans='עובדה 4: ארמון הקריסטל מופעל על ידי תאים סולריים, בעוד '  (WANT MORE)
+  [ep1/onscreens/onscreens.json  ] f src='Info for everyone so it’s clear to you and the clients.'  trans='מידע לכל אחד כדי שיהיה ברור לכם וללקוחות. יש לנו בסך הכ'  (pretty much it)
+  [ep1/onscreens/onscreens_final.] f src='Gig objective: Retrieve a prototype implant and its sch'  trans='מטרת המשימה: להחזיר שתל פרוטוטיפ ותוכניותיו\n\nמיקום: אתר'  (informing me said convoy was theirs)
+  [ep1/onscreens/onscreens_final.] f src='Choom, real sorry but here’s the deal. Shoulda had the '  trans="צ'ום, ממש מצטער אבל הנה העניין. היה צריך פשוט להגיד לך "  (going to kick you out)
+  [ep1/onscreens/onscreens_final.] f src='Please enjoy our brand new, hand-picked selection of ar'  trans='תהנו מבחירת משחקי הארקייד ומכונות ההימורים החדשים שלנו,'  (Heart of the Valkyrie)
+  [ep1/onscreens/onscreens_final.] f src='Been thinking, maybe we mix things up for the next scre'  trans='חשבתי, אולי נערבב דברים להקרנה הבאה? נאמר... טרנטולה! א'  (them old classics)
+  [ep1/onscreens/onscreens_final.] f src="My dear Farida,\\n\\nI know it's been ages and I'm truly "  trans='פרידה יקרה שלי,\n\nאני יודע שעברו המון זמן ואני באמת מצטע'  (Come as Sunshine)
+  [ep1/onscreens/onscreens_final.] f src='1. Generous croupier (gold cowboy hat):\\nXerzeX - "Heav'  trans='קרופייה נדיבה (כובע καουבוי זהב):\\nXerzeX - "Heave Ho"\\'  (On My Way to Hell)
+
+--- LENGTH_ANOMALY samples (20) ---
+  [ep1/onscreens/onscreens.json  ] f src='1. Connect the compressor to the recuperator\\n2. Connec'  trans='חבר את הקומפריסטור לרקופרטור'  (too short (28/238 = 0.12x))
+  [ep1/onscreens/onscreens.json  ] f src='- synapse burnout x340\\n- short circuit (overclocked) x'  trans='- שריפת סינפסות x340'  (too short (20/153 = 0.13x))
+  [ep1/onscreens/onscreens.json  ] f src='Hey, final article’s in the attachment.\\n\\n-----\\n\\nFro'  trans='היי, המאמר הסופי מצורף.'  (too short (23/196 = 0.12x))
+  [ep1/onscreens/onscreens.json  ] f src="Combat Zone\\n\\nChapter I\\nA Peaceful Night's Rest\\n\\nTh"  trans='אזור לחימה'  (too short (10/57 = 0.18x))
+  [ep1/onscreens/onscreens.json  ] f src='1. The clusters you  prepped have adequate power, but w'  trans='הקלאסטרים שערכת מוכנים עם הספק מספיק, אבל נצטרך תוכנה י'  (too short (146/540 = 0.27x))
+  [ep1/onscreens/onscreens.json  ] f src='1. Dynalar subdermal coprocessor (nb. only v.3.45222 an'  trans='מעבד משנה דיינלר תת-עורי (שים לב: רק גרסאות 3.45222 ומע'  (too short (58/519 = 0.11x))
+  [ep1/onscreens/onscreens.json  ] f src='HEAVY HEARTS CLUB\\n\\n*** OPEN 24/7 ***\\n\\n*** XXX BDs *'  trans='מועדון הלבבות הכבדים'  (too short (20/181 = 0.11x))
+  [ep1/onscreens/onscreens.json  ] f src='1. Recording of the interrogation of Arasaka agent Okim'  trans='הקלטת חקירה של סוכן אראסאקה אוקימוטו יאסושי [הורד קובץ]'  (too short (55/385 = 0.14x))
+  [ep1/onscreens/onscreens.json  ] f src='Have you lost weight?'  trans='הרזת?'  (too short (5/21 = 0.24x))
+  [ep1/onscreens/onscreens.json  ] f src='1. test thermal breakers (P4, no rush)\\n2. program remo'  trans='בדוק מפרידי חום (P4, בלי לחץ)'  (too short (29/481 = 0.06x))
+  [ep1/onscreens/onscreens_final.] f src='Head to the lobby.'  trans='לובי'  (too short (4/18 = 0.22x))
+  [ep1/onscreens/onscreens_final.] f src='1. Connect the compressor to the recuperator\\n2. Connec'  trans='חבר את הקומפריסטור אל המחליף החום'  (too short (33/238 = 0.14x))
+  [ep1/onscreens/onscreens_final.] f src='- synapse burnout x340\\n- short circuit (overclocked) x'  trans='- שריפת סינפסות x340'  (too short (20/153 = 0.13x))
+  [ep1/onscreens/onscreens_final.] f src='Saggy – Active\\nZed – KIA\\nXXXX – XXXX\\nOrange – Active'  trans='סאגי - פעיל'  (too short (11/95 = 0.12x))
+  [ep1/onscreens/onscreens_final.] f src='Hey, final article’s in the attachment.\\n\\n-----\\n\\nFro'  trans='היי, המאמר הסופי מצורף.'  (too short (23/196 = 0.12x))
+  [ep1/onscreens/onscreens_final.] f src="Combat Zone\\n\\nChapter I\\nA Peaceful Night's Rest\\n\\nTh"  trans='אזור לחימה'  (too short (10/57 = 0.18x))
+  [ep1/onscreens/onscreens_final.] f src='1. The clusters you  prepped have adequate power, but w'  trans='הקלאסטרים שערכת מוכנים עם הספק מספיק, אבל נצטרך תוכנה י'  (too short (145/540 = 0.27x))
+  [ep1/onscreens/onscreens_final.] f src='1. Dynalar subdermal coprocessor (nb. only v.3.45222 an'  trans='מעבד משנה דיינלר תת-עורי (שימו לב: רק גרסאות 3.45222 ומ'  (too short (59/519 = 0.11x))
+  [ep1/onscreens/onscreens_final.] f src='HEAVY HEARTS CLUB\\n\\n*** OPEN 24/7 ***\\n\\n*** XXX BDs *'  trans='מועדון הלבבות הכבדים'  (too short (20/181 = 0.11x))
+  [ep1/onscreens/onscreens_final.] f src='1. Braindances are rented on deposit. We accept fuel an'  trans="בריינדאנסים מושכרים עם פיקדון. אנו מקבלים דלק וגאדג'טים"  (too short (56/873 = 0.06x))
+

@@ -1,0 +1,48 @@
+==============================================================================
+CYBERPUNK 2077 HEBREW TRANSLATION — MISSING-STRING AUDIT
+generated 2026-05-17 05:04:50
+==============================================================================
+
+Source export:      C:\Users\nc528\סקריפטים\תרגום משחקים\תרגום_משחקים\source\resources\localization_export.json
+Translated state:   C:\Users\nc528\סקריפטים\תרגום משחקים\תרגום_משחקים\source\resources\localization_translated.json
+Audit elapsed:      2.6s
+
+──────────────────────────────────────────────────────────────────────────────
+TOTALS
+──────────────────────────────────────────────────────────────────────────────
+  Total EN strings (across all categories):     275,029
+  Already translated (or otherwise present):     223,909
+  MISSING from HE translation:                   51,120
+  Missing share:                                   18.6%
+
+  Sections with at least one gap:                     2
+
+──────────────────────────────────────────────────────────────────────────────
+BY HIGH-LEVEL CATEGORY
+──────────────────────────────────────────────────────────────────────────────
+  onscreens                       total= 140,892  missing=  51,120  ( 36.3%)
+  skipped (CDPR internal QA)      total= 130,468  missing=       0  (  0.0%)
+  subtitles                       total=   3,669  missing=       0  (  0.0%)
+
+──────────────────────────────────────────────────────────────────────────────
+SUBTITLES BREAKDOWN (sub-folder under subtitles/)
+──────────────────────────────────────────────────────────────────────────────
+  subtitles/quest                      total=   2,438  missing=       0  (  0.0%)
+  subtitles/open_world                 total=   1,219  missing=       0  (  0.0%)
+  subtitles/media                      total=      12  missing=       0  (  0.0%)
+
+──────────────────────────────────────────────────────────────────────────────
+TOP 30 SECTIONS BY MISSING COUNT
+──────────────────────────────────────────────────────────────────────────────
+  onscreens/onscreens.json                                      25,560 / 70,446  ( 36.3%)
+  onscreens/onscreens_final.json                                25,560 / 70,446  ( 36.3%)
+
+──────────────────────────────────────────────────────────────────────────────
+ALL SECTIONS WITH GAPS (full list)
+──────────────────────────────────────────────────────────────────────────────
+  onscreens/onscreens.json                                                25,560
+  onscreens/onscreens_final.json                                          25,560
+
+==============================================================================
+END OF REPORT
+==============================================================================

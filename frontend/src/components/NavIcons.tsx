@@ -46,6 +46,25 @@ export function DownloadsIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+export function FolderIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+    </svg>
+  );
+}
+
+export function AppsIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="3"  y="3"  width="7" height="7" rx="1.5" />
+      <rect x="14" y="3"  width="7" height="7" rx="1.5" />
+      <rect x="3"  y="14" width="7" height="7" rx="1.5" />
+      <rect x="14" y="14" width="7" height="7" rx="1.5" />
+    </svg>
+  );
+}
+
 export function SettingsIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg {...base} {...props}>

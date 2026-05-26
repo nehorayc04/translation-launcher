@@ -75,5 +75,40 @@ lm_output.json
 
 # ── editor / OS ──────────────────────────────────────────────
 .DS_Store
+Thumbs.db
+desktop.ini
 .vscode/
 .idea/
+
+# ── timestamped backups, locks, transient tmp files ─────────
+# Translation pipeline scripts spray .bak.<timestamp> sidecars and
+# short-lived lock files; none of them belong in version control.
+*.bak.*
+*.bak[0-9]*
+*_backup.acl
+*.acl.bak
+*.lock
+_tmp_*
+*_giveup.json
+
+# ── extra credentials / runtime secrets (defence in depth) ──
+.env.build
+.env.local
+.env.production
+*.pem
+*.p12
+*.pfx
+*.cer
+*.key
+credentials.json
+secrets.json
+service-account.json
+.npmrc
+
+# ── PyInstaller / Inno Setup transient ──────────────────────
+*.spec~
+warn-*.txt
+xref-*.html
+
+# ── node_modules anywhere in the tree (catch-all) ───────────
+node_modules/

@@ -102,7 +102,7 @@ function SelfUpdatePanel() {
     let launchTimer: number | null = null;
     const unsubscribe = onLauncherUpdateProgress((p) => {
       setProgress(p);
-      if (p.phase === "error") {
+      if (p.phase === "error" || p.phase === "cancelled") {
         setUpdating(false);
         if (launchTimer !== null) {
           window.clearTimeout(launchTimer);
@@ -126,6 +126,14 @@ function SelfUpdatePanel() {
     };
   }, []);
 
+  const cancelUpdate = useCallback(async () => {
+    try {
+      await api.cancelLauncherUpdate();
+    } catch (e) {
+      console.error("[self-update] cancel failed", e);
+    }
+  }, []);
+
   const startUpdate = async () => {
     setUpdating(true);
     setProgress({ phase: "download", pct: 0, detail: "מתחיל בהורדה…" });
@@ -141,11 +149,17 @@ function SelfUpdatePanel() {
     }
   };
 
-  const failed   = progress?.phase === "error";
-  const launching = progress?.phase === "launch";
-  const verifying = progress?.phase === "verify";
-  const barPct   = Math.min(100, Math.max(0, progress?.pct ?? 0));
-  const accent   = info?.updateAvailable ? "#fff700" : "#00ffe0";
+  const failed     = progress?.phase === "error";
+  const cancelled  = progress?.phase === "cancelled";
+  const launching  = progress?.phase === "launch";
+  const verifying  = progress?.phase === "verify";
+  const downloading = progress?.phase === "download";
+  // The user can cancel during download/verify. Once the installer
+  // process has been launched we no longer offer the button — the
+  // install is the installer's job to finish or fail.
+  const cancellable = updating && (downloading || verifying);
+  const barPct      = Math.min(100, Math.max(0, progress?.pct ?? 0));
+  const accent      = info?.updateAvailable ? "#fff700" : "#00ffe0";
 
   return (
     <div
@@ -238,39 +252,59 @@ function SelfUpdatePanel() {
       )}
 
       {/* Live progress while updating */}
-      {(updating || failed) && progress && (
+      {(updating || failed || cancelled) && progress && (
         <div className="mt-4 border-t border-white/5 pt-4">
-          <div className="flex justify-between text-[11px] mb-1.5">
-            <span dir="ltr" className="font-mono text-slate-300">
+          <div className="flex justify-between items-center gap-3 text-[11px] mb-1.5">
+            <span dir="ltr" className="font-mono text-slate-300 truncate flex-1">
               {progress.detail}
             </span>
-            <span
-              className="font-bold"
-              style={{ color: failed ? "#f87171" : accent }}
-            >
-              {failed ? "שגיאה"
-                : launching ? "מתקין…"
-                : verifying ? "מאמת…"
-                : `${barPct.toFixed(0)}%`}
-            </span>
+            <div className="flex items-center gap-2 shrink-0">
+              <span
+                className="font-bold"
+                style={{
+                  color: failed     ? "#f87171"
+                       : cancelled  ? "#94a3b8"
+                       : accent,
+                }}
+              >
+                {failed     ? "שגיאה"
+                  : cancelled ? "בוטל"
+                  : launching ? "מתקין…"
+                  : verifying ? "מאמת…"
+                  : `${barPct.toFixed(0)}%`}
+              </span>
+              {cancellable && (
+                <button
+                  onClick={cancelUpdate}
+                  className="px-2.5 py-1 rounded-md text-[11px] font-bold transition
+                             border border-rose-400/30 text-rose-200 hover:bg-rose-500/15"
+                >
+                  ביטול
+                </button>
+              )}
+            </div>
           </div>
           <div className="h-2 bg-white/5 rounded-full overflow-hidden ring-1 ring-white/5">
             <div
               className="h-full rounded-full transition-all duration-200"
               style={{
-                width: failed ? "100%" : launching || verifying ? "100%" : `${barPct}%`,
-                background: failed ? "#ef4444" : `linear-gradient(90deg, ${accent}, #fff)`,
-                boxShadow: failed ? "none" : `0 0 12px ${accent}80`,
+                width: failed || cancelled ? "100%"
+                     : launching || verifying ? "100%"
+                     : `${barPct}%`,
+                background: failed     ? "#ef4444"
+                          : cancelled  ? "#64748b"
+                          : `linear-gradient(90deg, ${accent}, #fff)`,
+                boxShadow: failed || cancelled ? "none" : `0 0 12px ${accent}80`,
               }}
             />
           </div>
-          {failed && (
+          {(failed || cancelled) && (
             <button
               onClick={startUpdate}
               className="mt-3 px-4 py-1.5 rounded-lg text-[12px] font-bold transition
                          bg-rose-500/15 text-rose-200 hover:bg-rose-500/30"
             >
-              נסה שוב
+              {cancelled ? "התחל מחדש" : "נסה שוב"}
             </button>
           )}
           {launching && (

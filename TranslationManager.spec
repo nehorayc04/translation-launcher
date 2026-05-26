@@ -21,8 +21,23 @@ hiddenimports = [
     'cryptography.fernet', 'cryptography.hazmat.backends.openssl',
     # System tray (pystray + its Windows backend).
     'pystray', 'pystray._win32', 'PIL', 'PIL.Image',
+    # HTTPS stack — listed explicitly so PyInstaller never relies on
+    # transitive auto-detection. `certifi` ships the cacert.pem data
+    # file that requests needs at every TLS handshake; if that file is
+    # missing on disk every HTTPS call dies with OSError. Real-world
+    # case (Build D, 2026-05-23): IObit Uninstaller selectively deleted
+    # _internal/certifi/cacert.pem while leaving most of the launcher
+    # intact; the launcher booted fine then every catalog/auth/install
+    # HTTPS call started failing with "Could not find a suitable TLS CA
+    # certificate bundle".
+    'requests', 'urllib3', 'idna', 'charset_normalizer', 'certifi',
 ]
 datas += collect_data_files('eel')
+# cacert.pem must live at _internal/certifi/cacert.pem. PyInstaller's
+# transitive scan does pull it in via `requests` → `certifi` in
+# practice, but calling out the data file here makes the bundling
+# explicit and survives an out-of-order import chain.
+datas += collect_data_files('certifi')
 datas += copy_metadata('keyring')
 hiddenimports += collect_submodules('eel')
 hiddenimports += collect_submodules('translation_manager.auth')

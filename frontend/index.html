@@ -4,11 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <link rel="icon" type="image/png" sizes="512x512" href="/icon.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="./icon.png" />
 
     <title>מנהל התרגומים הרשמי</title>
-    <script type="text/javascript" src="/eel.js"></script>
-    <script type="text/javascript" src="/eel-bindings.js"></script>
+    <!-- eel.js / eel-bindings.js are served by the Eel build's gevent
+         websocket on /eel.js and /eel-bindings.js. Under the Qt shell
+         these 404 harmlessly - the eel.ts shim detects the transport
+         and falls back to window.bridge via QWebChannel. Relative paths
+         keep the Eel build working AND avoid file:///C:/eel.js drive-
+         root resolution under file://. -->
+    <script type="text/javascript" src="./eel.js"></script>
+    <script type="text/javascript" src="./eel-bindings.js"></script>
   </head>
   <body>
     <div id="root"></div>

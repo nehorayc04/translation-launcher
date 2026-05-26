@@ -20,7 +20,7 @@
 #define AppVersion     "1.1.0"
 #define AppPublisher   "Nahorai"
 #define AppExeName     "TranslationManager.exe"
-#define AppURL         "https://hebrew-translation-hub.vercel.app/"
+#define AppURL         "https://hebrew-translation-hub.com/"
 #define AppId          "{{B0D4F2A7-3CCE-4A1A-9C44-7E1A1B6F0001}"
 
 [Setup]
@@ -174,19 +174,13 @@ english.LaunchAfterInstall=Launch %1 after installation
 ;  is parsed as Pascal.
 ; ============================================================================
 [Code]
-// Best-effort: kill every running launcher process, then wait until the
-// install folder is actually writable. A single taskkill + a fixed Sleep
-// is a guess — taskkill returns before the process tree fully dies, and an
-// antivirus scan of the just-freed _internal\*.pyd / *.dll can re-lock them
-// for a moment. That race is exactly the "file in use" copy failure.
-procedure KillRunningLauncher;
+// Poll-kill the launcher process tree until taskkill reports nothing left.
+// Does NOT touch {app} — safe to call from InitializeSetup, where the user
+// has not yet picked an install directory and {app} is still uninitialized.
+procedure KillLauncherProcesses;
 var
   rc, i: Integer;
-  exePath, probePath: String;
 begin
-  // Poll-kill: keep killing until taskkill reports nothing left (exit code
-  // <> 0). Also catches a tray / single-instance respawn between passes.
-  // Bounded so a stuck system can't hang the installer forever.
   for i := 1 to 25 do
   begin
     rc := -1;
@@ -196,13 +190,18 @@ begin
       Break;            // taskkill found no process → launcher is gone
     Sleep(250);
   end;
-
   // Settle: let Windows + antivirus release the handles the killed tree held.
   Sleep(1500);
+end;
 
-  // File-lock probe: renaming the main exe to a temp name and back succeeds
-  // ONLY when nothing holds it open — loop until it does (or give up after a
-  // bounded number of tries and let the copy attempt proceed regardless).
+// File-lock probe on {app}\TranslationManager.exe. Renaming to a temp name
+// and back succeeds ONLY when nothing holds the file open. Requires {app}
+// to be initialized — call ONLY from PrepareToInstall onwards.
+procedure WaitForLauncherUnlocked;
+var
+  i: Integer;
+  exePath, probePath: String;
+begin
   exePath   := ExpandConstant('{app}\{#AppExeName}');
   probePath := exePath + '.killprobe';
   if FileExists(exePath) then
@@ -226,7 +225,8 @@ begin
   // never hold _internal\*.pyd handles open during the file copy. This
   // is the primary fix for "installer finishes but the old app is still
   // running" — CloseApplications=no means the Restart Manager won't.
-  KillRunningLauncher;
+  // {app} is NOT yet initialized here — must NOT call WaitForLauncherUnlocked.
+  KillLauncherProcesses;
   Result := True;
 end;
 
@@ -234,7 +234,8 @@ function PrepareToInstall(var NeedsRestart: Boolean): String;
 begin
   Result := '';
   // Kill again right before the copy — covers the user reopening the
-  // launcher while clicking through the wizard pages. KillRunningLauncher
-  // already settles + lock-probes, so no extra Sleep here.
-  KillRunningLauncher;
+  // launcher while clicking through the wizard pages. {app} IS initialized
+  // by this stage, so the file-lock probe is safe here.
+  KillLauncherProcesses;
+  WaitForLauncherUnlocked;
 end;

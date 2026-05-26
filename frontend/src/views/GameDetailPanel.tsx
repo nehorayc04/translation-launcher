@@ -9,6 +9,7 @@ import type { GameModState, ModProgress } from "../lib/eel";
 import { resolvePhaseHeadline } from "../lib/phaseLabels";
 import { useLiveGameProgress } from "../lib/useLiveGameProgress";
 import { useCallback, useEffect, useState } from "react";
+import { BuyModal } from "../components/BuyModal";
 
 interface Props {
   game: Game;
@@ -264,16 +265,35 @@ export default function GameDetailPanel({ game, onBack, onRefresh, reportStatus,
     }
   };
 
-  const handlePurchase = async () => {
-    await api.openPurchasePage(game.id);
+  const [buyOpen, setBuyOpen] = useState(false);
+
+  // Stable ref for BuyModal's onClose. Close = setBuyOpen(false) =>
+  // conditional-render in the JSX literally UNMOUNTS the modal
+  // (no `open` prop, no early-return-null logic to race against).
+  const closeBuyModal = useCallback(() => {
+    console.log("[GameDetailPanel] closeBuyModal — unmounting BuyModal");
+    setBuyOpen(false);
+  }, []);
+
+  const handlePurchase = () => {
+    // Open the in-launcher BuyModal which renders PayPal Smart Buttons
+    // directly. No popup, no external browser - the SDK loads inside
+    // the same QWebEngineView, the user pays without leaving the app,
+    // and the modal closes on a successful capture.
+    setBuyOpen(true);
+  };
+
+  const handlePurchaseSuccess = () => {
+    console.log("[GameDetailPanel] handlePurchaseSuccess fired");
+    // OPTIMISTIC: capture-order succeeded on the server, so user_purchases
+    // IS written. Flip gm.owned in place so the CTA renders INSTALL
+    // immediately. The burst poller runs background verification.
+    setGm((prev) => prev ? { ...prev, owned: true } : prev);
     setPurchasePending(true);
-    // Start a 90s burst-poll so the BUY → INSTALL CTA flips within
-    // seconds of a successful PayPal capture, without waiting for the
-    // 60s catalog poller or forcing the user to click "כבר שילמתי".
     startPurchaseBurst();
-    reportStatus(
-      "נפתח דף הרכישה בדפדפן — לאחר השלמת התשלום הסטטוס יתעדכן אוטומטית כאן",
-    );
+    reportStatus("✓ התשלום הושלם — המוד יהיה זמין להתקנה בעוד רגע");
+    // Modal close is the BuyModal's own onClose() call right after
+    // this returns - conditional render unmounts it. No props needed.
   };
 
   return (
@@ -425,10 +445,19 @@ export default function GameDetailPanel({ game, onBack, onRefresh, reportStatus,
             </button>
 
             {/* Translation actions.
-                gm.modSlug set  → download-distributed mod (CP2077): the
-                  buy / download+install / disable / reinstall flow.
-                otherwise       → the legacy on-disk enable/disable/remove. */}
-            {gm?.modSlug ? (
+                gm === null         → still loading getGameModState; show
+                                       a neutral placeholder so we DON'T
+                                       fall into the legacy branch and
+                                       flash the wrong button.
+                gm.modSlug set      → download-distributed mod (CP2077):
+                                       the buy / download+install /
+                                       disable / reinstall flow.
+                otherwise           → legacy on-disk enable/disable/remove. */}
+            {gm === null ? (
+              <span className="self-center text-slate-400 text-sm">
+                טוען מצב התרגום…
+              </span>
+            ) : gm.modSlug ? (
               <>
                 {gm.priceCents > 0 && !gm.owned && (
                   <button
@@ -637,6 +666,23 @@ export default function GameDetailPanel({ game, onBack, onRefresh, reportStatus,
           </div>
         </div>
       </div>
+
+      {/* PayPal Smart Buttons - opens in-window when the user clicks
+          "רכישה". onSuccess pins purchasePending + kicks the burst
+          poller so the CTA flips to INSTALL within seconds. */}
+      {/* Conditional render: if buyOpen=false the component is not
+          in the tree at all. closeBuyModal() → setBuyOpen(false) →
+          this stops returning <BuyModal/> → guaranteed unmount.
+          No `open` prop, no race, no stale state. */}
+      {buyOpen && (
+        <BuyModal
+          gameId={game.id}
+          gameTitle={game.titleEn ?? game.id}
+          priceCents={gm?.priceCents ?? 0}
+          onClose={closeBuyModal}
+          onSuccess={handlePurchaseSuccess}
+        />
+      )}
     </div>
   );
 }

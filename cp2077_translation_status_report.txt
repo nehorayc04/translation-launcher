@@ -1,0 +1,461 @@
+==============================================================================
+CYBERPUNK 2077 HEBREW TRANSLATION — FULL STATUS REPORT
+generated 2026-05-24 07:43:06
+==============================================================================
+
+Source of truth: localization_translated.json — the exact data
+packed into z_hebrew_translation.archive. The Phantom Liberty DLC
+is scanned from dlc_ep1_text.json. Counts are ENTRIES (one
+displayed line each); femaleVariant is the primary value,
+maleVariant is used as fallback when female is blank.
+
+Classes:  HEBREW = contains Hebrew  |  UNTR. = English/Arabic/blank
+          N/A = no source text or pure symbols (nothing to translate)
+          %DONE = HEBREW / (TOTAL - N/A)
+
+##############################################################################
+#  PART 1 — BASE GAME
+##############################################################################
+
+──────────────────────────────────────────────────────────────────────────────
+ONSCREENS / UI TEXT  — from onscreens_final.json
+──────────────────────────────────────────────────────────────────────────────
+  UI — Menus / HUD / Settings
+      total entries ..............     5,859
+      translated to Hebrew ........     5,846   (99.9% of actionable)
+        of which keep a Latin word        467   (brand names — usually intentional)
+      untranslated — English multi          3   (real lines still in English)
+      untranslated — English 1-word         4   (likely proper nouns / codes)
+      no translation needed .......         6   (symbols / numbers / empty source)
+      sample lines needing work:
+        [40686] {value}-{valueMax}<Rich size="ItemTooltipHeaderTempalteText.damagePerHitMultiplierSignSize">x</><Rich size="ItemTooltipHead
+        [77660] HDR10 PQ
+        [77661] HDR10 scRGB
+
+  Story — Quests / Journal / Dialogue
+      total entries ..............    28,896
+      translated to Hebrew ........    28,478   (99.6% of actionable)
+        of which keep a Latin word      1,757   (brand names — usually intentional)
+      untranslated — English multi         42   (real lines still in English)
+      untranslated — English 1-word        36   (likely proper nouns / codes)
+      untranslated — blank/missing         24   (English source exists, value empty)
+      no translation needed .......       316   (symbols / numbers / empty source)
+      sample lines needing work:
+        [11151] IGNORE, TO BE DELETED
+        [11314] IGNORE, TO BE DELETED
+        [11316] IGNORE, TO BE DELETED
+        [11317] IGNORE, TO BE DELETED
+        [11318] IGNORE, TO BE DELETED
+        [11319] IGNORE, TO BE DELETED
+        [11320] IGNORE, TO BE DELETED
+        [11321] IGNORE, TO BE DELETED
+
+  NPCs — Names / Bio
+      total entries ..............    11,637
+      translated to Hebrew ........    11,624   (100.0% of actionable)
+        of which keep a Latin word        128   (brand names — usually intentional)
+      untranslated — English multi          0   (real lines still in English)
+      untranslated — English 1-word         0   (likely proper nouns / codes)
+      no translation needed .......        13   (symbols / numbers / empty source)
+
+  Devices — Computers / Shards / Terminals
+      total entries ..............     1,273
+      translated to Hebrew ........     1,257   (100.0% of actionable)
+        of which keep a Latin word         59   (brand names — usually intentional)
+      untranslated — English multi          0   (real lines still in English)
+      untranslated — English 1-word         0   (likely proper nouns / codes)
+      no translation needed .......        16   (symbols / numbers / empty source)
+
+  Items & Equipment
+      total entries ..............     4,485
+      translated to Hebrew ........     4,427   (99.0% of actionable)
+        of which keep a Latin word        390   (brand names — usually intentional)
+      untranslated — English multi         41   (real lines still in English)
+      untranslated — English 1-word         2   (likely proper nouns / codes)
+      no translation needed .......        15   (symbols / numbers / empty source)
+      sample lines needing work:
+        [40740] <Rich color="TooltipText.cyberwareDescriptionHighlightColor" style
+        [40749] <Rich color="TooltipText.cyberwareDescriptionHighlightColor" style="Semi-
+        [40762] <Rich color="TooltipText.cyberwareDescriptionHighlightColor" style="Semi-B
+        [40781] <Rich color="TooltipText.cyberwareDescriptionHighlightColor" styl
+        [40790] <Rich color="TooltipText.cyberwareDescriptionHighlightColor" style="Semi-Bol
+        [40819] <Rich color="TooltipText.cyberwareDescriptionHighlightColor" style="Semi-Bol
+        [51329] <Rich color="TooltipText.cyberwareDescriptionHighlightColor" style="Semi-Bold"
+        [51377] <Rich color="TooltipText.cyberwareDescriptionHighlightColor" style="
+
+  RPG — Stats / Perks / Quickhacks
+      total entries ..............     2,394
+      translated to Hebrew ........     2,309   (97.2% of actionable)
+        of which keep a Latin word        160   (brand names — usually intentional)
+      untranslated — English multi         67   (real lines still in English)
+      untranslated — English 1-word         0   (likely proper nouns / codes)
+      no translation needed .......        18   (symbols / numbers / empty source)
+      sample lines needing work:
+        [49421] {PLAYER_SKILL,number,integer}  /  {REQUIRED_SKILL,number,integer
+        [87793] <Rich color="TooltipText.cyberwareDescriptionHighlightColor" style="Semi
+        [87794] <Rich color="TooltipText.cyberwareDescriptionHighlightColor" style="Semi-Bold">+{float_0}% weapon swap speed</>\n\n<Rich colo
+        [87799] <Rich color="TooltipText.cyberwareDescriptionHighlightColor" style="Semi-Bold">+{fl
+        [87825] <Rich color="TooltipText.cyberwareDescriptionHighlightColor" style="Semi-Bold">+{float_
+        [87885] <Rich color="TooltipText.cyberwareDescriptionHighlightColor" style="Se
+        [87888] <Rich color="TooltipText.cyberwareDescriptionHighlightColor" style="Semi-Bol
+        [87892] <Rich color="TooltipText.cyberwareDescriptionHighlightColor" style="Semi-Bo
+
+  Gameplay — Misc
+      total entries ..............       662
+      translated to Hebrew ........       662   (100.0% of actionable)
+        of which keep a Latin word         19   (brand names — usually intentional)
+      untranslated — English multi          0   (real lines still in English)
+      untranslated — English 1-word         0   (likely proper nouns / codes)
+      no translation needed .......         0   (symbols / numbers / empty source)
+
+  Other / Debug / Obsolete
+      total entries ..............        56
+      translated to Hebrew ........        43   (100.0% of actionable)
+        of which keep a Latin word          4   (brand names — usually intentional)
+      untranslated — English multi          0   (real lines still in English)
+      untranslated — English 1-word         0   (likely proper nouns / codes)
+      no translation needed .......        13   (symbols / numbers / empty source)
+
+  Onscreens — Uncategorized (numeric keys)
+      total entries ..............    15,298
+      translated to Hebrew ........    15,120   (99.6% of actionable)
+        of which keep a Latin word      1,555   (brand names — usually intentional)
+      untranslated — English multi         42   (real lines still in English)
+      untranslated — English 1-word        17   (likely proper nouns / codes)
+      no translation needed .......       119   (symbols / numbers / empty source)
+      sample lines needing work:
+        [3631] Mk.31 HMG
+        [7041] The legacy of Arasaka needs no introduction. The Arasaka Corporation is one of the world's most powerful, with offices located in 
+        [7044] When I think about the best the New United States has to offer, it's the men and women of 6th Street who I see in my mind's eye. A
+        [7046] (…) It was no secret Night Corp offered generous pay and, in some cases, free cyberware and biomonitor upgrades to anyone willing 
+        [7048] Here's a tasty morsel for all those fascinated by the secrets of the Night City underbelly! After months of stonewalling and upset
+        [7050] As conversations over factionalism within Arasaka heat up, many industry insiders wonder about the company's future trajectory. If
+        [7052] [...] If Militech was behind the assault on Arasaka Tower in 2023, and if there's actual EVIDENCE to support that, then why didn't
+        [7055] Pompous asshole or eccentric genius? Acclaimed rockerboy Slavoj McAllister has ruffled feathers yet again following his most recen
+
+──────────────────────────────────────────────────────────────────────────────
+SUBTITLES / DIALOGUE
+──────────────────────────────────────────────────────────────────────────────
+  Subtitles — Quests / Story
+      total entries ..............    45,643
+      translated to Hebrew ........    45,471   (99.9% of actionable)
+        of which keep a Latin word      1,942   (brand names — usually intentional)
+      untranslated — English multi          9   (real lines still in English)
+      untranslated — English 1-word        16   (likely proper nouns / codes)
+      no translation needed .......       147   (symbols / numbers / empty source)
+      sample lines needing work:
+        [q000_corpo_04_lizzies_club.json] <mothertongue l="mex" m="mamá" b="You raise a glass to your " a=", your <Rich color=\"MainColors.ActiveBlue\">hermana</>. To the <
+        [q000_corpo_04_lizzies_club.json] <mothertongue l="mex" m="barrio" b="Not sure this " a="'s your style, let alone a healthy option. <Rich color=\"MainColors.ActiveB
+        [q001_00aa_jackie_hide_body_tutorial.json] <mothertongue l="mex" m="mira" b="V, " a=", eyes up, <Rich color=\"MainColors.ActiveBlue\">pendejos</> ahead."/>
+        [q003_01b_meat_factory.json] <mothertongue l="mex" m="Ay" b="" a=". Well... sometimes it's better to play with an open hand. <Rich color=\"MainColors.ActiveBlu
+        [q110_15_vdb_fight.json] <kiroshi l="creo" o="Manzè eseye vin anfas mwen, li pa janm wè li pat ka fè anye
+        [sq012_05b_market_interview.json] <kiroshi l="jpn" o="オイラより自分の心配をしたらどうだ？ 女の前で�
+        [sq012_05b_market_interview.json] <kiroshi l="jpn" o="なかなかいじめ甲斐のありそうな奴じゃね
+        [sq017_10_us_crack_intro.json] <mothertongue l="jpn" m="mi-guri" b="We have today " a="? Or wait, this the <Rich color=\"MainColors.ActiveBlue\">supesharu-bo-i</
+
+  Subtitles — Open World / Ambient
+      total entries ..............    27,505
+      translated to Hebrew ........    27,460   (99.9% of actionable)
+        of which keep a Latin word      1,338   (brand names — usually intentional)
+      untranslated — English multi         16   (real lines still in English)
+      untranslated — English 1-word         1   (likely proper nouns / codes)
+      no translation needed .......        28   (symbols / numbers / empty source)
+      sample lines needing work:
+        [e3_q110_gig_teaser.json] <mothertongue l="creo" m="Mèd, monsieur" b="" a=", same thing. Some stupid <Rich color=\"MainColors.ActiveBlue\">konpetisyon</>."/
+        [pac_cvi_chat_009.json] <kiroshi l="creo" o="Mwen parye avè w manzè tap travay pou yo an lontan." t="I
+        [std_rcr_chat_018.json] <mothertongue l="mex" m="Pinches chavos..." b="" a=" They come to me – the baddest <Rich color=\"MainColors.ActiveBlue\">cabrón</>
+        [std_rcr_chat_026.json] <mothertongue l="mex" m="Mira" b="" a=", if I kill him or sell him out to the badges, I won't make the rent. Besides, the <Rich co
+        [civ_low_f_113_car_40_mt.json] <kiroshi l="creo" o="Manzè fou nan tout tèt li!" t="She's crazy!" b="" a=""/
+        [gang_scv_f_03_rus_30_fat.json] <kiroshi l="rus" o="Она меня облапала! А мне восемнадцати нет! Х
+        [gang_scv_f_03_rus_30_fat.json] <kiroshi l="rus" o="Ты смотри, какая дерзкая су�
+        [gang_scv_f_03_rus_30_fat.json] <kiroshi l="rus" o="Ого, какая смелая. Убирай свою игрушку."
+
+  Subtitles — Media / TV / Radio
+      total entries ..............     2,524
+      translated to Hebrew ........     2,524   (100.0% of actionable)
+        of which keep a Latin word        343   (brand names — usually intentional)
+      untranslated — English multi          0   (real lines still in English)
+      untranslated — English 1-word         0   (likely proper nouns / codes)
+      no translation needed .......         0   (symbols / numbers / empty source)
+
+──────────────────────────────────────────────────────────────────────────────
+BASE ONSCREENS.JSON — intermediate mirror (excluded from totals)
+──────────────────────────────────────────────────────────────────────────────
+  onscreens.json near-mirrors onscreens_final.json.
+      total entries ...............    70,560
+      translated to Hebrew ........    69,587   (99.3%)
+      untranslated ................       457
+      no translation needed .......       516
+
+##############################################################################
+#  PART 2 — PHANTOM LIBERTY DLC (ep1)
+##############################################################################
+
+Phantom Liberty ships its text in a SEPARATE archive,
+ep1/lang_*_text.archive. The HEBREW column counts DLC strings
+whose stringId is shared with a base-game string the project
+already translated — stringIds are global in CP2077, so those
+strings already HAVE a Hebrew translation and need no new work
+(spot-verified: stringId + English match the base entry).
+UNTR. = strings unique to the DLC archive, no Hebrew at all —
+the genuine Phantom Liberty translation gap.
+
+──────────────────────────────────────────────────────────────────────────────
+DLC ONSCREENS / UI TEXT  — from ep1 onscreens_final.json
+──────────────────────────────────────────────────────────────────────────────
+  UI — Menus / HUD / Settings
+      total entries ..............         2
+      translated to Hebrew ........         2   (100.0% of actionable)
+      untranslated — English multi          0   (real lines still in English)
+      untranslated — English 1-word         0   (likely proper nouns / codes)
+      no translation needed .......         0   (symbols / numbers / empty source)
+
+  Story — Quests / Journal / Dialogue
+      total entries ..............     9,237
+      translated to Hebrew ........     9,082   (99.2% of actionable)
+      untranslated — English multi         66   (real lines still in English)
+      untranslated — English 1-word         6   (likely proper nouns / codes)
+      no translation needed .......        83   (symbols / numbers / empty source)
+      sample lines needing work:
+        [79081] Kenny, save us! We’re all out of ROMVLVS – sold every single bottle last weekend. What’s the upcoming schedule for BARGHEST drops 
+        [80509] you sleepin?\n\n----------------\nFrom: Mathieu Eloi\nTo: Xavier Jarreau\nRE: SPAx2\n\nno, but that don't mean I want to hear any 
+        [81809] Hack the AV using your personal link.
+        [81810] Hack the mech using your personal link.
+        [81840] how’s the lift parts coming along? we gonna get em or no?\n\n-----\n\nFrom: LeAnn Ramsey\nTo: Paulie Cross\nRE: parts please??\n\n
+        [81843] how’s it goin hon\n\n-----\n\nFrom: Aneta Daehler-Cross\nTo: Paulie Cross\nRE: u ok?\n\nhuge explosion a minute ago, thought the b
+        [81865] Lina Malina: The Best Of
+        [81910] Hack the metal gate to lower it.
+
+  Devices — Computers / Shards / Terminals
+      total entries ..............        22
+      translated to Hebrew ........        22   (100.0% of actionable)
+      untranslated — English multi          0   (real lines still in English)
+      untranslated — English 1-word         0   (likely proper nouns / codes)
+      no translation needed .......         0   (symbols / numbers / empty source)
+
+  Items & Equipment
+      total entries ..............       925
+      translated to Hebrew ........       920   (99.5% of actionable)
+      untranslated — English multi          5   (real lines still in English)
+      untranslated — English 1-word         0   (likely proper nouns / codes)
+      no translation needed .......         0   (symbols / numbers / empty source)
+      sample lines needing work:
+        [89544] Composite shockproof helmet
+        [89546] Impact-resistant netrunner helmet
+        [89690] Hybrid unitard of flame-retardant spandex
+        [89940] Fitted bolero blazer with nanotube membrane
+        [90115] Military shoes with shock-absorbent insole
+
+  RPG — Stats / Perks / Quickhacks
+      total entries ..............        44
+      translated to Hebrew ........        40   (90.9% of actionable)
+      untranslated — English multi          4   (real lines still in English)
+      untranslated — English 1-word         0   (likely proper nouns / codes)
+      no translation needed .......         0   (symbols / numbers / empty source)
+      sample lines needing work:
+        [88040] Unlocks new abilities for Arm cyberware: <Rich color="TooltipText.cyberwareDescriptionHighlightColor" style="Semi-Bold">Mantis Bla
+        [88045] During combat, you can now detect <Rich color="TooltipText.cyberwareDescriptionHighlightColor" style="Semi-Bold">Vulnerabilities</
+        [88046] Destroying an enemy's <Rich color="TooltipText.cyberwareDescriptionHighlightColor" style="Semi-Bold">Vulnerability</> grants:\n<Ri
+        [88061] The <Rich color="TooltipText.cyberwareDescriptionHighlightColor" style="Semi-Bold">Monowire</> now has a dedicated slot for Contro
+
+  Gameplay — Misc
+      total entries ..............        26
+      translated to Hebrew ........        26   (100.0% of actionable)
+      untranslated — English multi          0   (real lines still in English)
+      untranslated — English 1-word         0   (likely proper nouns / codes)
+      no translation needed .......         0   (symbols / numbers / empty source)
+
+  Other / Debug / Obsolete
+      total entries ..............        20
+      translated to Hebrew ........        20   (100.0% of actionable)
+      untranslated — English multi          0   (real lines still in English)
+      untranslated — English 1-word         0   (likely proper nouns / codes)
+      no translation needed .......         0   (symbols / numbers / empty source)
+
+──────────────────────────────────────────────────────────────────────────────
+DLC SUBTITLES / DIALOGUE
+──────────────────────────────────────────────────────────────────────────────
+  Subtitles — Quests / Story
+      total entries ..............    16,945
+      translated to Hebrew ........       104   (0.6% of actionable)
+      untranslated — English multi     15,748   (real lines still in English)
+      untranslated — English 1-word       919   (likely proper nouns / codes)
+      no translation needed .......       174   (symbols / numbers / empty source)
+      sample lines needing work:
+        [ep1_chicken_test.json] [pl_pl]Street Kid.
+        [ep1_chicken_test.json] [db_db]MQ019 Done - Holocall available
+        [ep1_chicken_test.json] [db_db]MQ019 Failed - Holocall not available
+        [ep1_chicken_test.json] [db_db]MQ019 Not Done - Holocall not available
+        [ep1_chicken_test.json] [db_db]No one saw Myers and me
+        [ep1_chicken_test.json] [db_db]Kurt's men were alerted
+        [ep1_chicken_test.json] [db_db]Return to previous selection
+        [ep1_chicken_test.json] [db_db]All of them
+
+  Subtitles — Open World / Ambient
+      total entries ..............     5,904
+      translated to Hebrew ........        61   (1.1% of actionable)
+      untranslated — English multi      5,502   (real lines still in English)
+      untranslated — English 1-word       237   (likely proper nouns / codes)
+      no translation needed .......       104   (symbols / numbers / empty source)
+      sample lines needing work:
+        [mr_hands_combat_zone_default.json] Hands, hey, my turn. I got a job for you this time.
+        [mr_hands_combat_zone_default.json] You for me? Peculiar…
+        [mr_hands_combat_zone_default.json] [Pay] Hope this pays off.
+        [mr_hands_combat_zone_default.json] Need to think about it.
+        [mr_hands_combat_zone_default.json] Zippin' the eds your way now. And I expect results, Hands.
+        [mr_hands_combat_zone_default.json] Pending MaxTac convoy – need to know the route it'll take.
+        [mr_hands_combat_zone_default.json] Need a 'runner – kind with unique abilities.
+        [mr_hands_combat_zone_default.json] Next MaxTac prisoner transport to Los Padres – need to know the convoy's route.
+
+  Subtitles — Media / TV / Radio
+      total entries ..............       260
+      translated to Hebrew ........         8   (3.1% of actionable)
+      untranslated — English multi        242   (real lines still in English)
+      untranslated — English 1-word        10   (likely proper nouns / codes)
+      no translation needed .......         0   (symbols / numbers / empty source)
+      sample lines needing work:
+        [ep1_ybimp.json] Hello, Night City! I'm Josh Kavorkin, and as always: Your Business is My Business!
+        [ep1_ybimp.json] Let's kick off today's program with a bang – Soviet giant SovOil just high-fived the Federal Republic of Brazil.
+        [ep1_ybimp.json] That's right! The world's oil reserves may be drying up fast, but Brazil's offshore oil fields still hold an estimated five billio
+        [ep1_ybimp.json] Immediately following the announcement of their agreement, SovOil's stock jumped a whopping thirty-six percent.
+        [ep1_ybimp.json] And the Brazilians have plenty to celebrate, too – our South American neighbors are set to grab up to one fifth of the global oil 
+        [ep1_ybimp.json] Sorry, Planet Earth!
+        [ep1_ybimp.json] Now, just when you thought you were having a bad day – let's take a look at Brazilian energy minister Gabriela Soares!
+        [ep1_ybimp.json] It seems months of negotiations with SovOil are dead on arrival. Why's that?
+
+  Subtitles — Overlays
+      total entries ..............     4,244
+      translated to Hebrew ........     4,176   (98.5% of actionable)
+      untranslated — English multi         50   (real lines still in English)
+      untranslated — English 1-word        14   (likely proper nouns / codes)
+      no translation needed .......         4   (symbols / numbers / empty source)
+      sample lines needing work:
+        [fb_hanako_refused.json] [db_db]Hanako tells V that she needs to deal with a complicated work situation
+        [fb_hanako_refused.json] [db_db]Hanako mentions other people that are currenlty not available or indisposed for various reasons (hint that implant V ousted
+        [fb_hanako_refused.json] [db_db]Hanako mentions something about V being the only capable person
+        [fb_hanako_refused.json] [db_db]Hanako says she saw Vs request to high level access to some super database and will grant it temporarily
+        [fb_hanako_refused.json] [db_db]Hanako says something about not betraying her trust before hanging up
+        [fb_peralez.json] [db_db]Peralez says he tried to call V for a while
+        [fb_peralez.json] [db_db]She probably must be busy now as a corpo bigshot
+        [fb_peralez.json] [db_db]He has this great project about tackling homelessness
+
+──────────────────────────────────────────────────────────────────────────────
+DLC ep1 ONSCREENS.JSON — intermediate mirror (excluded from totals)
+──────────────────────────────────────────────────────────────────────────────
+      total entries ...............    10,276
+      translated to Hebrew ........    10,112   (99.2%)
+      untranslated ................        81
+
+==============================================================================
+SUMMARY TABLE
+==============================================================================
+Category                                     Total   Hebrew   Untr.    N/A   %Done
+------------------------------------------------------------------------------
+[ BASE GAME — Onscreens / UI text ]
+  UI — Menus / HUD / Settings                5,859    5,846       7      6   99.9%
+  Story — Quests / Journal / Dialogue       28,896   28,478     102    316   99.6%
+  NPCs — Names / Bio                        11,637   11,624       0     13  100.0%
+  Devices — Computers / Shards / Terminals   1,273    1,257       0     16  100.0%
+  Items & Equipment                          4,485    4,427      43     15   99.0%
+  RPG — Stats / Perks / Quickhacks           2,394    2,309      67     18   97.2%
+  Gameplay — Misc                              662      662       0      0  100.0%
+  Other / Debug / Obsolete                      56       43       0     13  100.0%
+  Onscreens — Uncategorized (numeric keys)  15,298   15,120      59    119   99.6%
+[ BASE GAME — Subtitles / dialogue ]
+  Subtitles — Quests / Story                45,643   45,471      25    147   99.9%
+  Subtitles — Open World / Ambient          27,505   27,460      17     28   99.9%
+  Subtitles — Media / TV / Radio             2,524    2,524       0      0  100.0%
+------------------------------------------------------------------------------
+BASE GAME  (onscreens_final + subtitles)   146,232  145,221     320    691   99.8%
+
+[ PHANTOM LIBERTY DLC — Onscreens / UI text ]
+  UI — Menus / HUD / Settings                    2        2       0      0  100.0%
+  Story — Quests / Journal / Dialogue        9,237    9,082      72     83   99.2%
+  Devices — Computers / Shards / Terminals      22       22       0      0  100.0%
+  Items & Equipment                            925      920       5      0   99.5%
+  RPG — Stats / Perks / Quickhacks              44       40       4      0   90.9%
+  Gameplay — Misc                               26       26       0      0  100.0%
+  Other / Debug / Obsolete                      20       20       0      0  100.0%
+[ PHANTOM LIBERTY DLC — Subtitles / dialogue ]
+  Subtitles — Quests / Story                16,945      104  16,667    174    0.6%
+  Subtitles — Open World / Ambient           5,904       61   5,739    104    1.1%
+  Subtitles — Media / TV / Radio               260        8     252      0    3.1%
+  Subtitles — Overlays                       4,244    4,176      64      4   98.5%
+------------------------------------------------------------------------------
+PHANTOM LIBERTY DLC  (all ep1 text)         37,629   14,461  22,803    365   38.8%
+==============================================================================
+GRAND TOTAL  (base game + DLC)             183,861  159,682  23,123  1,056   87.4%
+==============================================================================
+GRAND TOTAL translatable entries           182,805
+GRAND TOTAL translated to Hebrew           159,682
+GRAND TOTAL still to translate              23,123
+
+──────────────────────────────────────────────────────────────────────────────
+TOP 30 BASE-GAME SUBTITLE SECTIONS BY UNTRANSLATED-LINE COUNT (25 have gaps)
+──────────────────────────────────────────────────────────────────────────────
+     10  subtitles/quest/mq000/mq000_00_chickentest.json
+      3  subtitles/open_world/voicesets/gang_scv_f_03_rus_30_fat.json
+      3  subtitles/open_world/voicesets/gang_val_m_08_mex_40_mt.json
+      2  subtitles/quest/q000/q000_corpo_04_lizzies_club.json
+      2  subtitles/quest/q115/q115_00_chickentest.json
+      2  subtitles/quest/sq012/sq012_05b_market_interview.json
+      2  subtitles/quest/sq026/sq026_chicken_test.json
+      1  subtitles/open_world/community/e3_q110_gig_teaser.json
+      1  subtitles/open_world/scenes/pac_cvi_chat_009.json
+      1  subtitles/open_world/scenes/std_rcr_chat_018.json
+      1  subtitles/open_world/scenes/std_rcr_chat_026.json
+      1  subtitles/open_world/street_stories/sts_wat_nid_04_gottfrid_fredrik.json
+      1  subtitles/open_world/voicesets/civ_low_f_113_car_40_mt.json
+      1  subtitles/open_world/voicesets/gang_scv_m_09_rus_25_mt.json
+      1  subtitles/open_world/voicesets/gang_val_f_04_mex_20_mt.json
+      1  subtitles/open_world/voicesets/gang_val_m_10_mex_20.json
+      1  subtitles/open_world/voicesets/gang_vdb_m_02_car_25_mt.json
+      1  subtitles/open_world/voicesets/merc_m_05_rus_35.json
+      1  subtitles/quest/cp77/cp77_chicken_test.json
+      1  subtitles/quest/cp77/cp77_debug_central.json
+      1  subtitles/quest/q001/q001_00aa_jackie_hide_body_tutorial.json
+      1  subtitles/quest/q003/q003_01b_meat_factory.json
+      1  subtitles/quest/q110/q110_15_vdb_fight.json
+      1  subtitles/quest/sq017/sq017_10_us_crack_intro.json
+      1  subtitles/quest/sq018/sq018_03_funeral.json
+
+──────────────────────────────────────────────────────────────────────────────
+TOP 30 DLC SUBTITLE SECTIONS BY UNTRANSLATED-LINE COUNT (635 have gaps)
+──────────────────────────────────────────────────────────────────────────────
+    594  ep1/subtitles/quest/q304/q304_07_deal.json
+    519  ep1/subtitles/quest/q302/q302_04_squot.json
+    411  ep1/subtitles/quest/q303/q303_07_finale.json
+    347  ep1/subtitles/quest/q305/q305_11_border_crossing.json
+    322  ep1/subtitles/quest/q303/q303_02_nighthawks.json
+    297  ep1/subtitles/quest/q307/q307_03a_friends_holocall.json
+    268  ep1/subtitles/quest/q302/q302_07_oath.json
+    254  ep1/subtitles/quest/q303/q303_06a_paradise_roleplay_restaurant_floor.json
+    250  ep1/subtitles/quest/q306/q306_03_terminal_mood.json
+    247  ep1/subtitles/quest/q305/q305_13_reed_epilogue.json
+    242  ep1/subtitles/quest/q301/q301_01_border.json
+    240  ep1/subtitles/quest/q305/q305_04_pre_ambush_meeting.json
+    233  ep1/subtitles/quest/q307/q307_06_viktor.json
+    224  ep1/subtitles/quest/q306/q306_10_finale.json
+    223  ep1/subtitles/quest/q304/q304_04d_shard_pickup.json
+    218  ep1/subtitles/quest/q302/q302_06_basketball.json
+    214  ep1/subtitles/quest/q307/q307_01_pickup.json
+    209  ep1/subtitles/quest/q302/q302_02_spider.json
+    206  ep1/subtitles/quest/q303/q303_03a_voodoo_baron.json
+    200  ep1/subtitles/quest/q306/q306_01_ride_to_spaceport.json
+    192  ep1/subtitles/quest/q304/q304_03_songbird_meeting.json
+    188  ep1/subtitles/quest/q303/q303_05_safehouse.json
+    185  ep1/subtitles/quest/q304/q304_01_briefing.json
+    185  ep1/subtitles/quest/q306/q306_06_myers_intro.json
+    183  ep1/subtitles/quest/q305/q305_xx_chicken_test.json
+    179  ep1/subtitles/quest/q304/q304_06_disguise.json
+    178  ep1/subtitles/quest/q304/q304_07b_lab.json
+    174  ep1/subtitles/quest/q303/q303_08_reed_conversation.json
+    166  ep1/subtitles/quest/q302/q302_03_subway.json
+    165  ep1/subtitles/quest/q306/q306_13_epilogue.json
+
+NOTE: 25,562 base onscreens_final entries had no primaryKey match in localization_export.json — classified on their value alone.
+
+This report measures the translation DATA. In-game rendering
+glitches (garbled glyphs) are a separate font/packaging matter
+and are NOT visible to a data scan.
+==============================================================================

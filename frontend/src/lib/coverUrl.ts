@@ -17,7 +17,7 @@
 // the live website base URL so the browser fetches from Vercel instead
 // of trying to serve from the launcher's local HTTP root.
 
-const REMOTE_BASE = 'https://hebrew-translation-hub.vercel.app';
+const REMOTE_BASE = 'https://hebrew-translation-hub.com';
 
 export function resolveCoverUrl(
   cover:   string | null | undefined,
@@ -29,11 +29,16 @@ export function resolveCoverUrl(
     // (2) root-relative path — file lives on the live site; prepend
     //     the remote origin so eel doesn't try to serve from localhost.
     if (cover.startsWith('/'))       return `${REMOTE_BASE}${cover}`;
-    // (3) bare filename — map to the bundled /covers/<filename>.
+    // (3) bare filename — map to the bundled covers/<filename>. Relative
+    //     `./covers/...` works under BOTH the Eel build (HTTP origin,
+    //     served from dist/) AND the Qt shell (file:// origin, resolved
+    //     next to index.html). A leading "/" would resolve to the drive
+    //     root under file:// and 404.
     const stripped = cover.replace(/^covers\//i, '');
-    return `/covers/${stripped}`;
+    return `./covers/${stripped}`;
   }
-  // (4) no cover field at all — fall back to the bundled /covers/<id>.jpg
-  //     convention so seeded games render even without a DB edit.
-  return `/covers/${gameId ?? 'unknown'}.jpg`;
+  // (4) no cover field at all — fall back to the bundled covers/<id>.jpg
+  //     convention so seeded games render even without a DB edit. Same
+  //     relative-path rationale as case (3).
+  return `./covers/${gameId ?? 'unknown'}.jpg`;
 }

@@ -1,35 +1,102 @@
-// Thin wrapper around window.eel that adds typings + promise interop.
-// All Python @eel.expose functions are wrapped here.
+// Thin wrapper around the Python ↔ JS RPC transport.
+//
+// Two transports are supported transparently:
+//   • Qt shell  — window.bridge, populated by qwebchannel.js after the
+//                 main page emits a 'bridge:ready' CustomEvent.
+//   • Eel (legacy) — window.eel, attached asynchronously without firing
+//                    'bridge:ready'.
+//
+// Views call `api.foo()` the same way regardless; this shim awaits
+// whichever transport appears first, caches it, and dispatches the
+// call in the right shape (bridge: trailing-callback; eel: thunk).
 import type { Game, OpResult, ScanResult, Software, LauncherPrefs } from "./types";
 
-// Eel attaches functions to window.eel.<name>. Calling them returns a thunk
-// that, when called with (), starts an async RPC; resolving requires
-// awaiting eel's promise-style return.
 declare global {
   interface Window {
-    eel: any;
+    eel?:    any;
+    bridge?: any;
   }
 }
 
-// Mock for when running the React dev server WITHOUT the python backend
-// (e.g. when iterating on UI alone). Returns sensible empty fallbacks so
-// the app still renders.
-function isEelReady(): boolean {
-  return typeof window !== "undefined" && !!window.eel;
+type Transport =
+  | { kind: "bridge"; obj: any }
+  | { kind: "eel";    obj: any }
+  | null;
+
+let _transportPromise: Promise<Transport> | null = null;
+
+// Two-phase detection — resolves to the first transport that becomes
+// available, then memoises the result so subsequent RPC calls are cheap.
+function detectTransport(): Promise<Transport> {
+  if (_transportPromise) return _transportPromise;
+  _transportPromise = new Promise<Transport>((resolve) => {
+    if (typeof window === "undefined") return resolve(null);
+    if (window.bridge) return resolve({ kind: "bridge", obj: window.bridge });
+
+    let settled = false;
+    const finish = (t: Transport) => {
+      if (settled) return;
+      settled = true;
+      window.removeEventListener("bridge:ready", onReady);
+      window.clearInterval(iv);
+      resolve(t);
+    };
+    const onReady = () => {
+      if (window.bridge)   return finish({ kind: "bridge", obj: window.bridge });
+      if (window.eel)      return finish({ kind: "eel",    obj: window.eel    });
+      return finish(null);
+    };
+    window.addEventListener("bridge:ready", onReady);
+
+    // Poll for the legacy Eel attach (no event to subscribe to) AND give
+    // the Qt bridge a brief window before giving up. ~600ms total.
+    let ticks = 0;
+    const iv = window.setInterval(() => {
+      ticks++;
+      if (window.bridge) return; // onReady will fire on the channel callback
+      if (window.eel)    return finish({ kind: "eel", obj: window.eel });
+      if (ticks > 20)    return finish(null);
+    }, 30);
+  });
+  return _transportPromise;
+}
+
+/** Forward a JS message to launcher.log via the bridge - useful when
+ *  DevTools is unreachable in production (main.tsx disables the global
+ *  right-click context menu so 'Inspect element' never surfaces).
+ *  Fire-and-forget, swallows errors so a logging miss can't break the
+ *  caller's hot path. */
+export function jsLog(message: string): void {
+  try {
+    const w = window as { bridge?: { js_log?: (m: string) => void } };
+    w.bridge?.js_log?.(message);
+  } catch { /* ignored */ }
+}
+
+export function isReady(): boolean {
+  if (typeof window === "undefined") return false;
+  return Boolean(window.bridge || window.eel);
 }
 
 async function call<T>(name: string, ...args: unknown[]): Promise<T> {
-  if (!isEelReady()) {
-    console.warn(`[eel] not ready — call ${name} bypassed`);
-    throw new Error(`eel unavailable: ${name}`);
+  const t = await detectTransport();
+  if (!t) {
+    console.warn(`[bridge] no transport — call ${name} bypassed`);
+    throw new Error(`bridge unavailable: ${name}`);
   }
-  const fn = window.eel[name];
+  const fn = t.obj[name];
   if (typeof fn !== "function") {
-    throw new Error(`eel function not exposed: ${name}`);
+    throw new Error(`${t.kind} function not exposed: ${name}`);
   }
   return new Promise<T>((resolve, reject) => {
     try {
-      fn(...args)((result: T) => resolve(result));
+      if (t.kind === "bridge") {
+        // QWebChannel slot: trailing callback receives the return value.
+        fn(...args, (result: T) => resolve(result));
+      } else {
+        // Eel legacy thunk: fn(args) returns a callable taking the cb.
+        fn(...args)((result: T) => resolve(result));
+      }
     } catch (e) {
       reject(e);
     }
@@ -126,20 +193,38 @@ export interface ModProgress {
   detail: string;
 }
 
-// Subscribe to mod_install_progress events. The actual eel.expose lives
-// in public/eel-bindings.js (window.__eelModHandlers) — same reason as
-// the download-progress registry. Returns an unsubscribe fn.
+// Subscribe to mod_install_progress events. Bridge path connects to the
+// matching Qt Signal directly; Eel path keeps the legacy
+// window.__eelModHandlers registry so public/eel-bindings.js works
+// unchanged. Returns an unsubscribe fn (idempotent).
 export function onModProgress(cb: (p: ModProgress) => void): () => void {
-  const w = window as unknown as {
-    __eelModHandlers?: ((phase: string, pct: number, detail: string) => void)[];
-  };
-  if (!w.__eelModHandlers) w.__eelModHandlers = [];
   const handler = (phase: string, pct: number, detail: string) =>
     cb({ phase, pct, detail });
-  w.__eelModHandlers.push(handler);
+  let unsub: (() => void) | null = null;
+  let disposed = false;
+  detectTransport().then((t) => {
+    if (disposed || !t) return;
+    if (t.kind === "bridge") {
+      const sig = t.obj.mod_install_progress;
+      if (sig?.connect) {
+        sig.connect(handler);
+        unsub = () => { try { sig.disconnect(handler); } catch { /* ignored */ } };
+      }
+    } else {
+      const w = window as unknown as {
+        __eelModHandlers?: ((phase: string, pct: number, detail: string) => void)[];
+      };
+      if (!w.__eelModHandlers) w.__eelModHandlers = [];
+      w.__eelModHandlers.push(handler);
+      unsub = () => {
+        const i = w.__eelModHandlers?.indexOf(handler) ?? -1;
+        if (i >= 0) w.__eelModHandlers!.splice(i, 1);
+      };
+    }
+  });
   return () => {
-    const i = w.__eelModHandlers?.indexOf(handler) ?? -1;
-    if (i >= 0) w.__eelModHandlers!.splice(i, 1);
+    disposed = true;
+    if (unsub) unsub();
   };
 }
 
@@ -184,30 +269,79 @@ export interface LauncherUpdateProgress {
   detail: string;
 }
 
-// Subscribe to launcher_update_progress events (eel.expose lives in
-// public/eel-bindings.js → window.__eelLauncherUpdateHandlers).
+// Subscribe to launcher_update_progress events. Same dual-transport
+// pattern as onModProgress above.
 export function onLauncherUpdateProgress(
   cb: (p: LauncherUpdateProgress) => void,
 ): () => void {
-  const w = window as unknown as {
-    __eelLauncherUpdateHandlers?: ((phase: string, pct: number, detail: string) => void)[];
-  };
-  if (!w.__eelLauncherUpdateHandlers) w.__eelLauncherUpdateHandlers = [];
   const handler = (phase: string, pct: number, detail: string) =>
     cb({ phase, pct, detail });
-  w.__eelLauncherUpdateHandlers.push(handler);
+  let unsub: (() => void) | null = null;
+  let disposed = false;
+  detectTransport().then((t) => {
+    if (disposed || !t) return;
+    if (t.kind === "bridge") {
+      const sig = t.obj.launcher_update_progress;
+      if (sig?.connect) {
+        sig.connect(handler);
+        unsub = () => { try { sig.disconnect(handler); } catch { /* ignored */ } };
+      }
+    } else {
+      const w = window as unknown as {
+        __eelLauncherUpdateHandlers?: ((phase: string, pct: number, detail: string) => void)[];
+      };
+      if (!w.__eelLauncherUpdateHandlers) w.__eelLauncherUpdateHandlers = [];
+      w.__eelLauncherUpdateHandlers.push(handler);
+      unsub = () => {
+        const i = w.__eelLauncherUpdateHandlers?.indexOf(handler) ?? -1;
+        if (i >= 0) w.__eelLauncherUpdateHandlers!.splice(i, 1);
+      };
+    }
+  });
   return () => {
-    const i = w.__eelLauncherUpdateHandlers?.indexOf(handler) ?? -1;
-    if (i >= 0) w.__eelLauncherUpdateHandlers!.splice(i, 1);
+    disposed = true;
+    if (unsub) unsub();
+  };
+}
+
+/** Subscribe to the fire-and-forget refresh_catalog completion signal
+ *  from the Qt shell. Fires once after all 3 backend HTTP fetches
+ *  finish; the args are the per-source labels ('remote' | 'cache' |
+ *  'none') the toast renders. On the legacy Eel build this Signal
+ *  never fires - callers should be tolerant of that and use the
+ *  refreshCatalog Promise return value as the completion signal there. */
+export function onCatalogRefreshComplete(
+  cb: (catalog: string, news: string, updates: string) => void,
+): () => void {
+  const handler = (c: string, n: string, u: string) => cb(c, n, u);
+  let unsub: (() => void) | null = null;
+  let disposed = false;
+  detectTransport().then((t) => {
+    if (disposed || !t || t.kind !== "bridge") return;
+    const sig = t.obj.catalog_refresh_complete;
+    if (sig?.connect) {
+      sig.connect(handler);
+      unsub = () => { try { sig.disconnect(handler); } catch { /* ignored */ } };
+    }
+  });
+  return () => {
+    disposed = true;
+    if (unsub) unsub();
   };
 }
 
 export const api = {
-  ready:            (): boolean => isEelReady(),
+  ready:            (): boolean => isReady(),
   getAllGames:      ()                          => call<Game[]>("get_all_games"),
   getGame:          (id: string)                => call<Game>("get_game", id),
   getNews:          ()                          => call<NewsItem[]>("get_news"),
-  refreshCatalog:   ()                          => call<{games: Game[]; news: NewsItem[]; catalog_source: string; news_source: string}>("refresh_catalog"),
+  /** Fire-and-forget. Returns immediately with {ok, pending: true} on
+   *  the Qt shell - actual catalog/news/updates arrive progressively via
+   *  cache_refreshed signals, and the per-source toast labels arrive via
+   *  onCatalogRefreshComplete (below). On the legacy Eel build the slot
+   *  still returns synchronously with the full payload; we accept both
+   *  shapes here. */
+  refreshCatalog:   ()                          => call<{ok?: boolean; pending?: boolean; games?: Game[]; news?: NewsItem[]; catalog_source?: string; news_source?: string}>("refresh_catalog"),
   scanQuick:        ()                          => call<ScanResult>("scan_quick"),
   scanDeep:         ()                          => call<ScanResult>("scan_deep"),
   setCustomPath:    (id: string, p: string)     => call<Game>("set_custom_path", id, p),
@@ -249,6 +383,10 @@ export const api = {
    *  via onLauncherUpdateProgress(). */
   getLauncherUpdateInfo: ()                      => call<LauncherUpdateInfo>("get_launcher_update_info"),
   startLauncherUpdate:   ()                      => call<{ ok: boolean; error?: string }>("start_launcher_update"),
+  /** Signal the in-flight self-update to abort. Effective during the
+   *  download/verify phases; once the installer has been launched the
+   *  call is a no-op (the install is the installer's job to finish). */
+  cancelLauncherUpdate:  ()                      => call<{ ok: boolean }>("cancel_launcher_update"),
   /** Software catalog (Steam, etc.) — sister of getAllGames. Backend
    *  pulls /api/software with showOnLauncher filtering. */
   getAllSoftware:   ()                          => call<Software[]>("get_all_software"),
@@ -292,6 +430,11 @@ export const api = {
    *  uses this so the user can paste into a different browser
    *  profile if `webbrowser.open()` opened the wrong one. */
   authGetAuthorizeUrl: ()                       => call<string | null>("auth_get_authorize_url"),
+
+  /** Current Supabase access token (refreshed on expiry by the Python
+   *  side). Returns null when signed out. Used by the in-launcher
+   *  PayPal Smart Buttons to authenticate against /api/paypal. */
+  authGetAccessToken: () => call<string | null>("auth_get_access_token"),
 
   // ── Email/password (kept entirely inside the launcher UI) ──
   authSignInPassword: (email: string, password: string) =>

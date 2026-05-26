@@ -194,21 +194,6 @@ def make_wizard_large() -> Image.Image:
         d.text((14, my), line, fill=COL_DIM, font=f_meta)
         my += 14
 
-    # === Version pill at the bottom ===
-    f_ver = _load_font(FONT_HEAVY_CANDIDATES, 14)
-    ver_text = "v 1.0.0"
-    vbbox = d.textbbox((0, 0), ver_text, font=f_ver)
-    vw = vbbox[2] - vbbox[0]
-    vh = vbbox[3] - vbbox[1]
-    vx = (W - vw) // 2 - vbbox[0]
-    vy = H - 38 - vbbox[1]
-    # pill background
-    pad_x, pad_y = 12, 6
-    rx0, ry0 = vx + vbbox[0] - pad_x, vy + vbbox[1] - pad_y
-    rx1, ry1 = vx + vbbox[0] + vw + pad_x, vy + vbbox[1] + vh + pad_y
-    d.rectangle([rx0, ry0, rx1, ry1], fill=(0, 0, 0, 0), outline=(*COL_YELLOW, 230), width=2)
-    glow_text(base, (vx, vy), ver_text, f_ver, COL_YELLOW, COL_YELLOW, glow_radius=4)
-
     # scanline overlay
     scan = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     sd = ImageDraw.Draw(scan)
@@ -259,11 +244,9 @@ def make_wizard_small() -> Image.Image:
 
     # wordmark to the right of badge
     f_w1 = _load_font(FONT_HEAVY_CANDIDATES, 13)
-    f_w2 = _load_font(FONT_HEAVY_CANDIDATES, 9)
     glow_text(base, (bx1 + 8, 10), "TRANSLATION", f_w1, COL_WHITE, COL_CYAN, glow_radius=2)
     d = ImageDraw.Draw(base)
     d.text((bx1 + 8, 28), "MANAGER", fill=COL_WHITE, font=f_w1)
-    d.text((bx1 + 8, 44), "v1.0.0", fill=COL_CYAN, font=f_w2)
 
     # right-edge accent line (cyan)
     d.line([(W - 3, 6), (W - 3, H - 6)], fill=COL_CYAN, width=2)

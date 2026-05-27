@@ -48,8 +48,9 @@ if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 # ── paths ───────────────────────────────────────────────────────────────────
-HERE = os.path.dirname(os.path.abspath(__file__))
-RES = os.path.join(HERE, "תרגום_משחקים", "source", "resources")
+HERE         = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(HERE)        # universal/ → project root
+RES = os.path.join(PROJECT_ROOT, "תרגום_משחקים", "source", "resources")
 
 BASE_TR = os.path.join(RES, "localization_translated.json")
 BASE_EN = os.path.join(RES, "localization_export.json")

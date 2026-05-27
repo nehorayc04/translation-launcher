@@ -39,7 +39,9 @@ except Exception:
     pass
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
-RES = os.path.join(_HERE, "תרגום_משחקים", "source", "resources")
+
+_REPO_ROOT = os.path.dirname(os.path.dirname(_HERE))   # games/<game>/ -> repo root
+RES = os.path.join(_REPO_ROOT, "תרגום_משחקים", "source", "resources")
 
 DLC_TEXT       = os.path.join(RES, "dlc_ep1_text.json")
 DLC_TRANSLATED = os.path.join(RES, "dlc_ep1_translated.json")

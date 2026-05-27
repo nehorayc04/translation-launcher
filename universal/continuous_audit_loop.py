@@ -100,7 +100,8 @@ except ImportError:
 
 
 # ── paths + LM Studio config ────────────────────────────────────────────────
-HERE = os.path.dirname(os.path.abspath(__file__))
+HERE         = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(HERE)        # universal/ → project root
 BATCH_SCRIPT = os.path.join(HERE, "get_next_audit_batch.py")
 BATCH_FILE   = os.path.join(HERE, "cross_audit_batch.json")
 LOCK_FILE    = os.path.join(HERE, "audit.lock")
@@ -120,10 +121,10 @@ def _abs(p: str) -> str:
     return os.path.abspath(p)
 
 
-PROJECT_ROOT_ABS = _abs(HERE)
+PROJECT_ROOT_ABS = _abs(PROJECT_ROOT)
 
 PROTECTED_FILES = frozenset(
-    _abs(os.path.join(HERE, "תרגום_משחקים", "source", "resources", n))
+    _abs(os.path.join(PROJECT_ROOT, "תרגום_משחקים", "source", "resources", n))
     for n in (
         "localization_translated.json",   # base game Hebrew spine
         "localization_export.json",       # base game English source

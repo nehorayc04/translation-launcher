@@ -16,7 +16,7 @@ import os
 import re
 import time
 
-SD  = r'C:\Users\nc528\סקריפטים\תרגום משחקים'
+SD  = os.path.dirname(os.path.abspath(__file__))    # games/cyberpunk2077/
 SRC = os.path.join(SD, 'rebuild_subtitles.log')      # the bake writes here
 DST = os.path.join(SD, 'subtitle_batch.log')         # the adapter reads here
 

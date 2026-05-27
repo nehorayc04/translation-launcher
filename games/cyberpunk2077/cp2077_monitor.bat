@@ -5,6 +5,7 @@ cd /d "%~dp0"
 
 set PYTHONIOENCODING=utf-8
 set PYTHONUTF8=1
+set PYTHONPATH=%~dp0..\..\universal;%PYTHONPATH%
 
 python -m progress_monitor --adapter cp2077 --tui
 

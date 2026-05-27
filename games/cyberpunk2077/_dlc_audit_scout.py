@@ -29,7 +29,9 @@ import sys
 from collections import Counter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-RES  = os.path.join(HERE, "תרגום_משחקים", "source", "resources")
+
+_REPO_ROOT = os.path.dirname(os.path.dirname(HERE))   # games/<game>/ -> repo root
+RES  = os.path.join(_REPO_ROOT, "תרגום_משחקים", "source", "resources")
 DLC  = os.path.join(RES, "dlc_ep1_translated.json")
 ENG  = os.path.join(RES, "dlc_ep1_text.json")
 

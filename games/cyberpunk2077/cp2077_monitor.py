@@ -6,7 +6,14 @@ by CI / scheduled pushes.
 """
 from __future__ import annotations
 
+import os
 import sys
+
+# progress_monitor lives in <repo_root>/universal/; we're in <repo_root>/games/<game>/.
+_UNIVERSAL = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))), "universal")
+if _UNIVERSAL not in sys.path:
+    sys.path.insert(0, _UNIVERSAL)
 
 from progress_monitor.adapters.cp2077 import build
 

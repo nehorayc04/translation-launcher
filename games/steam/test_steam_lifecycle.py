@@ -11,6 +11,8 @@ import hashlib
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 from translation_manager import steam_apply, steam_mod
 
 _pass = 0

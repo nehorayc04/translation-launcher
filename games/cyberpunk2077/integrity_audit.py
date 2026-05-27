@@ -46,7 +46,9 @@ from collections import Counter
 from dataclasses import dataclass, asdict
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-RES = os.path.join(HERE, "תרגום_משחקים", "source", "resources")
+
+_REPO_ROOT = os.path.dirname(os.path.dirname(HERE))   # games/<game>/ -> repo root
+RES = os.path.join(_REPO_ROOT, "תרגום_משחקים", "source", "resources")
 BASE_TRANS = os.path.join(RES, "localization_translated.json")
 BASE_ENG   = os.path.join(RES, "localization_export.json")
 DLC_TRANS  = os.path.join(RES, "dlc_ep1_translated.json")

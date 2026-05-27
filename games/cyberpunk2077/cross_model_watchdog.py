@@ -50,7 +50,8 @@ from openai import OpenAI
 
 # ── Paths ───────────────────────────────────────────────────────────────────
 HERE = os.path.dirname(os.path.abspath(__file__))
-RES = os.path.join(HERE, "תרגום_משחקים", "source", "resources")
+_REPO_ROOT = os.path.dirname(os.path.dirname(HERE))   # games/<game>/ -> repo root
+RES = os.path.join(_REPO_ROOT, "תרגום_משחקים", "source", "resources")
 
 BASE_TR = os.path.join(RES, "localization_translated.json")
 BASE_EN = os.path.join(RES, "localization_export.json")

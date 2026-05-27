@@ -41,13 +41,15 @@ from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
+
+_REPO_ROOT = os.path.dirname(os.path.dirname(_HERE))   # games/<game>/ -> repo root
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
 import translate_queue_fast as tqf
 from openai import OpenAI
 
-RES = os.path.join(_HERE, "תרגום_משחקים", "source", "resources")
+RES = os.path.join(_REPO_ROOT, "תרגום_משחקים", "source", "resources")
 DLC_FILE = os.path.join(RES, "dlc_ep1_translated.json")
 ENG_FILE = os.path.join(RES, "dlc_ep1_text.json")
 REPORT_FILE = os.path.join(_HERE, "dlc_qa_fix_report.json")

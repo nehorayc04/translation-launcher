@@ -32,8 +32,10 @@ except Exception:
     pass
 
 HERE   = os.path.dirname(os.path.abspath(__file__))
+
+_REPO_ROOT = os.path.dirname(os.path.dirname(HERE))   # games/<game>/ -> repo root
 SCRIPT = os.path.join(HERE, "cp2077_dlc_translate.py")
-DLC    = os.path.join(HERE, "תרגום_משחקים", "source", "resources",
+DLC    = os.path.join(_REPO_ROOT, "תרגום_משחקים", "source", "resources",
                       "dlc_ep1_translated.json")
 LOG    = os.path.join(HERE, "cp2077_dlc_run.log")
 

@@ -23,7 +23,8 @@ GAME_ID   = 'cyberpunk'
 GPU       = 'AMD Radeon RX 9070 16GB'
 AI_MODEL  = 'Gemma-2 27B'
 
-PROJ = r"C:\Users\nc528\סקריפטים\תרגום משחקים"
+_REPO_ROOT = Path(__file__).resolve().parents[3]    # adapters → progress_monitor → universal → repo root
+PROJ = str(_REPO_ROOT / "games" / "cyberpunk2077")
 
 SUBTITLE_DIR_TOTAL  = 3083
 REEXTRACT_TOTAL     = 3085
@@ -37,9 +38,10 @@ _PKG_RATE_WINDOW_SEC = 1800  # 30 min rolling window for packaging rate
 # script's "Global queue:" / "cleanup mode" log markers.
 CLEANUP_GLOBAL_TOTAL = 23792
 
-PROJ_AR_SUBTITLES = (
-    r"C:\Users\nc528\סקריפטים\תרגום משחקים\תרגום_משחקים"
-    r"\source\archive\base\localization\ar-ar\subtitles"
+PROJ_AR_SUBTITLES = str(
+    _REPO_ROOT
+    / "תרגום_משחקים"
+    / "source" / "archive" / "base" / "localization" / "ar-ar" / "subtitles"
 )
 
 LOG_MASTER    = os.path.join(PROJ, "master_pipeline_v2.log")

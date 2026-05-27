@@ -26,12 +26,14 @@ except Exception:
     pass
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
+
+_REPO_ROOT = os.path.dirname(os.path.dirname(_HERE))   # games/<game>/ -> repo root
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
 import cp2077_qa_defects as qa
 
-RES = os.path.join(_HERE, "תרגום_משחקים", "source", "resources")
+RES = os.path.join(_REPO_ROOT, "תרגום_משחקים", "source", "resources")
 TRANSLATED = qa.TRANSLATED_FILE
 
 # Closed set of vocalization forms seen in the audit, mapped to a natural

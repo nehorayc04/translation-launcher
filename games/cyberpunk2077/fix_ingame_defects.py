@@ -28,11 +28,13 @@ import sys
 from collections import Counter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+
+_REPO_ROOT = os.path.dirname(os.path.dirname(HERE))   # games/<game>/ -> repo root
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
 import translate_queue_fast as tqf
 
-RES = os.path.join(HERE, "תרגום_משחקים", "source", "resources")
+RES = os.path.join(_REPO_ROOT, "תרגום_משחקים", "source", "resources")
 BASE_TR  = os.path.join(RES, "localization_translated.json")
 BASE_EN  = os.path.join(RES, "localization_export.json")
 DLC_TR   = os.path.join(RES, "dlc_ep1_translated.json")

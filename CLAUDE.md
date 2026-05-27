@@ -10,16 +10,51 @@ archive, and copies it into the game's mod folder.
 
 ---
 
-## Repository layout
+## Repository layout (post-2026-05-27 reorg)
+
+The root holds only the launcher build + game data; everything else
+lives under `games/<game>/`, `universal/`, or `_archive/`.
 
 | Path | Purpose |
 |---|---|
-| `main_eel.py` | Eel entry point. Spawns the Chromium window and exposes the Python bridge functions consumed by the frontend. |
-| `translation_manager/` | Python application package — UI views, asset/download logic, game detection, theme, paths, SWR cache. |
+| `main_eel.py` / `main_qt.py` | Launcher entry points (Eel and Qt). |
+| `translation_manager/` | Python application package — UI views, asset/download logic, game detection, theme, paths, SWR cache, Steam mod lifecycle. |
 | `frontend/` | React + Vite UI rendered inside the Eel window. Build output is bundled into the executable. |
 | `build_assets/` | Installer artwork (icon, wizard BMPs, store screenshots) used by Inno Setup + PyInstaller. |
 | `build_exe.bat` | One-shot build script: builds the frontend, runs PyInstaller, then Inno Setup. |
-| `TranslationManager.spec` | PyInstaller spec — declares hidden imports, data files, icon, and console behaviour. |
+| `installer.iss` | Inno Setup script. |
+| `TranslationManager.spec` / `TranslationManager_qt.spec` | PyInstaller specs — declare hidden imports, data files, icon, console behaviour. |
+| `publish_release.py` / `monitor_push.py` | Launcher-release publisher + universal live-progress push library. |
+| `games.json` / `news.json` / `updates.json` | Public launcher catalog data (snapshot for offline use; the live source is the Worker). |
+| `Cyberpunk 2077/` | The staging copy of the game the user actually plays + the mod-deploy target (`archive/pc/mod/`). |
+| `תרגום_משחקים/` | The CP2077 translation source data (1.4 GB — `source/resources/localization_translated.json` is the spine). |
+| `games/cyberpunk2077/` | Every CP2077-specific Python script, batch file, state JSON, and the GitHub release zip. |
+| `games/steam/` | The Steam UI translator + its `steam_hebrew_output/` + the Cloudflare Worker source + the GitHub release zip. |
+| `universal/` | Game-agnostic infra: cross-validation audit (`continuous_audit_loop.py` + `get_next_audit_batch.py` + `filter_existing_flags.py` + sidecars) and the `progress_monitor/` package. Sidecars (`cross_audit_*.json`, `audit.lock`) live alongside the scripts here. |
+| `_archive/{logs,backups,old_reports,scratch,images,shortcuts,obsolete_artifacts}/` | Inert/historical files. Nothing in the active pipeline reads these. |
+| `winget-manifest/` | Winget package manifest for the launcher. |
+| `Output/` / `dist/` / `build/` | PyInstaller + Inno Setup output (gitignored). |
+
+### Adding a new game
+
+The project is structured so a future game gets its own subtree without
+touching anything else:
+
+1. Create `games/<gamename>/` and drop its translator scripts +
+   resource pulls there.
+2. If it needs the universal cross-validation audit, write a thin
+   adapter for `universal/get_next_audit_batch.py` (read its data,
+   yield rows) and a thin `universal/progress_monitor/adapters/<gamename>.py`
+   for the live-progress TUI.
+3. Add the launcher card in `frontend/src/views/AppsView.tsx` /
+   `GamesView.tsx` and the lifecycle module in
+   `translation_manager/<gamename>_mod.py`.
+4. Publish the mod archive through `publish_release.py` (launcher) or
+   a `games/<gamename>/pack_and_release.py` (per-game).
+
+The universal audit's data path is computed as `HERE/../תרגום_משחקים/...`
+in `get_next_audit_batch.py` — for a different game it would be
+`HERE/../games/<gamename>/data/...` or similar.
 
 ---
 

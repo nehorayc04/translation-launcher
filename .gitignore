@@ -5,6 +5,12 @@ Cyberpunk 2077/
 backup_translation_*/
 _font_extract_tmp/
 
+# ── nested repos (each one tracks itself) ────────────────────
+# website/ is the public translation-hub site — its own git repo,
+# pushed to github.com/nehorayc04/A-translation-hub. The outer
+# repo ignores it entirely.
+website/
+
 # ── build artefacts ──────────────────────────────────────────
 build/
 dist/

@@ -31,6 +31,7 @@ lives under `games/<game>/`, `universal/`, or `_archive/`.
 | `games/cyberpunk2077/` | Every CP2077-specific Python script, batch file, state JSON, and the GitHub release zip. |
 | `games/steam/` | The Steam UI translator + its `steam_hebrew_output/` + the Cloudflare Worker source + the GitHub release zip. |
 | `universal/` | Game-agnostic infra: cross-validation audit (`continuous_audit_loop.py` + `get_next_audit_batch.py` + `filter_existing_flags.py` + sidecars) and the `progress_monitor/` package. Sidecars (`cross_audit_*.json`, `audit.lock`) live alongside the scripts here. |
+| `website/` | The public translation-hub site (Vite + React + Tailwind + Supabase + Vercel functions) — **its own git repo**, pushed to `github.com/nehorayc04/A-translation-hub`. The outer repo ignores it (`/.gitignore`); to commit/push site changes, `cd website` and use git there. Old chat sessions for this project moved with the folder — see "Claude Code sessions" below. |
 | `_archive/{logs,backups,old_reports,scratch,images,shortcuts,obsolete_artifacts}/` | Inert/historical files. Nothing in the active pipeline reads these. |
 | `winget-manifest/` | Winget package manifest for the launcher. |
 | `Output/` / `dist/` / `build/` | PyInstaller + Inno Setup output (gitignored). |
@@ -55,6 +56,16 @@ touching anything else:
 The universal audit's data path is computed as `HERE/../תרגום_משחקים/...`
 in `get_next_audit_batch.py` — for a different game it would be
 `HERE/../games/<gamename>/data/...` or similar.
+
+### Claude Code sessions
+
+Claude Code stores per-project chat history in
+`C:\Users\nc528\.claude\projects\<encoded-cwd>\`. The encoding maps
+each non-alphanumeric char to `-` (case-preserved). When the website
+project was moved into `website/` on 2026-05-27 the old chat folder
+`c--Users-nc528--------------------------\` was renamed to
+`c--Users-nc528-----------------------website\` so the two prior
+sessions (13 MB) auto-load when you open Claude Code in `website/`.
 
 ---
 

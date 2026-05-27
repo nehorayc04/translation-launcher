@@ -1,89 +1,89 @@
 {
-  "batch_index": 20940,
+  "batch_index": 38030,
   "batch_size": 10,
-  "next_index": 20950,
+  "next_index": 38040,
   "total_rows": 238556,
-  "progress_pct": 8.782,
+  "progress_pct": 15.9459,
   "rows": [
     {
       "project": "base",
       "section": "onscreens/onscreens.json",
-      "pk": "50784",
+      "pk": "79796",
       "field": "femaleVariant",
-      "english": "Contact: Sprenger",
-      "hebrew": "פנו אל: שפרנגר"
+      "english": "No special offers",
+      "hebrew": "אין הצעות מיוחדות"
     },
     {
       "project": "base",
       "section": "onscreens/onscreens.json",
-      "pk": "50785",
+      "pk": "79797",
       "field": "femaleVariant",
-      "english": "Contact: XXX",
-      "hebrew": "קשר: XXX"
+      "english": "Back",
+      "hebrew": "חזרה"
     },
     {
       "project": "base",
       "section": "onscreens/onscreens.json",
-      "pk": "50786",
+      "pk": "79798",
       "field": "femaleVariant",
-      "english": "Contact: Surgeon",
-      "hebrew": "קשר: כירורג"
+      "english": "New vehicle purchase system",
+      "hebrew": "מערכת רכישה של כלי רכב חדשים"
     },
     {
       "project": "base",
       "section": "onscreens/onscreens.json",
-      "pk": "50787",
+      "pk": "79799",
       "field": "femaleVariant",
-      "english": "Contact: LennyN",
-      "hebrew": "קשר: LennyN"
+      "english": "\u0005Tired of receiving those pesky vehicle-for-sale messages? We hear you! From now on, whe",
+      "hebrew": "עייפים מהודעות מכירות של כלי רכב מעצבנות? אנחנו שומעים אתכם! החל מעכשיו,"
     },
     {
       "project": "base",
       "section": "onscreens/onscreens.json",
-      "pk": "50788",
+      "pk": "79800",
       "field": "femaleVariant",
-      "english": "Contact: Psych0",
-      "hebrew": "קשר: פסיכו0"
+      "english": "Special offer",
+      "hebrew": "הצעה מיוחדת"
     },
     {
       "project": "base",
       "section": "onscreens/onscreens.json",
-      "pk": "50789",
+      "pk": "79801",
       "field": "femaleVariant",
-      "english": "BLAST FROM THE PAST",
-      "hebrew": "פיצוץ מהעבר"
+      "english": "Great! See you then!",
+      "hebrew": "מעולה! נראה אותך אז!"
     },
     {
       "project": "base",
       "section": "onscreens/onscreens.json",
-      "pk": "50790",
+      "pk": "79802",
       "field": "femaleVariant",
-      "english": "\u0003It's BLAST FROM THE PAST, in which we bring you the lyrics of Kerry's",
-      "hebrew": "זה פיצוץ מהעבר, שבו אנו מביאים לכם את מילות השיר של קרי"
+      "english": "Gotcha. Well, just gimme a call if you change your mind, k?",
+      "hebrew": "הבנתי. טוב, פשוט תתקשר אלי אם תחזור בו, בסדר?"
     },
     {
       "project": "base",
       "section": "onscreens/onscreens.json",
-      "pk": "50791",
+      "pk": "79803",
       "field": "femaleVariant",
-      "english": "\u0007USER FRIENDLY\\n\\nIn a user-friendly world\\nYou don't have to think\\nDon't have to know\\nAnything\\nAnymore\\n",
-      "hebrew": "ידידותי למשתמש"
+      "english": "\u0005My clients don’t need to kick the tires or peek under the hood. They know Muamar “El Capitan” Reyes already did it for �",
+      "hebrew": "הלקוחות שלי לא צריכים לבעוט בצמיגים או להציץ מתחת למכסה המנוע. הם יודעים שמועמר \"קפטן\" רייס כבר עשה את זה בשבילם"
     },
     {
       "project": "base",
       "section": "onscreens/onscreens.json",
-      "pk": "50792",
+      "pk": "79804",
       "field": "femaleVariant",
-      "english": "You can't do that right now",
-      "hebrew": "אי אפשר לעשות את זה עכשיו"
+      "english": "\u0004Listen, cars are like underwear. I mean, you don’t gotta change ‘em every day... but it",
+      "hebrew": "שמע, מכוניות זה כמו תחתונים. אני מתכוון, לא צריך להחליף אותן כל יום... אבל זה"
     },
     {
       "project": "base",
       "section": "onscreens/onscreens.json",
-      "pk": "50793",
+      "pk": "79805",
       "field": "femaleVariant",
-      "english": "Locked",
-      "hebrew": "נעול"
+      "english": "\u0003You gotta have a passion in life. Mine’s cars. I know you feel me. Why I’m tellin’ ya first - got a few new ones u",
+      "hebrew": "אתה חייב להיות עם תשוקה בחיים. שלי זה מכוניות. אני יודע שאתה מרגיש אותי. למה אני מספר לך ראשון - יש לי כמה חדשות"
     }
   ]
 }

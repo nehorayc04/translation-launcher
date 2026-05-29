@@ -106,7 +106,7 @@ BATCH_SCRIPT = os.path.join(HERE, "get_next_audit_batch.py")
 BATCH_FILE   = os.path.join(HERE, "cross_audit_batch.json")
 LOCK_FILE    = os.path.join(HERE, "audit.lock")
 
-LM_URL          = "http://10.0.0.5:1234/v1"
+LM_URL          = "http://127.0.0.1:1234/v1"
 DEFAULT_MODEL   = "qwen2.5-32b-instruct"
 REQUEST_TIMEOUT = 90.0      # seconds — 32B model needs depth to think
 RETRY_SLEEP     = 30.0      # seconds — uniform backoff per spec

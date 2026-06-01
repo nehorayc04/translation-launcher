@@ -1,89 +1,89 @@
 {
-  "batch_index": 38030,
+  "batch_index": 52710,
   "batch_size": 10,
-  "next_index": 38040,
+  "next_index": 52720,
   "total_rows": 238556,
-  "progress_pct": 15.9459,
+  "progress_pct": 22.0996,
   "rows": [
     {
       "project": "base",
       "section": "onscreens/onscreens.json",
-      "pk": "79796",
+      "pk": "90542",
       "field": "femaleVariant",
-      "english": "No special offers",
-      "hebrew": "אין הצעות מיוחדות"
+      "english": "Story-ep1-gameplay-static_data-database-scanning-sandbox_activities-sa_ep1_airdrops_clues-sa_ep1_35_bags_clue_1_localizedName",
+      "hebrew": "חומר"
     },
     {
       "project": "base",
       "section": "onscreens/onscreens.json",
-      "pk": "79797",
+      "pk": "90543",
       "field": "femaleVariant",
-      "english": "Back",
-      "hebrew": "חזרה"
+      "english": "Story-ep1-gameplay-static_data-database-scanning-sandbox_activities-sa_ep1_airdrops_clues-sa_ep1_35_bags_clue_1_localizedDescription",
+      "hebrew": "תיקי עור, לא נמצאה שכבת ביגוד נגד כדורים"
     },
     {
       "project": "base",
       "section": "onscreens/onscreens.json",
-      "pk": "79798",
+      "pk": "90544",
       "field": "femaleVariant",
-      "english": "New vehicle purchase system",
-      "hebrew": "מערכת רכישה של כלי רכב חדשים"
+      "english": "Story-ep1-gameplay-static_data-database-scanning-sandbox_activities-sa_ep1_airdrops_clues-sa_ep1_35_bags_clue_2_localizedName",
+      "hebrew": "תוכן"
     },
     {
       "project": "base",
       "section": "onscreens/onscreens.json",
-      "pk": "79799",
+      "pk": "90545",
       "field": "femaleVariant",
-      "english": "\u0005Tired of receiving those pesky vehicle-for-sale messages? We hear you! From now on, whe",
-      "hebrew": "עייפים מהודעות מכירות של כלי רכב מעצבנות? אנחנו שומעים אתכם! החל מעכשיו,"
+      "english": "Story-ep1-gameplay-static_data-database-scanning-sandbox_activities-sa_ep1_airdrops_clues-sa_ep1_35_bags_clue_2_localizedDescription",
+      "hebrew": "בגדים, קוסמטיקה, חלקים אלקטרוניים ממקור לא ידוע"
     },
     {
       "project": "base",
       "section": "onscreens/onscreens.json",
-      "pk": "79800",
+      "pk": "90546",
       "field": "femaleVariant",
-      "english": "Special offer",
-      "hebrew": "הצעה מיוחדת"
+      "english": "Story-ep1-gameplay-static_data-database-scanning-sandbox_activities-sa_ep1_airdrops_clues-sa_ep1_35_bags_conclusion_localizedDescription",
+      "hebrew": "פריטים אישיים, מוצרי טואלטיקה"
     },
     {
       "project": "base",
       "section": "onscreens/onscreens.json",
-      "pk": "79801",
+      "pk": "90547",
       "field": "femaleVariant",
-      "english": "Great! See you then!",
-      "hebrew": "מעולה! נראה אותך אז!"
+      "english": "Story-ep1-gameplay-static_data-database-scanning-sandbox_activities-sa_ep1_airdrops_clues-sa_ep1_35_humanitary_clue_1_localizedName",
+      "hebrew": "תוכן"
     },
     {
       "project": "base",
       "section": "onscreens/onscreens.json",
-      "pk": "79802",
+      "pk": "90548",
       "field": "femaleVariant",
-      "english": "Gotcha. Well, just gimme a call if you change your mind, k?",
-      "hebrew": "הבנתי. טוב, פשוט תתקשר אלי אם תחזור בו, בסדר?"
+      "english": "Story-ep1-gameplay-static_data-database-scanning-sandbox_activities-sa_ep1_airdrops_clues-sa_ep1_35_humanitary_clue_1_localizedDescription",
+      "hebrew": "ציוד רפואי, תרופות"
     },
     {
       "project": "base",
       "section": "onscreens/onscreens.json",
-      "pk": "79803",
+      "pk": "90549",
       "field": "femaleVariant",
-      "english": "\u0005My clients don’t need to kick the tires or peek under the hood. They know Muamar “El Capitan” Reyes already did it for �",
-      "hebrew": "הלקוחות שלי לא צריכים לבעוט בצמיגים או להציץ מתחת למכסה המנוע. הם יודעים שמועמר \"קפטן\" רייס כבר עשה את זה בשבילם"
+      "english": "Story-ep1-gameplay-static_data-database-scanning-sandbox_activities-sa_ep1_airdrops_clues-sa_ep1_35_humanitary_clue_2_localizedName",
+      "hebrew": "תוכן"
     },
     {
       "project": "base",
       "section": "onscreens/onscreens.json",
-      "pk": "79804",
+      "pk": "90550",
       "field": "femaleVariant",
-      "english": "\u0004Listen, cars are like underwear. I mean, you don’t gotta change ‘em every day... but it",
-      "hebrew": "שמע, מכוניות זה כמו תחתונים. אני מתכוון, לא צריך להחליף אותן כל יום... אבל זה"
+      "english": "Story-ep1-gameplay-static_data-database-scanning-sandbox_activities-sa_ep1_airdrops_clues-sa_ep1_35_humanitary_clue_2_localizedDescription",
+      "hebrew": "סמים אסורים, נשק שונות"
     },
     {
       "project": "base",
       "section": "onscreens/onscreens.json",
-      "pk": "79805",
+      "pk": "90551",
       "field": "femaleVariant",
-      "english": "\u0003You gotta have a passion in life. Mine’s cars. I know you feel me. Why I’m tellin’ ya first - got a few new ones u",
-      "hebrew": "אתה חייב להיות עם תשוקה בחיים. שלי זה מכוניות. אני יודע שאתה מרגיש אותי. למה אני מספר לך ראשון - יש לי כמה חדשות"
+      "english": "Story-ep1-gameplay-static_data-database-scanning-sandbox_activities-sa_ep1_airdrops_clues-sa_ep1_35_humanitary_conclusion_localizedDescription",
+      "hebrew": "ארגזי עזרה הומניטרית ורכבים המשמשים להובלת מטען אסור"
     }
   ]
 }

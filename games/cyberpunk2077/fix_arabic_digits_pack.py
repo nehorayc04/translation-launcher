@@ -57,9 +57,9 @@ except ImportError:                                  # pragma: no cover
     sys.exit(1)
 
 # ── Paths ──────────────────────────────────────────────────────────────────
-CLI         = r"C:\Users\nc528\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe"
-GAME        = r"C:\Users\nc528\סקריפטים\תרגום משחקים\Cyberpunk 2077"
-SCRIPTS_DIR = r"C:\Users\nc528\סקריפטים\תרגום משחקים"
+CLI         = r"C:\Users\Nehoray_Cohen\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe"
+GAME        = r"C:\Users\Nehoray_Cohen\Projects\Game translator\Game Lab\Cyberpunk 2077"
+SCRIPTS_DIR = r"C:\Users\Nehoray_Cohen\Projects\Game translator"
 PROJECT     = os.path.join(SCRIPTS_DIR, "תרגום_משחקים")
 PROJ_FNT    = os.path.join(
     PROJECT,
@@ -69,7 +69,7 @@ PROJ_FNT    = os.path.join(
 PROJ_PACKED = os.path.join(PROJECT, r"packed\archive\pc\mod\archive.archive")
 DEPLOY      = os.path.join(GAME, r"archive\pc\mod\z_hebrew_translation.archive")
 
-WORK         = r"C:\Users\nc528\AppData\Local\Temp\arabic_digits_fix"
+WORK         = r"C:\Users\Nehoray_Cohen\AppData\Local\Temp\arabic_digits_fix"
 RAW_DIR      = os.path.join(WORK, "raw")
 JSON_DIR     = os.path.join(WORK, "json")
 ENC_DIR      = os.path.join(WORK, "encoded")

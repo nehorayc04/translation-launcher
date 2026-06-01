@@ -3,7 +3,7 @@ import struct, sys
 from pathlib import Path
 
 f = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(
-    r"C:\Users\nc528\סקריפטים\תרגום משחקים\תרגום_משחקים\source\archive\base\localization\en-us\onscreens\onscreens.json")
+    r"C:\Users\Nehoray_Cohen\Projects\Game translator\תרגום_משחקים\source\archive\base\localization\en-us\onscreens\onscreens.json")
 
 data = f.read_bytes()
 assert data[:4] == b'CR2W', "not CR2W"

@@ -1,0 +1,21 @@
+tier	key	arabic_original	hebrew_translation
+1	NEW_GAME_PLUS_ALERT_DESC	موضع الحفظ هذا مؤهل للعبة جديدة +. إذا حذفت بيانات الحفظ هذه، فلن تتمكن من إصدار لعبة جديدة+ لها. لا يمكن الرجوع عن هذه الخطوة.&rlm;<br><br>هل أنت متأكد من رغبتك في حذف بيانات الحفظ هذه؟	
+1	NEW_GAME_PLUS_ALERT_HEADER	تحذير!&rlm;	
+1	NEW_GAME_PLUS_DESC	تهانينا! لقد أنهيت القصة الرئيسية. أنت الآن مؤهل لـ: لعبة جديدة+&rlm;	
+1	NEW_GAME_PLUS_HEADER	+لعبة جديدة	
+1	NEW_GAME_PLUS_SLOTS_FULL_DESC	تهانينا! لقد أنهيت القصة الرئيسية. الرجاء حذف موضع حفظ لإنشاء لعبة جديدة+.&rlm;	
+1	NEW_GAME_PLUS_ULTIMATE_DESC	تهانينا! لقد أنهيت القصة الرئيسية. عليك إنشاء لعبة جديدة+ لمتابعة مستواك المُطلق.&rlm;	
+2	MENU_LOBBY_CONTINUEGAME_HEADER	مواصلة اللعبة	
+2	MENU_LOBBY_NEWGAME_HEADER	قبل البدء	
+2	MENU_NEWGAMEPLUS_NOEMPTYSLOTS_BODY	لا يمكن بدء لعبة جديدة+ لأن جميع مواضع الحفظ مكتملة.&rlm;	
+2	MENU_NEWGAMEPLUS_NOEMPTYSLOTS_HEADER	لا يوجد مواضع فارغة	
+2	TEXT_CONTINUEGAME_HEADER		
+2	TEXT_SAVESLOT_NEWGAME	لعبة جديدة %d	
+2	TEXT_SAVESLOT_NEWGAME1		
+2	TEXT_SAVESLOT_NEWGAMEPLUS	(NG+)	
+2	TEXT_SAVESLOT_NEWGAMEPLUSELIGIBLE		
+2	TEXT_SAVESLOT_NEWGAME_TOK_000	لعبة جديدة 	
+2	TEXT_SAVESLOT_NEWGAME_TOK_001	%d	
+2	TROPHY_NEWGAMEPLUS_DESC	قم بإنهاء القصة الرئيسية في وضع لعبة جديدة+	
+2	TROPHY_NEWGAMEPLUS_NAME	مرة أخرى، بإحساس أقوى	
+2	TROPHY_PACK_NEWGAMEPLUS_TITLE	لعبة جديدة+	

@@ -7,11 +7,11 @@ import shutil
 import subprocess
 from fontTools.ttLib import TTFont
 
-CLI = r"C:\Users\nc528\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe"
-CP = r"C:\Users\nc528\סקריפטים\תרגום משחקים\Cyberpunk 2077"
+CLI = r"C:\Users\Nehoray_Cohen\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe"
+CP = r"C:\Users\Nehoray_Cohen\Projects\Game translator\Game Lab\Cyberpunk 2077"
 ARCHIVE = os.path.join(CP, r"archive\pc\content\basegame_1_engine.archive")
 
-WORK = r"C:\Users\nc528\AppData\Local\Temp\font_v2"
+WORK = r"C:\Users\Nehoray_Cohen\AppData\Local\Temp\font_v2"
 EXTRACT = os.path.join(WORK, "extract_vanilla_ttfs")
 STRIPPED = os.path.join(WORK, "stripped_ttf")
 RENAMED = os.path.join(WORK, "renamed_ttf")

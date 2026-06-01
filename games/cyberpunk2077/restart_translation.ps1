@@ -2,8 +2,8 @@
 # Emergency restart for cp2077_fix_missing_translations.py
 # Usage: Right-click -> "Run with PowerShell"  OR  pwsh -File restart_translation.ps1
 
-$PY   = "C:\Users\nc528\AppData\Local\Programs\Python\Python313\python.exe"
-$DIR  = "C:\Users\nc528\סקריפטים\תרגום משחקים"
+$PY   = "C:\Users\Nehoray_Cohen\AppData\Local\Programs\Python\Python313\python.exe"
+$DIR  = "C:\Users\Nehoray_Cohen\Projects\Game translator"
 $LOG  = "$DIR\fix_missing_translations.log"
 $SCRIPT = "cp2077_fix_missing_translations.py"
 $LM_URL = "http://127.0.0.1:1234/v1/models"

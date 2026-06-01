@@ -53,7 +53,7 @@ LOG_REEXTRACT = os.path.join(PROJ, "reextract_subtitles.log")
 # the 4th monitor stage ("בקרת איכות").
 QA_STATUS_FILE = Path.home() / ".translation_manager" / "cp2077_qa_status.json"
 
-REEXTRACT_TEXT_DIR  = r"C:\Users\nc528\AppData\Local\Temp\reextract_subs\text"
+REEXTRACT_TEXT_DIR  = r"C:\Users\Nehoray_Cohen\AppData\Local\Temp\reextract_subs\text"
 REEXTRACT_DONE_MARKER = os.path.join(REEXTRACT_TEXT_DIR, ".serialize_done")
 
 MASTER_START    = "MASTER PIPELINE"

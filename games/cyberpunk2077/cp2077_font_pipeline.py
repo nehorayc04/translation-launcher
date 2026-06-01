@@ -11,7 +11,7 @@ Steps:
   5. Deploy to Cyberpunk 2077/archive/pc/mod/
 
 Requires:
-  - WolvenKit.CLI.exe at C:/Users/nc528/AppData/Local/Programs/WolvenKit-CLI/
+  - WolvenKit.CLI.exe at C:/Users/Nehoray_Cohen/AppData/Local/Programs/WolvenKit-CLI/
   - cyber_hebrew.ttf at PROJECT/source/archive/base/gameplay/gui/fonts/
   - .NET 8 runtime (already installed)
 """
@@ -27,14 +27,14 @@ try:
 except Exception:
     pass
 
-CLI = r"C:\Users\nc528\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe"
-GAMEPATH = r"C:\Users\nc528\סקריפטים\תרגום משחקים\Cyberpunk 2077"
-PROJECT = Path(r"C:\Users\nc528\סקריפטים\תרגום משחקים\תרגום_משחקים")
+CLI = r"C:\Users\Nehoray_Cohen\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe"
+GAMEPATH = r"C:\Users\Nehoray_Cohen\Projects\Game translator\Game Lab\Cyberpunk 2077"
+PROJECT = Path(r"C:\Users\Nehoray_Cohen\Projects\Game translator\תרגום_משחקים")
 HEBREW_TTF = PROJECT / r"source\archive\base\gameplay\gui\fonts\cyber_hebrew.ttf"
 ARCHIVE_DIR = PROJECT / "source" / "archive"
 RAW_DIR = PROJECT / "source" / "raw"
 PACKED_OUT_DIR = PROJECT / r"packed\archive\pc\mod"
-DEPLOY_TO = Path(r"C:\Users\nc528\סקריפטים\תרגום משחקים\Cyberpunk 2077\archive\pc\mod\תרגום_משחקים.archive")
+DEPLOY_TO = Path(r"C:\Users\Nehoray_Cohen\Projects\Game translator\Game Lab\Cyberpunk 2077\archive\pc\mod\תרגום_משחקים.archive")
 
 FONT_SOURCE_ARCHIVES = [
     Path(GAMEPATH) / r"archive\pc\content\basegame_4_gamedata.archive",

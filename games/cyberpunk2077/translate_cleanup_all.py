@@ -47,7 +47,7 @@ if hasattr(sys.stdout, "buffer"):
         sys.stderr.buffer, encoding="utf-8", errors="replace", write_through=True
     )
 
-SCRIPTS_DIR = r"C:\Users\nc528\סקריפטים\תרגום משחקים"
+SCRIPTS_DIR = r"C:\Users\Nehoray_Cohen\Projects\Game translator"
 PROJECT     = os.path.join(SCRIPTS_DIR, "תרגום_משחקים")
 RESOURCES   = os.path.join(PROJECT, "source", "resources")
 

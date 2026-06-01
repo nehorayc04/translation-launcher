@@ -7,7 +7,7 @@ import os
 from fontTools.ttLib import TTFont
 from fontTools.subset import Subsetter
 
-WORK = r"C:\Users\nc528\AppData\Local\Temp\font_v2"
+WORK = r"C:\Users\Nehoray_Cohen\AppData\Local\Temp\font_v2"
 SRC = os.path.join(WORK, "renamed_ttf")
 OUT = os.path.join(WORK, "subset_ttf")
 os.makedirs(OUT, exist_ok=True)

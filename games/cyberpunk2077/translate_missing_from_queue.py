@@ -48,7 +48,7 @@ except ImportError:
     sys.exit("FATAL: install the openai package: pip install openai")
 
 # ── Paths ────────────────────────────────────────────────────────────────
-SCRIPTS_DIR = r"C:\Users\nc528\סקריפטים\תרגום משחקים"
+SCRIPTS_DIR = r"C:\Users\Nehoray_Cohen\Projects\Game translator"
 QUEUE       = os.path.join(SCRIPTS_DIR, "missing_translations_queue.json")
 OUTPUT      = os.path.join(SCRIPTS_DIR, "lm_output.json")
 PROGRESS    = os.path.join(SCRIPTS_DIR, "lm_translation_progress.json")

@@ -35,7 +35,7 @@ if hasattr(sys.stdout, "buffer"):
         sys.stdout.buffer, encoding="utf-8", errors="replace", write_through=True
     )
 
-BASE = r"C:\Users\nc528\סקריפטים\תרגום משחקים\תרגום_משחקים\source\resources"
+BASE = r"C:\Users\Nehoray_Cohen\Projects\Game translator\תרגום_משחקים\source\resources"
 TRANSLATED_FILE = os.path.join(BASE, "localization_translated.json")
 ORIGINAL_FILE = os.path.join(BASE, "localization_export.json")
 BACKUP_FILE = os.path.join(BASE, "localization_translated.before_glossary_cleanup.json")

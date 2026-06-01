@@ -20,7 +20,7 @@ import shutil
 import sys
 from pathlib import Path
 
-PROJECT_ROOT = Path(r"C:\Users\nc528\סקריפטים\תרגום משחקים\תרגום_משחקים")
+PROJECT_ROOT = Path(r"C:\Users\Nehoray_Cohen\Projects\Game translator\תרגום_משחקים")
 ARCHIVE_DIR  = PROJECT_ROOT / "source" / "archive" / "base" / "localization" / "en-us"
 BACKUP_DIR   = PROJECT_ROOT / "source" / "archive_backup"
 

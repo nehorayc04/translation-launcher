@@ -1,0 +1,51 @@
+;
+    --lobbyFadeDelay: 0s;
+}
+
+body {
+  margin: 0;
+	width: 100vw;
+	height: 100vh;
+	overflow: hidden;
+}
+
+.transitionLobbyFade {
+    transition-property: opacity;
+    transition-duration: var(--lobbyFadeDuration);
+    transition-delay: var(--lobbyFadeDelay);
+    transition-timing-function: linear;
+}
+
+.Root_Lobby_Fade.lobbyFullScreen {
+  width: 100vw;
+  height: 100vh;
+}
+
+p.pressStartText {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+
+.accordion_open {
+    transform: rotateZ(90.000000deg);
+}
+
+.lobbyElementDynamicColor {
+    /* This is currently set to be Teal. Use this link to generate color matrices from color hex values: */
+    /* https://codepen.io/brucebentley/pen/orGPRg */
+    filter: coh-color-matrix(0.40, 0, 0, 0, 0, 0, 0.71, 0, 0, 0, 0, 0, 0.78, 0, 0, 0, 0, 0, 1, 0);
+}
+
+/* NIXXES MARIJNR */
+.lobbyScrollList {
+  height: 385px !important;
+  overflow-x: visible !important;
+}
+
+.firstPlayLobbyScrollList {
+  height: 587.7px !important;
+  overflow-x: visible !important;
+}

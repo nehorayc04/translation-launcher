@@ -1,0 +1,24 @@
+/AzbukaPro-Medium.ttf");
+    font-family: "AzbukaPro-Medium";
+    font-style: normal;
+}
+@font-face {
+    src: url("../fonts/AzbukaPro.ttf");
+    font-family: "AzbukaPro-Regular";
+    font-style: normal;
+}
+@font-face {
+    src: url("../fonts/AzbukaPro-Bold.ttf");
+    font-family: "AzbukaPro-Bold";
+    font-style: normal;
+}
+@font-face {
+    src: url("../fonts/AzbukaPro-Black.ttf");
+    font-family: "AzbukaPro-Black";
+    font-style: normal;
+}
+@font-face {
+    src: url("../fonts/MagicSpellJF.otf");
+    font-family: "MagicSpell";
+    font-style: normal;
+}

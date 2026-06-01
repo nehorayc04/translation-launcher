@@ -38,8 +38,8 @@ try:
 except Exception:
     pass
 
-CLI       = r"C:\Users\nc528\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe"
-GAME      = r"C:\Users\nc528\סקריפטים\תרגום משחקים\Cyberpunk 2077"
+CLI       = r"C:\Users\Nehoray_Cohen\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe"
+GAME      = r"C:\Users\Nehoray_Cohen\Projects\Game translator\Game Lab\Cyberpunk 2077"
 MOD_DIR   = os.path.join(GAME, r"archive\pc\mod")
 BACKUP_ROOT = os.path.join(GAME, r"archive\pc\mod_backups")
 

@@ -4,7 +4,7 @@ import sys
 import os
 import time
 
-BASE = r"C:\Users\nc528\סקריפטים\תרגום משחקים\תרגום_משחקים\source\resources"
+BASE = r"C:\Users\Nehoray_Cohen\Projects\Game translator\תרגום_משחקים\source\resources"
 ORIGINAL_FILE = os.path.join(BASE, "localization_export.json")
 TRANSLATED_FILE = os.path.join(BASE, "localization_translated.json")
 

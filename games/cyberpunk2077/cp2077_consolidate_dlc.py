@@ -38,7 +38,7 @@ except Exception:
 
 SCAN    = r"C:\tmp\dlc_scan"
 RAW_SUB = os.path.join(SCAN, "raw", "ep1", "localization", "en-us", "subtitles")
-RES     = r"C:\Users\nc528\סקריפטים\תרגום משחקים\תרגום_משחקים\source\resources"
+RES     = r"C:\Users\Nehoray_Cohen\Projects\Game translator\תרגום_משחקים\source\resources"
 OUT     = os.path.join(RES, "dlc_ep1_text.json")
 
 SUB_FOLDERS = ["media", "open_world", "overlays_quest",

@@ -14,7 +14,7 @@ import json
 import os
 from pathlib import Path
 
-PROJECT_ROOT = Path(r"C:\Users\nc528\סקריפטים\תרגום משחקים\תרגום_משחקים")
+PROJECT_ROOT = Path(r"C:\Users\Nehoray_Cohen\Projects\Game translator\תרגום_משחקים")
 ARCHIVE_DIR  = PROJECT_ROOT / "source" / "archive" / "base" / "localization" / "en-us"
 OUTPUT_FILE  = PROJECT_ROOT / "source" / "resources" / "localization_export.json"
 

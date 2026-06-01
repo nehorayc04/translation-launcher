@@ -50,7 +50,7 @@ try:
 except Exception:
     pass
 
-SCRIPTS_DIR = r"C:\Users\nc528\סקריפטים\תרגום משחקים"
+SCRIPTS_DIR = r"C:\Users\Nehoray_Cohen\Projects\Game translator"
 PROJECT     = os.path.join(SCRIPTS_DIR, "תרגום_משחקים")
 TRANSLATED  = os.path.join(PROJECT, r"source\resources\localization_translated.json")
 QUEUE       = os.path.join(SCRIPTS_DIR, "missing_translations_queue.json")

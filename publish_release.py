@@ -57,8 +57,8 @@ def github_token_from_git_credential() -> str | None:
 
 OWNER  = "nehorayc04"
 REPO   = "translation-launcher"
-SCRIPTS_DIR = Path(r"c:\Users\nc528\סקריפטים\תרגום משחקים")
-WEBSITE_ENV = Path(r"c:\Users\nc528\סקריפטים\אתר תרגום משחקים\.env")
+SCRIPTS_DIR = Path(r"C:\Users\Nehoray_Cohen\Projects\Game translator")
+WEBSITE_ENV = SCRIPTS_DIR / "website" / ".env"
 
 
 def load_env_file(p: Path) -> dict[str, str]:

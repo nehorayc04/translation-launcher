@@ -39,14 +39,14 @@ except Exception:
     pass
 
 
-CLI = r"C:\Users\nc528\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe"
-GAME = r"C:\Users\nc528\סקריפטים\תרגום משחקים\Cyberpunk 2077"
-PROJ = r"C:\Users\nc528\סקריפטים\תרגום משחקים\תרגום_משחקים"
+CLI = r"C:\Users\Nehoray_Cohen\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe"
+GAME = r"C:\Users\Nehoray_Cohen\Projects\Game translator\Game Lab\Cyberpunk 2077"
+PROJ = r"C:\Users\Nehoray_Cohen\Projects\Game translator\תרגום_משחקים"
 TRANSLATED_JSON = os.path.join(PROJ, r"source\resources\localization_translated.json")
 EXPORT_JSON = os.path.join(PROJ, r"source\resources\localization_export.json")
 ARCHIVE = os.path.join(GAME, r"archive\pc\content\lang_en_text.archive")
 
-WORK = r"C:\Users\nc528\AppData\Local\Temp\reextract_subs"
+WORK = r"C:\Users\Nehoray_Cohen\AppData\Local\Temp\reextract_subs"
 EXTRACT_DIR = os.path.join(WORK, "en_pristine")
 TEXT_DIR = os.path.join(WORK, "text")
 

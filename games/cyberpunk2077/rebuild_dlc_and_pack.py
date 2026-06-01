@@ -44,15 +44,15 @@ except Exception:
     pass
 
 # ── paths ────────────────────────────────────────────────────────────────────
-CLI   = r"C:\Users\nc528\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe"
-GAME  = r"C:\Users\nc528\סקריפטים\תרגום משחקים\Cyberpunk 2077"
-PROJ  = r"C:\Users\nc528\סקריפטים\תרגום משחקים\תרגום_משחקים"
-SCRIPTS_DIR = r"C:\Users\nc528\סקריפטים\תרגום משחקים"
+CLI   = r"C:\Users\Nehoray_Cohen\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe"
+GAME  = r"C:\Users\Nehoray_Cohen\Projects\Game translator\Game Lab\Cyberpunk 2077"
+PROJ  = r"C:\Users\Nehoray_Cohen\Projects\Game translator\תרגום_משחקים"
+SCRIPTS_DIR = r"C:\Users\Nehoray_Cohen\Projects\Game translator"
 
 DLC_TRANSLATED = os.path.join(PROJ, r"source\resources\dlc_ep1_translated.json")
 EP1_AR_ARCH    = os.path.join(GAME, r"archive\pc\ep1\lang_ar_text.archive")
 
-WORK        = r"C:\Users\nc528\AppData\Local\Temp\dlc_rebuild"
+WORK        = r"C:\Users\Nehoray_Cohen\AppData\Local\Temp\dlc_rebuild"
 EXTRACT_DIR = os.path.join(WORK, "ar_pristine")
 TEXT_DIR    = os.path.join(WORK, "text")
 ENCODED_DIR = os.path.join(WORK, "encoded")

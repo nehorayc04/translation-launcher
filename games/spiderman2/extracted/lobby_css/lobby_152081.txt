@@ -1,0 +1,241 @@
+/////////////////////////////////////////////
+function getElementByClassName(className) 
+{
+  let element;
+  switch (className) 
+  {
+    case "LobbyElementStartScreen":
+      element = document.querySelector('.Root_Lobby_StartScreen');
+      break;
+    case "LobbyElementSaveSlots":
+      element = document.querySelector('.Root_Lobby_SaveSlots');
+      break;
+    case "LobbyElementDifficultySelect":
+      element = document.querySelector('.Root_Lobby_DifficultySelect');
+      break;
+    case "LobbyElementOptions":
+      element = document.querySelector('.Root_Lobby_Options');
+      break;
+    case "LobbyElementDevMenu":
+      element = document.querySelector('.Root_Lobby_DevMenu');
+      break;
+    case "LobbyElementPSNAccount":
+      element = document.querySelector('.Root_Lobby_PSNAccount');
+      break;
+      
+    // LobbyElementFade does not use Visibility and should not be accessed via getElementByClassName
+  }
+	
+	return element;
+}
+
+window.addEventListener('load', resize);
+window.addEventListener('resize', resize);
+
+/////////////////////////////////////////////////////////////////////////////////
+function LobbyPlayAnim(element, frame_start, frame_end) 
+{
+  if (frame_end == "")
+  {
+    CLAnimations.gotoAndStop(frame_start, element);
+    //console.log("PlayAnim() stopping on frame: '" + frame_start + "'");
+  }
+  else
+  {
+    CLAnimations.playFromTo(frame_start, frame_end, element);
+    //console.log("PlayAnim() playing animation from '" + frame_start + "', to '" + frame_end + "'");
+  }
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////
+// data-bind-lobby-list-item-state
+/////////////////////////////////////////////////////////////////////////////////
+class AttributeHandlerLobbyListItemState
+{
+  constructor()
+  {
+    this.first_update = true;
+    this.selected = false;
+    this.selectable = true;
+  }
+  init(element, value) {}
+  deinit(element) {}
+  
+  update(element, value) 
+  {
+    let prev_selected = this.selected;
+    let prev_selectable = this.selectable;
+
+    this.selected = value.selected;
+    this.selectable = value.selectable && (value.disabled == undefined || !value.disabled);
+
+    let frame_start = "";
+    let frame_end = "";
+    let force_state = this.first_update || this.selectable != prev_selectable;
+
+    if (force_state)
+    {
+      this.first_update = false;
+      if (!this.selectable)
+      {
+        frame_start = "disabled";
+      }
+      else if (this.selected)
+      {
+        frame_start = "select_end";
+      }
+      else
+      {
+        frame_start = "default";
+      }
+    }
+    else if (this.selected != prev_selected)
+    {
+      let frame_base = this.selected ? "select_" : "unselect_";
+      frame_start = frame_base + "start";
+      frame_end = frame_base + "end";
+    }
+
+    if (frame_start != "")
+    {
+      if (force_state)
+      {
+        // HACK: In CLAnimations.gotoAndStop() will call .getAnimations() on each child and the very first time it returns an empty list, so delay the frame setting for this very first use
+        let anims_ready = false;
+        function TryPlayAnim()
+        {
+          if(!anims_ready)
+          {
+            anims_ready = element.offsetHeight != 0 && element.prysmInstance && element.prysmInstance.timeline && !element.prysmInstance.timeline.isFrozen && element.prysmInstance.timeline.isSpawned;
+            if (anims_ready)
+            {
+              LobbyPlayAnim(element, frame_start, frame_end);
+            }
+            else
+            {
+              window.requestAnimationFrame(() => { TryPlayAnim(); });
+            }
+          }
+        }
+
+        TryPlayAnim();
+      }
+      else
+      {
+        LobbyPlayAnim(element, frame_start, frame_end);
+      }
+    }
+    else
+    {
+      //console.log("AttributeHandlerListItemState: it.label: '" + value.name + "' has no frame change");
+    }
+  }
+}
+
+engine.on('Ready', function () 
+{
+  engine.registerBindingAttribute("lobby-list-item-state", AttributeHandlerLobbyListItemState);
+});
+
+/////////////////////////////////////////////////////////////////////////////////
+// Fade
+/////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////////
+function SetFadeDataFromModel()
+{
+  let elem = document.querySelector('.Root_Lobby_Fade');
+  elem.style.setProperty('--lobbyFadeDuration', LobbyFadeData.duration + 'ms');
+  elem.style.setProperty('--lobbyFadeDelay', LobbyFadeData.delay + 'ms');
+  elem.style.opacity = LobbyFadeData.opacity;
+  
+} // end SetFadeDataFromModel
+
+/////////////////////////////////////////////////////////////////////////////////
+engine.on('LobbyFade', SetFadeDataFromModel);
+
+/////////////////////////////////////////////////////////////////////////////////
+// Example Caption and Subtitle
+/////////////////////////////////////////////////////////////////////////////////
+
+const CAPTION_BOTTOM = 330;
+const SUBTITLE_BOTTOM = 420;
+var caption_elem = undefined;
+var caption_elem_text = undefined;
+var caption_elem_height = undefined;
+var caption_elem_top = undefined;
+var caption_elem_shown = undefined;
+var caption_elem_playing = undefined;
+var caption_elem_hiding = undefined;
+var subtitle_elem = undefined;
+var subtitle_elem_text = undefined;
+var subtitle_elem_height = undefined;
+var subtitle_elem_top = undefined;
+var subtitle_elem_shown = undefined;
+var subtitle_elem_playing = undefined;
+var subtitle_elem_hiding = undefined;
+
+engine.on('CacheSubtitleCCElements', function ()
+{
+  let element = document.querySelector('.Root_Lobby_Options');
+  // captions
+  caption_elem = element.querySelector(".closedcap1");
+  caption_elem_text = caption_elem ? caption_elem.querySelector(".subtitle_text") : element.querySelector(".subtitle_text");
+  if (caption_elem == undefined || caption_elem_text == undefined) {
+    console.warn("[LobbyMenu.js::CacheSubtitleCCElements] failed to get caption elems : " + caption_elem + caption_elem_text);
+  }
+
+  //console.log("[LobbyMenu.js::CacheSubtitleCCElements] caption elem : " + caption_elem + caption_elem_text);
+  caption_elem.style.opacity = 0;
+  hideDomNode(caption_elem);
+  caption_elem.style.transitionDuration = "250ms";
+  caption_elem.elem_height = 0;
+  caption_elem.elem_top = 0;
+  caption_elem.elem_bottom = CAPTION_BOTTOM;
+  caption_elem.elem_shown = false;
+  caption_elem.elem_playing = false;
+  caption_elem.elem_hiding = false;
+
+  // subtitle
+  subtitle_elem = element.querySelector(".subtitle1");
+  subtitle_elem_text = subtitle_elem ? subtitle_elem.querySelector(".subtitle_text") : element.querySelector(".subtitle_text");
+  if (subtitle_elem == undefined || subtitle_elem_text == undefined) {
+    console.warn("[LobbyMenu.js::CacheSubtitleCCElements] failed to get subtitle elems : " + subtitle_elem + subtitle_elem_text);
+  }
+
+  //console.log("[LobbyMenu.js::CacheSubtitleCCElements] subtitle elem : " + subtitle_elem + subtitle_elem_text);
+  subtitle_elem.style.opacity = 0;
+  hideDomNode(subtitle_elem);
+  subtitle_elem.style.transitionDuration = "250ms";
+  subtitle_elem.elem_height = 0;
+  subtitle_elem.elem_top = 0;
+  subtitle_elem.elem_bottom = SUBTITLE_BOTTOM;
+  subtitle_elem.elem_shown = false;
+  subtitle_elem.elem_playing = false;
+  subtitle_elem.elem_hiding = false;
+});
+
+engine.on('ShowCaption', function () {
+  ShowSubtitleCC(
+    caption_elem,
+    caption_elem_text,
+    true);
+});
+
+engine.on('ShowSubtitle', function () {
+  ShowSubtitleCC(
+    subtitle_elem,
+    subtitle_elem_text,
+    true);
+});
+
+function HideCaption(instant) {
+  HideSubtitleCC(instant, caption_elem);
+}
+engine.on('HideCaption', HideCaption);
+
+function HideSubtitle(instant) {
+  HideSubtitleCC(instant, subtitle_elem);
+}
+engine.on('HideSubtitle', HideSubtitle);

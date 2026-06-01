@@ -24,10 +24,10 @@ try:
 except Exception:
     pass
 
-SCRIPTS_DIR = r"C:\Users\nc528\סקריפטים\תרגום משחקים"
+SCRIPTS_DIR = r"C:\Users\Nehoray_Cohen\Projects\Game translator"
 GAME        = os.path.join(SCRIPTS_DIR, "Cyberpunk 2077")
 MOD_MAIN    = os.path.join(GAME, "archive", "pc", "mod", "z_hebrew_translation.archive")
-CLI         = r"C:\Users\nc528\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe"
+CLI         = r"C:\Users\Nehoray_Cohen\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe"
 TRANSLATED  = os.path.join(SCRIPTS_DIR, "תרגום_משחקים", "source", "resources",
                             "localization_translated.json")
 

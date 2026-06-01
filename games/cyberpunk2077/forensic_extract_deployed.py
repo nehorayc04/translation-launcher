@@ -20,10 +20,10 @@ if hasattr(sys.stdout, "buffer"):
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8",
                                   errors="replace", write_through=True)
 
-CLI       = Path(r"C:\Users\nc528\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe")
-ARCHIVE   = Path(r"C:\Users\nc528\סקריפטים\תרגום משחקים\Cyberpunk 2077\archive\pc\mod\z_hebrew_translation.archive")
-WORK      = Path(r"C:\Users\nc528\AppData\Local\Temp\forensic_deploy")
-SRC_JSON  = Path(r"c:\Users\nc528\סקריפטים\תרגום משחקים\תרגום_משחקים\source\resources\localization_translated.json")
+CLI       = Path(r"C:\Users\Nehoray_Cohen\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe")
+ARCHIVE   = Path(r"C:\Users\Nehoray_Cohen\Projects\Game translator\Game Lab\Cyberpunk 2077\archive\pc\mod\z_hebrew_translation.archive")
+WORK      = Path(r"C:\Users\Nehoray_Cohen\AppData\Local\Temp\forensic_deploy")
+SRC_JSON  = Path(r"C:\Users\Nehoray_Cohen\Projects\Game translator\תרגום_משחקים\source\resources\localization_translated.json")
 
 PKS = {361: "Enter Breach View", 1539: "LEVEL", 80643: "Wait {value} h"}
 

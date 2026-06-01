@@ -23,7 +23,7 @@ try:
 except Exception:
     pass
 
-TRANSLATED_JSON = r"C:\Users\nc528\סקריפטים\תרגום משחקים\תרגום_משחקים\source\resources\localization_translated.json"
+TRANSLATED_JSON = r"C:\Users\Nehoray_Cohen\Projects\Game translator\תרגום_משחקים\source\resources\localization_translated.json"
 
 
 def main():

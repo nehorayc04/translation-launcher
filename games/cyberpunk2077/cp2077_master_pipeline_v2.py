@@ -22,7 +22,7 @@ try:
 except Exception:
     pass
 
-PROJ_DIR = r"C:\Users\nc528\סקריפטים\תרגום משחקים"
+PROJ_DIR = r"C:\Users\Nehoray_Cohen\Projects\Game translator"
 LOG_FILE = os.path.join(PROJ_DIR, "master_pipeline_v2.log")
 
 

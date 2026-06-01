@@ -32,7 +32,7 @@ if hasattr(sys.stdout, "buffer"):
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8",
                                   errors="replace", write_through=True)
 
-SCRIPTS_DIR = Path(r"c:\Users\nc528\סקריפטים\תרגום משחקים")
+SCRIPTS_DIR = Path(r"C:\Users\Nehoray_Cohen\Projects\Game translator")
 RES = SCRIPTS_DIR / "תרגום_משחקים" / "source" / "resources"
 TRANSLATED = RES / "localization_translated.json"
 ENGLISH    = RES / "localization_export.json"

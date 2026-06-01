@@ -69,7 +69,7 @@ try:
 except Exception:
     pass
 
-SCRIPTS_DIR = r"C:\Users\nc528\סקריפטים\תרגום משחקים"
+SCRIPTS_DIR = r"C:\Users\Nehoray_Cohen\Projects\Game translator"
 RES         = os.path.join(SCRIPTS_DIR, "תרגום_משחקים", "source", "resources")
 TRANSLATED  = os.path.join(RES, "localization_translated.json")
 EXPORT      = os.path.join(RES, "localization_export.json")

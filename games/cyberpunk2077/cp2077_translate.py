@@ -6,8 +6,8 @@ from openai import OpenAI
 
 client = OpenAI(base_url="http://127.0.0.1:1234/v1", api_key="lm-studio")
 
-INPUT_FILE = r"C:\Users\nc528\סקריפטים\תרגום משחקים\תרגום_משחקים\source\resources\localization_export.json"
-OUTPUT_FILE = r"C:\Users\nc528\סקריפטים\תרגום משחקים\תרגום_משחקים\source\resources\localization_translated.json"
+INPUT_FILE = r"C:\Users\Nehoray_Cohen\Projects\Game translator\תרגום_משחקים\source\resources\localization_export.json"
+OUTPUT_FILE = r"C:\Users\Nehoray_Cohen\Projects\Game translator\תרגום_משחקים\source\resources\localization_translated.json"
 
 
 def needs_translation(text):

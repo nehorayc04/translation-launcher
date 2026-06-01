@@ -3,7 +3,7 @@ import os, sys, urllib.request
 from fontTools.ttLib import TTFont
 from fontTools.varLib.instancer import instantiateVariableFont
 
-WORK = r"C:\Users\nc528\AppData\Local\Temp\font_v2"
+WORK = r"C:\Users\Nehoray_Cohen\AppData\Local\Temp\font_v2"
 os.makedirs(os.path.join(WORK, "static_ttf"), exist_ok=True)
 
 # Re-download variable Heebo (cyber_hebrew.ttf was cleaned up earlier)

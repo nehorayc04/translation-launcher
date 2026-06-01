@@ -25,7 +25,7 @@ if hasattr(sys.stdout, "buffer"):
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8",
                                   errors="replace", write_through=True)
 
-SCRIPTS_DIR     = Path(r"c:\Users\nc528\סקריפטים\תרגום משחקים")
+SCRIPTS_DIR     = Path(r"C:\Users\Nehoray_Cohen\Projects\Game translator")
 TRANSLATED_PATH = SCRIPTS_DIR / "תרגום_משחקים" / "source" / "resources" / "localization_translated.json"
 AUDIT_REPORT    = SCRIPTS_DIR / "audit_translations_report.txt"
 

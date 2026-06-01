@@ -16,7 +16,7 @@ import re
 import sys
 from collections import defaultdict
 
-SCRIPTS_DIR = r"C:\Users\nc528\סקריפטים\תרגום משחקים"
+SCRIPTS_DIR = r"C:\Users\Nehoray_Cohen\Projects\Game translator"
 TRANSLATED  = os.path.join(SCRIPTS_DIR, "תרגום_משחקים", "source", "resources",
                            "localization_translated.json")
 REPORT      = os.path.join(SCRIPTS_DIR, "audit_translations_report.txt")

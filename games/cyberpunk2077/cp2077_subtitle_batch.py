@@ -40,18 +40,18 @@ except ImportError:
     _LIVE_SYNC_AVAILABLE = False
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-CLI = r"C:\Users\nc528\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe"
+CLI = r"C:\Users\Nehoray_Cohen\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe"
 # The Cyberpunk 2077 copy the user actually launches is the project's own
 # staging copy — confirmed 2026-05-20. Deploy MUST land here; an earlier
 # "fix" repointed this at C:\Games (a separate install the user never plays),
 # so every re-pack vanished into the wrong folder and the user kept seeing a
 # stale archive. lang_ar_text.archive (the extraction source) is byte-
 # identical across installs, so extracting from here is fine too.
-GAME = r"C:\Users\nc528\סקריפטים\תרגום משחקים\Cyberpunk 2077"
-PROJ = r"C:\Users\nc528\סקריפטים\תרגום משחקים\תרגום_משחקים"
+GAME = r"C:\Users\Nehoray_Cohen\Projects\Game translator\Game Lab\Cyberpunk 2077"
+PROJ = r"C:\Users\Nehoray_Cohen\Projects\Game translator\תרגום_משחקים"
 TRANSLATED_JSON = os.path.join(PROJ, r"source\resources\localization_translated.json")
 
-WORK = r"C:\Users\nc528\AppData\Local\Temp\subtitle_batch"
+WORK = r"C:\Users\Nehoray_Cohen\AppData\Local\Temp\subtitle_batch"
 EXTRACT_DIR = os.path.join(WORK, "ar_pristine")
 TEXT_DIR = os.path.join(WORK, "text")
 ENCODED_DIR = os.path.join(WORK, "encoded")

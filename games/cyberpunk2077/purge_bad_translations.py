@@ -29,7 +29,7 @@ if hasattr(sys.stdout, "buffer"):
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace", write_through=True)
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace", write_through=True)
 
-SCRIPTS_DIR  = r"C:\Users\nc528\סקריפטים\תרגום משחקים"
+SCRIPTS_DIR  = r"C:\Users\Nehoray_Cohen\Projects\Game translator"
 RESOURCES    = os.path.join(SCRIPTS_DIR, "תרגום_משחקים", "source", "resources")
 
 TRANSLATED   = os.path.join(RESOURCES, "localization_translated.json")

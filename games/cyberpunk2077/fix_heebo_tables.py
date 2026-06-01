@@ -6,8 +6,8 @@ its text shaper for Hebrew script (which appears to be what's crashing).
 import os
 from fontTools.ttLib import TTFont
 
-WORK = r"C:\Users\nc528\AppData\Local\Temp\font_v2\static_ttf"
-OUT = r"C:\Users\nc528\AppData\Local\Temp\font_v2\stripped_ttf"
+WORK = r"C:\Users\Nehoray_Cohen\AppData\Local\Temp\font_v2\static_ttf"
+OUT = r"C:\Users\Nehoray_Cohen\AppData\Local\Temp\font_v2\stripped_ttf"
 os.makedirs(OUT, exist_ok=True)
 
 # Tables to drop:

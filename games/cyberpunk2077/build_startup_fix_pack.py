@@ -47,12 +47,12 @@ except Exception:
     pass
 
 # ── Paths (mirror the other pack scripts) ───────────────────────────────────
-CLI         = r"C:\Users\nc528\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe"
-GAME        = r"C:\Users\nc528\סקריפטים\תרגום משחקים\Cyberpunk 2077"
-SCRIPTS_DIR = r"C:\Users\nc528\סקריפטים\תרגום משחקים"
+CLI         = r"C:\Users\Nehoray_Cohen\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe"
+GAME        = r"C:\Users\Nehoray_Cohen\Projects\Game translator\Game Lab\Cyberpunk 2077"
+SCRIPTS_DIR = r"C:\Users\Nehoray_Cohen\Projects\Game translator"
 ENGINE_ARCH = os.path.join(GAME, r"archive\pc\content\basegame_1_engine.archive")
 
-WORK         = r"C:\Users\nc528\AppData\Local\Temp\startup_fix_build"
+WORK         = r"C:\Users\Nehoray_Cohen\AppData\Local\Temp\startup_fix_build"
 EXTRACT_DIR  = os.path.join(WORK, "extracted")
 PROJECT_SRC  = os.path.join(WORK, "project", "source", "archive")
 PACKED_DIR   = os.path.join(WORK, "project", "packed", "archive", "pc", "mod")

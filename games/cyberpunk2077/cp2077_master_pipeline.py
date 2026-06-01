@@ -27,7 +27,7 @@ try:
 except Exception:
     pass
 
-PROJ_DIR = r"C:\Users\nc528\סקריפטים\תרגום משחקים"
+PROJ_DIR = r"C:\Users\Nehoray_Cohen\Projects\Game translator"
 LOG_FILE = os.path.join(PROJ_DIR, "master_pipeline.log")
 
 
@@ -126,7 +126,7 @@ def main():
     log("=" * 70)
     log("")
     log("To verify deployment:")
-    log("  ls -la 'C:/Users/nc528/סקריפטים/תרגום משחקים/Cyberpunk 2077/archive/pc/mod/'")
+    log("  ls -la 'C:/Users/Nehoray_Cohen/Projects/Game translator/Game Lab/Cyberpunk 2077/archive/pc/mod/'")
     log("  Look for z_hebrew_translation.archive (should be ~7-15 MB now with subtitles)")
 
 

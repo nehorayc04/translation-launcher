@@ -7,7 +7,10 @@ from pathlib import Path
 
 
 # ── External-project locations ───────────────────────────────
-WEBSITE_PROJECT_DIR = Path(r"C:\Users\nc528\סקריפטים\אתר תרגום משחקים")
+# website/ now lives INSIDE this repo as a nested git project (was at
+# C:\Users\nc528\סקריפטים\אתר תרגום משחקים before the 2026-05-27 reorg
+# and the 2026-06-01 Windows rebuild + project rename).
+WEBSITE_PROJECT_DIR = Path(__file__).resolve().parent.parent / "website"
 WEBSITE_DIST_DIR    = WEBSITE_PROJECT_DIR / "dist"
 WEBSITE_GAMES_TS    = WEBSITE_PROJECT_DIR / "src" / "data" / "games.ts"
 WEBSITE_PUBLIC_URL  = "https://hebrewgames.vercel.app"   # adjust if hosted elsewhere

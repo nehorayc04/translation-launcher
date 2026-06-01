@@ -70,9 +70,9 @@ EXPORT_JSON     = _rep.EXPORT
 MOD_MAIN   = os.path.join(MOD_DIR, "z_hebrew_translation.archive")
 MOD_STATIC = os.path.join(MOD_DIR, "z_hebrew_static.archive")
 
-CLI = r"C:\Users\nc528\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe"
+CLI = r"C:\Users\Nehoray_Cohen\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe"
 
-WORK_ROOT = os.path.join(os.environ.get("TEMP", r"C:\Users\nc528\AppData\Local\Temp"),
+WORK_ROOT = os.path.join(os.environ.get("TEMP", r"C:\Users\Nehoray_Cohen\AppData\Local\Temp"),
                          "cp2077_deep_audit")
 
 REPORT_TXT  = os.path.join(SCRIPTS_DIR, "cp2077_deep_english_audit.txt")

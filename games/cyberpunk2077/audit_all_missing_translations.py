@@ -58,16 +58,16 @@ try:
 except Exception:
     pass
 
-SCRIPTS_DIR = r"C:\Users\nc528\סקריפטים\תרגום משחקים"
+SCRIPTS_DIR = r"C:\Users\Nehoray_Cohen\Projects\Game translator"
 PROJECT     = os.path.join(SCRIPTS_DIR, "תרגום_משחקים")
 GAME        = os.path.join(SCRIPTS_DIR, "Cyberpunk 2077")
-CLI         = r"C:\Users\nc528\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe"
+CLI         = r"C:\Users\Nehoray_Cohen\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe"
 
 EXPORT      = os.path.join(PROJECT, r"source\resources\localization_export.json")
 TRANSLATED  = os.path.join(PROJECT, r"source\resources\localization_translated.json")
 
 # Live extract cache (pristine EN onscreens + onscreens_final + ep1 versions)
-TRUTH_CACHE = r"C:\Users\nc528\AppData\Local\Temp\audit_truth"
+TRUTH_CACHE = r"C:\Users\Nehoray_Cohen\AppData\Local\Temp\audit_truth"
 
 # Game archives that hold the engine-visible English onscreens text
 EN_BASE_ARCH = os.path.join(GAME, r"archive\pc\content\lang_en_text.archive")

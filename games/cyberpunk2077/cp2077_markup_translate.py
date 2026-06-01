@@ -61,7 +61,7 @@ if hasattr(sys.stdout, "buffer"):
                                   errors="replace", write_through=True)
 
 # ── paths ────────────────────────────────────────────────────────────────
-SCRIPTS_DIR = r"C:\Users\nc528\סקריפטים\תרגום משחקים"
+SCRIPTS_DIR = r"C:\Users\Nehoray_Cohen\Projects\Game translator"
 PROJECT     = os.path.join(SCRIPTS_DIR, "תרגום_משחקים")
 RESOURCES   = os.path.join(PROJECT, "source", "resources")
 TRANSLATED_FILE = os.path.join(RESOURCES, "localization_translated.json")

@@ -75,10 +75,26 @@ class Row:
 
 # ── small helpers ───────────────────────────────────────────────────────────
 def atomic_write(path: str, content: str) -> None:
+    """Atomic JSON / Markdown write that survives transient Windows
+    file locks: VS Code's Markdown preview and Explorer's preview pane
+    keep `cross_audit_dashboard.md` open briefly while it's read, and
+    in that window `os.replace` throws WinError 5 ("Access is denied").
+    Retry a few times with short backoff before giving up."""
+    import time as _time
     tmp = path + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         f.write(content)
-    os.replace(tmp, path)
+    last_err = None
+    for delay in (0.1, 0.2, 0.5, 1.0, 2.0):
+        try:
+            os.replace(tmp, path)
+            return
+        except PermissionError as e:    # WinError 5 — file held by reader
+            last_err = e
+            _time.sleep(delay)
+    # Give up after ~3.8s of retries — let the caller's retry loop handle
+    # it instead of crashing the audit's batch.
+    raise last_err  # noqa: PLE0704 — last_err is always set when we reach here
 
 
 def load_json_ro(path: str):

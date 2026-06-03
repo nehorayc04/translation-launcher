@@ -63,21 +63,26 @@ def _read_json(p: Path) -> dict:
 
 def _pid_alive(pid: int) -> bool:
     """Cross-platform check that the audit's lock-recorded PID is the
-    actual live process. On Windows uses OpenProcess + GetExitCodeProcess
-    to dodge ERROR_ACCESS_DENIED for our own elevated handles."""
+    actual live process. Mirrors continuous_audit_loop._pid_exists —
+    PROCESS_QUERY_LIMITED_INFORMATION is the minimum right that
+    GetExitCodeProcess accepts (SYNCHRONIZE alone would let OpenProcess
+    succeed but make GetExitCodeProcess fail with ERROR_ACCESS_DENIED,
+    which is why the first cut of this adapter reported alive=false)."""
     try:
         if os.name == 'nt':
-            SYNC = 0x00100000
-            h = ctypes.windll.kernel32.OpenProcess(SYNC, False, int(pid))
+            PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+            STILL_ACTIVE = 259
+            kernel32 = ctypes.windll.kernel32
+            h = kernel32.OpenProcess(
+                PROCESS_QUERY_LIMITED_INFORMATION, False, int(pid))
             if not h:
                 return False
             try:
-                exit_code = ctypes.c_ulong()
-                ok = ctypes.windll.kernel32.GetExitCodeProcess(h, ctypes.byref(exit_code))
-                STILL_ACTIVE = 259
-                return bool(ok) and exit_code.value == STILL_ACTIVE
+                code = ctypes.c_ulong()
+                kernel32.GetExitCodeProcess(h, ctypes.byref(code))
+                return code.value == STILL_ACTIVE
             finally:
-                ctypes.windll.kernel32.CloseHandle(h)
+                kernel32.CloseHandle(h)
         else:
             os.kill(int(pid), 0)
             return True

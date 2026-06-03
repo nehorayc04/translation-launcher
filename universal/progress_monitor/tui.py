@@ -58,25 +58,25 @@ PHASE_COLORS: dict[str, str] = {
 
 
 # ── bidi (lifted from legacy cp2077_monitor.py) ──────────────────────────
-# Legacy cmd.exe doesn't run the Unicode bidi algorithm, so we have to
-# manually reverse Hebrew runs.
+# Empirically, every Windows console host we've tested — legacy cmd.exe,
+# standalone PowerShell, Windows Terminal (WT_SESSION), VS Code's
+# integrated terminal (TERM_PROGRAM=vscode), and ConEmu (ConEmuPID) —
+# renders Hebrew left-to-right in logical (storage) order instead of
+# running the Unicode bidi algorithm. So on Windows we ALWAYS reverse by
+# default; the user opts out only if their terminal genuinely bidi's
+# (which today means almost no Windows console host).
 #
-#   MONITOR_BIDI_REVERSE=1   force reversal on   (use this when VS Code's
-#                                                 integrated PowerShell shows
-#                                                 mirrored Hebrew — VS Code
-#                                                 sets TERM_PROGRAM=vscode
-#                                                 but doesn't actually bidi)
-#   MONITOR_BIDI_REVERSE=0   force reversal off
-#   unset                    auto-detect — modern terminals (Windows Terminal,
-#                            ConEmu) are recognised by sniff and skipped.
+#   MONITOR_BIDI_REVERSE=1/on   force reversal on   (explicit)
+#   MONITOR_BIDI_REVERSE=0/off  force reversal off  (terminal does bidi
+#                                                    correctly — rare)
+#   unset                       default — reverse on Windows, do nothing
+#                               elsewhere.
 _BIDI_FORCE = os.environ.get('MONITOR_BIDI_REVERSE', '').strip().lower()
 _LEGACY_CONSOLE = (
     _BIDI_FORCE in ('1', 'true', 'on', 'yes')
     or (
         _BIDI_FORCE not in ('0', 'false', 'off', 'no')
         and os.name == 'nt'
-        and not os.environ.get('WT_SESSION')
-        and not os.environ.get('ConEmuPID')
     )
 )
 

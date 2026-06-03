@@ -59,14 +59,25 @@ PHASE_COLORS: dict[str, str] = {
 
 # ── bidi (lifted from legacy cp2077_monitor.py) ──────────────────────────
 # Legacy cmd.exe doesn't run the Unicode bidi algorithm, so we have to
-# manually reverse Hebrew runs. Windows Terminal / ConEmu / VS Code term
-# set env vars we can sniff and skip the reversal.
+# manually reverse Hebrew runs.
+#
+#   MONITOR_BIDI_REVERSE=1   force reversal on   (use this when VS Code's
+#                                                 integrated PowerShell shows
+#                                                 mirrored Hebrew — VS Code
+#                                                 sets TERM_PROGRAM=vscode
+#                                                 but doesn't actually bidi)
+#   MONITOR_BIDI_REVERSE=0   force reversal off
+#   unset                    auto-detect — modern terminals (Windows Terminal,
+#                            ConEmu) are recognised by sniff and skipped.
+_BIDI_FORCE = os.environ.get('MONITOR_BIDI_REVERSE', '').strip().lower()
 _LEGACY_CONSOLE = (
-    os.name == 'nt'
-    and not os.environ.get('WT_SESSION')
-    and not os.environ.get('ConEmuPID')
-    and not os.environ.get('TERM_PROGRAM')
-    and os.environ.get('MONITOR_BIDI_REVERSE') != '0'
+    _BIDI_FORCE in ('1', 'true', 'on', 'yes')
+    or (
+        _BIDI_FORCE not in ('0', 'false', 'off', 'no')
+        and os.name == 'nt'
+        and not os.environ.get('WT_SESSION')
+        and not os.environ.get('ConEmuPID')
+    )
 )
 
 _BRACKET_MIRROR = str.maketrans({

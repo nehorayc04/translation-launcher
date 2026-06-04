@@ -105,6 +105,20 @@ PROJECT_ROOT = os.path.dirname(HERE)        # universal/ → project root
 BATCH_SCRIPT = os.path.join(HERE, "get_next_audit_batch.py")
 BATCH_FILE   = os.path.join(HERE, "cross_audit_batch.json")
 LOCK_FILE    = os.path.join(HERE, "audit.lock")
+LOG_FILE     = os.path.join(HERE, "audit.log")
+
+
+def _log(msg: str) -> None:
+    """Always emit to the rolling on-disk log alongside any stdout print.
+    The supervisor's stdout can be lost when the user closes their terminal
+    or after a reboot; the file persists across both, so any future crash
+    has a tail you can read instead of asking the user 'what did it say?'."""
+    try:
+        with open(LOG_FILE, "a", encoding="utf-8") as f:
+            ts = time.strftime("%Y-%m-%d %H:%M:%S")
+            f.write(f"[{ts}] {msg}\n")
+    except OSError:
+        pass
 
 LM_URL          = "http://127.0.0.1:1234/v1"
 DEFAULT_MODEL   = "qwen2.5-32b-instruct"
@@ -775,4 +789,23 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    # Crash trap. Any unhandled exception lands here, so audit.log carries
+    # the full traceback — the supervisor bat reads the exit code and
+    # restarts after a backoff.
+    _log("[*] audit starting")
+    try:
+        _code = main()
+    except KeyboardInterrupt:
+        _log("[*] interrupted by user (Ctrl+C)")
+        _code = 0
+    except BaseException as _e:                 # noqa: BLE001 — catch everything
+        _log(f"[!] unhandled {type(_e).__name__}: {_e}")
+        try:
+            _log("[!] traceback:\n" + traceback.format_exc())
+        except Exception:                       # noqa: BLE001
+            pass
+        # Re-raise to preserve Python's normal exit-code semantics, but
+        # keep the file log intact so the supervisor can inspect it.
+        _code = 1
+    _log(f"[*] audit exit code={_code}")
+    sys.exit(_code)

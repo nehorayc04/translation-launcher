@@ -25,7 +25,11 @@ if not exist %PY% set PY=python.exe
 :loop
 echo [%date% %time%] [supervisor] launching continuous_audit_loop.py
 echo [%date% %time%] [supervisor] launching continuous_audit_loop.py>> audit.log
-%PY% continuous_audit_loop.py
+REM Tee the script's stdout+stderr into audit.log so the file captures
+REM the full per-batch progress + any traceback, not just the script's
+REM own _log() calls. Even when the script stalls without crashing, the
+REM file shows the last batch the script was working on.
+%PY% continuous_audit_loop.py >> audit.log 2>&1
 set EC=%errorlevel%
 echo [%date% %time%] [supervisor] audit exited code=%EC% - restarting in 30s...
 echo [%date% %time%] [supervisor] audit exited code=%EC% - restarting in 30s...>> audit.log

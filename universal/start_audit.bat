@@ -32,6 +32,11 @@ REM Spawn the hang watchdog ONCE (it loops internally). Detached so it
 REM survives across audit restarts.
 start "" /b powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0audit_hang_watchdog.ps1"
 
+REM Spawn the monitor supervisor ONCE so the website's quality-control
+REM row stays fresh. It loops internally; without it the monitor was
+REM a single-shot launch that died after ~36 h and left the API stale.
+start "" /b cmd /c "%~dp0monitor_supervisor.bat"
+
 :loop
 echo [%date% %time%] [supervisor] launching continuous_audit_loop.py
 echo [%date% %time%] [supervisor] launching continuous_audit_loop.py>> audit.log

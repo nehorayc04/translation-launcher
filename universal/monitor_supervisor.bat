@@ -17,6 +17,17 @@ REM Spawn this once at boot (or from start_audit.bat) with:
 REM   start "" /b cmd /c "monitor_supervisor.bat"
 REM ===================================================================
 cd /d "%~dp0"
+
+REM Singleton guard. If another monitor_supervisor.bat is already running
+REM (start_audit.bat already spawned one, OR the user double-clicked this
+REM bat directly while a stack was up) bail BEFORE starting the loop so
+REM we don't end up with parallel monitors racing on /api/admin/progress.
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0_check_single.ps1" monitor_supervisor
+if errorlevel 1 (
+  echo [%date% %time%] [mon-sup] another instance already running - exiting>> monitor_audit.err.log
+  exit /b 0
+)
+
 set PYTHONIOENCODING=utf-8
 set PYTHONUTF8=1
 set PYTHONUNBUFFERED=1

@@ -20,6 +20,16 @@ REM Run interactively (Ctrl+C stops both loops), OR add as a Scheduled
 REM Task with trigger "At log on" for boot persistence.
 REM ===================================================================
 cd /d "%~dp0"
+
+REM Singleton guard. A second start_audit.bat would spawn its own watchdog
+REM + monitor_supervisor children, race the audit lock, and double-push
+REM to the API. Bail BEFORE doing anything if another instance exists.
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0_check_single.ps1" start_audit
+if errorlevel 1 (
+  echo [%date% %time%] [supervisor] another instance already running - exiting>> audit.log
+  exit /b 0
+)
+
 set PYTHONIOENCODING=utf-8
 set PYTHONUTF8=1
 set PYTHONUNBUFFERED=1

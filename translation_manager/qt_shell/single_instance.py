@@ -65,6 +65,14 @@ def signal_show() -> None:
     if sys.platform != "win32":
         return
     try:
+        # We're the foreground process right now (the user just launched us).
+        # Grant ANY process the right to call SetForegroundWindow so the
+        # already-running instance can actually raise its window past
+        # Windows' focus-stealing prevention. ASFW_ANY = -1.
+        try:
+            ctypes.windll.user32.AllowSetForegroundWindow(wintypes.DWORD(-1))
+        except Exception:
+            pass
         k = ctypes.windll.kernel32
         k.OpenEventW.restype  = wintypes.HANDLE
         k.OpenEventW.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.LPCWSTR]

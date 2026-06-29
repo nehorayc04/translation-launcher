@@ -24,11 +24,16 @@ html, body, #root {
 }
 body, #root { background: transparent; }
 
-/* Custom scrollbar — keeps glass aesthetic */
+/* Custom scrollbar — keeps glass aesthetic.
+   "Hidden until you scroll/hover" (per design choice): the thumb is fully
+   transparent at rest and fades in only while the pointer is over a
+   scrollable region. Width stays reserved so content never reflows. */
 ::-webkit-scrollbar         { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track   { background: transparent; }
-::-webkit-scrollbar-thumb   { background: rgba(255,255,255,0.10); border-radius: 8px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,247,0,0.30); }
+::-webkit-scrollbar-thumb   { background: transparent; border-radius: 8px; transition: background 0.25s ease; }
+*:hover > ::-webkit-scrollbar-thumb,
+*:hover::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,247,0,0.35); }
 
 /* ── Native-desktop feel ────────────────────────────────────
    Block the "this is a webpage" affordances: text selection,
@@ -51,22 +56,206 @@ img, video, a { -webkit-user-drag: none; }
 /* Legacy utility kept for callers that still reference it */
 .no-select { user-select: none; -webkit-user-select: none; }
 
-/* Glass panel utility — used a lot */
+/* Glass panel utility — used a lot.
+   PERF (critical): the Qt shell launches Chromium with --disable-gpu-compositing
+   (main_qt.py), so `backdrop-filter: blur()` is rasterized ON THE CPU every paint.
+   A near-fullscreen glass panel over the background was re-blurred continuously →
+   permanently low FPS. We DROP backdrop-filter entirely and use a solid, slightly
+   translucent dark fill instead — visually a dark frosted panel, but ZERO per-paint
+   blur cost. The background poster still shows through the panel gaps / rounded
+   corners. This one change removes the dominant render cost app-wide. */
 .glass {
-  background: rgba(10, 10, 25, 0.45);
-  backdrop-filter: blur(28px) saturate(140%);
-  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  background: rgba(12, 12, 26, 0.82);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 .glass-strong {
-  background: rgba(10, 10, 25, 0.65);
-  backdrop-filter: blur(40px) saturate(150%);
-  -webkit-backdrop-filter: blur(40px) saturate(150%);
+  background: rgba(9, 9, 20, 0.92);
   border: 1px solid rgba(255, 255, 255, 0.10);
 }
 .glass-soft {
-  background: rgba(10, 10, 25, 0.25);
-  backdrop-filter: blur(18px) saturate(130%);
-  -webkit-backdrop-filter: blur(18px) saturate(130%);
+  background: rgba(14, 14, 28, 0.58);
   border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ── Premium UI kit (WeMod / Steam-grade polish) ──────────────────── */
+
+/* Self-contained keyframes for the PLAIN-CSS utilities below, so they work
+   even where Tailwind doesn't emit a matching @keyframes (e.g. `sheen` has no
+   `animate-sheen` utility usage). Names match the Tailwind config; identical
+   duplicates are harmless. */
+@keyframes rise  { 0% { opacity: 0; transform: translateY(18px); } 100% { opacity: 1; transform: translateY(0); } }
+@keyframes sheen { 0% { transform: translateX(-150%) skewX(-18deg); } 60%, 100% { transform: translateX(250%) skewX(-18deg); } }
+
+/* Gradient brand text — for big headings / numbers. */
+.text-gradient {
+  background: linear-gradient(110deg, #fff700 0%, #fff 35%, #00ffe0 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* A moving light sheen — overlay on buttons / hero on hover. The element
+   needs position:relative + overflow:hidden; this rides on a child span. */
+.sheen-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: inherit;
+}
+.sheen-layer::after {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 40%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,0.18), transparent);
+  transform: translateX(-150%) skewX(-18deg);
+}
+.group:hover .sheen-layer::after { animation: sheen 1.1s ease-out; }
+
+/* Soft accent grid texture for hero / banners. */
+.grid-texture {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+  background-size: 38px 38px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 80% at 70% 30%, #000 30%, transparent 75%);
+          mask-image: radial-gradient(ellipse 80% 80% at 70% 30%, #000 30%, transparent 75%);
+}
+
+/* Elevated interactive card — lift + deepen shadow on hover. */
+.lift {
+  transition: transform 0.3s cubic-bezier(0.22,1,0.36,1),
+              box-shadow 0.3s cubic-bezier(0.22,1,0.36,1),
+              border-color 0.3s ease;
+}
+.lift:hover { transform: translateY(-4px); }
+
+/* Staggered entrance helpers (pair with animate-rise). */
+.stagger > * { opacity: 0; animation: rise 0.5s cubic-bezier(0.22,1,0.36,1) both; }
+.stagger > *:nth-child(1) { animation-delay: 0.04s; }
+.stagger > *:nth-child(2) { animation-delay: 0.10s; }
+.stagger > *:nth-child(3) { animation-delay: 0.16s; }
+.stagger > *:nth-child(4) { animation-delay: 0.22s; }
+.stagger > *:nth-child(5) { animation-delay: 0.28s; }
+.stagger > *:nth-child(6) { animation-delay: 0.34s; }
+.stagger > *:nth-child(7) { animation-delay: 0.40s; }
+.stagger > *:nth-child(8) { animation-delay: 0.46s; }
+
+/* Premium horizontal scroller — hides the scrollbar but keeps wheel/drag. */
+.scroll-x {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scroll-x::-webkit-scrollbar { height: 0; width: 0; display: none; }
+
+/* ── Per-game ambient background ───────────────────────────────────────
+   A fixed layer behind the app whose tint follows the currently-selected
+   game's accent (set via the --accent CSS var on :root by useAccent).
+   PERF: these are STATIC soft radial gradients — NOT animated, NOT
+   filter:blur(). An animated blur(90px) layer sitting behind the main
+   .glass panel's backdrop-filter forced Chromium to re-rasterize a huge
+   blurred surface every frame (the #1 cause of the launcher feeling slow).
+   A radial-gradient to transparent already looks like a soft blob for free. */
+.accent-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;                 /* above the video (z auto/0), below the app shell (z:10) */
+  overflow: hidden;
+  transition: opacity 0.6s ease;
+}
+.accent-bg::before,
+.accent-bg::after {
+  content: "";
+  position: absolute;
+  border-radius: 9999px;
+  opacity: 0.42;
+}
+.accent-bg::before {
+  width: 46rem; height: 46rem;
+  top: -14rem; right: -10rem;
+  background: radial-gradient(circle, var(--accent, #00ffe0) 0%, transparent 70%);
+}
+.accent-bg::after {
+  width: 40rem; height: 40rem;
+  bottom: -16rem; left: -12rem;
+  background: radial-gradient(circle, var(--accent, #00ffe0) 0%, transparent 70%);
+  opacity: 0.28;
+}
+
+/* Soft hero aurora — STATIC soft gradients (no blur filter / no infinite
+   animation; same visual, none of the per-frame cost). */
+.aurora {
+  position: absolute;
+  inset: -40% -20%;
+  pointer-events: none;
+  background:
+    radial-gradient(40% 60% at 25% 30%, rgba(255,247,0,0.10), transparent 70%),
+    radial-gradient(45% 55% at 78% 65%, rgba(0,255,224,0.10), transparent 70%);
+}
+
+/* ── Click ripple (global, see initRipple in App) ─────────────────────── */
+@keyframes ripple-out {
+  0%   { transform: scale(0);   opacity: 0.45; }
+  100% { transform: scale(2.6); opacity: 0;    }
+}
+.ripple-ink {
+  position: absolute;
+  border-radius: 9999px;
+  background: rgba(255,255,255,0.55);
+  transform: scale(0);
+  pointer-events: none;
+  animation: ripple-out 0.6s cubic-bezier(0.22,1,0.36,1) forwards;
+  mix-blend-mode: overlay;
+}
+
+/* ── Skeleton loading shimmer ─────────────────────────────────────────── */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: rgba(255,255,255,0.05);
+  border-radius: 0.75rem;
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 20%, rgba(255,255,255,0.10) 50%, transparent 80%);
+  transform: translateX(-100%);
+  animation: skeleton-sweep 1.4s ease-in-out infinite;
+}
+@keyframes skeleton-sweep {
+  100% { transform: translateX(100%); }
+}
+
+/* Respect reduced-motion: kill the looping ambient/skeleton animations. */
+@media (prefers-reduced-motion: reduce) {
+  .accent-bg::before, .accent-bg::after, .aurora, .skeleton::after { animation: none; }
+}
+
+/* ── Appearance prefs (themePrefs.ts) ─────────────────────────────────── */
+/* User chose "animations off" → kill all transitions/animations app-wide. */
+html.reduce-anims *,
+html.reduce-anims *::before,
+html.reduce-anims *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+/* Compact density: shrink the rem base so all rem-based spacing/sizing tightens
+   uniformly (Tailwind is rem-based). */
+html[data-density="compact"] { font-size: 14.5px; }
+
+/* ── Console-style focus ring (keyboard/controller nav) ───────────────── */
+/* Strong, visible focus indicator for spatial navigation. Only on
+   :focus-visible so mouse clicks stay clean. */
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #050510, 0 0 0 4px var(--accent, #00ffe0),
+              0 0 18px -2px var(--accent, #00ffe0) !important;
+  border-radius: 0.5rem;
+  scroll-margin: 16px;
 }

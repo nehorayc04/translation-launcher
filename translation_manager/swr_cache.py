@@ -310,7 +310,12 @@ def _persist_now() -> None:
 def _build_snapshot() -> dict[str, Any]:
     entries: dict[str, Any] = {}
     progress_by_id: dict[str, Any] = {}
-    for (kind, sub_key), entry in _mem.items():
+    # Iterate an atomic snapshot, not the live dict: other threads (Qt
+    # CatalogPoller / bg fetchers) write _mem concurrently and a bare
+    # `_mem.items()` walk would crash with "dictionary changed size during
+    # iteration". `dict.copy()` is atomic under the GIL, so this is race-safe;
+    # entry values are replaced (never mutated in place) so old refs stay valid.
+    for (kind, sub_key), entry in _mem.copy().items():
         if kind == "progress":
             if sub_key is not None:
                 progress_by_id[sub_key] = {"ts": entry["ts"], "data": entry["data"]}

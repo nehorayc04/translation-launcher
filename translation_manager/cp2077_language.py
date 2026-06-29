@@ -110,26 +110,31 @@ def _iter_lang_vars(data: dict[str, Any]) -> list[dict[str, Any]]:
     unexpected schema bump from CDPR doesn't silently no-op.
     """
     out: list[dict[str, Any]] = []
-    targets = set(LANG_VARS_TO_SWAP) | {"Voice"}    # used only by fallback filter
+    # Pass-2 fallback filter. Current CDPR schema names the interface-text
+    # var "OnScreen" (not "Text") and voice "VoiceOver" (not "Voice"); keep
+    # the legacy names too so an older UserSettings.json still works.
+    targets = set(LANG_VARS_TO_SWAP) | {"Voice", "OnScreen", "VoiceOver", "Platform"}
 
-    # Pass 1 — standard groups[].vars[] structure.
-    groups = data.get("groups")
+    # Pass 1 — the group list. CDPR puts the groups under "data" (current
+    # schema) or "groups" (older); the group key is "group_name" or "name";
+    # the vars under "options" (current) / "vars" / "entries".
+    groups = data.get("data") or data.get("groups")
     if isinstance(groups, list):
         for g in groups:
             if not isinstance(g, dict):
                 continue
-            if str(g.get("name", "")).lower() not in LANG_GROUP_NAMES:
+            gname = str(g.get("group_name") or g.get("name") or "").lower()
+            if gname not in LANG_GROUP_NAMES:
                 continue
-            vars_ = g.get("vars") or g.get("entries") or []
+            vars_ = g.get("options") or g.get("vars") or g.get("entries") or []
             if isinstance(vars_, list):
                 out.extend(v for v in vars_ if isinstance(v, dict))
     if out:
         return out
 
     # Pass 2 — recursive fallback. Only collect dicts that look like a
-    # language var (name ∈ {Text, Subtitles, Voice} + has a `value`),
-    # which avoids accidentally rewriting unrelated nodes called "Text"
-    # elsewhere in the file.
+    # language var (name ∈ targets + has a `value`), which avoids
+    # accidentally rewriting unrelated nodes elsewhere in the file.
     def walk(node: Any) -> None:
         if isinstance(node, dict):
             name = node.get("name")
@@ -144,12 +149,21 @@ def _iter_lang_vars(data: dict[str, Any]) -> list[dict[str, Any]]:
     return out
 
 
+# CDPR schema rename: the interface-text var is "OnScreen", voice "VoiceOver".
+# Map them onto the logical names the rest of this module uses ("Text"/"Voice")
+# so current_text_language()/enable_arabic_slot() find them under either schema.
+_NAME_ALIASES = {"OnScreen": "Text", "VoiceOver": "Voice"}
+
+
 def _vars_by_name(vars_: Iterable[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     out: dict[str, dict[str, Any]] = {}
     for v in vars_:
         n = v.get("name")
         if isinstance(n, str):
-            out[n] = v
+            out.setdefault(n, v)
+            alias = _NAME_ALIASES.get(n)
+            if alias:
+                out.setdefault(alias, v)   # real "Text" wins over an aliased one
     return out
 
 
@@ -200,6 +214,49 @@ def enable_arabic_slot() -> dict[str, Any]:
         return {"ok": False, "changed": [], "previous": previous, "error": "settings-write-failed"}
 
     return {"ok": True, "changed": changed, "previous": previous, "error": ""}
+
+
+def current_text_language() -> str | None:
+    """Return the game's current Text locale (e.g. 'en-us' / 'ar-ar'), or
+    None when the settings file or the language var can't be read. Used by
+    the generic launcher language switcher to render the live state."""
+    data = _read_json(_settings_file())
+    if data is None:
+        return None
+    var = _vars_by_name(_iter_lang_vars(data)).get("Text")
+    if var is None or "value" not in var:
+        return None
+    return str(var["value"])
+
+
+def set_text_language(locale: str) -> dict[str, Any]:
+    """Set Text + Subtitles to an explicit locale WITHOUT touching the backup.
+
+    The generic 3-way switch uses this for the 'english' / forced choices;
+    enable_arabic_slot() / restore_language() remain the auto-flip pair the
+    mod lifecycle drives. Returns {ok, changed, error}."""
+    path = _settings_file()
+    data = _read_json(path)
+    if data is None:
+        return {"ok": False, "changed": [], "error": "settings-file-missing-or-unreadable"}
+
+    by_name = _vars_by_name(_iter_lang_vars(data))
+    changed: list[str] = []
+    found = False
+    for name in LANG_VARS_TO_SWAP:
+        var = by_name.get(name)
+        if var is None or "value" not in var:
+            continue
+        found = True
+        if str(var["value"]) != locale:
+            var["value"] = locale
+            changed.append(name)
+
+    if not found:
+        return {"ok": False, "changed": [], "error": "language-vars-not-found"}
+    if changed and not _write_json_atomic(path, data):
+        return {"ok": False, "changed": [], "error": "settings-write-failed"}
+    return {"ok": True, "changed": changed, "error": ""}
 
 
 def restore_language() -> dict[str, Any]:

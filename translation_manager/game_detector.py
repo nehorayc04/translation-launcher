@@ -139,6 +139,10 @@ _PATTERNS: dict[str, list[str]] = {
     "acodyssey":     ["assassinscreedodyssey"],
     "acvalhalla":    ["assassinscreedvalhalla"],
     "acmirage":      ["assassinscreedmirage"],
+    # AC Shadows — id matches the website/Supabase games row ("ac-shadows",
+    # with a hyphen) so detected_cached()["ac-shadows"] lines up with the
+    # card the launcher fetches from the hub.
+    "ac-shadows":    ["assassinscreedshadows"],
     "anno1800":      ["anno1800", "anno1800ubisoftconnect"],
     "aot2":          ["attackontitan2", "aot2", "aot2finalbattle", "attackontitan2finalbattle"],
 }
@@ -199,6 +203,7 @@ _EXE_PATTERNS: dict[str, list[str]] = {
     "acodyssey":     ["ACOdyssey.exe"],
     "acvalhalla":    ["ACValhalla.exe"],
     "acmirage":      ["ACMirage.exe"],
+    "ac-shadows":    ["ACShadows.exe", "ACShadows_Plus.exe"],
     "anno1800":      ["Anno1800.exe"],
     "aot2":          ["AOT2.exe", "AttackonTitan2.exe", "AOT2FB.exe"],
 }

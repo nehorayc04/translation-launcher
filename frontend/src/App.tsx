@@ -8,29 +8,42 @@ import Sidebar           from "./components/Sidebar";
 import type { NavKey }   from "./components/Sidebar";
 import HomeView          from "./views/HomeView";
 import LibraryView       from "./views/LibraryView";
-import AppsView          from "./views/AppsView";
 import SettingsView      from "./views/SettingsView";
 import DownloadsView     from "./views/DownloadsView";
 import PersonalAreaView  from "./views/PersonalAreaView";
 import GameDetailPanel   from "./views/GameDetailPanel";
-import SoftwareDetailPanel from "./views/SoftwareDetailPanel";
 import CloseBehaviorModal from "./components/CloseBehaviorModal";
+import SplashScreen from "./components/SplashScreen";
+import OnboardingTour from "./components/OnboardingTour";
+import BigPictureMode from "./components/BigPictureMode";
 import { api, onModProgress, onCatalogRefreshComplete } from "./lib/eel";
-import type { Game, Software, LauncherPrefs } from "./lib/types";
+import type { Game, LauncherPrefs } from "./lib/types";
 import { SiteConfigProvider } from "./lib/useSiteConfig";
 import { LauncherAuthProvider } from "./lib/useLauncherAuth";
+import { AccentProvider } from "./lib/useAccent";
+import { initRipple } from "./lib/ripple";
+import { initSpatialNav } from "./lib/spatialNav";
+import { initUiSounds } from "./lib/sound";
+import { initThemePrefs } from "./lib/themePrefs";
 
-export const APP_VERSION = "v1.1.0";
+// Apply persisted appearance prefs (animations/density) before first paint.
+initThemePrefs();
+
+export const APP_VERSION = "v1.0.0";
+
+// Big Picture (console full-screen) mode — HIDDEN for now per user request.
+// Flip to true to re-enable the home button + Start-controller toggle + overlay.
+const BIG_PICTURE_ENABLED = false;
 
 export default function App() {
   const [view,     setView]     = useState<NavKey>("home");
   const [games,    setGames]    = useState<Game[]>([]);
   const [selected, setSelected] = useState<Game | null>(null);
-  /** Currently-opened software card (parallel to `selected` for games).
-   *  When non-null we render <SoftwareDetailPanel/> in place of the
-   *  software grid, matching how a selected game replaces the library. */
-  const [selectedSoftware, setSelectedSoftware] = useState<Software | null>(null);
   const [status,   setStatus]   = useState<string | undefined>(undefined);
+  // Actionable update banner (persists until clicked/dismissed) — distinct from
+  // the transient `status` toast. gameId set → clicking opens that game's panel;
+  // else → opens the Downloads/Updates screen.
+  const [updateNotice, setUpdateNotice] = useState<{ body: string; gameId?: string } | null>(null);
   const [loading,  setLoading]  = useState(true);
   /** Launcher window/lifecycle prefs. `null` while we haven't loaded
    *  yet (don't show the modal during the brief pre-load window). */
@@ -47,6 +60,21 @@ export default function App() {
   // include this in their effect deps so they re-pull instead of waiting
   // for the next unmount/remount.
   const [refreshNonce, setRefreshNonce] = useState(0);
+  // Full launcher version (v1.0.0-dev.N) from Python — single source of truth
+  // so the sidebar footer + Settings show the same complete string.
+  const [appVersion, setAppVersion] = useState(APP_VERSION);
+  // Branded launch splash — shown once on boot, then unmounts.
+  const [splashDone, setSplashDone] = useState(false);
+  // First-run onboarding tour (shown after the splash, once ever).
+  const [onboarded, setOnboarded] = useState<boolean>(() => {
+    try { return localStorage.getItem("onboardingDone") === "1"; } catch { return true; }
+  });
+  const finishOnboarding = useCallback(() => {
+    setOnboarded(true);
+    try { localStorage.setItem("onboardingDone", "1"); } catch { /* ignore */ }
+  }, []);
+  // Big Picture (console-style full-screen) mode.
+  const [bigPicture, setBigPicture] = useState(false);
 
   // ── boot: pull games as soon as eel is ready ─────────────────
   const refresh = useCallback(async () => {
@@ -63,6 +91,35 @@ export default function App() {
       setLoading(false);
     }
   }, [selected?.id]);
+
+  // Full launcher version string (v1.0.0-dev.N) from the Python side, fetched
+  // once on boot so every surface renders the exact same complete version.
+  useEffect(() => {
+    let alive = true;
+    void api.getAppInfo()
+      .then((i) => { if (alive && i?.display) setAppVersion(i.display); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
+
+  // Global click-ripple on buttons (premium tactile feedback). One listener,
+  // teardown on unmount.
+  useEffect(() => initRipple(), []);
+
+  // Console-style keyboard + controller spatial navigation.
+  useEffect(() => initSpatialNav(), []);
+
+  // Optional UI click sounds (off by default; gated by the Appearance pref).
+  useEffect(() => initUiSounds(), []);
+
+  // Big Picture toggle — controller Start (toggle-bigpicture event) flips it.
+  // Disabled while BIG_PICTURE_ENABLED is false (feature hidden for now).
+  useEffect(() => {
+    if (!BIG_PICTURE_ENABLED) return;
+    const onToggle = () => setBigPicture((v) => !v);
+    window.addEventListener("toggle-bigpicture", onToggle);
+    return () => window.removeEventListener("toggle-bigpicture", onToggle);
+  }, []);
 
   // ── X-click interceptor ─────────────────────────────────────
   // Fires when the user clicks the window's X (or anything that
@@ -171,19 +228,112 @@ export default function App() {
     setTimeout(() => setStatus(undefined), 4500);
   }, []);
 
+  // ── Update NOTIFICATIONS (never silent) ──────────────────────
+  // Silent auto-update was removed by request. Instead, ONCE per session after
+  // the catalog loads, check for available translation-mod updates (getModUpdates
+  // now covers BOTH download mods AND native appliers — SM2/WD2/GTAV). If any
+  // exist, surface them TWO ways: a CLICKABLE in-app banner (routes straight to
+  // the update — the game's panel for a single update, else the Downloads screen)
+  // + a native Windows notification. Nothing installs on its own. Errors stay
+  // silent (best-effort); the beta-channel gate is applied server-side.
+  const updateNoticeRanRef = useRef(false);
+  useEffect(() => {
+    if (updateNoticeRanRef.current || loading || games.length === 0) return;
+    updateNoticeRanRef.current = true;
+    (async () => {
+      try {
+        const updates = await api.getModUpdates().catch(() => []);
+        if (updates.length === 0) return;
+        const titles = updates.map((u) => u.titleHe || u.titleEn);
+        const list = titles.join(", ");
+        const body =
+          updates.length === 1
+            ? `עדכון תרגום זמין ל${list}.`
+            : `עדכוני תרגום זמינים ל-${updates.length} משחקים: ${list}.`;
+        // Clickable in-app banner…
+        setUpdateNotice({ body, gameId: updates.length === 1 ? updates[0].gameId : undefined });
+        // …and an external Windows notification.
+        void api.notifyOs("עדכון תרגום זמין", `${body} פתח את התוכנה כדי לעדכן.`).catch(() => {});
+      } catch { /* best-effort */ }
+    })();
+  }, [loading, games.length]);
+
+  // ── Single-session takeover notice ───────────────────────────
+  // useLauncherAuth (inside the provider subtree) dispatches "auth-takeover"
+  // when this install is signed out because the same account signed in on
+  // another device. Surface it via the existing top-center toast. (A native
+  // Windows notification is fired from the provider in parallel.)
+  useEffect(() => {
+    const onTakeover = (e: Event) => {
+      const msg = (e as CustomEvent).detail?.message;
+      if (typeof msg === "string" && msg) reportStatus(msg, true);
+    };
+    window.addEventListener("auth-takeover", onTakeover);
+    return () => window.removeEventListener("auth-takeover", onTakeover);
+  }, [reportStatus]);
+
+  // Controller "B" / Backspace → contextual back: close an open game →
+  // else return to home from a sub-view.
+  useEffect(() => {
+    const onBack = () => {
+      if (bigPicture) {
+        // In Big Picture: a game detail → back to the cover grid (stay in BP).
+        // At the grid (no selection) BigPictureMode's own listener exits BP.
+        if (selected) setSelected(null);
+        return;
+      }
+      if (selected) { setSelected(null); return; }
+      if (view !== "home") setView("home");
+    };
+    window.addEventListener("nav-back", onBack);
+    return () => window.removeEventListener("nav-back", onBack);
+  }, [selected, view, bigPicture]);
+
   const handleNavigate = (key: NavKey) => {
     setSelected(null);
-    setSelectedSoftware(null);
     setView(key);
   };
   const handleOpenGame = (g: Game) => {
     setSelected(g);
     setView("games");
   };
-  const handleOpenSoftware = (s: Software) => {
-    setSelectedSoftware(s);
-    setView("apps");
+  // Click the update banner → go straight to where the user can update: the
+  // specific game's panel (single update) or the Downloads/Updates screen.
+  const handleUpdateNoticeClick = () => {
+    const n = updateNotice;
+    setUpdateNotice(null);
+    if (n?.gameId) {
+      const g = games.find((x) => x.id === n.gameId);
+      if (g) { setSelected(g); setView("games"); return; }
+    }
+    setSelected(null);
+    setView("downloads");
   };
+
+  // ── Deep link (hebrewhub://game/<id>) ────────────────────────
+  // The Python shell opens the launcher straight to a game when the website's
+  // "פתח בתוכנה" button fires the protocol. The id arrives either in the
+  // initial URL hash (#game=<id>, cold start) or via a 'deep-link-game' window
+  // event (an already-running instance re-invoked with the URI). We stash a
+  // pending id and open it once the catalog has loaded.
+  const [pendingGameId, setPendingGameId] = useState<string | null>(() => {
+    const m = /[#&?]game=([^&]+)/.exec(window.location.hash || window.location.search);
+    return m ? decodeURIComponent(m[1]) : null;
+  });
+  useEffect(() => {
+    const onDeep = (e: Event) => {
+      const id = (e as CustomEvent).detail?.id;
+      if (typeof id === "string" && id) setPendingGameId(id);
+    };
+    window.addEventListener("deep-link-game", onDeep);
+    return () => window.removeEventListener("deep-link-game", onDeep);
+  }, []);
+  useEffect(() => {
+    if (!pendingGameId || games.length === 0) return;
+    const g = games.find((x) => x.id === pendingGameId);
+    if (g) { setSelected(g); setView("games"); }
+    setPendingGameId(null);   // clear even if not found, so it doesn't linger
+  }, [pendingGameId, games]);
 
   const gamesCountHe = (n: number) =>
     n === 0 ? "לא נמצאו משחקים"
@@ -246,15 +396,19 @@ export default function App() {
     <ErrorBoundary>
     <SiteConfigProvider>
     <LauncherAuthProvider>
+    <AccentProvider>
     <div className="h-screen w-screen text-slate-200 overflow-hidden relative">
       <VideoBackground />
+      {/* Per-game ambient tint — the selected game "paints the environment".
+          Sits above the video, below the app shell. */}
+      <div className="accent-bg" aria-hidden />
 
       <div className="h-full w-full flex p-4 gap-3 no-select relative"
            style={{ zIndex: 10 }}>
         <main className="flex-1 min-w-0 glass rounded-3xl overflow-hidden">
           {loading ? (
             <LoadingShade />
-          ) : selected ? (
+          ) : (!bigPicture && selected) ? (
             <GameDetailPanel
               game={selected}
               onBack={() => setSelected(null)}
@@ -262,21 +416,12 @@ export default function App() {
               reportStatus={reportStatus}
               refreshNonce={refreshNonce}
             />
-          ) : selectedSoftware ? (
-            <SoftwareDetailPanel
-              software={selectedSoftware}
-              onBack={() => setSelectedSoftware(null)}
-              reportStatus={reportStatus}
-              onNavigateToDownloads={() => {
-                setSelectedSoftware(null);
-                setView("downloads");
-              }}
-            />
           ) : view === "home" ? (
             <HomeView
               games={games}
               onOpenGame={handleOpenGame}
               onOpenLibrary={() => setView("games")}
+              onBigPicture={BIG_PICTURE_ENABLED ? () => setBigPicture(true) : undefined}
               refreshNonce={refreshNonce}
             />
           ) : view === "games" ? (
@@ -284,13 +429,6 @@ export default function App() {
               games={games}
               onOpenGame={handleOpenGame}
               onScanDeep={handleScanDeep}
-            />
-          ) : view === "apps" ? (
-            <AppsView
-              reportStatus={reportStatus}
-              refreshNonce={refreshNonce}
-              onOpenSoftware={handleOpenSoftware}
-              onNavigateToDownloads={() => setView("downloads")}
             />
           ) : view === "downloads" ? (
             <DownloadsView refreshNonce={refreshNonce} />
@@ -305,7 +443,7 @@ export default function App() {
               games={games}
               reportStatus={reportStatus}
               onRefresh={refresh}
-              version={APP_VERSION}
+              version={appVersion}
               launcherPrefs={launcherPrefs}
               onPrefsChange={setLauncherPrefs}
             />
@@ -316,7 +454,7 @@ export default function App() {
           current={view}
           onNavigate={handleNavigate}
           onRefresh={handleRefreshFromServer}
-          version={APP_VERSION}
+          version={appVersion}
         />
       </div>
 
@@ -339,7 +477,60 @@ export default function App() {
         </div>
       )}
 
+      {/* Actionable update banner — CLICK to go straight to the update. */}
+      {updateNotice && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-3
+                        glass-strong rounded-2xl pl-3 pr-4 py-2.5 animate-fade-in
+                        ring-1 ring-emerald-400/40
+                        shadow-[0_12px_36px_-10px_rgba(0,0,0,0.8)]">
+          <button
+            type="button"
+            onClick={handleUpdateNoticeClick}
+            className="flex items-center gap-2 text-sm font-bold text-emerald-200 hover:text-emerald-100"
+          >
+            <span className="text-base">⬆</span>
+            <span>{updateNotice.body} <span className="underline">לחץ לעדכון</span></span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setUpdateNotice(null)}
+            className="text-slate-400 hover:text-slate-200 text-lg leading-none px-1"
+            aria-label="סגור"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {BIG_PICTURE_ENABLED && bigPicture && (
+        selected ? (
+          // Opening a game from Big Picture KEEPS the full-screen console mode:
+          // the detail panel renders as a full-screen overlay; "back" returns to
+          // the cover grid (Big Picture stays on) instead of dropping to the
+          // windowed app.
+          <div className="fixed inset-0 z-[180] overflow-hidden" style={{ background: "#04040c" }}>
+            <GameDetailPanel
+              game={selected}
+              onBack={() => setSelected(null)}
+              onRefresh={refresh}
+              reportStatus={reportStatus}
+              refreshNonce={refreshNonce}
+            />
+          </div>
+        ) : (
+          <BigPictureMode
+            games={games}
+            onOpenGame={(g) => setSelected(g)}
+            onExit={() => { setBigPicture(false); setSelected(null); }}
+          />
+        )
+      )}
+
+      {!splashDone && <SplashScreen onDone={() => setSplashDone(true)} />}
+      {splashDone && !onboarded && <OnboardingTour onClose={finishOnboarding} />}
+
     </div>
+    </AccentProvider>
     </LauncherAuthProvider>
     </SiteConfigProvider>
     </ErrorBoundary>

@@ -239,6 +239,101 @@ export interface GameModState {
   hasPath:    boolean;   // the game's install folder is known
 }
 
+/** In-game TEXT-language switch state for a game (auto/Hebrew/English).
+ *  `supported:false` → the launcher can't switch this game's language and
+ *  the control is hidden. `mode` is the user's chosen switch position;
+ *  `current` is the language live in the game right now. */
+export interface GameLanguageState {
+  supported:    boolean;
+  kind?:        "registry" | "cp2077";
+  mode?:        "auto" | "hebrew" | "english";
+  current?:     "hebrew" | "english" | "other" | "unknown";
+  currentCode?: number | string | null;
+  original?:    number | string | null;
+  originalName?: "hebrew" | "english" | "other" | null;
+  error?:       string;
+}
+
+/** Result of a single game's mod update-check (manifest vs installed). */
+export interface GameModUpdate {
+  ok:               boolean;
+  supported?:       boolean;
+  installed?:       boolean;
+  installedVersion?: string | null;
+  latestVersion?:   string | null;
+  updateAvailable?: boolean;
+  /** "download" = installs via downloadAndInstallGameMod; "native" = SM2/WD2/GTAV
+   *  applier (installs via its own install_* RPC). */
+  kind?:            "download" | "native";
+  error?:           string;
+}
+
+/** State of Marvel's Spider-Man 2's native (TOC-patch) Hebrew mod. */
+export interface SpiderMan2State {
+  hasPath:     boolean;   // the game install folder is known
+  installed:   boolean;   // our mod is currently applied to the TOC
+  available:   boolean;   // the mod payload is reachable (download or bundled)
+  installPath: string | null;
+  version?:    string | null;   // installed mod version (from GitHub Release)
+}
+
+/** SM2 update-check result (separate network call). */
+export interface SpiderMan2Update {
+  updateAvailable:   boolean;
+  installedVersion?: string | null;
+  latestVersion?:    string | null;
+}
+
+/** State of Watch Dogs 2's native (FAT5 fat-redirect) Hebrew mod. The mod is
+ *  bundled in the launcher, so `available` is true whenever the payload ships;
+ *  activation is in-game (Settings → Written Language = Arabic). */
+export interface WatchDogs2State {
+  hasPath:     boolean;   // the game install folder is known
+  installed:   boolean;   // our files are currently redirected into the archives
+  available:   boolean;   // the bundled mod payload is present
+  installPath: string | null;
+  version?:    string | null;
+}
+
+/** State of GTA V's native OpenIV-free RPF7 applier. `scenario` decides the UX:
+ *  'ready' = mods folder + loader present → one-click install/remove;
+ *  'mods_no_loader' = mods folder exists but the OpenIV ASI isn't active;
+ *  'clean' = no mods folder → guided one-time OpenIV setup;
+ *  'no_game' = the game install folder isn't known. */
+export interface GtavState {
+  hasPath:         boolean;
+  installPath:     string | null;
+  available:       boolean;   // the bundled Hebrew payload is present
+  hasMods:         boolean;   // an OPEN mods\update\update2.rpf+update.rpf exist
+  loaderConnected: boolean;   // dinput8.dll (OpenIV ASI loader) present
+  scenario:        "ready" | "mods_no_loader" | "clean" | "no_game";
+  installed:       boolean;   // our Hebrew is currently applied (backup marker)
+  vanillaAvailable:boolean;   // vanilla English payload bundled (for surgical remove)
+  backupAvailable: boolean;   // an install-time full backup exists (for full restore)
+  priceCents:      number;    // 0 = free; > 0 → buy gate
+  owned:           boolean;   // free, or a completed purchase
+  version?:        string | null;
+}
+
+/** Mod-update preferences (beta channel only — silent auto-update was
+ *  removed; updates are always surfaced as an in-app + Windows notification). */
+export interface UpdatePrefs {
+  betaChannel:   boolean;                  // global opt-in to alpha/beta/rc updates
+  betaOverrides: Record<string, boolean>;  // per-mod opt-in override
+}
+
+/** One installed translation mod that has a newer version available. */
+export interface ModUpdate {
+  gameId:           string;
+  titleEn:          string;
+  titleHe:          string;
+  installedVersion: string | null;
+  latestVersion:    string;
+  /** "download" → update via downloadAndInstallGameMod; "native" → SM2/WD2/GTAV
+   *  applier, update via its own install_* RPC. Older builds omit it (treat as download). */
+  kind?:            "download" | "native";
+}
+
 /** Result of any game-mod lifecycle action — always carries fresh state. */
 export interface GameModResult {
   ok:        boolean;
@@ -377,6 +472,70 @@ export const api = {
   /** Open the website checkout in the browser for a paid game mod. */
   openPurchasePage:          (id: string) =>
                                 call<{ ok: boolean; url?: string; error?: string }>("open_purchase_page", id),
+
+  // ── Game-mod updates (manifest version vs installed) ──────
+  /** Is a newer translation-mod version available for this game? Network
+   *  manifest check (no archive), run off the GUI thread. */
+  checkGameModUpdate:  (id: string) => call<GameModUpdate>("check_game_mod_update", id),
+  /** All installed translation mods that have a newer version available —
+   *  drives the Downloads/Updates screen's mod section. */
+  getModUpdates:       ()           => call<ModUpdate[]>("get_mod_updates"),
+
+  // ── mod update preferences (beta channel) ──
+  getUpdatePrefs:    () => call<UpdatePrefs>("get_update_prefs"),
+  setUpdatePrefs:    (betaChannel: boolean) =>
+    call<UpdatePrefs>("set_update_prefs", betaChannel),
+  setModBetaOverride: (gameId: string, enabled: boolean | null) =>
+    call<UpdatePrefs>("set_mod_beta_override", gameId, enabled),
+  /** Show a native Windows notification (tray toast). Used to surface an
+   *  available translation update; no-op on the Eel dev build. */
+  notifyOs:          (title: string, body: string) =>
+    call<boolean>("notify_os", title, body),
+  /** Launcher identity. `display` is the FULL version (v1.0.0-dev.N) to render
+   *  verbatim; version/channel/devBuild are the raw parts. */
+  getAppInfo: () => call<{ version: string; channel: string; devBuild: number; display: string }>("get_app_info"),
+
+  // ── Spider-Man 2 native applier (no Overstrike) ───────────
+  getSpiderman2ModState: () => call<SpiderMan2State>("get_spiderman2_mod_state"),
+  /** Apply the bundled Hebrew mod to the game's TOC on a worker; progress +
+   *  a terminal done/error tick stream over onModProgress. */
+  installSpiderman2Mod:  () => call<{ ok: boolean; error?: string; started?: boolean }>("install_spiderman2_mod"),
+  /** Revert the mod (restore the TOC backup + delete our archives). */
+  removeSpiderman2Mod:   () => call<{ ok: boolean; error?: string; state: SpiderMan2State }>("remove_spiderman2_mod"),
+  /** Network check — is a newer SM2 version available on the server? */
+  checkSpiderman2Update: () => call<SpiderMan2Update>("check_spiderman2_update"),
+
+  // ── Watch Dogs 2 native applier (FAT5 fat-redirect, no Overstrike) ──
+  getWatchdogs2ModState: () => call<WatchDogs2State>("get_watchdogs2_mod_state"),
+  /** Apply the bundled Hebrew files to the game's FAT5 archives on a worker;
+   *  progress + a terminal done/error tick stream over onModProgress. */
+  installWatchdogs2Mod:  () => call<{ ok: boolean; error?: string; started?: boolean }>("install_watchdogs2_mod"),
+  /** Revert the mod (restore the original archives + delete our backups). */
+  removeWatchdogs2Mod:   () => call<{ ok: boolean; error?: string; state: WatchDogs2State }>("remove_watchdogs2_mod"),
+
+  // ── GTA V native OpenIV-free RPF7 applier ──────────────────────────
+  getGtavModState: () => call<GtavState>("get_gtav_mod_state"),
+  /** Read-modify-write the Hebrew text+fonts into the OPEN mods RPFs on a worker
+   *  (heavy, multi-GB); progress + a terminal done/error tick stream over onModProgress. */
+  installGtavMod:  () => call<{ ok: boolean; error?: string; started?: boolean; state?: GtavState }>("install_gtav_mod"),
+  /** SURGICAL remove — swap the Hebrew text+fonts back to vanilla English IN PLACE,
+   *  preserving the user's other mods (does NOT use the stale install backup). Worker. */
+  removeGtavMod:   () => call<{ ok: boolean; error?: string; started?: boolean }>("remove_gtav_mod"),
+  /** Separate FULL restore from the install-time backup = exact pre-install state
+   *  (⚠ discards changes made since install). Worker; progress streams. */
+  restoreGtavBackup: () => call<{ ok: boolean; error?: string; started?: boolean }>("restore_gtav_backup"),
+
+  // ── In-game text-language switch (auto / Hebrew[Arabic] / English) ──
+  /** Current language-switch state. supported=false → hide the control. */
+  getGameLanguage:     (id: string) => call<GameLanguageState>("get_game_language", id),
+  /** Apply + persist a language mode. */
+  setGameLanguage:     (id: string, mode: "auto" | "hebrew" | "english") =>
+                          call<{ ok: boolean; supported?: boolean; mode?: string; applied?: string; error?: string }>(
+                            "set_game_language", id, mode),
+  /** Revert to the pre-mod language (the value before the launcher's first switch). */
+  restoreGameLanguage: (id: string) =>
+                          call<{ ok: boolean; supported?: boolean; restored?: string; error?: string }>(
+                            "restore_game_language", id),
   listUpdates:      ()                          => call<UpdateItem[]>("list_updates"),
   /** Launcher self-update: current-vs-latest check + the in-app
    *  download/verify/silent-install trigger. Progress streams back
@@ -407,6 +566,8 @@ export const api = {
   setCloseBehavior: (b: "minimize" | "close" | null) => call<{ ok: boolean; closeBehavior: LauncherPrefs["closeBehavior"]; startWithOs: boolean }>("set_close_behavior", b),
   /** Toggle the HKCU autostart Run-key entry. */
   setStartWithOs:   (enabled: boolean) => call<{ ok: boolean; error?: string; startWithOs: boolean; closeBehavior: LauncherPrefs["closeBehavior"] }>("set_start_with_os", enabled),
+  /** Toggle GPU hardware acceleration (compositing). Takes effect on next launch. */
+  setGpuCompositing: (enabled: boolean) => call<{ ok: boolean; disableGpu: boolean; startWithOs: boolean; closeBehavior: LauncherPrefs["closeBehavior"] }>("set_gpu_compositing", enabled),
   getLiveProgress:  (id: string)                => call<ProgressSnapshot | null>("get_live_progress", id),
   startDownload:    (id: string)                => call<{ok: boolean; error?: string}>("start_download", id),
   cancelDownload:   (id: string)                => call<{ok: boolean; error?: string}>("cancel_download", id),
@@ -415,6 +576,9 @@ export const api = {
   authLogin:        ()                          => call<{ok: boolean; user?: LauncherUser; error?: string}>("auth_login"),
   authMe:           ()                          => call<LauncherUser | null>("auth_me"),
   authLogout:       ()                          => call<{ok: boolean; error?: string}>("auth_logout"),
+  /** One-shot: true iff this install was just displaced by a sign-in on
+   *  another device (single-session). Clears the marker server-side read. */
+  authConsumeTakeover: ()                        => call<boolean>("auth_consume_takeover"),
   authOwnsGame:     (gameId: string)            => call<boolean>("auth_owns_game", gameId),
   /** All 'completed' purchases for the current user with the joined
    *  game catalog row inlined (Supabase resource embedding). Returns a
@@ -443,4 +607,25 @@ export const api = {
     call<{ok: boolean; user?: LauncherUser & {confirmed?: boolean}; confirmed?: boolean; error?: string}>(
       "auth_signup_password", email, password, fullName,
     ),
+
+  // ── Crash / error reporting ──
+  /** Forward a frontend crash to Python (PII-scrubbed + opt-in gated there,
+   *  POSTed to /api/crash). Fire-and-forget; safe to call from error paths. */
+  reportCrash: (errorType: string, message: string, traceback: string, screen: string) =>
+    call<boolean>("report_crash", errorType, message, traceback, screen),
+  getCrashOptIn: () => call<boolean>("get_crash_opt_in"),
+  setCrashOptIn: (enabled: boolean) => call<boolean>("set_crash_opt_in", enabled),
 };
+
+/** Best-effort crash report that never throws — for use inside error
+ *  handlers / ErrorBoundary where a second exception must not cascade.
+ *  No-op when the bridge isn't ready (e.g. very early boot). */
+export async function safeReportCrash(
+  errorType: string, message: string, traceback: string, screen = '',
+): Promise<void> {
+  try {
+    if (!api.ready()) return;
+    if (!(await api.getCrashOptIn().catch(() => false))) return;
+    await api.reportCrash(errorType, message ?? '', traceback ?? '', screen);
+  } catch { /* swallow — reporting must never crash the crash handler */ }
+}

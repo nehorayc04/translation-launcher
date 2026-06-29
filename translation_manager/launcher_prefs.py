@@ -34,6 +34,21 @@ class LauncherPrefs(TypedDict, total=False):
     cleared_software: list[str]          # software ids whose path the user
                                          # "forgot" — treated as not-installed
                                          # until the next full scan re-detects
+    crash_reporting:  bool               # send crash/error reports to the dev
+                                         # (default True; Settings toggle opts out)
+    crash_notice_seen: bool              # one-time "we report crashes" notice ack
+    mod_beta_channel: bool               # opt in to pre-release (alpha/beta/rc)
+                                         # mod updates globally (default False)
+    mod_beta_overrides: dict             # per-mod beta opt-in override:
+                                         # {game_id: bool} wins over the global
+    disable_gpu_compositing: bool        # opt OUT of GPU compositing (default
+                                         # False = GPU on, smooth UI). Set True
+                                         # only as a flicker workaround when
+                                         # another workload saturates the GPU;
+                                         # applied by main_qt at next boot.
+    # NOTE: silent auto-update was removed by request — updates are ALWAYS
+    # surfaced as an in-app message + a Windows notification; nothing installs
+    # without the user clicking "update". No `mod_auto_update` pref remains.
 
 
 _STATE_DIR  = Path.home() / ".translation_manager"
@@ -97,6 +112,20 @@ def set_start_with_os(enabled: bool) -> bool:
     return save(prefs)
 
 
+# ── GPU acceleration (compositing) ────────────────────────────
+# Default OFF (i.e. GPU compositing stays ON → smooth UI). Flip True only when
+# the user reports flicker; main_qt reads this at boot to add
+# --disable-gpu-compositing.
+def get_disable_gpu_compositing() -> bool:
+    return bool(load().get("disable_gpu_compositing", False))
+
+
+def set_disable_gpu_compositing(disabled: bool) -> bool:
+    prefs = load()
+    prefs["disable_gpu_compositing"] = bool(disabled)
+    return save(prefs)
+
+
 # ── "forgotten" software paths ────────────────────────────────
 # Software install paths are auto-detected (registry/path fingerprints).
 # The user can "forget" one from Settings; it then reports as not-installed
@@ -123,3 +152,41 @@ def clear_all_cleared_software() -> bool:
         prefs.pop("cleared_software", None)
         return save(prefs)
     return True
+
+
+# ── mod update channel / behaviour ────────────────────────────
+def get_beta_channel() -> bool:
+    """Global opt-in to pre-release (alpha/beta/rc) mod updates."""
+    return bool(load().get("mod_beta_channel", False))
+
+
+def set_beta_channel(enabled: bool) -> bool:
+    prefs = load()
+    prefs["mod_beta_channel"] = bool(enabled)
+    return save(prefs)
+
+
+def wants_prerelease(game_id: str) -> bool:
+    """Whether to OFFER pre-release updates for this mod: the per-mod override
+    (if set) wins over the global beta-channel flag."""
+    prefs = load()
+    ov = prefs.get("mod_beta_overrides")
+    if isinstance(ov, dict) and game_id in ov:
+        return bool(ov[game_id])
+    return bool(prefs.get("mod_beta_channel", False))
+
+
+def set_mod_beta_override(game_id: str, enabled: bool | None) -> bool:
+    """Set (or, with None, clear → fall back to the global flag) the per-mod
+    beta opt-in override."""
+    prefs = load()
+    ov = prefs.get("mod_beta_overrides")
+    ov = dict(ov) if isinstance(ov, dict) else {}
+    if enabled is None:
+        ov.pop(game_id, None)
+    else:
+        ov[game_id] = bool(enabled)
+    prefs["mod_beta_overrides"] = ov
+    return save(prefs)
+
+

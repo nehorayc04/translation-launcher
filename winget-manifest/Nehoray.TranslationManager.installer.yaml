@@ -2,7 +2,7 @@
 # yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.6.0.schema.json
 
 PackageIdentifier: Nehoray.TranslationManager
-PackageVersion: 1.1.0
+PackageVersion: 1.0.0
 InstallerLocale: he-IL
 Platform:
   - Windows.Desktop
@@ -44,15 +44,15 @@ InstallerSuccessCodes:
 # the older shape.
 AppsAndFeaturesEntries:
   - DisplayName: Translation Manager
-    DisplayVersion: 1.1.0
+    DisplayVersion: 1.0.0
     Publisher: Nehoray
     ProductCode: '{B0D4F2A7-3CCE-4A1A-9C44-7E1A1B6F0001}_is1'
     InstallerType: inno
 ProductCode: '{B0D4F2A7-3CCE-4A1A-9C44-7E1A1B6F0001}_is1'
-ReleaseDate: 2026-05-26
+ReleaseDate: 2026-06-29
 Installers:
   - Architecture: x64
-    InstallerUrl: https://github.com/nehorayc04/translation-launcher/releases/download/v1.1.0/TranslationManager-Setup-1.1.0.exe
-    InstallerSha256: 5F13260588F24954F3913639C274E32F8997B251A108E6243A76741BE0380CFB
+    InstallerUrl: https://github.com/nehorayc04/translation-launcher/releases/download/v1.0.0-dev/TranslationManager-Setup-1.0.0.exe
+    InstallerSha256: 1511AFD71131803E3247A2763B0CCE5EA597EF1A0C2705B1305E1B310EA7303A
 ManifestType: installer
 ManifestVersion: 1.6.0

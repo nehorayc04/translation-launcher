@@ -66,6 +66,7 @@ from pathlib import Path
 import eel
 import requests
 
+from translation_manager import crash_reporter as _crash
 from translation_manager import downloads as _downloads
 from translation_manager import game_mod as _game_mod
 from translation_manager import mod_source as _mod_source
@@ -95,21 +96,63 @@ from translation_manager.cp2077_language import (
     enable_arabic_slot as _cp2077_enable_arabic_slot,
     restore_language   as _cp2077_restore_language,
 )
+from translation_manager import game_language as _game_language
+from translation_manager import spiderman2_mod as _sm2
+from translation_manager import watchdogs2_mod as _wd2
+from translation_manager import gtav_mod as _gtav
+
+# Catalog id of Marvel's Spider-Man 2 — the only title applied via the native
+# DAT1/TOC patcher (Insomniac engine), distinct from the CP2077-style
+# download-and-copy mods.
+_SM2_ID = "spiderman2"
+
+# Catalog id of Watch Dogs 2 — applied via the native FAT5 fat-redirect patcher
+# (Ubisoft Disrupt engine), distinct again from both the CP2077 download-mod and
+# the SM2 TOC patcher. Activation is in-game (Written Language = Arabic).
+_WD2_ID = "watchdogs2"
+# The bundled WD2 payload's version (shipped in assets/watchdogs2/). Surfaced as
+# the installed version; bump it when the bundled files are refreshed.
+_WD2_BUNDLED_VERSION = "1.0.0-beta.2"
 
 # Catalog id of the Cyberpunk 2077 entry. Hard-coded because the
 # Arabic-slot flip is specific to that game's Hebrew mod and must
 # never trigger for any other title.
 _CP2077_ID = "cyberpunk"
 
-# Installed launcher version. MUST stay in lock-step with
+# Catalog id of Anno 1800. A download-distributed mod like CP2077, but its
+# payload is a LOOSE-FILE mod that deploys into %Documents%\Anno 1800\mods\
+# (see GameConfig.documents_subdir + _deploy_root), and its post-install hook
+# sets the in-game text language to English.
+_ANNO_ID = "anno1800"
+
+# Catalog id of Grand Theft Auto V. Applied via the native OpenIV-free RPF7
+# read-modify-write (gtav_mod, vendored rpf7_writer): edits the user's existing
+# OPEN `mods\` folder, preserving every other mod byte-exact. A clean install
+# with no mods folder is GUIDED through a one-time OpenIV setup (the launcher
+# can't decrypt the vanilla — Legacy-2025 NG keys).
+_GTAV_ID = "gtav"
+_GTAV_BUNDLED_VERSION = "1.0.0-beta.2"
+
+# Installed launcher SemVer core. MUST stay in lock-step with
 # installer.iss `#define AppVersion`. The in-app self-updater
 # (get_launcher_update_info) compares this against the release feed.
-LAUNCHER_VERSION = "1.1.0"
+# Maturity is carried SEPARATELY by LAUNCHER_CHANNEL — the UI joins them
+# for display ("1.0.0" + "dev" → "v1.0.0-dev"), the same way Chrome / VS
+# Code keep a clean version number plus a channel. Never bake the channel
+# into this string: the version comparator treats it as pure semver.
+LAUNCHER_VERSION = "1.0.0"
+
+# Maturity channel of THIS build: dev | canary | beta | stable. Shown in the
+# launcher UI (Settings) next to the version and used by the website's download
+# page to decide visibility (dev/canary are developer-only). Set per-build —
+# bump to "beta"/"stable" when the launcher graduates, then rebuild.
+LAUNCHER_CHANNEL = "dev"
 
 # Per-build identity, baked by build_exe.bat into translation_manager/
 # _build_info.py (a fresh UTC timestamp every build). The version string
-# stays "1.1.0" forever — re-released in place — so the self-updater can't
-# tell two builds apart by version alone. BUILD_ID lets it: when the
+# stays constant across dev re-releases — re-released in place — so the
+# self-updater can't tell two builds apart by version alone. BUILD_ID lets
+# it: when the
 # release feed carries a different build-id than this one, an update is
 # offered even though the version is unchanged. Dev runs (no build step)
 # have no _build_info.py → "dev", and the build-id check is skipped.
@@ -117,6 +160,15 @@ try:
     from translation_manager._build_info import BUILD_ID  # type: ignore[attr-defined]
 except Exception:                                          # noqa: BLE001
     BUILD_ID = "dev"
+
+# Dev build counter — baked by build_exe.bat (increments every build). Shown
+# everywhere as the FULL launcher version v<ver>-<channel>.<DEV_BUILD>
+# (e.g. v1.0.0-dev.7). A dev run with no build step (or an older build) has no
+# DEV_BUILD → 0, and the ".N" suffix is simply omitted.
+try:
+    from translation_manager._build_info import DEV_BUILD  # type: ignore[attr-defined]
+except Exception:                                          # noqa: BLE001
+    DEV_BUILD = 0
 
 # Optional auth subsystem — if Supabase isn't configured (e.g. local
 # dev without env vars), the bridge stays installed but every call
@@ -219,6 +271,11 @@ def _shape_supabase_game(row: dict, owned_ids: set[str]) -> dict:
         'versionLabel':    row.get('version_label') or '',
         'status':          row.get('status') or 'final',
         'cover':           row.get('cover_url'),
+        # Steam-style wide background banner + transparent logo (served from
+        # Supabase storage, NOT bundled — keeps the install small). Optional;
+        # the GameDetailPanel falls back to a blurred cover / the title text.
+        'bannerUrl':       row.get('banner_url'),
+        'logoUrl':         row.get('logo_url'),
         'theme_key':       row.get('theme_key') or 'default',   # legacy snake
         'themeKey':        row.get('theme_key') or 'default',   # new camel
         'availability':    row.get('availability') or 'planned',
@@ -228,7 +285,10 @@ def _shape_supabase_game(row: dict, owned_ids: set[str]) -> dict:
         'description':     row.get('description') or '',
         'next':            bool(row.get('next_up')),
         'featured':        bool(row.get('featured')),
-        'sortOrder':       row.get('sort_order') or 1000,
+        # NOTE: `or 1000` would be WRONG here — sort_order=0 (the first/featured
+        # game, e.g. Cyberpunk) is falsy and would collapse to 1000, sorting it
+        # LAST. Only a genuinely-missing value falls back.
+        'sortOrder':       1000 if row.get('sort_order') is None else row.get('sort_order'),
         # Critical for the DRM gate. Missing this column makes
         # `_game_price_cents()` return 0 for every game, which collapses
         # `if price > 0 and not owns(...)` to False — i.e. any user can
@@ -239,6 +299,10 @@ def _shape_supabase_game(row: dict, owned_ids: set[str]) -> dict:
         # New: ownership flag for the DRM gate. Always present (false when
         # signed out or not purchased) so the frontend can branch cleanly.
         'owned':           gid in owned_ids,
+        # Versioning system — release maturity stage (alpha|beta|rc|stable) +
+        # the latest "what's new". Mirrors the website's /api/games shape.
+        'releaseStage':    row.get('release_stage') or 'stable',
+        'changelog':       row.get('changelog') or '',
     }
 
 
@@ -422,6 +486,61 @@ def _install_path(game_id: str) -> Path | None:
     return detected_cached().get(game_id)
 
 
+def _documents_dir() -> Path:
+    """The user's real Documents folder. Reads the Windows known-folder
+    ('Personal') from the registry so a OneDrive-redirected Documents is
+    honoured — the loose-file mod MUST land where the game's mod loader
+    reads. Falls back to ~/Documents (what the mod's own builder uses)."""
+    try:
+        import winreg
+        with winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders",
+        ) as k:
+            val, _ = winreg.QueryValueEx(k, "Personal")
+            if val:
+                return Path(os.path.expandvars(str(val)))
+    except Exception:                                    # pragma: no cover
+        pass
+    return Path.home() / "Documents"
+
+
+def _deploy_root(game_id: str) -> Path | None:
+    """Where a download-distributed mod's FILES go.
+
+    For a normal game this is the detected game folder (`_install_path`).
+    For a loose-file Documents mod (GameConfig.documents_subdir set, e.g.
+    Anno 1800) it is %Documents%\\<documents_subdir>, independent of where
+    the game itself is installed. Identical to `_install_path` for every
+    other game, so the well-tested copy-into-game-folder path is untouched."""
+    cfg = _config_for(game_id)
+    sub = getattr(cfg, "documents_subdir", "") if cfg else ""
+    if sub:
+        return _documents_dir() / sub
+    return _install_path(game_id)
+
+
+def _anno1800_set_language_english() -> None:
+    """Best-effort: set Anno 1800's in-game TEXT language to English so the
+    Hebrew (which the mod ships in the English slot) renders. Edits the
+    `"TextLanguage":"..."` key in %Documents%\\Anno 1800\\config\\engine.ini,
+    leaving AudioLanguage alone. Idempotent; never raises. The user still
+    toggles the language once in-game for the full atlas re-bake (see the UI
+    note) — this just removes the 'pick English first' step."""
+    try:
+        ini = _documents_dir() / "Anno 1800" / "config" / "engine.ini"
+        if not ini.is_file():
+            return
+        text = ini.read_text(encoding="utf-8", errors="replace")
+        import re
+        new = re.sub(r'("TextLanguage"\s*:\s*")[^"]*(")',
+                     r"\1English\2", text, count=1)
+        if new != text:
+            ini.write_text(new, encoding="utf-8")
+    except Exception:                                    # pragma: no cover
+        pass
+
+
 # Find the GameConfig (mod-file definition) by catalog id.
 # Not every catalog game has a config — only the few with actual mods do.
 def _config_for(game_id: str) -> GameConfig | None:
@@ -438,13 +557,43 @@ def _mod_state(game_id: str) -> str:
        install dir not detected          → NOT_INSTALLED  (ready to install)
        files inspected on disk           → ACTIVE / DISABLED / NOT_INSTALLED
     """
+    # Spider-Man 2 has no GameConfig (it's applied via the native TOC patcher,
+    # not the copy-into-folder flow) — resolve its state from the applier so
+    # the library buckets it under "active translation" once installed.
+    if game_id == _SM2_ID:
+        base = _install_path(game_id)
+        if base is None:
+            return STATE_NOT_INSTALLED
+        try:
+            return "ACTIVE" if _sm2.is_applied(base) else STATE_NOT_INSTALLED
+        except Exception:                               # pragma: no cover
+            return STATE_NOT_INSTALLED
+    # Watch Dogs 2: native FAT5 patcher — state resolves from our backup
+    # marker (in the launcher cache), not from a GameConfig.
+    if game_id == _WD2_ID:
+        if _install_path(game_id) is None:
+            return STATE_NOT_INSTALLED
+        try:
+            return "ACTIVE" if _wd2.is_applied(str(_wd2_backup_dir())) else STATE_NOT_INSTALLED
+        except Exception:                               # pragma: no cover
+            return STATE_NOT_INSTALLED
+    # GTA V: native OpenIV-free RPF7 applier — state from our backup marker.
+    if game_id == _GTAV_ID:
+        if _install_path(game_id) is None:
+            return STATE_NOT_INSTALLED
+        try:
+            return "ACTIVE" if _gtav.is_applied(str(_gtav_backup_dir())) else STATE_NOT_INSTALLED
+        except Exception:                               # pragma: no cover
+            return STATE_NOT_INSTALLED
     cfg = _config_for(game_id)
     if cfg is None or not cfg.mod_files:
         return STATE_NOT_AVAILABLE
     base = _install_path(game_id)
     if base is None:
         return STATE_NOT_INSTALLED
-    return detect_state(cfg, base)
+    # For a loose-file Documents mod (Anno) the files live under _deploy_root
+    # (%Documents%\…), not the game folder; detect_state inspects there.
+    return detect_state(cfg, _deploy_root(game_id) or base)
 
 
 def _enrich_game_row(cg: dict) -> dict:
@@ -454,13 +603,28 @@ def _enrich_game_row(cg: dict) -> dict:
     gid  = cg.get("id", "")
     base = _install_path(gid)
     cfg  = _config_for(gid)
-    has_mod = cfg is not None and bool(cfg.mod_files)
+    # SM2 + WD2 are moddable via their native appliers even without a GameConfig.
+    has_mod = (cfg is not None and bool(cfg.mod_files)) or gid in (_SM2_ID, _WD2_ID, _GTAV_ID)
+    # Current in-game TEXT language (interface + subtitles) for the few
+    # titles the launcher can read — shown per-game in the UI. Cheap: a
+    # plain dict miss for unsupported games, a ~1-5ms registry/settings
+    # read for the supported ones (spiderman2 / cyberpunk). `installed`
+    # is irrelevant to the live `current` reading, so skip resolving it.
+    current_language = None
+    try:
+        if _game_language.is_supported(gid):
+            ls = _game_language.get_state(gid, installed=None)
+            if ls.get("supported"):
+                current_language = ls.get("current")
+    except Exception:                                   # pragma: no cover
+        current_language = None
     return {
         **cg,
         "install_path": str(base) if base else None,
         "is_installed": base is not None,
         "has_mod_support": has_mod,
         "mod_state": _mod_state(gid),
+        "currentLanguage": current_language,
     }
 
 
@@ -639,7 +803,7 @@ def get_game_mod_state(game_id: str) -> dict:
             "owned": True, "priceCents": price, "modSlug": "",
             "hasPath": base is not None,
         }
-    st = _game_mod.status(game_id, base, cfg.mod_files if cfg else [])
+    st = _game_mod.status(game_id, _deploy_root(game_id), cfg.mod_files if cfg else [])
     # Free mods are always "owned"; paid mods consult the auth DRM check.
     owned = True if price <= 0 else auth_owns_game(game_id)
     return {
@@ -648,6 +812,190 @@ def get_game_mod_state(game_id: str) -> dict:
         "priceCents": price,
         "modSlug":    slug,
         "hasPath":    base is not None,
+    }
+
+
+def _native_update_status(game_id: str) -> dict | None:
+    """Update status for a NATIVE-applier mod (no mod_slug). SM2 compares the
+    installed version against its GitHub manifest; WD2/GTAV compare against the
+    BUNDLED payload version (a newer bundle ships only via a launcher self-update,
+    so this lights up after the launcher updates itself, prompting a re-apply).
+    Returns {installed, installedVersion, latestVersion, updateAvailable} or None
+    for a non-native game. Soft-fails (never raises)."""
+    if game_id == _SM2_ID:
+        st = get_spiderman2_mod_state()
+        iv = st.get("version")
+        latest = None
+        try:
+            latest = _mod_source.fetch_manifest(slug=_SM2_SLUG).get("version")
+        except Exception:                              # pragma: no cover
+            latest = None
+        upd = bool(st.get("installed")) and bool(latest) and _offer_update(_SM2_ID, latest, iv)
+        return {"installed": bool(st.get("installed")), "installedVersion": iv,
+                "latestVersion": latest, "updateAvailable": bool(upd)}
+    if game_id == _WD2_ID:
+        st = get_watchdogs2_mod_state(); latest = _WD2_BUNDLED_VERSION
+    elif game_id == _GTAV_ID:
+        st = get_gtav_mod_state(); latest = _GTAV_BUNDLED_VERSION
+    else:
+        return None
+    iv = st.get("version")
+    upd = bool(st.get("installed")) and _offer_update(game_id, latest, iv)
+    return {"installed": bool(st.get("installed")), "installedVersion": iv,
+            "latestVersion": latest, "updateAvailable": bool(upd)}
+
+
+@eel.expose
+def check_game_mod_update(game_id: str) -> dict:
+    """Is a newer translation-mod version available than the installed one?
+    Lightweight — fetches ONLY the manifest (no archive). The Qt bridge runs
+    this off the GUI thread so the network call never freezes the panel. Handles
+    BOTH download-distributed mods (mod_slug) and native appliers (SM2/WD2/GTAV).
+    {ok, supported, kind, installed, installedVersion, latestVersion, updateAvailable, error}."""
+    if game_id in (_SM2_ID, _WD2_ID, _GTAV_ID):
+        ns = _native_update_status(game_id) or {}
+        return {"ok": True, "supported": True, "kind": "native",
+                "installed":        bool(ns.get("installed")),
+                "installedVersion": ns.get("installedVersion"),
+                "latestVersion":    ns.get("latestVersion"),
+                "updateAvailable":  bool(ns.get("updateAvailable")), "error": ""}
+    cfg = _config_for(game_id)
+    if cfg is None or not cfg.mod_slug:
+        return {"ok": True, "supported": False, "updateAvailable": False}
+    st   = _game_mod.status(game_id, _deploy_root(game_id), cfg.mod_files)
+    installed = bool(st.get("installed"))
+    iv = st.get("version")
+    try:
+        latest = _mod_source.fetch_manifest(slug=cfg.mod_slug).get("version")
+    except Exception as e:                              # pragma: no cover
+        return {"ok": False, "supported": True, "kind": "download", "installed": installed,
+                "installedVersion": iv, "latestVersion": None,
+                "updateAvailable": False, "error": str(e)}
+    upd = bool(installed) and _offer_update(game_id, latest, iv)
+    return {"ok": True, "supported": True, "kind": "download", "installed": installed,
+            "installedVersion": iv, "latestVersion": latest,
+            "updateAvailable": upd, "error": ""}
+
+
+@eel.expose
+def get_mod_updates() -> list:
+    """Every download-distributed translation mod that is INSTALLED and has a
+    newer version available — drives the Downloads/Updates screen's mod
+    section. One lightweight manifest GET per configured mod."""
+    out:  list[dict] = []
+    seen: set[str]   = set()
+    for cfg in GAME_CONFIGS.values():
+        gid = cfg.internal_id
+        if not cfg.mod_slug or gid in seen:
+            continue
+        seen.add(gid)
+        try:
+            st   = _game_mod.status(gid, _deploy_root(gid), cfg.mod_files)
+            if not st.get("installed"):
+                continue
+            iv     = st.get("version")
+            latest = _mod_source.fetch_manifest(slug=cfg.mod_slug).get("version")
+            if _offer_update(gid, latest, iv):
+                cg = _catalog_by_id(gid) or {}
+                out.append({
+                    "gameId":           gid,
+                    "titleEn":          cg.get("titleEn") or cfg.name,
+                    "titleHe":          cg.get("titleHe") or cfg.name,
+                    "installedVersion": iv,
+                    "latestVersion":    latest,
+                    "kind":             "download",
+                })
+        except Exception:                              # pragma: no cover
+            continue
+    # Native-applier mods (no mod_slug): SM2 (GitHub manifest) + WD2/GTAV
+    # (bundled — a newer bundle arrives via a launcher self-update). These DON'T
+    # install via download_and_install_game_mod, so the row carries kind=native
+    # and the UI dispatches to the right install RPC.
+    for gid in (_SM2_ID, _WD2_ID, _GTAV_ID):
+        if gid in seen:
+            continue
+        seen.add(gid)
+        try:
+            ns = _native_update_status(gid)
+            if ns and ns.get("updateAvailable"):
+                cg  = _catalog_by_id(gid) or {}
+                cfg = _config_for(gid)
+                out.append({
+                    "gameId":           gid,
+                    "titleEn":          cg.get("titleEn") or (cfg.name if cfg else gid),
+                    "titleHe":          cg.get("titleHe") or (cfg.name if cfg else gid),
+                    "installedVersion": ns.get("installedVersion"),
+                    "latestVersion":    ns.get("latestVersion"),
+                    "kind":             "native",
+                })
+        except Exception:                              # pragma: no cover
+            continue
+    return out
+
+
+@eel.expose
+def get_update_prefs() -> dict:
+    """Mod-update preferences for the Settings screen: {betaChannel,
+    betaOverrides}. (Silent auto-update was removed — updates are always
+    surfaced as an in-app + Windows notification, never installed silently.)"""
+    from translation_manager import launcher_prefs as _p
+    ov = _p.load().get("mod_beta_overrides")
+    return {
+        "betaChannel":   _p.get_beta_channel(),
+        "betaOverrides": ov if isinstance(ov, dict) else {},
+    }
+
+
+@eel.expose
+def set_update_prefs(beta_channel=None) -> dict:
+    """Set the global beta-channel opt-in."""
+    from translation_manager import launcher_prefs as _p
+    if beta_channel is not None:
+        _p.set_beta_channel(bool(beta_channel))
+    return get_update_prefs()
+
+
+@eel.expose
+def notify_os(title: str, body: str) -> bool:
+    """Show a native Windows notification (tray balloon/toast). No-op on the
+    Eel dev build (no system tray); under the Qt shell the bridge's own
+    notify_os Slot handles it (this function is only hit via the Eel
+    transport). Best-effort — never raises."""
+    return True
+
+
+@eel.expose
+def set_mod_beta_override(game_id: str, enabled=None) -> dict:
+    """Per-mod beta opt-in override (None clears it → fall back to the global)."""
+    from translation_manager import launcher_prefs as _p
+    _p.set_mod_beta_override(game_id, None if enabled is None else bool(enabled))
+    return get_update_prefs()
+
+
+def _display_version() -> str:
+    """The FULL launcher version shown everywhere — joins the clean SemVer core
+    with the channel and the per-build counter, e.g. "v1.0.0-dev.7". A stable
+    channel shows just "v1.0.0"; a non-stable channel with no counter (dev run /
+    old build) shows "v1.0.0-dev"."""
+    core = LAUNCHER_VERSION
+    if not LAUNCHER_CHANNEL or LAUNCHER_CHANNEL == "stable":
+        return f"v{core}"
+    suffix = f"-{LAUNCHER_CHANNEL}"
+    if DEV_BUILD:
+        suffix += f".{DEV_BUILD}"
+    return f"v{core}{suffix}"
+
+
+@eel.expose
+def get_app_info() -> dict:
+    """Launcher identity for the UI: {version, channel, devBuild, display}.
+    `display` is the FULL joined version (v1.0.0-dev.N) — the single source of
+    truth the UI renders verbatim. The channel + counter are baked per-build."""
+    return {
+        "version":  LAUNCHER_VERSION,
+        "channel":  LAUNCHER_CHANNEL,
+        "devBuild": DEV_BUILD,
+        "display":  _display_version(),
     }
 
 
@@ -687,6 +1035,490 @@ def _cp2077_restore_crash_reporter(game_root) -> None:
         print(f"[cp2077] restore crash reporter failed: {e}", flush=True)
 
 
+# SM2 is now distributed via GitHub Release (slug 'spiderman2-hebrew'), like
+# CP2077 — new versions ship without a launcher rebuild. The bundled .modular
+# files remain as an OFFLINE fallback only.
+_SM2_SLUG = "spiderman2-hebrew"
+
+
+def _sm2_cache_dir() -> Path:
+    d = Path.home() / ".translation_manager" / "mod_cache" / "spiderman2"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def _sm2_state() -> dict:
+    try:
+        return json.loads((_sm2_cache_dir() / "state.json").read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def _sm2_write_state(d: dict) -> None:
+    try:
+        (_sm2_cache_dir() / "state.json").write_text(
+            json.dumps(d, ensure_ascii=False), encoding="utf-8")
+    except Exception:                                   # pragma: no cover
+        pass
+
+
+def _sm2_payload_files() -> list:
+    """The BUNDLED Spider-Man 2 Hebrew mod files (offline fallback).
+    Resolves for both the frozen build (sys._MEIPASS) and a dev run."""
+    base = getattr(sys, "_MEIPASS", None)
+    roots = []
+    if base:
+        roots.append(Path(base) / "translation_manager" / "assets" / "spiderman2")
+    roots.append(ROOT / "translation_manager" / "assets" / "spiderman2")
+    for r in roots:
+        full = r / "hebrew_full.modular"
+        if full.is_file():
+            out = [full]
+            font = r / "hebrew_font_v7.modular"
+            if font.is_file():
+                out.append(font)
+            return out
+    return []
+
+
+def _sm2_download_payloads(cb=None) -> tuple[list, str | None]:
+    """Download the SM2 mod from its GitHub Release (via the Worker), cache the
+    .modular files, and return (payload_paths, version). On ANY failure falls
+    back to the bundled payload → (bundled_paths, None). The bundled files keep
+    SM2 installable fully offline."""
+    try:
+        extracted, version = _mod_source.fetch_and_extract(cb, slug=_SM2_SLUG)
+        try:
+            mods = sorted(Path(extracted).rglob("*.modular"))
+            if not mods:
+                raise RuntimeError("no .modular files in archive")
+            cache = _sm2_cache_dir()
+            out = []
+            for m in mods:
+                dst = cache / m.name
+                shutil.copy2(m, dst)
+                out.append(dst)
+            return out, version
+        finally:
+            shutil.rmtree(Path(extracted).parent, ignore_errors=True)
+    except Exception as e:                              # pragma: no cover
+        print(f"[spiderman2] download failed ({e}); using bundled payload", flush=True)
+        return _sm2_payload_files(), None
+
+
+@eel.expose
+def get_spiderman2_mod_state() -> dict:
+    """State for the Spider-Man 2 native applier (drives its panel CTA):
+    {hasPath, installed, available, installPath, version, updateAvailable, latestVersion}."""
+    base = _install_path(_SM2_ID)
+    applied = False
+    try:
+        if base is not None:
+            applied = _sm2.is_applied(base)
+    except Exception:                                   # pragma: no cover
+        applied = False
+    state = _sm2_state()
+    installed_version = state.get("version") if applied else None
+    return {
+        "hasPath":     base is not None,
+        "installed":   applied,
+        # SM2 ships via GitHub Release now, but the bundled payload keeps it
+        # installable offline — so it's always "available".
+        "available":   True,
+        "installPath": str(base) if base else None,
+        "version":     installed_version,
+    }
+
+
+@eel.expose
+def check_spiderman2_update() -> dict:
+    """Off the install path (network) — is a newer SM2 version on the server?
+    Returns {updateAvailable, installedVersion, latestVersion}. Soft-fails."""
+    try:
+        if not _sm2.is_applied(_install_path(_SM2_ID) or Path(".")):
+            return {"updateAvailable": False}
+    except Exception:
+        return {"updateAvailable": False}
+    installed = _sm2_state().get("version")
+    try:
+        latest = _mod_source.fetch_manifest(slug=_SM2_SLUG).get("version")
+    except Exception:
+        return {"updateAvailable": False, "installedVersion": installed}
+    upd = _offer_update(_SM2_ID, latest, installed)
+    return {"updateAvailable": upd, "installedVersion": installed, "latestVersion": latest}
+
+
+def _run_sm2_install() -> None:
+    """Background worker: DOWNLOAD the SM2 Hebrew mod from its GitHub Release
+    (bundled payload as offline fallback), apply it to the game's TOC, flip the
+    in-game text language to Hebrew (Arabic slot), and record the installed
+    version. Progress streams over the mod_install_progress channel."""
+    try:
+        base = _install_path(_SM2_ID)
+        if base is None:
+            _mod_progress_cb("error", 0, "המשחק לא נמצא — הגדר נתיב תחילה בהגדרות")
+            return
+        if not _game_mod.is_writable(base):
+            _mod_progress_cb("error", 0,
+                "אין הרשאת כתיבה לתיקיית המשחק. הפעל את התוכנה כמנהל, "
+                "או העבר את המשחק מחוץ ל-Program Files, ונסה שוב.")
+            return
+        payloads, version = _sm2_download_payloads(_mod_progress_cb)
+        if not payloads:
+            _mod_progress_cb("error", 0, "קבצי המוד לא נמצאו")
+            return
+        r = _sm2.apply(base, payloads, _mod_progress_cb)
+        if not r.get("ok"):
+            _mod_progress_cb("error", 0, r.get("error") or "כשל בהחלת המוד")
+            return
+        # Record the installed version (None → bundled fallback was used).
+        _sm2_write_state({"version": version or "bundled", "installed": True})
+        # Flip the game's own text language to Hebrew (the Arabic locale slot).
+        try:
+            _game_language.set_mode(_SM2_ID, "hebrew", installed=True)
+        except Exception as e:                          # pragma: no cover
+            print(f"[spiderman2] language set failed: {e}", flush=True)
+        _mod_progress_cb("done", 100, "התרגום הותקן")
+    except Exception as e:                              # pragma: no cover
+        _mod_progress_cb("error", 0, f"שגיאה: {e}")
+
+
+@eel.expose
+def install_spiderman2_mod() -> dict:
+    """Kick off the Spider-Man 2 native apply on a background worker. Progress
+    + a terminal done/error tick stream over mod_install_progress."""
+    base = _install_path(_SM2_ID)
+    if base is None:
+        return {"ok": False, "error": "המשחק לא נמצא — הגדר נתיב תחילה בהגדרות"}
+    if not _sm2_payload_files():
+        return {"ok": False, "error": "קבצי המוד אינם זמינים בגרסה זו"}
+    import gevent
+    gevent.spawn(_run_sm2_install)
+    return {"ok": True, "started": True}
+
+
+@eel.expose
+def remove_spiderman2_mod() -> dict:
+    """Revert the Spider-Man 2 Hebrew mod (restore the backed-up TOC + delete
+    our mod archives) and flip the language back to English."""
+    base = _install_path(_SM2_ID)
+    if base is None:
+        return {"ok": False, "error": "המשחק לא נמצא", "state": get_spiderman2_mod_state()}
+    r = _sm2.revert(base)
+    if r.get("ok"):
+        _sm2_write_state({})   # clear the recorded installed version
+    try:
+        _game_language.set_mode(_SM2_ID, "english", installed=False)
+    except Exception as e:                              # pragma: no cover
+        print(f"[spiderman2] language restore failed: {e}", flush=True)
+    return {**r, "state": get_spiderman2_mod_state()}
+
+
+# ─────────────────────────────────────────────────────────────
+# Watch Dogs 2 — native FAT5 fat-redirect applier (no Overstrike / mod manager)
+# ─────────────────────────────────────────────────────────────
+# WD2 ships the Hebrew translation as 3 files (localization .loc + Hebrew font
+# .ffd + atlas .xbt) BUNDLED inside the launcher; watchdogs2_mod redirects them
+# into the game's FAT5 archives. Backups live in the launcher cache (outside the
+# game folder) so a Program-Files install still reverts. Activation is in-game
+# (Settings → Written Language = العربية), so we never touch a game setting here.
+def _wd2_cache_dir() -> Path:
+    d = Path.home() / ".translation_manager" / "mod_cache" / "watchdogs2"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def _wd2_backup_dir() -> Path:
+    d = _wd2_cache_dir() / "backup"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def _wd2_state() -> dict:
+    try:
+        return json.loads((_wd2_cache_dir() / "state.json").read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def _wd2_write_state(d: dict) -> None:
+    try:
+        (_wd2_cache_dir() / "state.json").write_text(
+            json.dumps(d, ensure_ascii=False), encoding="utf-8")
+    except Exception:                                   # pragma: no cover
+        pass
+
+
+def _wd2_payload_map() -> list:
+    """The BUNDLED Watch Dogs 2 Hebrew files → [(payload_path, in_archive_rel)].
+    Resolves for both the frozen build (sys._MEIPASS) and a dev run. Empty list
+    if any file is missing (→ 'unavailable' in the UI)."""
+    base = getattr(sys, "_MEIPASS", None)
+    roots = []
+    if base:
+        roots.append(Path(base) / "translation_manager" / "assets" / "watchdogs2")
+    roots.append(ROOT / "translation_manager" / "assets" / "watchdogs2")
+    for r in roots:
+        files = [(r / local, rel) for local, rel in _wd2.TARGETS]
+        if all(p.is_file() for p, _ in files):
+            return files
+    return []
+
+
+@eel.expose
+def get_watchdogs2_mod_state() -> dict:
+    """State for the Watch Dogs 2 native applier (drives its panel CTA):
+    {hasPath, installed, available, installPath, version}."""
+    base = _install_path(_WD2_ID)
+    applied = False
+    try:
+        applied = _wd2.is_applied(str(_wd2_backup_dir()))
+    except Exception:                                   # pragma: no cover
+        applied = False
+    state = _wd2_state()
+    return {
+        "hasPath":     base is not None,
+        "installed":   applied,
+        "available":   bool(_wd2_payload_map()),
+        "installPath": str(base) if base else None,
+        "version":     (state.get("version") or _WD2_BUNDLED_VERSION) if applied else None,
+    }
+
+
+def _run_wd2_install() -> None:
+    """Background worker: apply the bundled WD2 Hebrew files to the game's FAT5
+    archives (fat-redirect) and record the installed version. Progress + a
+    terminal done/error tick stream over mod_install_progress. The user must set
+    Written Language = Arabic in-game to see the Hebrew (we say so on success)."""
+    try:
+        base = _install_path(_WD2_ID)
+        if base is None:
+            _mod_progress_cb("error", 0, "המשחק לא נמצא — הגדר נתיב תחילה בהגדרות")
+            return
+        data = Path(base) / "data_win64"
+        if not data.is_dir():
+            _mod_progress_cb("error", 0, "לא נמצאה תיקיית data_win64 בנתיב המשחק — בדוק את הנתיב")
+            return
+        if not _game_mod.is_writable(data):
+            _mod_progress_cb("error", 0,
+                "אין הרשאת כתיבה לתיקיית המשחק. הפעל את התוכנה כמנהל, "
+                "או העבר את המשחק מחוץ ל-Program Files, ונסה שוב.")
+            return
+        payloads = _wd2_payload_map()
+        if not payloads:
+            _mod_progress_cb("error", 0, "קבצי המוד לא נמצאו")
+            return
+        r = _wd2.apply(base, payloads, str(_wd2_backup_dir()), _mod_progress_cb)
+        if not r.get("ok"):
+            _mod_progress_cb("error", 0, r.get("error") or "כשל בהחלת המוד")
+            return
+        _wd2_write_state({"version": _WD2_BUNDLED_VERSION, "installed": True})
+        _mod_progress_cb("done", 100,
+            "הותקן! במשחק: הגדרות → שפת טקסט = العربية (ערבית), והפעל עם ‎-eac_launcher")
+    except Exception as e:                              # pragma: no cover
+        _mod_progress_cb("error", 0, f"שגיאה: {e}")
+
+
+@eel.expose
+def install_watchdogs2_mod() -> dict:
+    """Kick off the Watch Dogs 2 native apply on a background worker. Progress +
+    a terminal done/error tick stream over mod_install_progress."""
+    base = _install_path(_WD2_ID)
+    if base is None:
+        return {"ok": False, "error": "המשחק לא נמצא — הגדר נתיב תחילה בהגדרות"}
+    if not _wd2_payload_map():
+        return {"ok": False, "error": "קבצי המוד אינם זמינים בגרסה זו"}
+    import gevent
+    gevent.spawn(_run_wd2_install)
+    return {"ok": True, "started": True}
+
+
+@eel.expose
+def remove_watchdogs2_mod() -> dict:
+    """Revert the Watch Dogs 2 Hebrew mod (restore the original FAT5 archives +
+    delete our backups)."""
+    base = _install_path(_WD2_ID)
+    if base is None:
+        return {"ok": False, "error": "המשחק לא נמצא", "state": get_watchdogs2_mod_state()}
+    r = _wd2.revert(base, str(_wd2_backup_dir()))
+    if r.get("ok"):
+        _wd2_write_state({})   # clear the recorded installed version
+    return {**r, "state": get_watchdogs2_mod_state()}
+
+
+# ── Grand Theft Auto V — native OpenIV-free RPF7 read-modify-write ─────────────
+# Edits the user's EXISTING OPEN `mods\` folder (every other mod byte-exact). The
+# backup of the 2 touched RPFs lives OUTSIDE the game in the launcher cache, so a
+# revert is always exact. A clean install (no mods folder) is GUIDED, not automated
+# (the launcher can't decrypt the vanilla — see _GTAV_ID).
+def _gtav_cache_dir() -> Path:
+    d = Path.home() / ".translation_manager" / "mod_cache" / "gtav"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def _gtav_backup_dir() -> Path:
+    d = _gtav_cache_dir() / "backup"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+@eel.expose
+def get_gtav_mod_state() -> dict:
+    """State for the GTA V native applier (drives its panel CTA + the scenario
+    message). scenario ∈ {ready, mods_no_loader, clean, no_game}."""
+    base = _install_path(_GTAV_ID)
+    has_mods = loader = applied = False
+    if base is not None:
+        try:
+            has_mods = _gtav.has_mods_folder(base)
+            loader   = _gtav.loader_connected(base)
+        except Exception:                                   # pragma: no cover
+            pass
+    try:
+        applied = _gtav.is_applied(str(_gtav_backup_dir()))
+    except Exception:                                       # pragma: no cover
+        applied = False
+    if base is None:
+        scenario = "no_game"
+    elif not has_mods:
+        scenario = "clean"
+    elif not loader:
+        scenario = "mods_no_loader"
+    else:
+        scenario = "ready"
+    price = _game_price_cents(_GTAV_ID)
+    owned = True if price <= 0 else auth_owns_game(_GTAV_ID)
+    try:
+        backup = _gtav.has_backup(str(_gtav_backup_dir()))
+    except Exception:                                       # pragma: no cover
+        backup = False
+    return {
+        "hasPath":         base is not None,
+        "installPath":     str(base) if base else None,
+        "available":       _gtav.payload_available(),
+        "vanillaAvailable":_gtav.vanilla_available(),
+        "hasMods":         has_mods,
+        "loaderConnected": loader,
+        "scenario":        scenario,
+        "installed":       applied,
+        "backupAvailable": backup,
+        "priceCents":      price,
+        "owned":           owned,
+        "version":         _GTAV_BUNDLED_VERSION if applied else None,
+    }
+
+
+def _run_gtav_install() -> None:
+    """Background worker: read-modify-write the Hebrew text + fonts into the OPEN
+    mods RPFs (backup first, atomic). Heavy (multi-GB) — always off the main flow.
+    Activation is in-game (Settings → Language = American); we say so on success."""
+    try:
+        base = _install_path(_GTAV_ID)
+        if base is None:
+            _mod_progress_cb("error", 0, "המשחק לא נמצא — הגדר נתיב תחילה בהגדרות")
+            return
+        if _game_price_cents(_GTAV_ID) > 0 and not auth_owns_game(_GTAV_ID):
+            _mod_progress_cb("error", 0, "המשחק טרם נרכש")
+            return
+        if not _gtav.has_mods_folder(base):
+            _mod_progress_cb("error", 0,
+                "אין תיקיית mods פתוחה. צור אותה פעם אחת ב-OpenIV (התקנה נקייה), "
+                "ואז התוכנה תנהל את התרגום לבד.")
+            return
+        r = _gtav.apply(base, str(_gtav_backup_dir()), _mod_progress_cb)
+        if not r.get("ok"):
+            _mod_progress_cb("error", 0, r.get("error") or "כשל בהתקנת התרגום")
+            return
+        msg = "הותקן! במשחק: הגדרות → שפה = American (אנגלית-אמריקאית) כדי לראות את העברית."
+        if not _gtav.loader_connected(base):
+            msg += " ודא ש-ASI של OpenIV מותקן (dinput8.dll) כדי שהמשחק יקרא את תיקיית ה-mods."
+        _mod_progress_cb("done", 100, msg)
+    except Exception as e:                                  # pragma: no cover
+        _mod_progress_cb("error", 0, f"שגיאה: {e}")
+
+
+@eel.expose
+def install_gtav_mod() -> dict:
+    """Kick off the GTA V Hebrew apply on a background worker."""
+    base = _install_path(_GTAV_ID)
+    if base is None:
+        return {"ok": False, "error": "המשחק לא נמצא — הגדר נתיב תחילה בהגדרות"}
+    if not _gtav.payload_available():
+        return {"ok": False, "error": "קבצי התרגום אינם זמינים בגרסה זו"}
+    # DRM gate — paid mod; defense-in-depth (the UI gates too, and _run_gtav_install
+    # re-checks). Without a completed purchase, no install.
+    if _game_price_cents(_GTAV_ID) > 0 and not auth_owns_game(_GTAV_ID):
+        return {"ok": False, "error": "המשחק טרם נרכש", "state": get_gtav_mod_state()}
+    if not _gtav.has_mods_folder(base):
+        return {"ok": False, "error": "אין תיקיית mods — נדרשת הקמה חד-פעמית עם OpenIV",
+                "state": get_gtav_mod_state()}
+    import gevent
+    gevent.spawn(_run_gtav_install)
+    return {"ok": True, "started": True}
+
+
+def _run_gtav_remove() -> None:
+    """SURGICAL remove: swap the translation files back to vanilla English IN PLACE,
+    preserving every other mod (does NOT use the possibly-stale install backup)."""
+    try:
+        base = _install_path(_GTAV_ID)
+        if base is None:
+            _mod_progress_cb("error", 0, "המשחק לא נמצא")
+            return
+        r = _gtav.revert(base, str(_gtav_backup_dir()), _mod_progress_cb)
+        if not r.get("ok"):
+            _mod_progress_cb("error", 0, r.get("error") or "כשל בהסרת התרגום")
+            return
+        _mod_progress_cb("done", 100,
+            "התרגום הוסר — הטקסט חזר לאנגלית והפונטים המקוריים; המודים האחרים שלך נשמרו.")
+    except Exception as e:                                  # pragma: no cover
+        _mod_progress_cb("error", 0, f"שגיאה: {e}")
+
+
+@eel.expose
+def remove_gtav_mod() -> dict:
+    """Surgical remove (vanilla swap) on a worker — heavy multi-GB I/O, streams
+    progress like the install. Preserves the user's other mods."""
+    base = _install_path(_GTAV_ID)
+    if base is None:
+        return {"ok": False, "error": "המשחק לא נמצא", "state": get_gtav_mod_state()}
+    import gevent
+    gevent.spawn(_run_gtav_remove)
+    return {"ok": True, "started": True}
+
+
+def _run_gtav_restore_backup() -> None:
+    """Full restore from the install-time backup (the EXACT pre-install state).
+    ⚠ Discards any change made to those RPFs since the install — the separate
+    'restore the snapshot from before I installed' action."""
+    try:
+        base = _install_path(_GTAV_ID)
+        if base is None:
+            _mod_progress_cb("error", 0, "המשחק לא נמצא")
+            return
+        r = _gtav.restore_backup(base, str(_gtav_backup_dir()), _mod_progress_cb)
+        if not r.get("ok"):
+            _mod_progress_cb("error", 0, r.get("error") or "כשל בשחזור הגיבוי")
+            return
+        _mod_progress_cb("done", 100, "שוחזר הגיבוי המלא — המצב חזר לרגע שלפני ההתקנה.")
+    except Exception as e:                                  # pragma: no cover
+        _mod_progress_cb("error", 0, f"שגיאה: {e}")
+
+
+@eel.expose
+def restore_gtav_backup() -> dict:
+    """Full pre-install restore (separate from the surgical remove). On a worker."""
+    base = _install_path(_GTAV_ID)
+    if base is None:
+        return {"ok": False, "error": "המשחק לא נמצא", "state": get_gtav_mod_state()}
+    if not _gtav.has_backup(str(_gtav_backup_dir())):
+        return {"ok": False, "error": "אין גיבוי מלא לשחזור", "state": get_gtav_mod_state()}
+    import gevent
+    gevent.spawn(_run_gtav_restore_backup)
+    return {"ok": True, "started": True}
+
+
 def _run_game_mod_install(game_id: str) -> None:
     """Background worker: download (if needed) + install a game mod.
 
@@ -697,12 +1529,44 @@ def _run_game_mod_install(game_id: str) -> None:
     try:
         cfg  = _config_for(game_id)
         base = _install_path(game_id)
-        if not _game_mod.is_cached(game_id):
+        # Where the files actually go — the game folder for most mods, or
+        # %Documents%\…\mods for a loose-file Documents mod (Anno). For a
+        # Documents mod the folder may not exist yet (game never launched) —
+        # create it so the writability probe + copy succeed.
+        deploy = _deploy_root(game_id)
+        if cfg and getattr(cfg, "documents_subdir", "") and deploy is not None:
+            try:
+                deploy.mkdir(parents=True, exist_ok=True)
+            except OSError:
+                pass
+        # Decide whether to (re)download. NOT cached → must download. Cached
+        # but the server has a NEWER version → this is an UPDATE, so refresh
+        # the cache (download_and_cache wipes it first). Without this, an
+        # update click silently re-installed the stale cached version and the
+        # panel stayed stuck on "update available".
+        need_dl = not _game_mod.is_cached(game_id)
+        if not need_dl:
+            try:
+                cached_v = (_game_mod.read_state(game_id) or {}).get("version")
+                latest_v = _mod_source.fetch_manifest(slug=cfg.mod_slug).get("version")
+                if cached_v and latest_v and _version_is_newer(latest_v, cached_v):
+                    need_dl = True
+            except Exception:                              # offline → install cache as-is
+                pass
+        # Fail fast on a read-only game folder (e.g. a game under Program Files
+        # with a non-elevated launcher) BEFORE spending a large download — the
+        # copy would only fail with PermissionError at the very end otherwise.
+        if deploy is not None and need_dl and not _game_mod.is_writable(deploy):
+            _mod_progress_cb("error", 0,
+                "אין הרשאת כתיבה לתיקיית היעד. הפעל את התוכנה כמנהל, "
+                "או העבר את המשחק מחוץ ל-Program Files, ונסה שוב.")
+            return
+        if need_dl:
             r = _game_mod.download_and_cache(game_id, cfg.mod_slug, _mod_progress_cb)
             if not r.get("ok"):
                 _mod_progress_cb("error", 0, r.get("error") or "כשל בהורדת התרגום")
                 return
-        r = _game_mod.install(game_id, base, _mod_progress_cb)
+        r = _game_mod.install(game_id, deploy, _mod_progress_cb)
         if not r.get("ok"):
             _mod_progress_cb("error", 0, r.get("error") or "כשל בהתקנת התרגום")
             return
@@ -712,6 +1576,10 @@ def _run_game_mod_install(game_id: str) -> None:
             except Exception as e:                      # pragma: no cover
                 print(f"[cp2077_language] enable failed: {e}", flush=True)
             _cp2077_disable_crash_reporter(base)
+        elif game_id == _ANNO_ID:
+            # Auto-select the English text slot (where the Hebrew ships); the
+            # user still toggles the language once in-game (see the UI note).
+            _anno1800_set_language_english()
         _mod_progress_cb("done", 100, "ההתקנה הושלמה")
     except Exception as e:                              # pragma: no cover
         _mod_progress_cb("error", 0, f"שגיאה: {e}")
@@ -753,6 +1621,13 @@ def set_game_mod_installed(game_id: str, installed: bool) -> dict:
     if cfg is None or not cfg.mod_slug or base is None:
         return {"ok": False, "error": "פעולה לא זמינה",
                 "state": get_game_mod_state(game_id)}
+    # File target — game folder for most mods, %Documents%\… for Anno.
+    deploy = _deploy_root(game_id)
+    if installed and cfg.documents_subdir and deploy is not None:
+        try:
+            deploy.mkdir(parents=True, exist_ok=True)
+        except OSError:
+            pass
     if installed:
         # DRM gate — mirrors download_and_install_game_mod. Without this,
         # any user with a stale local cache could re-apply a paid mod by
@@ -762,11 +1637,13 @@ def set_game_mod_installed(game_id: str, installed: bool) -> dict:
         if _game_price_cents(game_id) > 0 and not auth_owns_game(game_id):
             return {"ok": False, "error": "המשחק טרם נרכש",
                     "state": get_game_mod_state(game_id)}
-        r = _game_mod.install(game_id, base, _mod_progress_cb)
+        r = _game_mod.install(game_id, deploy, _mod_progress_cb)
         hook = _cp2077_enable_arabic_slot
     else:
-        r = _game_mod.disable(game_id, base)
+        r = _game_mod.disable(game_id, deploy)
         hook = _cp2077_restore_language
+    if r.get("ok") and game_id == _ANNO_ID and installed:
+        _anno1800_set_language_english()
     lang = None
     if r.get("ok") and game_id == _CP2077_ID:
         try:
@@ -798,8 +1675,57 @@ def clear_game_mod_cache(game_id: str) -> dict:
             except Exception as e:                      # pragma: no cover
                 print(f"[cp2077_language] restore (clear) failed: {e}", flush=True)
         _cp2077_restore_crash_reporter(base)
-    r = _game_mod.clear_cache(game_id, base, cfg.mod_files if cfg else [])
+    r = _game_mod.clear_cache(game_id, _deploy_root(game_id), cfg.mod_files if cfg else [])
     return {**r, "state": get_game_mod_state(game_id)}
+
+
+def _lang_mod_installed(game_id: str) -> bool | None:
+    """Is the Hebrew mod present, for the 'auto' language mode?
+
+    Launcher-tracked mods (CP2077) → the real install state. Games whose mod
+    the launcher doesn't manage (Spider-Man 2 ships via Overstrike) → None,
+    which game_language reads as 'translated' so auto means Hebrew."""
+    cfg = _config_for(game_id)
+    if cfg is None or not cfg.mod_files:
+        return None
+    try:
+        st = get_game_mod_state(game_id)
+        if st.get("modSlug"):
+            return bool(st.get("installed"))
+    except Exception:                                   # pragma: no cover
+        pass
+    return _mod_state(game_id) == "ACTIVE"
+
+
+@eel.expose
+def get_game_language(game_id: str) -> dict:
+    """Current in-game TEXT-language state for the launcher's 3-way switch
+    (auto / Hebrew[Arabic] / English). {supported:false} for unsupported
+    titles so the UI simply hides the control."""
+    try:
+        return _game_language.get_state(game_id, installed=_lang_mod_installed(game_id))
+    except Exception as e:                              # pragma: no cover
+        return {"supported": False, "error": str(e)}
+
+
+@eel.expose
+def set_game_language(game_id: str, mode: str) -> dict:
+    """Apply a language mode ('auto' | 'hebrew' | 'english') and persist it.
+    The pre-mod language is captured on first write so restore stays exact."""
+    try:
+        return _game_language.set_mode(game_id, mode, installed=_lang_mod_installed(game_id))
+    except Exception as e:                              # pragma: no cover
+        return {"ok": False, "supported": True, "error": str(e)}
+
+
+@eel.expose
+def restore_game_language(game_id: str) -> dict:
+    """Revert the game's text language to whatever it was before the launcher
+    first touched it (the genuine pre-mod value; English if never captured)."""
+    try:
+        return _game_language.restore_original(game_id)
+    except Exception as e:                              # pragma: no cover
+        return {"ok": False, "error": str(e)}
 
 
 @eel.expose
@@ -1010,6 +1936,7 @@ def get_launcher_prefs() -> dict:
     return {
         "closeBehavior": launcher_prefs.get_close_behavior(),       # "minimize" | "close" | None
         "startWithOs":   autostart.is_enabled(),
+        "disableGpu":    launcher_prefs.get_disable_gpu_compositing(),
     }
 
 
@@ -1027,6 +1954,23 @@ def set_close_behavior(behavior: str | None) -> dict:
         return {"ok": False, "error": f"invalid-behavior:{behavior!r}"}
     return {
         "ok": ok,
+        "closeBehavior": launcher_prefs.get_close_behavior(),
+        "startWithOs":   autostart.is_enabled(),
+    }
+
+
+@eel.expose
+def set_gpu_compositing(enabled: bool) -> dict:
+    """Persist the GPU-acceleration choice. `enabled=True` (default) uses the
+    GPU for a smooth, Steam-grade UI; `False` routes paint through the CPU to
+    avoid flicker when another workload saturates the GPU. Stored inverted as
+    `disable_gpu_compositing`; takes effect on the NEXT launch (Chromium flags
+    are fixed at boot). Returns a fresh prefs snapshot."""
+    from translation_manager import autostart, launcher_prefs
+    launcher_prefs.set_disable_gpu_compositing(not bool(enabled))
+    return {
+        "ok": True,
+        "disableGpu":    launcher_prefs.get_disable_gpu_compositing(),
         "closeBehavior": launcher_prefs.get_close_behavior(),
         "startWithOs":   autostart.is_enabled(),
     }
@@ -1115,16 +2059,53 @@ def cancel_download(item_id: str) -> dict:
 # PrepareToInstall hook force-closes this process; its [Run] entry
 # relaunches the freshly-installed version.
 
+# Pre-release stage model — MIRRORS website/src/lib/version.ts and
+# frontend/src/lib/version.ts. Keep the three in lockstep.
+_STAGE_RANK = {"alpha": 0, "beta": 1, "rc": 2, "stable": 3}
+_STAGE_ALIASES = {
+    "alpha": "alpha", "a": "alpha", "pre": "alpha",
+    "beta": "beta", "b": "beta",
+    "rc": "rc", "release-candidate": "rc", "releasecandidate": "rc",
+    "stable": "stable", "final": "stable", "release": "stable", "": "stable",
+}
+
+
 def _parse_version(v: str) -> tuple:
-    """'v1.2.3' / '1.2.3' → (1, 2, 3). Non-numeric junk → 0."""
-    cleaned = (v or "").strip().lstrip("vV")
-    out: list[int] = []
-    for part in cleaned.split(".")[:4]:
+    """'1.2.3' / '1.1.0-beta.2' → (scheme, major, minor, patch, stage_rank, pre).
+
+    SemVer `MAJOR.MINOR.PATCH` with an optional pre-release stage suffix
+    `-<stage>.<n>`. Stages oldest→newest: alpha → beta → rc → stable; a
+    pre-release ranks BELOW the matching stable (SemVer §11), encoded as
+    stage_rank alpha=0/beta=1/rc=2/stable=3 then the prerelease counter.
+
+    The CP2077 mod versioning moved from a date scheme (YYYY.MM.DD, e.g.
+    2026.05.22) to semver. A date's major (>=2000) would dwarf a semver major,
+    so a date is ranked BELOW every semver via a leading 0/1 scheme tag (and
+    `1.0.2` correctly reads as newer than `2026.05.22`).
+    """
+    raw = (v or "").strip()
+    body = raw.lstrip("vV")
+    dash = body.find("-")
+    core = body[:dash] if dash >= 0 else body
+    pre_s = body[dash + 1:] if dash >= 0 else ""
+
+    nums: list[int] = []
+    for part in core.split(".")[:3]:
         digits = "".join(ch for ch in part if ch.isdigit())
-        out.append(int(digits) if digits else 0)
-    while len(out) < 3:
-        out.append(0)
-    return tuple(out)
+        nums.append(int(digits) if digits else 0)
+    while len(nums) < 3:
+        nums.append(0)
+    major, minor, patch = nums[0], nums[1], nums[2]
+    scheme = 0 if major >= 2000 else 1   # date-scheme ranks below semver
+
+    stage, pre = "stable", 0
+    if pre_s:
+        import re as _re
+        m = _re.match(r"([a-zA-Z][a-zA-Z-]*)\.?(\d+)?", pre_s)
+        if m:
+            stage = _STAGE_ALIASES.get(m.group(1).lower(), "stable")
+            pre = int(m.group(2)) if m.group(2) else 0
+    return (scheme, major, minor, patch, _STAGE_RANK[stage], pre)
 
 
 def _version_is_newer(latest: str, current: str) -> bool:
@@ -1132,6 +2113,30 @@ def _version_is_newer(latest: str, current: str) -> bool:
         return _parse_version(latest) > _parse_version(current)
     except Exception:
         return False
+
+
+def _is_prerelease(v: str) -> bool:
+    """True for alpha/beta/rc versions (stage_rank < stable=3)."""
+    try:
+        return _parse_version(v)[4] < 3
+    except Exception:
+        return False
+
+
+def _offer_update(game_id: str, latest: str, installed: str) -> bool:
+    """Whether to OFFER `latest` as an update over `installed`: it must be
+    newer AND either stable, OR the user opted into pre-release (beta) updates
+    for this mod (per-mod override wins over the global beta-channel flag).
+    This is what keeps stable users off betas unless they choose otherwise."""
+    if not (installed and latest and _version_is_newer(latest, installed)):
+        return False
+    if _is_prerelease(latest):
+        try:
+            from translation_manager import launcher_prefs
+            return launcher_prefs.wants_prerelease(game_id)
+        except Exception:
+            return False
+    return True
 
 
 @eel.expose
@@ -1142,7 +2147,7 @@ def get_launcher_update_info() -> dict:
 
     Update detection is version-OR-build: a higher version, OR the SAME
     version carrying a different build-id than this build. The launcher
-    re-releases in place as v1.1.0, so without the build-id arm the
+    re-releases in place (same version), so without the build-id arm the
     self-updater would never fire on a re-released build."""
     info: dict = {
         "currentVersion":  LAUNCHER_VERSION,
@@ -1206,6 +2211,28 @@ def _emit_update_progress(phase: str, pct: float, detail: str) -> None:
 import threading as _su_threading_root
 _launcher_update_cancel = _su_threading_root.Event()
 
+# The self-updater downloads an installer and EXECUTES it, so the URL must be
+# HTTPS on a host we control/trust — never a feed-controlled http:// or foreign
+# host (MITM / redirect-to-arbitrary-installer on an unsigned exe = RCE).
+_TRUSTED_UPDATE_HOSTS = (
+    "github.com",
+    "objects.githubusercontent.com",
+    "release-assets.githubusercontent.com",
+    "hebrew-translation-hub.com",
+)
+
+
+def _is_trusted_update_url(url: str) -> bool:
+    try:
+        from urllib.parse import urlparse
+        u = urlparse(url)
+        if u.scheme != "https":
+            return False
+        host = (u.hostname or "").lower()
+        return any(host == h or host.endswith("." + h) for h in _TRUSTED_UPDATE_HOSTS)
+    except Exception:
+        return False
+
 
 def _run_launcher_update() -> None:
     """Background worker: download installer → verify SHA-256 → run it
@@ -1219,6 +2246,13 @@ def _run_launcher_update() -> None:
     url = info.get("downloadUrl")
     if not url:
         _emit_update_progress("error", 0, info.get("error") or "אין קישור הורדה זמין")
+        return
+    # Security: the downloaded file is executed as an installer — reject any
+    # non-HTTPS / non-allowlisted URL before touching the network.
+    if not _is_trusted_update_url(url):
+        _emit_update_progress(
+            "error", 0,
+            "כתובת ההורדה אינה מאובטחת (נדרש https מהמקור הרשמי). העדכון בוטל.")
         return
 
     expected_sha = (info.get("sha256") or "").strip().lower()
@@ -1278,24 +2312,33 @@ def _run_launcher_update() -> None:
         _emit_update_progress("cancelled", 0, "בוטל")
         return
 
-    # ── Verify SHA-256 (skip only if the feed carries no hash) ──
-    if expected_sha:
-        try:
-            _emit_update_progress("verify", 0, "מאמת את תקינות הקובץ…")
-            h = hashlib.sha256()
-            with open(installer, "rb") as fh:
-                for blk in iter(lambda: fh.read(1048576), b""):
-                    h.update(blk)
-            if h.hexdigest().lower() != expected_sha:
-                _emit_update_progress(
-                    "error", 0,
-                    "אימות הקובץ נכשל — ההורדה כנראה פגומה. נסה שוב.",
-                )
-                return
-            _emit_update_progress("verify", 100, "הקובץ אומת בהצלחה")
-        except Exception as e:
-            _emit_update_progress("error", 0, f"שגיאת אימות: {e}")
+    # ── Verify SHA-256 (MANDATORY — the installer is executed next) ──
+    # No hash from the feed → refuse to run an unverified installer.
+    if not expected_sha:
+        try: installer.unlink(missing_ok=True)
+        except OSError: pass
+        _emit_update_progress(
+            "error", 0,
+            "העדכון בוטל — השרת לא סיפק חתימת אימות (SHA-256) לקובץ.")
+        return
+    try:
+        _emit_update_progress("verify", 0, "מאמת את תקינות הקובץ…")
+        h = hashlib.sha256()
+        with open(installer, "rb") as fh:
+            for blk in iter(lambda: fh.read(1048576), b""):
+                h.update(blk)
+        if h.hexdigest().lower() != expected_sha:
+            try: installer.unlink(missing_ok=True)
+            except OSError: pass
+            _emit_update_progress(
+                "error", 0,
+                "אימות הקובץ נכשל — ההורדה כנראה פגומה או שונתה. נסה שוב.",
+            )
             return
+        _emit_update_progress("verify", 100, "הקובץ אומת בהצלחה")
+    except Exception as e:
+        _emit_update_progress("error", 0, f"שגיאת אימות: {e}")
+        return
 
     if _launcher_update_cancel.is_set():
         try: installer.unlink(missing_ok=True)
@@ -1566,6 +2609,20 @@ def auth_logout() -> dict:
 
 
 @eel.expose
+def auth_consume_takeover() -> bool:
+    """One-shot: True iff THIS install was just displaced by a sign-in on
+    another device (single-session enforcement), then clears the marker.
+    The UI calls this when auth_me() flips to signed-out to decide whether
+    to show the 'you signed in from another device' notice."""
+    if not _auth_available or _auth is None:
+        return False
+    try:
+        return bool(_auth.consume_takeover())
+    except Exception:
+        return False
+
+
+@eel.expose
 def auth_owns_game(game_id: str) -> bool:
     """DRM check — fails closed on any error.
 
@@ -1623,6 +2680,38 @@ def auth_get_my_votes() -> list[str]:
     except Exception as e:                              # pragma: no cover
         print(f"[auth_get_my_votes] failed: {e}", flush=True)
         return []
+
+
+@eel.expose
+def report_crash(error_type: str, message: str, traceback_: str = "",
+                 screen: str = "") -> bool:
+    """Frontend → backend crash bridge. The React ErrorBoundary + global
+    error listeners call this so a UI crash is reported through the SAME
+    PII-scrubbing + opt-in path as Python crashes. Fire-and-forget."""
+    try:
+        _crash.report(error_type or "FrontendError", message or "",
+                      traceback_ or "", screen=screen or None)
+        return True
+    except Exception:
+        return False
+
+
+@eel.expose
+def get_crash_opt_in() -> bool:
+    """Whether crash reporting is enabled (default True)."""
+    try:
+        return _crash.is_enabled()
+    except Exception:
+        return True
+
+
+@eel.expose
+def set_crash_opt_in(enabled: bool) -> bool:
+    """Toggle crash reporting (Settings checkbox)."""
+    try:
+        return _crash.set_enabled(bool(enabled))
+    except Exception:
+        return False
 
 
 @eel.expose

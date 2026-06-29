@@ -148,13 +148,13 @@ function IdentityCard({
 
   return (
     <section
-      className="rounded-3xl border border-white/10 backdrop-blur-2xl p-5 md:p-6
+      className="rounded-3xl border border-white/10 p-5 md:p-6
                  flex flex-col md:flex-row items-center md:items-stretch gap-5"
       style={{
         background:
           'radial-gradient(circle at 80% 0%, rgba(0,255,224,0.10), transparent 60%),' +
           'radial-gradient(circle at 20% 100%, rgba(255,247,0,0.05), transparent 65%),' +
-          'rgba(7, 7, 16, 0.55)',
+          'rgba(7, 7, 16, 0.92)',
         boxShadow: '0 30px 60px -25px rgba(0,0,0,0.7)',
       }}
     >

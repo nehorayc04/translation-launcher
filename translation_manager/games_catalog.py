@@ -73,9 +73,10 @@ PLANNED: list[CatalogGame] = [
         "מיילס מוראלס לוקח את הזירה",
         "ספיידר-מן חדש מגיע להארלם בעיצוב חורף קסום. סיפור עוצמתי על מציאת הקול הפנימי שלך — בתרגום מלא."),
     CatalogGame("spiderman2", "Marvel's Spider-Man 2", "מארוול ספיידר-מן 2",
-        "—", "default", "planned",
+        "בטא — ממשק", "default", "in-progress",
         "פיטר ומיילס יוצאים יחד נגד וונום",
-        "שני הספיידר-מן מאחדים כוחות מול קרייבן ובוונום בעולם פתוח גדול פי שניים. ניו יורק כולה — קווינס וברוקלין כלולים — פרושה לקפיצה אחת."),
+        "תרגום עברית מלא לממשק המשחק — כל התפריטים, ההגדרות, התיאורים והכפתורים, עם כיווניות RTL תקינה. גרסת בטא: כתוביות ודיאלוג בתוך המשחק עדיין באנגלית (יתורגמו בהמשך). מותקן דרך Overstrike; במשחק יש לבחור שפה = ערבית.",
+        progress=20),
     CatalogGame("witcher3", "The Witcher 3: Wild Hunt", "המכשף 3: ציד פראי",
         "—", "default", "planned",
         "צאו לציד מפלצות עם גראלט מריוויה",
@@ -165,6 +166,12 @@ PLANNED: list[CatalogGame] = [
         "—", "default", "planned",
         "חזרה לשורשים בבגדאד",
         "עקבו אחר באסים בדרכו מנער רחוב למאסטר מתנקש."),
+    # id matches the website/Supabase games row ("ac-shadows", hyphenated)
+    # so the launcher's detection + the live catalog line up on the same id.
+    CatalogGame("ac-shadows", "Assassin's Creed Shadows", "אססינ'ס קריד: שאדוס",
+        "—", "default", "planned",
+        "יפן הפיאודלית דרך עיניהם של נאואה ויאסקה",
+        "הרפתקת התגנבות ולחימה ביפן של המאה ה-16 עם שתי דמויות משחק."),
     # ── Strategy / city-builder ──
     CatalogGame("anno1800", "Anno 1800", "אנו 1800",
         "—", "default", "planned",

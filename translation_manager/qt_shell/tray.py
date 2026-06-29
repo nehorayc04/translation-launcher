@@ -82,9 +82,11 @@ class Tray:
 
     # ── Handlers ──────────────────────────────────────────────────
     def _on_activated(self, reason) -> None:
-        # Double-click on the tray icon also restores the window - same
-        # affordance Windows users expect from any other tray app.
-        if reason == QSystemTrayIcon.DoubleClick:
+        # Single LEFT-click (Trigger) AND double-click both restore the
+        # window — the affordance Windows users expect from any tray app.
+        # Right-click (Context) still shows the menu via the default
+        # context-menu handling, so we don't intercept it here.
+        if reason in (QSystemTrayIcon.Trigger, QSystemTrayIcon.DoubleClick):
             self._on_open()
 
     def _on_open(self) -> None:

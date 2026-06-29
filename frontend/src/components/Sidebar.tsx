@@ -2,11 +2,11 @@
 // panel, version footer. The bottom panel replaces the old UpdatesMenu —
 // updates now live in the dedicated /downloads view.
 import { useEffect, useMemo, useState, type ComponentType, type SVGProps } from "react";
-import { HomeIcon, LibraryIcon, DownloadsIcon, SettingsIcon, FolderIcon, AppsIcon } from "./NavIcons";
+import { HomeIcon, LibraryIcon, DownloadsIcon, SettingsIcon } from "./NavIcons";
 import { useLauncherAuth } from "../lib/useLauncherAuth";
 import AuthModal from "./AuthModal";
 
-export type NavKey = "home" | "games" | "apps" | "downloads" | "personal" | "settings";
+export type NavKey = "home" | "games" | "downloads" | "personal" | "settings";
 
 interface NavLeaf {
   kind:   "leaf";
@@ -46,17 +46,9 @@ function PersonIcon(props: SVGProps<SVGSVGElement>) {
 // row tree stays simple and crash-free.
 const NAV: NavItem[] = [
   { kind: "leaf",  key: "home", label: "דף הבית", Icon: HomeIcon, accent: "#fff700" },
-  {
-    kind:   "group",
-    id:     "library",
-    label:  "ספרייה",
-    Icon:   FolderIcon,
-    accent: "#d4af37",
-    children: [
-      { kind: "leaf", key: "games", label: "משחקים", Icon: LibraryIcon, accent: "#d4af37" },
-      { kind: "leaf", key: "apps",  label: "תוכנות", Icon: AppsIcon,    accent: "#66c0f4" },
-    ],
-  },
+  // "תוכנות" (Apps/Steam) hidden — only the games library remains. Kept as a
+  // single routable "ספרייה" row (the group wrapper is unnecessary with one child).
+  { kind: "leaf", key: "games", label: "ספרייה", Icon: LibraryIcon, accent: "#d4af37" },
   { kind: "leaf", key: "downloads", label: "הורדות ועדכונים", Icon: DownloadsIcon, accent: "#22c55e" },
   { kind: "leaf", key: "personal",  label: "אזור אישי",        Icon: PersonIcon,    accent: "#00ffe0" },
 ];
@@ -72,35 +64,65 @@ interface Props {
 
 export default function Sidebar({ current, onNavigate, onRefresh, version }: Props) {
   const year = useMemo(() => new Date().getFullYear(), []);
+  // Collapsible — persisted so the choice survives navigation/restart.
+  const [collapsed, setCollapsed] = useState<boolean>(
+    () => { try { return localStorage.getItem("sidebarCollapsed") === "1"; } catch { return false; } }
+  );
+  useEffect(() => {
+    try { localStorage.setItem("sidebarCollapsed", collapsed ? "1" : "0"); } catch { /* ignore */ }
+  }, [collapsed]);
+
   return (
-    <aside className="glass-strong rounded-2xl flex flex-col w-[230px] flex-shrink-0 p-3 gap-3">
-      {/* Brand block */}
-      <div className="flex items-center justify-end gap-3 px-2 pt-2 pb-3
-                      border-b border-white/5">
-        <div className="text-right">
-          <div className="font-bold text-white text-[15px] leading-tight">פרויקט התרגום</div>
-          <div className="font-display text-[8px] tracking-[0.25em] text-brand-cyan mt-0.5">
-            H E B R E W &nbsp; A I
-          </div>
-        </div>
+    <aside
+      className={[
+        "glass-strong rounded-2xl flex flex-col flex-shrink-0 p-3 gap-3",
+        "transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+        collapsed ? "w-[72px]" : "w-[230px]",
+      ].join(" ")}
+    >
+      {/* Brand block + collapse toggle */}
+      <div className={[
+        "flex items-center gap-3 px-1 pt-1 pb-3 border-b border-white/5",
+        collapsed ? "flex-col" : "justify-end",
+      ].join(" ")}>
+        {!collapsed && (
+          <>
+            <button
+              type="button"
+              onClick={() => setCollapsed(true)}
+              title="כווץ סרגל"
+              aria-label="כווץ סרגל"
+              className="w-7 h-7 rounded-lg grid place-items-center text-slate-400
+                         hover:text-white hover:bg-white/10 transition shrink-0"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M9 6l6 6-6 6" />
+              </svg>
+            </button>
+            <div className="text-right flex-1">
+              <div className="font-bold text-white text-[15px] leading-tight">פרויקט התרגום</div>
+              <div className="font-display text-[8px] tracking-[0.25em] text-brand-cyan mt-0.5">
+                H E B R E W &nbsp; A I
+              </div>
+            </div>
+          </>
+        )}
 
-        {/* NEW AAA NEON BRAND AVATAR WITH IMAGE */}
-        <div className="relative flex items-center justify-center w-11 h-11 rounded-full bg-[#1a0d40] border-[1.5px] border-[#00ffe0] shadow-[0_0_12px_rgba(0,255,224,0.4)] overflow-hidden shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(0,255,224,0.7)] group">
-          {/* אפקט הארה פנימי במעבר עכבר שמונח מעל התמונה */}
+        {/* NEON BRAND AVATAR (always shown). When collapsed it doubles as the
+            expand button. */}
+        <button
+          type="button"
+          onClick={collapsed ? () => setCollapsed(false) : undefined}
+          title={collapsed ? "הרחב סרגל" : undefined}
+          className="relative flex items-center justify-center w-11 h-11 rounded-full bg-[#1a0d40] border-[1.5px] border-[#00ffe0] shadow-[0_0_12px_rgba(0,255,224,0.4)] overflow-hidden shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(0,255,224,0.7)] group"
+        >
           <div className="absolute inset-0 bg-gradient-to-br from-[#00ffe0]/30 to-[#fff700]/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none" />
-
-          {/* התמונה מהאתר. שמורה ב-frontend/public/profile.png ומועתקת
-              ע"י Vite ל-dist/. נתיב יחסי "./" עובד גם תחת Eel (HTTP origin,
-              גועצ מצרת מ-dist) וגם תחת ה-Qt shell (file://, נטען ליד
-              index.html). נתיב מוחלט "/profile.png" היה נפתר ל-file:///C:/
-              ב-file:// — drive root — ומחזיר 404, מה שגרם ל-onError לסיים
-              ב-fallback "ת". */}
           <img
             src="./profile.png"
             alt="User Profile"
             className="w-full h-full object-cover relative z-0"
             onError={(e) => {
-              // במקרה שהתמונה לא נמצאת, נחזור לאות "ת" בתור גיבוי
               e.currentTarget.style.display = 'none';
               e.currentTarget.nextElementSibling?.classList.remove('hidden');
             }}
@@ -108,36 +130,37 @@ export default function Sidebar({ current, onNavigate, onRefresh, version }: Pro
           <span className="hidden text-[#fff700] font-black text-xl tracking-tighter drop-shadow-[0_0_8px_rgba(255,247,0,0.9)] z-10" style={{ fontFamily: 'system-ui, sans-serif', paddingBottom: '2px' }}>
             ת
           </span>
-        </div>
+        </button>
       </div>
 
       {/* Nav */}
       <nav className="flex flex-col gap-1 mt-1">
         {NAV.map((item) =>
           item.kind === "leaf"
-            ? <NavRow key={item.key} item={item} current={current} onNavigate={onNavigate} />
-            : <NavGroupRow key={item.id} group={item} current={current} onNavigate={onNavigate} />
+            ? <NavRow key={item.key} item={item} current={current} onNavigate={onNavigate} collapsed={collapsed} />
+            : <NavGroupRow key={item.id} group={item} current={current} onNavigate={onNavigate} collapsed={collapsed} />
         )}
       </nav>
 
       {/* Spacer */}
       <div className="flex-1" />
 
-      {/* Auth slot — sign in / avatar + logout. The "אזור אישי" entry
-          point lives in the main NAV list above (not here) so this row
-          stays simple and HTML-valid (no nested clickables). */}
-      <AuthSlot />
+      {/* Auth slot — sign in / avatar + logout. */}
+      <AuthSlot collapsed={collapsed} />
 
       {/* Bottom action panel — Settings + Refresh */}
       <SettingsPanel
         active={current === "settings"}
         onOpen={() => onNavigate("settings")}
         onRefresh={onRefresh}
+        collapsed={collapsed}
       />
 
-      <div className="text-center text-[10px] text-slate-500 pb-1 font-mono" dir="ltr">
-        {version} • © {year}
-      </div>
+      {!collapsed && (
+        <div className="text-center text-[10px] text-slate-500 pb-1 font-mono" dir="ltr">
+          {version} • © {year}
+        </div>
+      )}
     </aside>
   );
 }
@@ -145,40 +168,51 @@ export default function Sidebar({ current, onNavigate, onRefresh, version }: Pro
 // Standalone nav row (leaf). Mirrors the old map-callback markup so it
 // stays visually identical to a top-level item.
 function NavRow({
-  item, current, onNavigate, indent = false,
+  item, current, onNavigate, indent = false, collapsed = false,
 }: {
   item:     NavLeaf;
   current:  NavKey;
   onNavigate: (key: NavKey) => void;
   indent?:  boolean;
+  collapsed?: boolean;
 }) {
   const active = item.key === current;
+  const iconPx = indent && !collapsed ? 16 : 20;
   return (
     <button
+      type="button"
       onClick={() => onNavigate(item.key)}
+      title={collapsed ? item.label : undefined}
       className={[
         "group relative flex items-center gap-3 text-right",
-        "rounded-xl pl-3 py-2.5 transition-all duration-150",
-        // RTL: indent pushes content away from the right edge.
-        indent ? "pr-7 text-[13px]" : "pr-3 text-[14px]",
+        "rounded-xl py-2.5 transition-all duration-150",
+        collapsed ? "justify-center px-0" : indent ? "pr-7 pl-3 text-[13px]" : "pr-3 pl-3 text-[14px]",
         active
           ? "bg-white/[0.08] text-white"
           : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-200",
       ].join(" ")}
+      style={{ ["--ic" as string]: item.accent }}
     >
       <span
         className={[
           "absolute right-0 top-2 bottom-2 w-[3px] rounded-full transition-opacity",
           active ? "opacity-100" : "opacity-0",
         ].join(" ")}
-        style={{ background: item.accent }}
+        style={{ background: item.accent, boxShadow: active ? `0 0 16px 1px ${item.accent}, 0 0 4px ${item.accent}` : undefined }}
       />
-      <span className="flex-1 font-medium">{item.label}</span>
+      {/* soft accent wash behind the active row (stronger glow) */}
+      {active && (
+        <span className="absolute inset-0 rounded-xl opacity-100 pointer-events-none"
+              style={{ background: `linear-gradient(to left, ${item.accent}22, transparent 75%)` }}
+              aria-hidden />
+      )}
+      {!collapsed && <span className="flex-1 font-medium">{item.label}</span>}
+      {/* Monochrome at rest → accent on hover (CSS var) → accent when active. */}
       <item.Icon
-        className="transition-colors"
-        width={indent ? 16 : 20}
-        height={indent ? 16 : 20}
-        style={{ color: active ? item.accent : undefined }}
+        className={active ? "" : "group-hover:[color:var(--ic)] transition-colors duration-200"}
+        width={iconPx}
+        height={iconPx}
+        style={active ? { color: item.accent } : undefined}
       />
     </button>
   );
@@ -187,35 +221,38 @@ function NavRow({
 // Non-routable section header + its indented children. Header highlights
 // faintly when one of its children is the active view.
 function NavGroupRow({
-  group, current, onNavigate,
+  group, current, onNavigate, collapsed = false,
 }: {
   group:     NavGroup;
   current:   NavKey;
   onNavigate: (key: NavKey) => void;
+  collapsed?: boolean;
 }) {
   const childActive = group.children.some((c) => c.key === current);
   return (
     <div className="flex flex-col">
-      <div
-        className={[
-          "relative flex items-center gap-3 text-right",
-          "rounded-xl pr-3 pl-3 py-2 cursor-default select-none",
-          childActive ? "text-slate-100" : "text-slate-500",
-        ].join(" ")}
-      >
-        <span
-          className="absolute right-0 top-2 bottom-2 w-[2px] rounded-full opacity-30"
-          style={{ background: group.accent }}
-        />
-        <span className="flex-1 text-[14px] font-semibold tracking-wide">
-          {group.label}
-        </span>
-        <group.Icon
-          width={18}
-          height={18}
-          style={{ color: childActive ? group.accent : undefined }}
-        />
-      </div>
+      {!collapsed && (
+        <div
+          className={[
+            "relative flex items-center gap-3 text-right",
+            "rounded-xl pr-3 pl-3 py-2 cursor-default select-none",
+            childActive ? "text-slate-100" : "text-slate-500",
+          ].join(" ")}
+        >
+          <span
+            className="absolute right-0 top-2 bottom-2 w-[2px] rounded-full opacity-30"
+            style={{ background: group.accent }}
+          />
+          <span className="flex-1 text-[14px] font-semibold tracking-wide">
+            {group.label}
+          </span>
+          <group.Icon
+            width={18}
+            height={18}
+            style={{ color: childActive ? group.accent : undefined }}
+          />
+        </div>
+      )}
       <div className="flex flex-col gap-0.5 mt-0.5">
         {group.children.map((child) => (
           <NavRow
@@ -223,7 +260,8 @@ function NavGroupRow({
             item={child}
             current={current}
             onNavigate={onNavigate}
-            indent
+            indent={!collapsed}
+            collapsed={collapsed}
           />
         ))}
       </div>
@@ -231,7 +269,7 @@ function NavGroupRow({
   );
 }
 
-function AuthSlot() {
+function AuthSlot({ collapsed = false }: { collapsed?: boolean }) {
   const { user, signedIn, signOut, loading } = useLauncherAuth();
   const [modalOpen,        setModalOpen]        = useState(false);
   const [confirmLogout,    setConfirmLogout]    = useState(false);
@@ -247,16 +285,19 @@ function AuthSlot() {
   if (!signedIn) {
     return (
       <>
-        <div className="px-2 mb-2">
+        <div className={collapsed ? "px-0 mb-2 grid place-items-center" : "px-2 mb-2"}>
           <button
             type="button"
             onClick={() => setModalOpen(true)}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl
-                       bg-[#00ffe0]/10 border border-[#00ffe0]/30 text-[#00ffe0]
-                       hover:bg-[#00ffe0]/20 transition text-xs font-semibold"
+            className={[
+              "flex items-center justify-center gap-2 rounded-xl",
+              "bg-[#00ffe0]/10 border border-[#00ffe0]/30 text-[#00ffe0]",
+              "hover:bg-[#00ffe0]/20 transition text-xs font-semibold",
+              collapsed ? "w-11 h-11" : "w-full px-3 py-2",
+            ].join(" ")}
             title="פותח חלון התחברות/הרשמה בתוך הלאנצ׳ר"
           >
-            <span>🔐 התחברות/הרשמה</span>
+            <span>{collapsed ? "🔐" : "🔐 התחברות/הרשמה"}</span>
           </button>
         </div>
         <AuthModal open={modalOpen} onClose={() => setModalOpen(false)} />
@@ -265,6 +306,34 @@ function AuthSlot() {
   }
 
   const initials = (user?.fullName || user?.email || '??').slice(0, 2).toUpperCase();
+
+  if (collapsed) {
+    return (
+      <div className="px-0 mb-2 grid place-items-center">
+        <button
+          type="button"
+          onClick={() => setConfirmLogout(true)}
+          title={`${user?.fullName || user?.email || ''} — לחץ ליציאה`}
+          className="w-11 h-11 rounded-full overflow-hidden grid place-items-center
+                     border border-white/10 hover:border-rose-400/40 transition"
+        >
+          {user?.avatarUrl ? (
+            <img src={user.avatarUrl} alt={user.fullName || user.email} referrerPolicy="no-referrer"
+                 className="w-full h-full object-cover" />
+          ) : (
+            <span className="w-full h-full grid place-items-center bg-gradient-to-br from-[#00ffe0] to-[#7c3aed]
+                             text-[11px] font-extrabold text-[#0a0a14]">{initials}</span>
+          )}
+        </button>
+        <LogoutConfirm
+          open={confirmLogout}
+          userLabel={user?.fullName || user?.email?.split('@')[0] || ''}
+          onCancel={() => setConfirmLogout(false)}
+          onConfirm={async () => { setConfirmLogout(false); await signOut(); }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="px-2 mb-2">
@@ -388,11 +457,12 @@ function LogoutConfirm({
 }
 
 function SettingsPanel({
-  active, onOpen, onRefresh,
+  active, onOpen, onRefresh, collapsed = false,
 }: {
   active: boolean;
   onOpen: () => void;
   onRefresh: () => Promise<void>;
+  collapsed?: boolean;
 }) {
   const [spinning, setSpinning] = useState(false);
 
@@ -408,6 +478,39 @@ function SettingsPanel({
       setTimeout(() => setSpinning(false), 400);
     }
   };
+
+  if (collapsed) {
+    return (
+      <div className="flex flex-col items-center gap-2">
+        <button
+          type="button"
+          onClick={onOpen}
+          title="הגדרות"
+          aria-label="הגדרות"
+          className={[
+            "w-11 h-11 rounded-xl grid place-items-center transition",
+            active ? "bg-[#00ffe0] text-brand-ink" : "bg-white/[0.05] hover:bg-white/[0.10] text-slate-200",
+          ].join(" ")}
+        >
+          <SettingsIcon className="w-5 h-5" />
+        </button>
+        <button
+          type="button"
+          onClick={handleRefresh}
+          disabled={spinning}
+          title="רענון מהשרת"
+          aria-label="רענון מהשרת"
+          className="w-11 h-11 rounded-xl grid place-items-center bg-white/[0.05] hover:bg-white/[0.10]
+                     text-slate-200 transition disabled:opacity-60 disabled:cursor-wait group"
+        >
+          <svg viewBox="0 0 24 24" className={["w-5 h-5 transition-transform", spinning ? "animate-spin" : "group-hover:rotate-90"].join(" ")}
+               fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M21 12a9 9 0 1 1-3.1-6.8" /><path d="M21 4v5h-5" />
+          </svg>
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-stretch gap-2">

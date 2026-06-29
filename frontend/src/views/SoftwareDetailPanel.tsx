@@ -194,7 +194,7 @@ export default function SoftwareDetailPanel({
               {availLabel}
             </span>
             {s.version && s.version !== "—" && (
-              <span className="px-3 py-1 rounded-full text-xs bg-black/75 backdrop-blur-md
+              <span className="px-3 py-1 rounded-full text-xs bg-black/90
                                text-slate-200 ring-1 ring-white/15">
                 {s.version}
               </span>

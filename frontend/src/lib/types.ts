@@ -55,6 +55,20 @@ export interface Game {
    *  newly-added games (whose art was never shipped with the launcher)
    *  still render their cover instead of a broken-image icon. */
   cover?: string | null;
+  /** Live in-game TEXT language (interface + subtitles) the launcher read
+   *  from the game during the scan: "hebrew" | "english" | "other" |
+   *  "unknown", or null for titles whose language can't be read. */
+  currentLanguage?: "hebrew" | "english" | "other" | "unknown" | null;
+  /** Release maturity of the current mod version (alpha|beta|rc|stable) —
+   *  drives the stage badge. Mirrors the website. */
+  releaseStage?: "alpha" | "beta" | "rc" | "stable";
+  /** Latest version "what's new" (HE), shown in the detail panel. */
+  changelog?: string;
+  /** Optional Steam-style art for the detail-panel hero. When absent the
+   *  panel falls back to a blurred cover banner / the title as the logo.
+   *  Populated from the catalog (banner_url / logo_url) when available. */
+  bannerUrl?: string | null;
+  logoUrl?: string | null;
 }
 
 export interface ScanResult {
@@ -93,6 +107,9 @@ export interface LauncherPrefs {
   /** null = unset → first-launch modal needs to ask the user. */
   closeBehavior: "minimize" | "close" | null;
   startWithOs:   boolean;
+  /** true = the user opted OUT of GPU acceleration (flicker workaround).
+   *  Optional — older snapshots omit it; absent ⇒ GPU on (default). */
+  disableGpu?:   boolean;
 }
 
 export interface OpResult {

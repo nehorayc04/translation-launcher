@@ -2,7 +2,7 @@
 # yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.6.0.schema.json
 
 PackageIdentifier: Nehoray.TranslationManager
-PackageVersion: 1.1.0
+PackageVersion: 1.0.0
 PackageLocale: en-US
 Publisher: Nehoray
 PublisherUrl: https://hebrew-translation-hub.com/
@@ -33,7 +33,7 @@ Tags:
   - launcher
   - mods
   - rtl
-ReleaseNotesUrl: https://github.com/nehorayc04/translation-launcher/releases/tag/v1.1.0
+ReleaseNotesUrl: https://github.com/nehorayc04/translation-launcher/releases/tag/v1.0.0-dev
 PurchaseUrl: https://hebrew-translation-hub.com/
 ManifestType: defaultLocale
 ManifestVersion: 1.6.0

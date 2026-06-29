@@ -43,15 +43,38 @@ export function LauncherAuthProvider({ children }: { children: ReactNode }) {
   // one HTTP per card on every render.
   const ownershipCache = useRef<Map<string, boolean>>(new Map());
 
+  // Mirror of `user` kept in a ref so the periodic poll's refresh() can read
+  // the CURRENT identity (set by a poll OR a sign-in OR a sign-out) without a
+  // stale closure, to detect a signed-in → signed-out transition.
+  const userRef = useRef<LauncherUser | null>(null);
+  useEffect(() => { userRef.current = user; }, [user]);
+
   const refresh = useCallback(async () => {
     try {
       const u = await api.authMe();
+      const prevId = userRef.current?.id ?? null;
+      const nextId = u?.id ?? null;
+      // Only invalidate the ownership cache when the identity actually
+      // changes — the 60 s poll calls refresh() repeatedly and clearing
+      // unconditionally would defeat the cache.
+      if (prevId !== nextId) ownershipCache.current.clear();
+      // Signed-in → signed-out transition. Single-session enforcement makes
+      // the Python me() sign us out when another launcher install claims the
+      // account; ask whether THAT is why, and if so explain it.
+      if (prevId && !nextId) {
+        try {
+          if (await api.authConsumeTakeover()) {
+            const msg = "נותקת מהמכשיר הזה כי נכנסת לחשבון מאותו משתמש במכשיר אחר.";
+            window.dispatchEvent(new CustomEvent("auth-takeover", { detail: { message: msg } }));
+            void api.notifyOs("התנתקת מהחשבון", msg).catch(() => {});
+          }
+        } catch { /* best-effort */ }
+      }
       setUser(u ?? null);
-      // Identity changed → invalidate ownership cache.
-      ownershipCache.current.clear();
     } catch {
-      setUser(null);
-      ownershipCache.current.clear();
+      // Transport/bridge hiccup — DON'T sign out (Python me() already keeps
+      // the session on a transient error and returns the cached identity).
+      // Leaving `user` as-is avoids the "logged out after a while" bug.
     } finally {
       setLoading(false);
     }
@@ -60,6 +83,11 @@ export function LauncherAuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!api.ready()) { setLoading(false); return; }
     void refresh();
+    // Poll every 60 s so a displaced install (another device signed into the
+    // same account) disconnects on its own, and a revoked session is noticed
+    // promptly rather than lingering on a stale access token.
+    const id = window.setInterval(() => { void refresh(); }, 60_000);
+    return () => window.clearInterval(id);
   }, [refresh]);
 
   // Note: none of the operation methods below mutate `loading`. That

@@ -30,6 +30,12 @@ class GameConfig:
     # manages it via translation_manager.game_mod (cache → install →
     # disable → clear-cache). Empty = a legacy on-disk-only mod.
     mod_slug: str = ""
+    # When set, the mod is a LOOSE-FILE mod that deploys under the user's
+    # Documents folder (NOT the game folder), e.g. Anno 1800's mod loader
+    # reads `Documents\Anno 1800\mods\`. main_eel._deploy_root() routes the
+    # cache→install copy there; mod_files then live relative to that root.
+    # Empty (the default) = copy into the detected game folder, as before.
+    documents_subdir: str = ""
 
     def is_valid_dir(self, base: Path) -> bool:
         return bool(self.validation_file) and (base / self.validation_file).exists()
@@ -120,6 +126,27 @@ GAMES: dict[str, GameConfig] = {
             r"D:\SteamLibrary\steamapps\common\ELDEN RING",
         ],
         validation_file=r"Game\eldenring.exe",
+    ),
+    "Anno 1800": GameConfig(
+        name="Anno 1800",
+        internal_id="anno1800",
+        cover_theme="default",
+        # Download-distributed via the Cloudflare Worker, BUT a loose-file mod:
+        # the payload (a `zzz_hebrew_translation/` folder) deploys into
+        # %Documents%\Anno 1800\mods\ — Anno's own mod loader, NOT the game
+        # folder. mod_files is the installed-detection sentinel relative to
+        # that deploy root (a real cache payload supersedes it after download).
+        mod_slug="anno1800-hebrew",
+        documents_subdir=r"Anno 1800\mods",
+        mod_files=[r"zzz_hebrew_translation\modinfo.json"],
+        common_paths=[
+            r"C:\Program Files (x86)\Steam\steamapps\common\Anno 1800",
+            r"D:\SteamLibrary\steamapps\common\Anno 1800",
+            r"E:\SteamLibrary\steamapps\common\Anno 1800",
+            r"C:\Program Files (x86)\Ubisoft\Ubisoft Game Launcher\games\Anno 1800",
+            r"C:\Program Files\Ubisoft\Ubisoft Game Launcher\games\Anno 1800",
+        ],
+        validation_file=r"Bin\Win64\Anno1800.exe",
     ),
 }
 

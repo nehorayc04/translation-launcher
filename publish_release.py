@@ -83,11 +83,20 @@ def fail(msg: str) -> None:
 
 
 def main() -> None:
-    if len(sys.argv) != 2:
-        fail("usage: publish_release.py <version>   e.g. 1.0.8")
+    if len(sys.argv) not in (2, 3):
+        fail("usage: publish_release.py <version> [channel]   e.g. 1.0.0 dev")
     version = sys.argv[1].strip()
     if not version:
         fail("empty version")
+    # Maturity channel of this build. The stored DB `version` stays a clean
+    # SemVer (e.g. 1.0.0) and the channel is a SEPARATE column — the website
+    # joins them for display ("v1.0.0-dev"). A non-stable channel marks the
+    # GitHub release as a prerelease and tags it "v<ver>-<channel>" so a later
+    # stable "v<ver>" never collides with it.
+    channel = (sys.argv[2].strip().lower() if len(sys.argv) == 3 else "stable") or "stable"
+    if channel not in ("dev", "canary", "beta", "stable"):
+        fail(f"bad channel {channel!r} — expected dev|canary|beta|stable")
+    is_prerelease = channel != "stable"
 
     # Prefer git-credential-cached PAT (real, ASCII) over env vars which
     # on this machine may hold a Hebrew placeholder string instead.
@@ -114,6 +123,36 @@ def main() -> None:
         fail(f"asset not found: {asset_path}")
     size_bytes = asset_path.stat().st_size
 
+    # ── Build-id (CRITICAL for the in-app self-updater) ────────────────────
+    # The launcher re-releases in place as v1.1.0, so the updater can't tell
+    # two builds apart by version — it compares BUILD_ID. The DB row's
+    # build_id MUST equal the value baked into the shipped exe
+    # (translation_manager/_build_info.py), or every launcher shows a
+    # perpetual false "update available". Read it here and write it below.
+    build_info = SCRIPTS_DIR / "translation_manager" / "_build_info.py"
+    build_id = ""
+    if build_info.exists():
+        for line in build_info.read_text(encoding="utf-8", errors="replace").splitlines():
+            if line.strip().startswith("BUILD_ID"):
+                build_id = line.split("=", 1)[1].strip().strip('"').strip("'")
+                break
+    if not build_id:
+        fail("BUILD_ID not found in translation_manager/_build_info.py — run the build first")
+    print(f"[*] build_id = {build_id}", flush=True)
+
+    # Dev build counter (baked by build_exe.bat). Stored on the release row so
+    # the website can show the SAME full version as the launcher: v1.0.0-dev.<N>.
+    dev_build = 0
+    if build_info.exists():
+        for line in build_info.read_text(encoding="utf-8", errors="replace").splitlines():
+            if line.strip().startswith("DEV_BUILD"):
+                try:
+                    dev_build = int(line.split("=", 1)[1].strip())
+                except ValueError:
+                    dev_build = 0
+                break
+    print(f"[*] dev_build = {dev_build}", flush=True)
+
     # ── 1. SHA-256 ─────────────────────────────────────────────────────────
     print(f"[*] hashing {asset_path.name} ({size_bytes:,} bytes)…", flush=True)
     h = hashlib.sha256()
@@ -124,17 +163,11 @@ def main() -> None:
     print(f"[*] sha256 = {sha256}", flush=True)
 
     # ── 2. Release notes (Hebrew, user-facing) ─────────────────────────────
-    notes = (
-        "תיקון קריטי: לוח הבקרה החי בדף הבית לא הציג שום נתונים כאשר שלב הצינור "
-        "הוגדר כ-translating / extracting / packing / finalizing / qa (במקום הערך הגנרי "
-        "in-progress). עכשיו לוח הבקרה תופס את כל מצבי הצינור, כולל בריצת התרגום "
-        "החיה של סייברפאנק 2077.\n"
-        "\n"
-        "בנוסף: ניקוי לונה־סורוגייטים (Lone UTF-16 surrogate) בשדות unit / gpuModel / "
-        "aiModel / phaseLabelHe לפני שמירה לבסיס נתונים, וגיבוי-חיים בצד הלקוח "
-        "(swr_cache.py) כך שערך מקולקל לא יקרוס את גשר Eel ויפיל את הלאנצ׳ר ל"
-        "מסך שחור."
-    )
+    # End-user facing — rendered on the download page. A dev/canary build has
+    # no public "current version", so it ships with no notes (the page hides
+    # the RELEASE NOTES block for dev). Set per-release notes via the admin
+    # LauncherTab when cutting a stable/beta build.
+    notes = ""
 
     gh_headers = {
         "Authorization":        f"Bearer {gh_token}",
@@ -152,18 +185,20 @@ def main() -> None:
             fail(f"non-latin1 char in gh_headers[{k!r}] (len={len(v)}): {e}")
 
     # ── 3. Create the release (or reuse an existing draft) ─────────────────
-    tag = f"v{version}"
-    print(f"[*] creating GitHub release {tag} on {OWNER}/{REPO}…", flush=True)
+    # Non-stable channels tag as "v<ver>-<channel>" so a future stable
+    # "v<ver>" never collides with this prerelease tag.
+    tag = f"v{version}" if channel == "stable" else f"v{version}-{channel}"
+    print(f"[*] creating GitHub release {tag} on {OWNER}/{REPO} (prerelease={is_prerelease})…", flush=True)
     r = requests.post(
         f"https://api.github.com/repos/{OWNER}/{REPO}/releases",
         headers=gh_headers,
         json={
             "tag_name":         tag,
             "target_commitish": "main",
-            "name":             f"v{version}",
+            "name":             tag,
             "body":             notes,
             "draft":            False,
-            "prerelease":       False,
+            "prerelease":       is_prerelease,
         },
         timeout=60,
     )
@@ -237,6 +272,9 @@ def main() -> None:
         "notes":          notes,
         "is_current":     True,
         "screenshot_url": None,
+        "build_id":       build_id,
+        "channel":        channel,
+        "dev_build":      dev_build,
     }
     r = requests.post(
         f"{sb_url}/rest/v1/launcher_releases",

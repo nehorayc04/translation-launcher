@@ -51,7 +51,7 @@ import type { Availability, ModState } from "./types";
 // switch here and returned undefined, then GameCard accessed
 // `.tone` on undefined and crashed the entire React tree.
 export function availabilityLabel(a: string): { text: string; tone: string } {
-  const base = "bg-black/75 backdrop-blur-md ring-1";
+  const base = "bg-black/90 ring-1";
   switch (a as Availability) {
     case "available":   return { text: "זמין",            tone: `${base} text-emerald-300 ring-emerald-400/40` };
     case "in-progress": return { text: "בעבודה",          tone: `${base} text-amber-200   ring-amber-400/40` };
@@ -73,7 +73,7 @@ export function availabilityLabel(a: string): { text: string; tone: string } {
 }
 
 export function modStateLabel(s: string): { text: string; tone: string } {
-  const base = "bg-black/75 backdrop-blur-md ring-1";
+  const base = "bg-black/90 ring-1";
   switch (s as ModState) {
     case "ACTIVE":        return { text: "תרגום פעיל",       tone: `${base} text-emerald-300 ring-emerald-400/40` };
     case "DISABLED":      return { text: "תרגום מושבת",      tone: `${base} text-amber-200   ring-amber-400/40` };

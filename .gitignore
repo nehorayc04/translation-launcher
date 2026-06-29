@@ -118,3 +118,40 @@ xref-*.html
 
 # ── node_modules anywhere in the tree (catch-all) ───────────
 node_modules/
+
+# Local dev-build counter (baked into _build_info.py per build)
+_dev_build.txt
+
+# ── translation working data / corpus / mod payloads (2026-06-29) ──
+# These are large DERIVED artifacts (translation spines, queues, audit
+# dumps, binary mod payloads) — never source. Keep them out of the repo.
+*.jsonl
+*.modular
+*.stage
+*.localization
+*.loc
+*.wad
+*.rpf
+*.gxt2
+*.ffd
+*.xbt
+*.fnt
+*.bak_*
+*.bak_pre_*
+*.he_backup
+games/*/work/*.json
+games/*/work/*.xml
+games/*/extract/
+games/*/release/*.zip
+
+# ── vendored third-party tool repos (re-cloneable; not our source) ──
+games/*/tools/ALERT/
+games/*/tools/Overstrike/
+games/*/tools/FFDConverter/
+games/*/tools/Gibbed.Disrupt/
+games/*/tools/watch-dogs-loc-tool/
+games/*/tools/WatchDogs2-File-Lists/
+games/*/tools/loctool/
+games/*/tools/ffdconverter/
+games/*/tools/atk_src/
+games/*/tools/anvil_src/

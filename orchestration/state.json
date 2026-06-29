@@ -1,0 +1,103 @@
+{
+  "updated": "2026-06-29T07:40:46",
+  "games": {
+    "cyberpunk2077": {
+      "title": "Cyberpunk 2077",
+      "phase": "maintenance",
+      "progress": 100,
+      "agents": 0,
+      "version": "1.0.0-beta.3",
+      "next": "—",
+      "gate": null,
+      "notes": "base 99.8% + DLC 99.3%; לולאת Opus QA שבועית זמינה (qa_review_*)"
+    },
+    "spiderman2": {
+      "title": "Marvel's Spider-Man 2",
+      "phase": "shipped",
+      "progress": 100,
+      "agents": 0,
+      "version": "1.0.0-beta.6",
+      "next": "—",
+      "gate": null,
+      "notes": "תרגום מלא + שמות קנוניים מאומתים + עיגון RTL"
+    },
+    "watchdogs2": {
+      "title": "Watch Dogs 2",
+      "phase": "shipped",
+      "progress": 100,
+      "agents": 0,
+      "version": "1.0.0-beta.3",
+      "next": "—",
+      "gate": null,
+      "notes": "UI+כתוביות מלא; מעבר QA לשוני מלא (4 סוכנים)"
+    },
+    "godofwar_ragnarok": {
+      "title": "God of War Ragnarok",
+      "phase": "building",
+      "progress": 100,
+      "agents": 0,
+      "version": "—",
+      "next": "אימות in-game של build delta>0 → פרסום (גייט)",
+      "gate": null,
+      "notes": "100% מתורגם; build חצה ל-delta>0 לראשונה, לא אומת in-game; טרם פורסם"
+    },
+    "anno1800": {
+      "title": "Anno 1800",
+      "phase": "shipped",
+      "progress": 100,
+      "agents": 0,
+      "version": "1.0.0-beta.1",
+      "next": "wrangler deploy של slug anno1800-hebrew (אופציונלי)",
+      "gate": null,
+      "notes": "פסיקה B (אנגלית + toggle); לשחזר 189 מודי mod.io כשמסיימים בדיקה"
+    },
+    "gtav": {
+      "title": "Grand Theft Auto V (Legacy)",
+      "phase": "shipped",
+      "progress": 100,
+      "agents": 0,
+      "version": "1.0.0-beta.2",
+      "next": "לאנצ'ר שוגר עם תיקון ZLIB (in-place) + טקסט מתוקן (BUILD_ID 20260629034518, release id=52). ממתין: אימות in-game של התקנת ה-launcher; פרסום OIV לאתר (גייט)",
+      "gate": null,
+      "notes": "בתשלום ₪53; התקנת לאנצ'ר ללא OpenIV שוגרה; אימות in-game ממתין למשתמש"
+    },
+    "acshadows": {
+      "title": "Assassin's Creed Shadows",
+      "phase": "groundwork",
+      "progress": "קריאה הושלמה",
+      "agents": 0,
+      "version": "—",
+      "next": "Part B: round-trip של repacker v42 (כלי חיצוני ATK)",
+      "gate": null,
+      "notes": "חסום על repacker v42; 15,997 שורות EN הועלו ל-/translate"
+    },
+    "assassinscreed2": {
+      "title": "Assassin's Creed II (קלאסי 2009)",
+      "phase": "groundwork",
+      "progress": "קריאה הושלמה",
+      "agents": 0,
+      "version": "—",
+      "next": "בחירת LTR slot + identity round-trip → font עברי",
+      "gate": null,
+      "notes": "GO; forge scimitar-v25; כלי קריאה בנויים; AnvilToolkit ל-repack"
+    },
+    "steam": {
+      "title": "Steam UI",
+      "phase": "shipped",
+      "progress": 100,
+      "agents": 0,
+      "version": "2026.05.20",
+      "next": "—",
+      "gate": null,
+      "notes": "8 קבצים, 15,946 מחרוזות, 98% עברית"
+    }
+  },
+  "launcher": {
+    "phase": "beta",
+    "version": "1.0.0-dev",
+    "next": "User opens Settings->ביצועים, reports the GPU line (green=accelerated/red=software); if software -> Qt release-build/ANGLE fix.",
+    "notes": "v1.0.0-dev.16 SHIPPED (BUILD_ID 20260629042940, row id=53, sha 1511afd7). FPS real-fix: removed ALL component backdrop-blur + GPU default-on flags + GPU diagnostic in Settings; mod-update clickable for SM2/WD2/GTAV; installed-version row. Website review-reply thread + guest-viewable /translate LIVE.",
+    "build_id": "20260629042940"
+  },
+  "dispatch": null
+}

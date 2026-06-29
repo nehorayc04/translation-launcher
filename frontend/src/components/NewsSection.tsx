@@ -19,7 +19,8 @@ interface Props {
 
 export default function NewsSection({ onOpenGame, games, refreshNonce = 0 }: Props) {
   const { data, loading, refetch } = useSWRSource<NewsItem[]>("news", api.getNews);
-  const items = data ?? [];
+  // Show only the latest 10 on the home screen (the feed can grow large).
+  const items = (data ?? []).slice(0, 10);
 
   // Manual refresh button → invalidate and re-pull immediately.
   useEffect(() => {

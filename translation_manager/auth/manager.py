@@ -17,11 +17,15 @@ API directly — everything else goes through these four functions.
 """
 from __future__ import annotations
 
+import json
 import logging
 import threading
 import time
+import uuid
 import webbrowser
 from dataclasses import dataclass
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Optional
 from urllib.parse import quote, urlencode
 
@@ -52,6 +56,204 @@ def _debug_step(label: str) -> None:
 
 class AuthError(RuntimeError):
     """Any sign-in / refresh / API failure surfaced to the UI."""
+
+
+class AuthNetworkError(AuthError):
+    """A TRANSIENT auth failure — network down, timeout, or a 5xx/429 from
+    Supabase. The session is still valid; the caller should KEEP it and retry
+    later, NOT sign the user out. (A definitive failure — a revoked refresh
+    token, a 401/403 — is a plain AuthError and DOES clear the session.)
+
+    This split is the fix for "after a while I'm logged out and have to sign
+    in again": a single network blip while the access token was expired used
+    to wipe the whole session permanently."""
+
+
+# Serializes token refreshes across Eel/Qt worker threads. Supabase rotates
+# the refresh token on every refresh; two concurrent refreshes would make the
+# second present an already-consumed token → 400 → false logout. The lock +
+# a re-load-after-acquire (in _refresh_locked) means only one refresh runs and
+# the loser just picks up the freshly-stored token.
+_refresh_lock = threading.Lock()
+
+# Last successfully-fetched user profile, cached to disk so me() can answer
+# with a full identity (name + avatar) while OFFLINE / during a transient
+# Supabase outage instead of returning a stripped-down or empty user.
+_USER_CACHE_FILE = Path.home() / '.translation_manager' / 'user_cache.json'
+
+
+def _save_user_cache(user: dict) -> None:
+    try:
+        _USER_CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        _USER_CACHE_FILE.write_text(json.dumps(user, ensure_ascii=False),
+                                    encoding='utf-8')
+    except OSError:
+        pass
+
+
+def _load_user_cache() -> Optional[dict]:
+    try:
+        data = json.loads(_USER_CACHE_FILE.read_text(encoding='utf-8'))
+        return data if isinstance(data, dict) and data.get('id') else None
+    except (OSError, ValueError):
+        return None
+
+
+def _clear_user_cache() -> None:
+    try:
+        _USER_CACHE_FILE.unlink()
+    except OSError:
+        pass
+
+
+def _cached_user_dict(tok) -> Optional[dict]:
+    """Best identity we can return WITHOUT a network call — the on-disk
+    profile cache, else a minimal dict from the stored token. Used on a
+    transient failure so the user stays signed in."""
+    cached = _load_user_cache()
+    if cached:
+        return cached
+    uid = getattr(tok, 'user_id', '') or ''
+    email = getattr(tok, 'email', '') or ''
+    if uid or email:
+        return {'id': uid, 'email': email, 'fullName': '',
+                'avatarUrl': '', 'provider': 'email'}
+    return None
+
+
+# ── Single-session-per-account enforcement ───────────────────────
+#
+# Only ONE launcher install may hold a given account at a time. On every
+# successful sign-in we (1) write THIS install's stable device-id into the
+# user's `profiles.active_device` (RLS-scoped self-update) and (2) ask
+# Supabase to revoke every OTHER session's refresh token (`logout?scope=
+# others`). A displaced install then learns it lost the account the next
+# time `me()` runs: it reads `active_device` back and, if it no longer
+# matches, signs out locally and drops a one-shot "takeover" marker so the
+# UI can explain WHY ("you signed in from another device").
+#
+# The device-id is a random uuid persisted next to the session, stable for
+# the lifetime of the install (survives sign-out/in — it identifies the
+# MACHINE, not the session).
+_DEVICE_ID_FILE = Path.home() / '.translation_manager' / 'device_id'
+_TAKEOVER_FLAG  = Path.home() / '.translation_manager' / 'session_takeover.flag'
+
+
+def _device_id() -> str:
+    """Stable per-install id. Created once, then reused forever."""
+    try:
+        existing = _DEVICE_ID_FILE.read_text(encoding='utf-8').strip()
+        if existing:
+            return existing
+    except OSError:
+        pass
+    new_id = uuid.uuid4().hex
+    try:
+        _DEVICE_ID_FILE.parent.mkdir(parents=True, exist_ok=True)
+        _DEVICE_ID_FILE.write_text(new_id, encoding='utf-8')
+    except OSError:
+        pass
+    return new_id
+
+
+def _set_takeover_flag() -> None:
+    try:
+        _TAKEOVER_FLAG.parent.mkdir(parents=True, exist_ok=True)
+        _TAKEOVER_FLAG.write_text(str(int(time.time())), encoding='utf-8')
+    except OSError:
+        pass
+
+
+def _clear_takeover_flag() -> None:
+    try:
+        _TAKEOVER_FLAG.unlink()
+    except OSError:
+        pass
+
+
+def consume_takeover() -> bool:
+    """One-shot read: True iff this install was displaced by another device
+    since the last check, then clears the marker. The UI calls this after
+    me() returns None to decide whether to show the 'signed in elsewhere'
+    notice rather than a plain sign-out."""
+    if not _TAKEOVER_FLAG.exists():
+        return False
+    _clear_takeover_flag()
+    return True
+
+
+def _profiles_url(cfg: SupabaseConfig) -> str:
+    return cfg.rest_url + '/profiles'
+
+
+def _claim_device(cfg: SupabaseConfig, access: str, uid: str) -> None:
+    """Mark THIS install as the account's active device (best-effort —
+    never raises; a failure just means enforcement is delayed to the next
+    successful claim/check)."""
+    if not uid:
+        return
+    try:
+        requests.patch(
+            _profiles_url(cfg) + f'?id=eq.{uid}',
+            json={'active_device':    _device_id(),
+                  'active_device_at': datetime.now(timezone.utc).isoformat()},
+            headers={'apikey':        cfg.anon_key,
+                     'Authorization': f'Bearer {access}',
+                     'Content-Type':  'application/json',
+                     'Prefer':        'return=minimal'},
+            timeout=8,
+        )
+    except requests.RequestException as e:
+        log.warning('claim_device failed (non-fatal): %s', e)
+
+
+def _register_active_session(cfg: SupabaseConfig, access: str, uid: str) -> None:
+    """Run on every successful sign-in: take ownership of the account for THIS
+    install by stamping our device-id into profiles.active_device. Any other
+    install learns it was displaced on its next me() poll (reads a different
+    active_device → signs out). Clears a stale takeover marker so a deliberate
+    re-login doesn't surface the 'signed in elsewhere' notice.
+
+    NOTE: deliberately does NOT call Supabase /logout?scope=others. On an older
+    GoTrue an unrecognised scope can fall back to scope=global and revoke the
+    CURRENT (just-created) session too — the exact false-logout class we're
+    avoiding. The active_device claim + the 60 s client poll enforce
+    single-session safely without touching the server's session table."""
+    _clear_takeover_flag()
+    _claim_device(cfg, access, uid)
+
+
+def _device_owner_status(cfg: SupabaseConfig, access: str, uid: str) -> str:
+    """'mine' | 'taken' | 'unknown'. Reads profiles.active_device for the
+    current user. An unclaimed row (NULL — a pre-feature session or a fresh
+    account) is CLAIMED on the spot and reported 'mine'. Any read failure is
+    'unknown' so a transient network error NEVER signs the user out."""
+    if not uid:
+        return 'unknown'
+    try:
+        r = requests.get(
+            _profiles_url(cfg),
+            params={'id': f'eq.{uid}', 'select': 'active_device', 'limit': '1'},
+            headers={'apikey':        cfg.anon_key,
+                     'Authorization': f'Bearer {access}',
+                     'Accept':        'application/json'},
+            timeout=8,
+        )
+    except requests.RequestException:
+        return 'unknown'
+    if not r.ok:
+        return 'unknown'
+    try:
+        rows = r.json()
+    except ValueError:
+        return 'unknown'
+    if not isinstance(rows, list) or not rows:
+        return 'unknown'
+    current = str(rows[0].get('active_device') or '').strip()
+    if not current:
+        _claim_device(cfg, access, uid)   # unclaimed → take it
+        return 'mine'
+    return 'mine' if current == _device_id() else 'taken'
 
 
 @dataclass
@@ -169,6 +371,8 @@ def signin_with_password(email: str, password: str) -> dict:
     # Backfill email + user_id in storage so me() works offline.
     stored = StoredToken(**{**stored.__dict__, 'email': user.email, 'user_id': user.id})
     store.save(stored)
+    _save_user_cache(user.to_dict())
+    _register_active_session(cfg, stored.access_token, user.id)
     return user.to_dict()
 
 
@@ -213,6 +417,8 @@ def signup_with_password(email: str, password: str, full_name: str = '') -> dict
         user = _fetch_user(cfg, stored.access_token)
         stored = StoredToken(**{**stored.__dict__, 'email': user.email, 'user_id': user.id})
         store.save(stored)
+        _save_user_cache(user.to_dict())
+        _register_active_session(cfg, stored.access_token, user.id)
         return {**user.to_dict(), 'confirmed': True}
 
     # Confirmation required → just the user object, no session.
@@ -429,6 +635,9 @@ def login(timeout: float = 180.0) -> dict:
         _debug_step(f'backfill save failed (non-fatal): {e}')
 
     _debug_step('login() complete — returning user dict')
+    _save_user_cache(user.to_dict())
+    # Claim this account for THIS install + evict any other device.
+    _register_active_session(cfg, stored.access_token, user.id)
     return user.to_dict()
 
 
@@ -447,19 +656,44 @@ def me() -> Optional[dict]:
     # Refresh if the access token is about to expire.
     if tok.is_expired():
         try:
-            tok = _refresh(cfg, store, tok)
+            tok = _refresh_locked(cfg, store, tok)
+        except AuthNetworkError:
+            # Transient (offline / timeout / 5xx) — DON'T sign out. Keep the
+            # session and answer with the last-known identity; the next call
+            # retries the refresh.
+            log.warning('Refresh hit a transient error; keeping session.')
+            return _cached_user_dict(tok)
         except AuthError:
-            log.warning('Refresh failed, signing out.')
+            # Definitive — the refresh token was revoked/invalid. Only NOW do
+            # we sign the user out.
+            log.warning('Refresh token rejected, signing out.')
             store.clear()
+            _clear_user_cache()
             return None
 
     try:
         user = _fetch_user(cfg, tok.access_token)
+        # Single-session gate: another launcher install may have claimed this
+        # account. We're provably online here (/user just returned 200), so a
+        # 'taken' verdict is DEFINITIVE — sign out + leave a one-shot marker so
+        # the UI can say WHY. 'unknown' (profiles read failed) keeps the session.
+        uid = user.id or getattr(tok, 'user_id', '') or _uid_from_jwt(tok.access_token)
+        if _device_owner_status(cfg, tok.access_token, uid) == 'taken':
+            log.warning('Account claimed by another device — signing out here.')
+            _set_takeover_flag()
+            store.clear()
+            _clear_user_cache()
+            return None
+        _save_user_cache(user.to_dict())
         return user.to_dict()
+    except AuthNetworkError:
+        # Transient /user failure — stay signed in with the cached identity.
+        log.warning('/user hit a transient error; keeping session.')
+        return _cached_user_dict(tok)
     except AuthError:
-        # Could be a revoked / expired session — wipe and report signed-out
-        # rather than leaving the UI stuck on a stale identity.
+        # Definitive (401/403) — the session is genuinely invalid.
         store.clear()
+        _clear_user_cache()
         return None
 
 
@@ -470,6 +704,10 @@ def logout() -> None:
     except AuthConfigError:
         return
     store.clear()
+    _clear_user_cache()
+    # A deliberate sign-out is not a takeover — drop any stale marker so the
+    # next signed-out poll doesn't surface the "signed in elsewhere" notice.
+    _clear_takeover_flag()
 
 
 def owns_game(game_id: str) -> bool:
@@ -490,7 +728,7 @@ def owns_game(game_id: str) -> bool:
         return False
     if tok.is_expired():
         try:
-            tok = _refresh(cfg, store, tok)
+            tok = _refresh_locked(cfg, store, tok)
         except AuthError:
             return False
 
@@ -555,7 +793,7 @@ def _authed_token() -> Optional[tuple]:
         return None
     if tok.is_expired():
         try:
-            tok = _refresh(cfg, store, tok)
+            tok = _refresh_locked(cfg, store, tok)
         except AuthError:
             return None
     return (cfg, tok.access_token)
@@ -624,24 +862,56 @@ def get_purchases() -> dict:
             "detail": None}
 
 
+def _uid_from_jwt(access: str) -> str:
+    """Extract the Supabase user id (`sub` claim) from a JWT access token.
+    No signature check — the token is already trusted locally; we only need
+    the id. Fallback for when StoredToken.user_id wasn't backfilled."""
+    try:
+        import base64, json
+        payload = access.split('.')[1]
+        payload += '=' * (-len(payload) % 4)          # pad to a multiple of 4
+        return str(json.loads(base64.urlsafe_b64decode(payload)).get('sub') or '')
+    except Exception:
+        return ''
+
+
 def get_votes() -> list[str]:
-    """List of game_ids the current user has voted for. Empty list
-    when signed out."""
-    a = _authed_token()
-    if a is None:
+    """List of game_ids the CURRENT user has voted for. Empty list when
+    signed out.
+
+    CRITICAL: the `votes` table is anon-readable (RLS `using (true)`) so that
+    the public site can compute tallies — which means a plain SELECT with the
+    user's token returns EVERY user's votes, not just this user's. We MUST
+    filter by user_id, otherwise the personal area's "ההצבעות שלי" shows
+    everyone's votes (with duplicates across users)."""
+    try:
+        cfg   = _cfg_or_init()
+        store = _store_or_init()
+    except AuthConfigError:
         return []
-    cfg, access = a
+    tok = store.load()
+    if not tok:
+        return []
+    if tok.is_expired():
+        try:
+            tok = _refresh_locked(cfg, store, tok)
+        except AuthError:
+            return []
+    uid = getattr(tok, 'user_id', '') or _uid_from_jwt(tok.access_token)
+    if not uid:
+        return []
     url = cfg.rest_url + '/votes'
     try:
         r = requests.get(
             url,
             params={
-                'select': 'game_id',
-                'order':  'created_at.desc',
+                'select':  'game_id',
+                'user_id': f'eq.{uid}',          # scope to THIS user (anon-read table)
+                'order':   'created_at.desc',
             },
             headers={
                 'apikey':        cfg.anon_key,
-                'Authorization': f'Bearer {access}',
+                'Authorization': f'Bearer {tok.access_token}',
                 'Accept':        'application/json',
             },
             timeout=8,
@@ -683,8 +953,22 @@ def _exchange_pkce(cfg: SupabaseConfig, code: str, verifier: str) -> dict:
         raise AuthError('Token exchange returned non-JSON') from e
 
 
+def _refresh_locked(cfg: SupabaseConfig, store: TokenStore, tok: StoredToken) -> StoredToken:
+    """Serialized refresh. Holds _refresh_lock, then RE-LOADS the token from
+    the store: if another thread already refreshed it (no longer expired) we
+    return that fresh token instead of burning our now-stale refresh_token on
+    a second rotation (which Supabase would reject)."""
+    with _refresh_lock:
+        latest = store.load() or tok
+        if not latest.is_expired():
+            return latest
+        return _refresh(cfg, store, latest)
+
+
 def _refresh(cfg: SupabaseConfig, store: TokenStore, tok: StoredToken) -> StoredToken:
-    """Trade refresh_token for a new access_token."""
+    """Trade refresh_token for a new access_token. Raises AuthNetworkError on a
+    TRANSIENT failure (network/timeout/5xx/429 → keep the session) and plain
+    AuthError on a DEFINITIVE one (revoked/invalid refresh token → sign out)."""
     try:
         r = requests.post(
             cfg.token_url,
@@ -694,8 +978,10 @@ def _refresh(cfg: SupabaseConfig, store: TokenStore, tok: StoredToken) -> Stored
             timeout=15,
         )
     except requests.RequestException as e:
-        raise AuthError(f'Refresh network error: {e}') from e
+        raise AuthNetworkError(f'Refresh network error: {e}') from e
     if not r.ok:
+        if r.status_code >= 500 or r.status_code == 429:
+            raise AuthNetworkError(f'Refresh transient: HTTP {r.status_code}')
         raise AuthError(f'Refresh failed: HTTP {r.status_code}')
     return _store_token_from_response(cfg, store, r.json())
 
@@ -731,8 +1017,10 @@ def _fetch_user(cfg: SupabaseConfig, access_token: str) -> UserInfo:
             timeout=8,
         )
     except requests.RequestException as e:
-        raise AuthError(f'/user network error: {e}') from e
+        raise AuthNetworkError(f'/user network error: {e}') from e
     if not r.ok:
+        if r.status_code >= 500 or r.status_code == 429:
+            raise AuthNetworkError(f'/user transient: HTTP {r.status_code}')
         raise AuthError(f'/user HTTP {r.status_code}: {r.text[:200]}')
     try:
         data = r.json()

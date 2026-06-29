@@ -17,7 +17,7 @@
 
 #define AppName        "Translation Manager"
 #define AppNameHe      "מנהל התרגומים"
-#define AppVersion     "1.1.0"
+#define AppVersion     "1.0.0"
 #define AppPublisher   "Nahorai"
 #define AppExeName     "TranslationManager.exe"
 #define AppURL         "https://hebrew-translation-hub.com/"
@@ -79,7 +79,11 @@ RestartApplications=no
 ; --- Misc ---
 ShowLanguageDialog=auto
 LanguageDetectionMethod=uilanguage
-MinVersion=10.0
+; Windows 10 1809 (build 17763) is the floor for Qt6 + QtWebEngine (Chromium).
+; Below it the bundled runtime fails to load with a cryptic DLL error, so we
+; refuse at install time with a clean "unsupported Windows" message instead.
+; 1809 is long EOL, so this excludes only ancient builds the app can't run on.
+MinVersion=10.0.17763
 DisableWelcomePage=no
 DisableReadyPage=no
 DisableFinishedPage=no

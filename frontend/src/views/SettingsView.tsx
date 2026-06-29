@@ -5,9 +5,15 @@
 // string is fed in from APP_VERSION (locked at v1.1.0) so the small
 // label at the sidebar footer and the "על האפליקציה" block stay in
 // lockstep.
-import { useEffect, useState } from "react";
-import type { Game, LauncherPrefs, Software } from "../lib/types";
-import { api } from "../lib/eel";
+import { useEffect, useState, type ReactNode } from "react";
+import type { Game, LauncherPrefs } from "../lib/types";
+import { api, type UpdatePrefs } from "../lib/eel";
+import {
+  getAnims, setAnims, getDensity, setDensity, getAccent, setAccentPref,
+  getSounds, setSounds, type Density,
+} from "../lib/themePrefs";
+import { useAccentSetter } from "../lib/useAccent";
+import { detectGpu } from "../lib/gpuInfo";
 
 interface Props {
   games: Game[];
@@ -26,22 +32,53 @@ export default function SettingsView({
   launcherPrefs, onPrefsChange,
 }: Props) {
   const overridden = games.filter((g) => g.install_path);
-  const [busy, setBusy] = useState<"close" | "autostart" | null>(null);
+  const [busy, setBusy] = useState<"close" | "autostart" | "gpu" | null>(null);
 
-  // Translation-cache management is no longer global — each mod's cache
-  // is cleared from its own detail panel (GameDetailPanel for game mods,
-  // SoftwareDetailPanel for Steam), next to that mod's install path.
-
-  // Software detected on this PC — for the "תוכנות" path sub-category.
-  const [software, setSoftware] = useState<Software[] | null>(null);
+  // ── Crash reporting (default ON; user can opt out) ────────
+  const [crashOptIn, setCrashOptIn] = useState(true);
+  const [crashBusy, setCrashBusy]   = useState(false);
   useEffect(() => {
     let alive = true;
-    void api.getAllSoftware()
-      .then((sw) => { if (alive) setSoftware(sw); })
-      .catch(() => { if (alive) setSoftware([]); });
+    void api.getCrashOptIn().then((v) => { if (alive) setCrashOptIn(v); }).catch(() => {});
     return () => { alive = false; };
   }, []);
-  const softwareWithPath = (software ?? []).filter((sw) => sw.installPath);
+  const toggleCrash = async (next: boolean) => {
+    setCrashBusy(true);
+    try {
+      await api.setCrashOptIn(next);
+      setCrashOptIn(next);
+      reportStatus(next ? "דיווח קריסות מופעל — תודה שאתה עוזר לשפר" : "דיווח קריסות כובה");
+    } catch (e) {
+      reportStatus(`שגיאה: ${(e as Error).message}`, true);
+    } finally {
+      setCrashBusy(false);
+    }
+  };
+
+  // ── Mod update channel + behaviour ────────────────────────
+  const [updPrefs, setUpdPrefs] = useState<UpdatePrefs | null>(null);
+  const [updBusy, setUpdBusy]   = useState(false);
+  useEffect(() => {
+    let alive = true;
+    void api.getUpdatePrefs().then((v) => { if (alive) setUpdPrefs(v); }).catch(() => {});
+    return () => { alive = false; };
+  }, []);
+  const applyUpdPrefs = async (beta: boolean, msg: string) => {
+    setUpdBusy(true);
+    try {
+      const r = await api.setUpdatePrefs(beta);
+      setUpdPrefs(r);
+      reportStatus(msg);
+    } catch (e) {
+      reportStatus(`שגיאה: ${(e as Error).message}`, true);
+    } finally {
+      setUpdBusy(false);
+    }
+  };
+
+  // Translation-cache management is no longer global — each mod's cache
+  // is cleared from its own detail panel (GameDetailPanel), next to that
+  // mod's install path.
 
   const handleOpen = async (p: string) => {
     const r = await api.openFolder(p);
@@ -52,16 +89,6 @@ export default function SettingsView({
     await api.clearCustomPath(id);
     reportStatus("נתיב נמחק");
     await onRefresh();
-  };
-
-  const handleClearSoftware = async (id: string) => {
-    try {
-      const r = await api.clearSoftwarePath(id);
-      setSoftware(r.software);
-      reportStatus("נתיב התוכנה נמחק — בצע סריקה בטאב 'תוכנות' כדי לאתר מחדש");
-    } catch (e) {
-      reportStatus(`שגיאה: ${(e as Error).message}`, true);
-    }
   };
 
   // ── Lifecycle toggles ────────────────────────────────────
@@ -100,136 +127,333 @@ export default function SettingsView({
     }
   };
 
+  // GPU acceleration is ON unless the user opted out (default = smooth UI).
+  const gpuEnabled = launcherPrefs?.disableGpu !== true;
+  const gpu = detectGpu();   // the ACTUAL renderer in use (diagnostic)
+  const toggleGpu = async (next: boolean) => {
+    setBusy("gpu");
+    try {
+      const r = await api.setGpuCompositing(next);
+      onPrefsChange({ closeBehavior: r.closeBehavior, startWithOs: r.startWithOs, disableGpu: r.disableGpu });
+      reportStatus(next
+        ? "האצת חומרה תופעל — הפעל את התוכנה מחדש כדי להחיל"
+        : "האצת חומרה תכבה — הפעל את התוכנה מחדש כדי להחיל");
+    } catch (e) {
+      reportStatus(`שגיאה: ${(e as Error).message}`, true);
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const [tab, setTab] = useState<TabKey>("general");
+
+  const TABS: { key: TabKey; label: string; Icon: (p: { className?: string }) => ReactNode }[] = [
+    { key: "general",    label: "כללי",    Icon: IconGeneral },
+    { key: "appearance", label: "מראה",    Icon: IconAppearance },
+    { key: "updates",    label: "עדכונים", Icon: IconUpdates },
+    { key: "privacy",    label: "פרטיות",  Icon: IconPrivacy },
+    { key: "paths",      label: "נתיבים",  Icon: IconPaths },
+  ];
+
   return (
     <div className="h-full overflow-y-auto px-8 py-6 animate-fade-in">
-      <h1 className="text-3xl font-extrabold text-white mb-6 text-right">הגדרות</h1>
+      <h1 className="text-3xl font-extrabold mb-6 text-right animate-rise"><span className="text-gradient">הגדרות</span></h1>
 
-      <section className="glass rounded-2xl p-6 mb-6">
-        <div className="flex items-baseline justify-between mb-3">
-          <span dir="ltr" className="font-mono text-xs text-slate-400">
-            {version}
-          </span>
-          <h2 className="text-lg font-bold text-white text-right">על האפליקציה</h2>
+      <div className="flex gap-6 items-start">
+        {/* Side tab list (RTL → right). */}
+        <nav className="w-48 shrink-0 flex flex-col gap-1 sticky top-0">
+          {TABS.map((t) => {
+            const on = tab === t.key;
+            return (
+              <button
+                key={t.key}
+                type="button"
+                onClick={() => setTab(t.key)}
+                className={[
+                  "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-right transition",
+                  on ? "bg-white/[0.08] text-white" : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-200",
+                ].join(" ")}
+              >
+                <span className={["absolute right-0 top-2 bottom-2 w-[3px] rounded-full transition-opacity",
+                  on ? "opacity-100" : "opacity-0"].join(" ")}
+                  style={{ background: "#00ffe0", boxShadow: on ? "0 0 14px #00ffe0" : undefined }} />
+                <span className="flex-1 font-medium text-[14px]">{t.label}</span>
+                <t.Icon className={on ? "text-brand-cyan" : "text-slate-500 group-hover:text-brand-cyan"} />
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Active tab content. */}
+        <div className="flex-1 min-w-0 animate-fade-in" key={tab}>
+          {tab === "general" && (
+            <>
+              <section className="glass rounded-2xl p-6 mb-6">
+                <div className="flex items-baseline justify-between mb-3">
+                  <span dir="ltr" className="font-mono text-xs text-slate-400 flex items-center gap-1.5">
+                    {version}
+                  </span>
+                  <h2 className="text-lg font-bold text-white text-right">על האפליקציה</h2>
+                </div>
+                <p className="text-slate-300 text-sm leading-relaxed text-right">
+                  מנהל מודי תרגום עברי למשחקי PC. כלל הלוגיקה (זיהוי משחקים, הפעלה/השבתה/הסרה של מודים)
+                  מורצת ע״י Python בעוד שכל הממשק נבנה ב-React + Tailwind. הסגנון תואם את האתר הציבורי.
+                </p>
+              </section>
+
+              <section className="glass rounded-2xl p-6">
+                <h2 className="text-lg font-bold text-white mb-4 text-right">הפעלה ומגש מערכת</h2>
+                <ToggleRow
+                  enabled={startWithOs}
+                  busy={busy === "autostart"}
+                  onChange={toggleStartWithOs}
+                  title="הפעלה עם עליית Windows"
+                  subtitle="התוכנה תיטען אוטומטית בכניסה ל-Windows, מוסתרת במגש המערכת — בלי לפתוח את חלון הלאנצ׳ר. ניתן לפתוח דרך אייקון המגש בכל רגע."
+                  disabled={launcherPrefs === null}
+                />
+                <div className="h-px bg-white/10 my-3" />
+                <ToggleRow
+                  enabled={minimizeOnClose}
+                  busy={busy === "close"}
+                  onChange={toggleMinimizeOnClose}
+                  title="המשך ריצה ברקע בלחיצה על X"
+                  subtitle="במקום לסגור את התוכנה לגמרי, לחיצה על ✕ תמזער אותה למגש המערכת והיא תמשיך לרוץ בשקט עד שתבחר 'סגור לצמיתות' מתפריט המגש."
+                  disabled={launcherPrefs === null}
+                />
+              </section>
+
+              <section className="glass rounded-2xl p-6 mt-6">
+                <h2 className="text-lg font-bold text-white mb-4 text-right">ביצועים</h2>
+                <ToggleRow
+                  enabled={gpuEnabled}
+                  busy={busy === "gpu"}
+                  onChange={toggleGpu}
+                  title="האצת חומרה (כרטיס מסך)"
+                  subtitle="מומלץ להשאיר דלוק — הממשק יזרום חלק יותר. כבה רק אם אתה רואה הבהוב או ריצוד בתצוגה. שינוי נכנס לתוקף בהפעלה הבאה של התוכנה."
+                  disabled={launcherPrefs === null}
+                />
+
+                {/* Diagnostic — the ACTUAL renderer Chromium is using. If this
+                    says "תוכנה" the GPU isn't being used → that's the slowness. */}
+                <div className="mt-4 pt-4 border-t border-white/10">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className={gpu.accelerated ? "text-emerald-400 text-sm font-bold" : "text-rose-400 text-sm font-bold"}>
+                      {gpu.accelerated ? "● מואץ ע״י כרטיס המסך" : "● עיבוד תוכנה — לא מואץ"}
+                    </span>
+                    <span className="text-sm text-slate-400">מצב עיבוד גרפי</span>
+                  </div>
+                  <div dir="ltr" className="mt-1.5 font-mono text-[11px] text-slate-500 text-left break-all" title={gpu.renderer}>
+                    {gpu.renderer}
+                  </div>
+                  {!gpu.accelerated && (
+                    <p className="mt-2 text-xs text-rose-300/90 text-right leading-relaxed">
+                      כרטיס המסך אינו בשימוש לעיבוד הממשק — זו ככל הנראה סיבת האיטיות.
+                      ודא שהאצת החומרה דלוקה למעלה והפעל מחדש; אם עדיין כתוב "תוכנה",
+                      שלח צילום מסך של שורה זו.
+                    </p>
+                  )}
+                </div>
+              </section>
+            </>
+          )}
+
+          {tab === "appearance" && <AppearanceSettings reportStatus={reportStatus} />}
+
+          {tab === "updates" && (
+            <section className="glass rounded-2xl p-6">
+              <h2 className="text-lg font-bold text-white mb-4 text-right">עדכוני תרגומים</h2>
+              <ToggleRow
+                enabled={updPrefs?.betaChannel === true}
+                busy={updBusy}
+                onChange={(next) => applyUpdPrefs(next,
+                  next ? "ערוץ בטא הופעל — תקבל גם גרסאות מוקדמות" : "ערוץ בטא כובה — רק גרסאות יציבות")}
+                title="קבלת גרסאות בטא"
+                subtitle="כברירת מחדל מוצעים רק עדכונים יציבים. הפעלה תציע גם גרסאות מוקדמות (אלפא/בטא/RC) — חדשות יותר אך עשויות להיות פחות יציבות. אפשר לכוונן פר-מוד בכרטיס המשחק."
+                disabled={updPrefs === null}
+              />
+              <p className="text-slate-400 text-xs mt-4 leading-relaxed text-right">
+                כשקיים עדכון לתרגום מותקן — תקבל הודעה בתוך התוכנה וגם התראה במערכת (Windows).
+                העדכון לעולם לא מותקן לבד; אתה בוחר מתי לעדכן מתוך כרטיס המשחק או ממסך ההורדות.
+              </p>
+            </section>
+          )}
+
+          {tab === "privacy" && (
+            <section className="glass rounded-2xl p-6">
+              <h2 className="text-lg font-bold text-white mb-4 text-right">פרטיות ודיווחים</h2>
+              <ToggleRow
+                enabled={crashOptIn}
+                busy={crashBusy}
+                onChange={toggleCrash}
+                title="שליחת דוחות קריסה לצוות הפיתוח"
+                subtitle="כשהתוכנה נתקלת בשגיאה, נשלח דוח אנונימי (סוג השגיאה, מערכת ההפעלה והלוג) כדי שנוכל לתקן. נתיבים אישיים וטוקנים מנוקים לפני השליחה. אפשר לכבות בכל עת."
+                disabled={false}
+              />
+            </section>
+          )}
+
+          {tab === "paths" && (
+            <section className="glass rounded-2xl p-6">
+              <h2 className="text-lg font-bold text-white mb-4 text-right">נתיבים מותאמים אישית</h2>
+              <h3 className="text-sm font-bold text-slate-200 mb-2 text-right border-b border-white/10 pb-1.5">משחקים</h3>
+              {overridden.length === 0 ? (
+                <div className="text-slate-400 text-sm text-right mb-2 mt-2">
+                  אין נתיבי משחקים מותאמים. כשתגדיר נתיב ידני בכרטיס משחק הוא יופיע כאן.
+                </div>
+              ) : (
+                <ul className="space-y-2 mt-2">
+                  {overridden.map((g) => (
+                    <li key={g.id} className="flex items-center justify-between gap-3 bg-white/5 rounded-xl p-3">
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleClear(g.id)}
+                          className="text-xs px-3 py-1.5 border border-rose-500/30 text-rose-200 rounded-lg hover:bg-rose-500/10"
+                        >נקה</button>
+                        <button
+                          type="button"
+                          onClick={() => g.install_path && handleOpen(g.install_path)}
+                          className="text-xs px-3 py-1.5 bg-brand-yellow text-brand-ink rounded-lg font-bold hover:bg-yellow-300"
+                        >פתח</button>
+                      </div>
+                      <div className="flex-1 text-right">
+                        <div dir="ltr" className="text-white font-semibold text-left">{g.titleEn}</div>
+                        <div dir="ltr" className="text-slate-400 text-xs text-left mt-0.5 truncate">{g.install_path}</div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          )}
         </div>
-        <p className="text-slate-300 text-sm leading-relaxed text-right">
-          מנהל מודי תרגום עברי למשחקי PC. כלל הלוגיקה (זיהוי משחקים, הפעלה/השבתה/הסרה של מודים)
-          מורצת ע״י Python בעוד שכל הממשק נבנה ב-React + Tailwind. הסגנון תואם את האתר הציבורי.
-        </p>
-      </section>
+      </div>
+    </div>
+  );
+}
 
+type TabKey = "general" | "appearance" | "updates" | "privacy" | "paths";
+
+/* Tab icons (stroke=currentColor). */
+function IconGeneral({ className }: { className?: string }) {
+  return <svg className={className} width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>;
+}
+function IconAppearance({ className }: { className?: string }) {
+  return <svg className={className} width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden><circle cx="13.5" cy="6.5" r="2.5" /><circle cx="17.5" cy="10.5" r="2.5" /><circle cx="8.5" cy="7.5" r="2.5" /><circle cx="6.5" cy="12.5" r="2.5" /><path d="M12 2a10 10 0 1 0 0 20 2 2 0 0 0 2-2 2 2 0 0 1 2-2h1a4 4 0 0 0 4-4 8 8 0 0 0-9-10z" /></svg>;
+}
+function IconUpdates({ className }: { className?: string }) {
+  return <svg className={className} width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M21 12a9 9 0 1 1-3.1-6.8" /><path d="M21 4v5h-5" /></svg>;
+}
+function IconPrivacy({ className }: { className?: string }) {
+  return <svg className={className} width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>;
+}
+function IconPaths({ className }: { className?: string }) {
+  return <svg className={className} width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>;
+}
+
+// ───────────────────────────────────────────────────────────────
+// Appearance — user theming (animations / density / ambient accent).
+const ACCENT_SWATCHES: { hex: string; label: string }[] = [
+  { hex: "#00ffe0", label: "טורקיז" },
+  { hex: "#fff700", label: "צהוב" },
+  { hex: "#7c3aed", label: "סגול" },
+  { hex: "#22c55e", label: "ירוק" },
+  { hex: "#ff4d8d", label: "ורוד" },
+  { hex: "#3b82f6", label: "כחול" },
+];
+
+function AppearanceSettings({ reportStatus }: { reportStatus: (t: string, w?: boolean) => void }) {
+  const [anims, setAnimsState]     = useState<boolean>(getAnims());
+  const [density, setDensityState] = useState<Density>(getDensity());
+  const [accent, setAccentState]   = useState<string>(getAccent());
+  const [sounds, setSoundsState]   = useState<boolean>(getSounds());
+  const applyAccentNow = useAccentSetter();
+
+  const onSounds = (next: boolean) => {
+    setSounds(next); setSoundsState(next);
+    reportStatus(next ? "צלילי ממשק הופעלו" : "צלילי ממשק כובו");
+  };
+
+  const onAnims = (next: boolean) => {
+    setAnims(next); setAnimsState(next);
+    reportStatus(next ? "אנימציות הופעלו" : "אנימציות כובו — מצב מהיר");
+  };
+  const onDensity = (d: Density) => {
+    setDensity(d); setDensityState(d);
+    reportStatus(d === "compact" ? "תצוגה צפופה" : "תצוגה מרווחת");
+  };
+  const onAccent = (hex: string) => {
+    setAccentPref(hex); setAccentState(hex);
+    applyAccentNow(hex);   // live-paint the ambient background now
+    reportStatus("צבע האווירה עודכן");
+  };
+
+  return (
+    <>
       <section className="glass rounded-2xl p-6 mb-6">
-        <h2 className="text-lg font-bold text-white mb-4 text-right">הפעלה ומגש מערכת</h2>
-
+        <h2 className="text-lg font-bold text-white mb-4 text-right">תנועה וצפיפות</h2>
         <ToggleRow
-          enabled={startWithOs}
-          busy={busy === "autostart"}
-          onChange={toggleStartWithOs}
-          title="הפעלה עם עליית Windows"
-          subtitle="התוכנה תיטען אוטומטית בכניסה ל-Windows, מוסתרת במגש המערכת — בלי לפתוח את חלון הלאנצ׳ר. ניתן לפתוח דרך אייקון המגש בכל רגע."
-          disabled={launcherPrefs === null}
+          enabled={anims}
+          busy={false}
+          onChange={onAnims}
+          title="אנימציות ואפקטים"
+          subtitle="מעברים חלקים, זוהר נושם ואפקטים. כיבוי נותן מצב מהיר ומינימלי (טוב למחשבים חלשים)."
+          disabled={false}
         />
-
-        <div className="h-px bg-white/10 my-3" />
-
+        <div className="h-px bg-white/10 my-4" />
         <ToggleRow
-          enabled={minimizeOnClose}
-          busy={busy === "close"}
-          onChange={toggleMinimizeOnClose}
-          title="המשך ריצה ברקע בלחיצה על X"
-          subtitle="במקום לסגור את התוכנה לגמרי, לחיצה על ✕ תמזער אותה למגש המערכת והיא תמשיך לרוץ בשקט עד שתבחר 'סגור לצמיתות' מתפריט המגש."
-          disabled={launcherPrefs === null}
+          enabled={sounds}
+          busy={false}
+          onChange={onSounds}
+          title="צלילי ממשק"
+          subtitle="צליל קליק עדין בלחיצות. כבוי כברירת מחדל — הפעל אם אתה אוהב משוב קולי."
+          disabled={false}
         />
+        <div className="h-px bg-white/10 my-4" />
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex rounded-lg overflow-hidden border border-white/10">
+            {([["comfortable", "מרווח"], ["compact", "צפוף"]] as [Density, string][]).map(([k, label]) => (
+              <button
+                key={k}
+                type="button"
+                onClick={() => onDensity(k)}
+                className={["px-4 py-1.5 text-sm transition",
+                  density === k ? "bg-brand-cyan/15 text-brand-cyan font-semibold" : "text-slate-400 hover:bg-white/5"].join(" ")}
+              >{label}</button>
+            ))}
+          </div>
+          <div className="text-right">
+            <div className="text-white font-bold">צפיפות התצוגה</div>
+            <div className="text-slate-400 text-xs mt-1">כמה מידע על המסך בבת אחת.</div>
+          </div>
+        </div>
       </section>
 
       <section className="glass rounded-2xl p-6">
-        <h2 className="text-lg font-bold text-white mb-4 text-right">נתיבים מותאמים אישית</h2>
-
-        {/* ── משחקים ── */}
-        <h3 className="text-sm font-bold text-slate-200 mb-2 text-right
-                       border-b border-white/10 pb-1.5">משחקים</h3>
-        {overridden.length === 0 ? (
-          <div className="text-slate-400 text-sm text-right mb-6 mt-2">
-            אין נתיבי משחקים מותאמים. כשתגדיר נתיב ידני בכרטיס משחק הוא יופיע כאן.
-          </div>
-        ) : (
-          <ul className="space-y-2 mb-6 mt-2">
-            {overridden.map((g) => (
-              <li
-                key={g.id}
-                className="flex items-center justify-between gap-3 bg-white/5 rounded-xl p-3"
+        <h2 className="text-lg font-bold text-white mb-2 text-right">צבע אווירה</h2>
+        <p className="text-slate-400 text-xs mb-4 text-right leading-relaxed">
+          הצבע שצובע את רקע התוכנה כשאין משחק פתוח. בתוך עמוד משחק הרקע נצבע אוטומטית בצבע הכותר.
+        </p>
+        <div className="flex gap-3 justify-end flex-wrap">
+          {ACCENT_SWATCHES.map((s) => {
+            const on = accent.toLowerCase() === s.hex.toLowerCase();
+            return (
+              <button
+                key={s.hex}
+                type="button"
+                onClick={() => onAccent(s.hex)}
+                title={s.label}
+                aria-label={s.label}
+                className="w-10 h-10 rounded-full transition-transform hover:scale-110 grid place-items-center"
+                style={{ background: s.hex, boxShadow: on ? `0 0 0 3px #0a0a14, 0 0 0 5px ${s.hex}` : `0 4px 12px -4px ${s.hex}99` }}
               >
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleClear(g.id)}
-                    className="text-xs px-3 py-1.5 border border-rose-500/30 text-rose-200
-                               rounded-lg hover:bg-rose-500/10"
-                  >
-                    נקה
-                  </button>
-                  <button
-                    onClick={() => g.install_path && handleOpen(g.install_path)}
-                    className="text-xs px-3 py-1.5 bg-brand-yellow text-brand-ink rounded-lg
-                               font-bold hover:bg-yellow-300"
-                  >
-                    פתח
-                  </button>
-                </div>
-                <div className="flex-1 text-right">
-                  <div dir="ltr" className="text-white font-semibold text-left">{g.titleEn}</div>
-                  <div dir="ltr" className="text-slate-400 text-xs text-left mt-0.5 truncate">
-                    {g.install_path}
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        {/* ── תוכנות ── */}
-        <h3 className="text-sm font-bold text-slate-200 mb-2 text-right
-                       border-b border-white/10 pb-1.5">תוכנות</h3>
-        {software === null ? (
-          <div className="text-slate-500 text-sm text-right mt-2">טוען…</div>
-        ) : softwareWithPath.length === 0 ? (
-          <div className="text-slate-400 text-sm text-right mt-2">
-            אין תוכנות עם נתיב מזוהה. בצע סריקה בטאב "תוכנות".
-          </div>
-        ) : (
-          <ul className="space-y-2 mt-2">
-            {softwareWithPath.map((sw) => (
-              <li
-                key={sw.id}
-                className="flex items-center justify-between gap-3 bg-white/5 rounded-xl p-3"
-              >
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleClearSoftware(sw.id)}
-                    className="text-xs px-3 py-1.5 border border-rose-500/30 text-rose-200
-                               rounded-lg hover:bg-rose-500/10"
-                  >
-                    נקה
-                  </button>
-                  <button
-                    onClick={() => sw.installPath && handleOpen(sw.installPath)}
-                    className="text-xs px-3 py-1.5 bg-brand-yellow text-brand-ink rounded-lg
-                               font-bold hover:bg-yellow-300"
-                  >
-                    פתח
-                  </button>
-                </div>
-                <div className="flex-1 text-right">
-                  <div dir="ltr" className="text-white font-semibold text-left">{sw.titleEn}</div>
-                  <div dir="ltr" className="text-slate-400 text-xs text-left mt-0.5 truncate">
-                    {sw.installPath}
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
+                {on && <span className="text-brand-ink text-lg font-black">✓</span>}
+              </button>
+            );
+          })}
+        </div>
       </section>
-
-    </div>
+    </>
   );
 }
 

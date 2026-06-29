@@ -3,6 +3,7 @@
 // thrown during render or in a lifecycle method below this boundary
 // and surfaces it to the user with a "reload" button.
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { safeReportCrash } from "../lib/eel";
 
 interface Props { children: ReactNode }
 interface State { error: Error | null }
@@ -19,6 +20,13 @@ export default class ErrorBoundary extends Component<Props, State> {
     // user is willing to share with us. We don't want to silently
     // swallow the stack — that's how the v1.0.5 black-screen happened.
     console.error("[ErrorBoundary] caught", error, info.componentStack);
+    // Report to the dev (opt-in gated + PII-scrubbed on the Python side).
+    void safeReportCrash(
+      error.name || "FrontendError",
+      error.message || String(error),
+      (info.componentStack || "").slice(0, 4000),
+      "react-error-boundary",
+    );
   }
 
   reset = () => {

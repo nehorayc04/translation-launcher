@@ -14,7 +14,7 @@ import logging
 import sys
 from pathlib import Path
 
-from PySide6.QtCore import QUrl, Qt
+from PySide6.QtCore import QUrl, Qt, Slot
 from PySide6.QtGui import QCloseEvent, QIcon
 from PySide6.QtWebChannel import QWebChannel
 from PySide6.QtWebEngineCore import QWebEnginePage
@@ -103,14 +103,55 @@ class MainWindow(QMainWindow):
     # ──────────────────────────────────────────────────────────────
     # Window lifecycle
     # ──────────────────────────────────────────────────────────────
+    @Slot()
     def show_and_activate(self) -> None:
-        """Tray 'Open' calls this. Restores from minimized/hidden state
-        and pulls the window to the foreground."""
+        """Restore from minimized/hidden state and pull the window to the
+        foreground. Called directly by the tray 'Open' menu AND — via
+        QMetaObject.invokeMethod by NAME — by the single-instance listener
+        when a second launch (desktop shortcut) wakes us. The @Slot
+        decorator is REQUIRED for that by-name invoke to resolve; without
+        it the shortcut-relaunch silently failed to raise the window."""
         if self.isMinimized():
             self.setWindowState(self.windowState() & ~Qt.WindowMinimized)
         self.show()
         self.raise_()
         self.activateWindow()
+        self._force_foreground()
+
+    def _force_foreground(self) -> None:
+        """Windows focus-stealing prevention can leave activateWindow() with
+        the window un-hidden but stuck behind the foreground app. Nudge it
+        with the Win32 APIs (best-effort, no-op off Windows / on failure).
+        The relaunching process calls AllowSetForegroundWindow first (see
+        single_instance.signal_show) so this is permitted to take focus."""
+        if sys.platform != "win32":
+            return
+        try:
+            import ctypes
+            hwnd = int(self.winId())
+            user32 = ctypes.windll.user32
+            SW_RESTORE = 9
+            user32.ShowWindow(hwnd, SW_RESTORE)
+            user32.SetForegroundWindow(hwnd)
+        except Exception:
+            log.debug("show_and_activate: _force_foreground best-effort failed", exc_info=True)
+
+    @Slot(str)
+    def navigate_to_game(self, game_id: str) -> None:
+        """Deep-link target — bring the window forward and tell the React
+        shell to open this game's detail panel. Used when an ALREADY-RUNNING
+        instance is re-invoked with hebrewhub://game/<id> (a cold start instead
+        carries the id in the initial URL hash). Marshalled to the GUI thread
+        by main_qt.py's single-instance listener via QMetaObject.invokeMethod."""
+        import json as _json
+        self.show_and_activate()
+        try:
+            self.page.runJavaScript(
+                "window.dispatchEvent(new CustomEvent('deep-link-game',"
+                "{detail:{id:%s}}))" % _json.dumps(str(game_id))
+            )
+        except Exception:
+            log.exception("navigate_to_game failed")
 
     def request_real_exit(self) -> None:
         """Called by the tray 'Quit' menu so the next closeEvent skips

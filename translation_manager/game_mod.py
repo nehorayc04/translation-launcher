@@ -87,6 +87,26 @@ def is_cached(game_id: str) -> bool:
     return _state_file(game_id).exists() and bool(_payload_files(game_id))
 
 
+def is_writable(game_root: Path | None) -> bool:
+    """Non-destructive probe: can the launcher create files under the game
+    folder? Games installed under C:\\Program Files need an elevated launcher
+    to write the mod; checking up-front lets the caller fail fast with a clear
+    message INSTEAD of downloading the whole archive and only then hitting a
+    PermissionError on the copy."""
+    if not game_root:
+        return False
+    try:
+        p = Path(game_root)
+        if not p.is_dir():
+            return False
+        import tempfile
+        with tempfile.NamedTemporaryFile(dir=p, prefix=".tm_write_probe", delete=True):
+            pass
+        return True
+    except OSError:
+        return False
+
+
 def _norm(rels: list[str]) -> list[str]:
     """Normalize config-style relpaths (Windows backslashes) to posix."""
     return [Path(r).as_posix() for r in rels if r]
@@ -220,7 +240,11 @@ def disable(game_id: str, game_root: Path) -> dict:
             err = str(e)
             break
 
-    if st:
+    # Only record the mod as removed when every file actually went away. If a
+    # deletion failed (e.g. the game is running and locks the archive), the
+    # files are still on disk — keep installed=True so the UI keeps showing
+    # "active" and a retry re-attempts, instead of lying that it's disabled.
+    if st and not err:
         st["installed"] = False
         _write_state(game_id, st)
 

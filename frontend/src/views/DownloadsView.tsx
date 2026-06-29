@@ -6,9 +6,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   api,
   onLauncherUpdateProgress,
+  onModProgress,
   type UpdateItem,
   type LauncherUpdateInfo,
   type LauncherUpdateProgress,
+  type ModUpdate,
+  type ModProgress,
 } from "../lib/eel";
 import { useDownloadProgress } from "../lib/useDownloadProgress";
 import { useSWRSource } from "../lib/useSWRSource";
@@ -34,13 +37,67 @@ export default function DownloadsView({ refreshNonce = 0 }: Props) {
     return [s, t];
   }, [items]);
 
+  // ── Installed game-mod updates (newer version on the server) ──────
+  // A separate live source from the static updates catalog — compares each
+  // installed translation mod's version against its manifest.
+  const [modUpdates, setModUpdates] = useState<ModUpdate[]>([]);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [muProgress, setMuProgress] = useState<ModProgress | null>(null);
+
+  const loadModUpdates = useCallback(async () => {
+    try { setModUpdates(await api.getModUpdates()); }
+    catch { setModUpdates([]); }
+  }, []);
+  useEffect(() => { void loadModUpdates(); }, [loadModUpdates, refreshNonce]);
+
+  // The mod download/install runs on a background worker and streams over the
+  // shared mod_install_progress channel; refresh the list when it finishes.
+  useEffect(() => {
+    return onModProgress((p) => {
+      if (p.phase === "done") {
+        setUpdatingId(null);
+        setMuProgress(null);
+        void loadModUpdates();
+      } else if (p.phase === "error") {
+        setUpdatingId(null);
+        setMuProgress(null);
+      } else {
+        setMuProgress(p);
+      }
+    });
+  }, [loadModUpdates]);
+
+  const updateMod = useCallback(async (gameId: string, kind?: "download" | "native") => {
+    setUpdatingId(gameId);
+    setMuProgress({ phase: "download", pct: 0, detail: "מתחיל…" });
+    try {
+      // Native appliers (SM2/WD2/GTAV) update by re-applying via their own
+      // install RPC (re-install == update); download mods re-download + install.
+      // All stream over the shared mod_install_progress channel.
+      let r: { ok: boolean; error?: string };
+      if (kind === "native") {
+        r = gameId === "spiderman2" ? await api.installSpiderman2Mod()
+          : gameId === "watchdogs2" ? await api.installWatchdogs2Mod()
+          : gameId === "gtav"       ? await api.installGtavMod()
+          : await api.downloadAndInstallGameMod(gameId);
+      } else {
+        r = await api.downloadAndInstallGameMod(gameId);
+      }
+      if (!r.ok) { setUpdatingId(null); setMuProgress(null); }
+    } catch {
+      setUpdatingId(null); setMuProgress(null);
+    }
+  }, []);
+
+  const nothing = items.length === 0 && modUpdates.length === 0;
+
   return (
     <div className="h-full overflow-y-auto px-8 py-6 animate-fade-in">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between animate-rise">
         <span className="text-xs text-slate-500">
-          {loading ? "טוען..." : `${items.length} פריטים זמינים`}
+          {loading ? "טוען..." : `${items.length + modUpdates.length} פריטים זמינים`}
         </span>
-        <h1 className="text-3xl font-extrabold text-white">הורדות ועדכונים</h1>
+        <h1 className="text-3xl font-extrabold"><span className="text-gradient">הורדות ועדכונים</span></h1>
       </div>
 
       {/* Persistent self-update panel — always on top, independent of
@@ -49,15 +106,92 @@ export default function DownloadsView({ refreshNonce = 0 }: Props) {
 
       {loading ? (
         <Loader />
-      ) : items.length === 0 ? (
+      ) : nothing ? (
         <Empty />
       ) : (
         <div className="space-y-8">
+          <ModUpdatesSection
+            updates={modUpdates}
+            updatingId={updatingId}
+            progress={muProgress}
+            onUpdate={updateMod}
+          />
           <Section title="עדכוני מערכת"     accent="#fff700" items={system}       progress={progress} />
           <Section title="עדכוני תרגומים"  accent="#00ffe0" items={translations} progress={progress} />
         </div>
       )}
     </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Game-mod updates — installed translation mods with a newer version on
+// the server. "עדכן" re-downloads + reinstalls the latest in place.
+function ModUpdatesSection({
+  updates, updatingId, progress, onUpdate,
+}: {
+  updates:    ModUpdate[];
+  updatingId: string | null;
+  progress:   ModProgress | null;
+  onUpdate:   (gameId: string, kind?: "download" | "native") => void;
+}) {
+  if (updates.length === 0) return null;
+  const accent = "#34d399";
+  return (
+    <section>
+      <div className="flex items-center gap-3 mb-4">
+        <span className="text-slate-400 text-sm">{updates.length}</span>
+        <h2 className="text-xl font-bold text-white">עדכוני תרגום למשחקים</h2>
+        <span className="h-[2px] flex-1 rounded-full opacity-30"
+              style={{ background: `linear-gradient(to left, ${accent}, transparent)` }} />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {updates.map((u) => {
+          const busy = updatingId === u.gameId;
+          const anyBusy = updatingId !== null;
+          const pct = Math.min(100, Math.max(0, progress?.pct ?? 0));
+          return (
+            <div key={u.gameId}
+                 className="rounded-2xl p-4 border flex flex-col gap-3"
+                 style={{ borderColor: `${accent}33`, background: `linear-gradient(135deg, ${accent}0e, transparent 70%), rgba(255,255,255,0.02)` }}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="font-bold text-white truncate">{u.titleHe}</div>
+                  <div className="text-[12px] text-slate-400 mt-0.5" dir="ltr">
+                    <span className="font-mono text-slate-300">v{u.installedVersion ?? "—"}</span>
+                    {"  →  "}
+                    <span className="font-mono" style={{ color: accent }}>v{u.latestVersion}</span>
+                  </div>
+                </div>
+                <button
+                  disabled={anyBusy}
+                  onClick={() => onUpdate(u.gameId, u.kind)}
+                  className="shrink-0 px-4 py-2 rounded-xl text-sm font-bold text-brand-ink
+                             transition hover:brightness-110 disabled:opacity-50"
+                  style={{ background: accent }}
+                >
+                  {busy ? "מעדכן…" : "עדכן"}
+                </button>
+              </div>
+              {busy && progress && (
+                <div>
+                  <div className="flex justify-between text-[11px] mb-1">
+                    <span dir="ltr" className="font-mono text-slate-300 truncate">{progress.detail}</span>
+                    <span className="font-bold" style={{ color: accent }}>
+                      {progress.phase === "verify" ? "מאמת…" : progress.phase === "apply" ? "מתקין…" : `${pct.toFixed(0)}%`}
+                    </span>
+                  </div>
+                  <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full transition-all duration-200"
+                         style={{ width: `${pct}%`, background: accent }} />
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
@@ -223,10 +357,24 @@ function SelfUpdatePanel() {
               בדוק שוב
             </button>
           ) : (
-            <span className="text-[13px] font-bold px-4 py-2 rounded-xl shrink-0
-                             bg-emerald-500/15 text-emerald-200 ring-1 ring-emerald-400/30">
-              ✓ התוכנה מעודכנת
-            </span>
+            // Up to date — show the status badge with a manual re-check
+            // button to its LEFT (dir=ltr → refresh is the left-most element
+            // at the frame's left edge).
+            <div className="flex items-center gap-2 shrink-0" dir="ltr">
+              <button
+                onClick={check}
+                title="בדוק שוב אם יש עדכון"
+                aria-label="בדוק שוב אם יש עדכון"
+                className="w-9 h-9 grid place-items-center rounded-xl border border-white/15
+                           text-slate-300 hover:bg-white/5 hover:text-white transition text-base leading-none"
+              >
+                ↻
+              </button>
+              <span className="text-[13px] font-bold px-4 py-2 rounded-xl
+                               bg-emerald-500/15 text-emerald-200 ring-1 ring-emerald-400/30">
+                ✓ התוכנה מעודכנת
+              </span>
+            </div>
           )
         )}
         {checking && (

@@ -123,6 +123,9 @@ class Bridge(QObject):
     # arrives via cache_refreshed per-kind as each fetch completes,
     # so views update progressively before this fires.
     catalog_refresh_complete = Signal(str, str, str)
+    # Fired by notify_os() (below) to request a native Windows tray balloon /
+    # toast. main_qt connects this to the Tray's showMessage on the GUI thread.
+    os_notification          = Signal(str, str)
 
     def __init__(self, backend: Any, parent: QObject | None = None) -> None:
         super().__init__(parent)
@@ -171,11 +174,17 @@ class Bridge(QObject):
 
     @Slot(result="QVariant")
     def scan_quick(self) -> dict:
-        return self._b.scan_quick()
+        # Launcher-registry probes are usually fast but can stall a second
+        # or two; run off-thread so the GUI never freezes mid-scan.
+        return _run_off_thread(self._b.scan_quick, timeout_s=120.0)
 
     @Slot(result="QVariant")
     def scan_deep(self) -> dict:
-        return self._b.scan_deep()
+        # Full drive walk — minutes on large disks. MUST run off the GUI
+        # thread or the whole launcher freezes until it finishes (the bug
+        # this fixes). _run_off_thread keeps Qt pumping events while the
+        # worker runs and still returns the real result to the awaiting JS.
+        return _run_off_thread(self._b.scan_deep, timeout_s=900.0)
 
     @Slot(str, str, result="QVariant")
     def set_custom_path(self, game_id: str, path: str) -> dict:
@@ -248,6 +257,133 @@ class Bridge(QObject):
         return self._b.open_purchase_page(game_id)
 
     @Slot(str, result="QVariant")
+    def get_game_language(self, game_id: str) -> dict:
+        # Off-thread: for a paid title this reads UserSettings/registry AND may
+        # do a blocking HTTPS ownership check (auth_owns_game, ~2.5s) — running
+        # it on the GUI thread froze the panel. Keep Qt pumping events.
+        return _run_off_thread(self._b.get_game_language, game_id, timeout_s=30.0)
+
+    @Slot(str, str, result="QVariant")
+    def set_game_language(self, game_id: str, mode: str) -> dict:
+        return self._b.set_game_language(game_id, mode)
+
+    @Slot(str, result="QVariant")
+    def restore_game_language(self, game_id: str) -> dict:
+        return self._b.restore_game_language(game_id)
+
+    @Slot(str, result="QVariant")
+    def check_game_mod_update(self, game_id: str) -> dict:
+        # Network manifest fetch — off the GUI thread so it never freezes.
+        return _run_off_thread(self._b.check_game_mod_update, game_id, timeout_s=90.0)
+
+    @Slot(result="QVariant")
+    def get_mod_updates(self) -> list:
+        return _run_off_thread(self._b.get_mod_updates, timeout_s=120.0)
+
+    # ── Spider-Man 2 native applier ───────────────────────────────
+    @Slot(result="QVariant")
+    def get_spiderman2_mod_state(self) -> dict:
+        return _run_off_thread(self._b.get_spiderman2_mod_state, timeout_s=30.0)
+
+    @Slot(result="QVariant")
+    def install_spiderman2_mod(self) -> dict:
+        # The patch reads + rewrites a ~50 MB TOC + writes mod archives;
+        # run on a worker and stream mod_install_progress, like the game-mod
+        # download. Returns immediately.
+        QThreadPool.globalInstance().start(
+            _BackgroundRunnable(self._b._run_sm2_install)
+        )
+        return {"ok": True, "started": True}
+
+    @Slot(result="QVariant")
+    def remove_spiderman2_mod(self) -> dict:
+        # Restores the ~50 MB TOC backup — off the GUI thread.
+        return _run_off_thread(self._b.remove_spiderman2_mod, timeout_s=120.0)
+
+    @Slot(result="QVariant")
+    def check_spiderman2_update(self) -> dict:
+        # Network manifest fetch — off the GUI thread so it never freezes.
+        return _run_off_thread(self._b.check_spiderman2_update, timeout_s=60.0)
+
+    # ── Watch Dogs 2 native FAT5 applier ──────────────────────────
+    @Slot(result="QVariant")
+    def get_watchdogs2_mod_state(self) -> dict:
+        return _run_off_thread(self._b.get_watchdogs2_mod_state, timeout_s=30.0)
+
+    @Slot(result="QVariant")
+    def install_watchdogs2_mod(self) -> dict:
+        # Appends ~4 MB across 3 FAT5 archives + rewrites their indexes; run on
+        # a worker and stream mod_install_progress. Returns immediately.
+        QThreadPool.globalInstance().start(
+            _BackgroundRunnable(self._b._run_wd2_install)
+        )
+        return {"ok": True, "started": True}
+
+    @Slot(result="QVariant")
+    def remove_watchdogs2_mod(self) -> dict:
+        # Restores the original FAT5 archives — off the GUI thread.
+        return _run_off_thread(self._b.remove_watchdogs2_mod, timeout_s=120.0)
+
+    # ── Grand Theft Auto V native OpenIV-free RPF7 applier ────────
+    @Slot(result="QVariant")
+    def get_gtav_mod_state(self) -> dict:
+        # File-existence checks (mods folder / loader / backup marker) — quick.
+        return _run_off_thread(self._b.get_gtav_mod_state, timeout_s=30.0)
+
+    @Slot(result="QVariant")
+    def install_gtav_mod(self) -> dict:
+        # Read-modify-writes a 463 MB + a 2.6 GB RPF (minutes, multi-GB RAM) — must
+        # run on a worker and stream mod_install_progress. Returns immediately.
+        QThreadPool.globalInstance().start(
+            _BackgroundRunnable(self._b._run_gtav_install)
+        )
+        return {"ok": True, "started": True}
+
+    @Slot(result="QVariant")
+    def remove_gtav_mod(self) -> dict:
+        # SURGICAL remove (vanilla swap, multi-GB read-modify-write) — a worker.
+        QThreadPool.globalInstance().start(
+            _BackgroundRunnable(self._b._run_gtav_remove)
+        )
+        return {"ok": True, "started": True}
+
+    @Slot(result="QVariant")
+    def restore_gtav_backup(self) -> dict:
+        # Full pre-install restore from the install-time backup — a worker.
+        QThreadPool.globalInstance().start(
+            _BackgroundRunnable(self._b._run_gtav_restore_backup)
+        )
+        return {"ok": True, "started": True}
+
+    # ── mod update preferences (beta channel / auto-update) ───────
+    @Slot(result="QVariant")
+    def get_update_prefs(self) -> dict:
+        return self._b.get_update_prefs()
+
+    @Slot(bool, result="QVariant")
+    def set_update_prefs(self, beta_channel: bool) -> dict:
+        return self._b.set_update_prefs(beta_channel=beta_channel)
+
+    @Slot(str, str, result="QVariant")
+    def notify_os(self, title: str, body: str) -> bool:
+        """Request a native Windows tray notification. Runs on the GUI thread
+        (QWebChannel marshals slot calls here), so emitting the signal that
+        main_qt wired to the Tray's showMessage is thread-safe."""
+        try:
+            self.os_notification.emit(title, body)
+        except Exception:
+            pass
+        return True
+
+    @Slot(str, "QVariant", result="QVariant")
+    def set_mod_beta_override(self, game_id: str, enabled) -> dict:
+        return self._b.set_mod_beta_override(game_id, enabled)
+
+    @Slot(result="QVariant")
+    def get_app_info(self) -> dict:
+        return self._b.get_app_info()
+
+    @Slot(str, result="QVariant")
     def enable_mod_for(self, game_id: str) -> dict:
         return self._b.enable_mod_for(game_id)
 
@@ -298,6 +434,10 @@ class Bridge(QObject):
     @Slot(bool, result="QVariant")
     def set_start_with_os(self, enabled: bool) -> dict:
         return self._b.set_start_with_os(enabled)
+
+    @Slot(bool, result="QVariant")
+    def set_gpu_compositing(self, enabled: bool) -> dict:
+        return self._b.set_gpu_compositing(enabled)
 
     # ──────────────────────────────────────────────────────────────
     # Live progress / downloads
@@ -399,6 +539,11 @@ class Bridge(QObject):
     def auth_logout(self) -> dict:
         return self._b.auth_logout()
 
+    @Slot(result=bool)
+    def auth_consume_takeover(self) -> bool:
+        # Cheap local marker-file read — no network. Safe on the GUI thread.
+        return bool(self._b.auth_consume_takeover())
+
     @Slot(str, result=bool)
     def auth_owns_game(self, game_id: str) -> bool:
         # Sync HTTPS to Supabase /rest/v1/user_purchases (~2.5s). DRM
@@ -415,6 +560,22 @@ class Bridge(QObject):
     def auth_get_my_votes(self) -> list[str]:
         # Sync HTTPS to Supabase /rest/v1/user_votes (~2.5s).
         return _run_off_thread(self._b.auth_get_my_votes)
+
+    # ──────────────────────────────────────────────────────────────
+    # Crash / error reporting
+    # ──────────────────────────────────────────────────────────────
+    @Slot(str, str, str, str, result="QVariant")
+    def report_crash(self, error_type: str, message: str, traceback_: str, screen: str) -> bool:
+        # Off-thread: the POST is a sync HTTPS call (≤5s).
+        return _run_off_thread(lambda: self._b.report_crash(error_type, message, traceback_, screen))
+
+    @Slot(result="QVariant")
+    def get_crash_opt_in(self) -> bool:
+        return self._b.get_crash_opt_in()
+
+    @Slot(bool, result="QVariant")
+    def set_crash_opt_in(self, enabled: bool) -> bool:
+        return self._b.set_crash_opt_in(enabled)
 
     @Slot(result="QVariant")
     def auth_get_authorize_url(self) -> str | None:

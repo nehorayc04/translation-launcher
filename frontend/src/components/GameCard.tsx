@@ -1,8 +1,11 @@
 // Tile shown in the library grid. 2:3 cover image, status chips overlaid,
-// title gradient at bottom, hover = scale-up + glow.
+// title gradient at bottom, hover = lift + per-game accent glow + cover zoom
+// + a "פתח" reveal overlay (WeMod/Steam-grade).
 import type { Game } from "../lib/types";
 import { availabilityLabel, accentFor, gradientFor, modStateLabel } from "../lib/theme";
 import { resolveCoverUrl } from "../lib/coverUrl";
+import { formatVersion } from "../lib/formatVersion";
+import { StageBadge } from "./StageBadge";
 import { useState } from "react";
 
 interface Props {
@@ -16,19 +19,23 @@ export default function GameCard({ game, onClick, size = "md" }: Props) {
   const accent   = accentFor(game.theme_key);
   const avail    = availabilityLabel(game.availability);
   const modBadge = game.has_mod_support ? modStateLabel(game.mod_state) : null;
+  const active   = game.mod_state === "ACTIVE";
   // Normalise the catalog's `cover` field (which may be a full URL,
   // a root-relative path, or just a bare filename like "cyberpunk.jpg")
   // to a usable <img src>. See lib/coverUrl.ts for the resolution rules.
   const coverSrc = resolveCoverUrl(game.cover, game.id);
   const [imgError, setImgError] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const [hover, setHover]       = useState(false);
 
   const widthClass = size === "lg" ? "w-[230px]" : "w-[180px]";
 
   return (
     <button
       onClick={() => onClick(game)}
-      className={`group ${widthClass} flex-shrink-0 text-right
-                  transition-all duration-300 hover:-translate-y-1
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      className={`group ${widthClass} flex-shrink-0 text-right lift
                   focus:outline-none focus:ring-2 focus:ring-brand-yellow/40
                   rounded-2xl`}
       style={{ direction: "rtl" }}
@@ -36,38 +43,52 @@ export default function GameCard({ game, onClick, size = "md" }: Props) {
       {/* Cover — strict 2:3 aspect.
           `transform-gpu` + `isolation:isolate` + `translateZ(0)` give the
           card its own compositing layer up-front, so the rounded clip stays
-          consistent when the inner <img> scales on hover (Chromium otherwise
-          briefly drops the clip while building a new layer = "sharp corners
-          for a frame"). We also keep the ring width constant — only the
-          color/opacity animates — to avoid a 1px layout snap. */}
+          consistent when the inner <img> scales on hover. The hover glow is a
+          per-game accent-tinted drop shadow (the WeMod look). */}
       <div
-        className="relative aspect-[2/3] rounded-2xl overflow-hidden
-                   transform-gpu will-change-transform
-                   ring-1 ring-white/10
-                   shadow-[0_20px_40px_-20px_rgba(0,0,0,0.8)]
-                   group-hover:ring-white/30
-                   group-hover:shadow-[0_25px_50px_-15px_rgba(0,0,0,0.9)]
-                   transition-[box-shadow,--tw-ring-color] duration-300"
+        className={`relative aspect-[2/3] rounded-2xl overflow-hidden
+                   transition-[box-shadow,--tw-ring-color] duration-300
+                   ${active ? "ring-2" : "ring-1"}`}
         style={{
           isolation: "isolate",
-          transform: "translateZ(0)",
-          background: imgError
-            ? `linear-gradient(160deg, ${g1}, ${g2})`
-            : undefined,
+          // ring color: hover → accent; active (translation on) → green
+          // border always; otherwise subtle white.
+          ["--tw-ring-color" as string]: hover
+            ? `${accent}aa`
+            : active
+              ? "rgba(34,197,94,0.85)"
+              : "rgba(255,255,255,0.10)",
+          boxShadow: hover
+            ? `0 24px 55px -18px rgba(0,0,0,0.9), 0 0 32px -6px ${accent}80`
+            : active
+              ? "0 20px 40px -20px rgba(0,0,0,0.8), 0 0 22px -6px rgba(34,197,94,0.7)"
+              : "0 20px 40px -20px rgba(0,0,0,0.8)",
+          background: imgError ? `linear-gradient(160deg, ${g1}, ${g2})` : undefined,
         }}
       >
+        {/* Skeleton shimmer while the cover loads. */}
+        {!imgError && !imgLoaded && (
+          <div className="skeleton absolute inset-0" aria-hidden />
+        )}
         {!imgError && (
           <img
             src={coverSrc}
             alt={game.titleEn}
             onError={() => setImgError(true)}
-            className="absolute inset-0 w-full h-full object-cover
-                       group-hover:scale-[1.04] transition-transform duration-500"
-            style={{ transform: "translateZ(0)", willChange: "transform" }}
+            onLoad={() => setImgLoaded(true)}
+            className={`absolute inset-0 w-full h-full object-cover
+                       group-hover:scale-[1.06] transition-transform duration-[600ms] ease-out
+                       ${imgLoaded ? "opacity-100" : "opacity-0"}`}
             loading="lazy"
             draggable={false}
           />
         )}
+
+        {/* Accent wash that fades in on hover — ties the cover to the game color. */}
+        <div
+          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+          style={{ background: `linear-gradient(to top, ${accent}22, transparent 55%)` }}
+        />
 
         {/* Bottom gradient for legibility */}
         <div className="absolute inset-x-0 bottom-0 h-32
@@ -79,18 +100,39 @@ export default function GameCard({ game, onClick, size = "md" }: Props) {
           {avail.text}
         </div>
 
-        {/* Top-left version chip */}
-        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px]
-                        font-medium text-slate-200 bg-black/75 backdrop-blur-md
-                        ring-1 ring-white/15">
-          {game.version}
+        {/* Top-left version chip + stage badge (אלפא/בטא/RC; none for stable) */}
+        <div className="absolute top-2 left-2 flex items-center gap-1">
+          <StageBadge releaseStage={game.releaseStage} version={game.version} />
+          <span className="px-2 py-0.5 rounded-full text-[10px] font-medium text-slate-200
+                           bg-black/90 ring-1 ring-white/15">
+            {formatVersion(game.version)}
+          </span>
         </div>
 
-        {/* Bottom block — mod chip + title stacked in normal flow.
-            Previously the chip was absolute at bottom-2/left-2 and the
-            title was absolute at bottom-0; with long titles like
-            "Marvel's Spider-Man Remastered" the two collided. A flex
-            column with a small gap guarantees no overlap. */}
+        {/* Active-mod glow dot — a small living indicator that the translation
+            is currently applied (mirrors WeMod's "active" pip). */}
+        {active && (
+          <span
+            className="absolute top-2 left-2 -translate-x-[2px] translate-y-7 w-2 h-2 rounded-full animate-pulse-dot"
+            style={{ background: "#22c55e", boxShadow: "0 0 10px #22c55e" }}
+            aria-hidden
+          />
+        )}
+
+        {/* Hover reveal — a centered "פתח" pill over a soft veil. */}
+        <div className="absolute inset-0 grid place-items-center opacity-0 group-hover:opacity-100
+                        transition-opacity duration-300 pointer-events-none">
+          <span
+            className="px-5 py-2 rounded-full text-[13px] font-extrabold text-brand-ink
+                       translate-y-2 group-hover:translate-y-0 transition-transform duration-300
+                       shadow-[0_8px_24px_-6px_rgba(0,0,0,0.7)]"
+            style={{ background: accent }}
+          >
+            ▸ פתח
+          </span>
+        </div>
+
+        {/* Bottom block — mod chip + title stacked in normal flow. */}
         <div className="absolute inset-x-0 bottom-0 p-3 flex flex-col gap-1.5 items-start"
              dir="ltr">
           {modBadge && (
@@ -107,14 +149,10 @@ export default function GameCard({ game, onClick, size = "md" }: Props) {
             {game.titleEn}
           </span>
         </div>
-
-
       </div>
-
-      {/* Caption — tagline below cover */}
-      <div className="px-1 pt-2 text-[11px] text-slate-300 line-clamp-2 leading-snug">
-        {game.tagline}
-      </div>
+      {/* No caption below the cover — the tagline lives in the detail panel.
+          Dropping it keeps every card the exact same height (fixed width +
+          strict 2:3 cover), so the grid is perfectly uniform. */}
     </button>
   );
 }

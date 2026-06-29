@@ -1,0 +1,128 @@
+{
+  "_doc": "רישום ניתוב לכל משחק — מאיפה לוקחים הנחיות, איך בונים, איפה מפרסמים. נתיבים אומתו מול הדיסק 2026-06-29; null = לא קיים/לא רלוונטי עדיין.",
+  "games": {
+    "cyberpunk2077": {
+      "title": "Cyberpunk 2077",
+      "engine": "REDengine / CR2W",
+      "slug": "cp2077-hebrew",
+      "repo": "nehorayc04/cp2077-hebrew-mods",
+      "release_tag": "v1.0.2",
+      "translate_handoff": null,
+      "qa_handoff": "games/cyberpunk2077/agent_handoff_qa",
+      "qa_engine": "games/cyberpunk2077/qa_review_*.py + universal/opus_qa",
+      "publish": "games/cyberpunk2077/pack_cp2077_mod.py",
+      "build_doc": "CLAUDE.md § rebuild_onscreens_and_pack.py (game must be CLOSED)",
+      "notes": "תרגום ע\"י LM מקומי; ביקורת ע\"י Opus QA / prep_agents. פרסום ע\"י clobber של v1.0.2."
+    },
+    "spiderman2": {
+      "title": "Marvel's Spider-Man 2",
+      "engine": "Insomniac / DAT1 (Overstrike-free native applier)",
+      "slug": "spiderman2-hebrew",
+      "repo": "nehorayc04/spiderman2-hebrew-mods",
+      "release_tag": "v1.0.0-beta.1",
+      "translate_handoff": null,
+      "qa_handoff": "universal/qa_review.py (+ games/spiderman2/qa_review_config.json)",
+      "qa_engine": "universal/qa_review.py",
+      "publish": "games/spiderman2/pack_and_release.py",
+      "build_doc": "CLAUDE.md § SM2 build chain (98→10→91→94→95→96→97→15→80, .venv python)",
+      "notes": "תרגום ע\"י LM trio ב-work/ + handoff זנב; שמות קנוניים ב-names_research.json."
+    },
+    "watchdogs2": {
+      "title": "Watch Dogs 2",
+      "engine": "Ubisoft Disrupt / FAT5 .loc",
+      "slug": "watchdogs2-hebrew",
+      "repo": "nehorayc04/watchdogs2-hebrew-mods",
+      "release_tag": "v1.0.0-beta.2",
+      "translate_handoff": "games/watchdogs2/agent_handoff",
+      "translate_handoff_subs": "games/watchdogs2/agent_handoff_subs",
+      "qa_handoff": "games/watchdogs2/agent_handoff_qa",
+      "qa_engine": "games/watchdogs2/agent_handoff_qa/prep_agents.py",
+      "publish": "games/watchdogs2/pack_and_release.py",
+      "build_doc": "games/watchdogs2/PIPELINE.md (wd2_loc.py encode → wd2_archive.py deploy)",
+      "notes": "UI=visual, subs=logical. clobber v1.0.0-beta.2 (latest), לא beta.1."
+    },
+    "godofwar_ragnarok": {
+      "title": "God of War Ragnarok",
+      "engine": "LZ4 → WAD/WTOC → MSGS_TXT",
+      "slug": null,
+      "repo": null,
+      "release_tag": null,
+      "translate_handoff": "games/godofwar_ragnarok/work",
+      "qa_handoff": null,
+      "qa_engine": null,
+      "publish": null,
+      "build_doc": "games/godofwar_ragnarok/PIPELINE.md (work/build_wad.py — delta>0 לא אומת in-game)",
+      "notes": "100% מתורגם, build חצה delta>0, טרם אומת in-game וטרם פורסם. צריך repo+slug בפרסום ראשון."
+    },
+    "anno1800": {
+      "title": "Anno 1800",
+      "engine": "Anno RDA / texts_english.xml (loose-file mod)",
+      "slug": "anno1800-hebrew",
+      "repo": "nehorayc04/anno1800-hebrew-mods",
+      "release_tag": "v1.0.0-beta.1",
+      "translate_handoff": "games/anno1800/agent_handoff",
+      "qa_handoff": null,
+      "qa_engine": null,
+      "publish": "games/anno1800/pack_and_release.py",
+      "build_doc": "games/anno1800/work/build_mod.py (VISUAL default + font inject)",
+      "notes": "פסיקה B (אנגלית + toggle). slug טרם נפרס ב-wrangler. לשחזר 189 מודי mod.io בסיום."
+    },
+    "gtav": {
+      "title": "Grand Theft Auto V (Legacy)",
+      "engine": "RPF7 / GXT2 (OpenIV-free native applier)",
+      "slug": null,
+      "repo": "nehorayc04/gtav-hebrew-mods",
+      "release_tag": "v1.0.0-beta.2",
+      "translate_handoff": "games/gtav/agent_handoff_full",
+      "qa_handoff": null,
+      "qa_engine": null,
+      "publish": "games/gtav/pack_and_release.py",
+      "build_doc": "games/gtav/work/build_full_gxt2.py (--oiv) + install_gtav_mod.py",
+      "parallel": {
+        "get": "python games/gtav/agent_handoff_full/get_batch.py {slot} {n}",
+        "fill": "current_batch_{slot}.json",
+        "merge": "python games/gtav/agent_handoff_full/merge_batch.py {slot}"
+      },
+      "notes": "בתשלום ₪53. בלי Worker slug — download_url ישיר ל-GitHub. clobber v1.0.0-beta.2."
+    },
+    "acshadows": {
+      "title": "Assassin's Creed Shadows",
+      "engine": "Anvil / scimitar-v42 forge",
+      "slug": null,
+      "repo": null,
+      "release_tag": null,
+      "translate_handoff": null,
+      "qa_handoff": null,
+      "qa_engine": null,
+      "publish": null,
+      "build_doc": "games/acshadows/FORMAT.md + PIPELINE.md",
+      "notes": "קרקע. חסום על repacker v42 (ATK beta). 15,997 שורות EN ב-/translate."
+    },
+    "assassinscreed2": {
+      "title": "Assassin's Creed II (קלאסי 2009)",
+      "engine": "Scimitar / forge v25",
+      "slug": null,
+      "repo": null,
+      "release_tag": null,
+      "translate_handoff": null,
+      "qa_handoff": null,
+      "qa_engine": null,
+      "publish": null,
+      "build_doc": "games/assassinscreed2/PIPELINE.md + FORMAT.md",
+      "notes": "קרקע GO. אין Arabic slot → hijack LTR. כלי קריאה בנויים; AnvilToolkit ל-repack."
+    },
+    "steam": {
+      "title": "Steam UI",
+      "engine": "Steam JSON/VDF (arabic slot)",
+      "slug": "steam-hebrew",
+      "repo": "nehorayc04/steam-hebrew-mods",
+      "release_tag": "v2026.05.20",
+      "translate_handoff": null,
+      "qa_handoff": null,
+      "qa_engine": null,
+      "publish": "games/steam/pack_and_release.py",
+      "build_doc": "CLAUDE.md § Steam Hebrew Localizer (steam_translator.py)",
+      "notes": "ריצה מלאה הושלמה. 8 קבצים, 98% עברית."
+    }
+  }
+}

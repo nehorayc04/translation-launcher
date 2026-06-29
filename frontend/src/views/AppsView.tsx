@@ -220,9 +220,9 @@ function SoftwareCard({
         {typeof s.installed === "boolean" && (
           <span
             className="absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full
-                       backdrop-blur-md tracking-wider"
+                       tracking-wider"
             style={{
-              background: s.installed ? "rgba(34,197,94,0.18)" : "rgba(148,163,184,0.18)",
+              background: s.installed ? "rgba(10,28,16,0.92)" : "rgba(18,22,32,0.92)",
               color:      s.installed ? "#86efac" : "#cbd5e1",
               border:     `1px solid ${s.installed ? "rgba(34,197,94,0.45)" : "rgba(148,163,184,0.35)"}`,
             }}

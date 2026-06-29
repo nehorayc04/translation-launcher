@@ -9,27 +9,20 @@
 // on the GPU or software path). (The component name is kept so App.tsx's import
 // is unchanged.) NOTE: the launcher now runs Chromium with GPU compositing ON
 // by default (see main_qt.py); a static poster is still the right call here.
-const POSTER_SRC = "./bg-poster.jpg";
-
+// The poster image was REMOVED (user request): the app background is now a
+// soft, gentle AMBIENT colour driven by the "צבע אווירה" Appearance setting
+// (the .accent-bg layer reads --accent / ambient-rainbow). Here we only paint
+// a calm dark base for that colour to glow over — zero decode/composite cost.
 export default function VideoBackground() {
   return (
-    <>
-      {/* base fill — shows instantly before the poster decodes */}
-      <div className="fixed inset-0" style={{ zIndex: 0, background: "#050510" }} aria-hidden />
-      <img
-        src={POSTER_SRC}
-        alt=""
-        aria-hidden
-        decoding="async"
-        className="fixed inset-0 w-full h-full object-cover pointer-events-none"
-        style={{ zIndex: 0 }}
-      />
-      {/* tinted overlay — sits between the background and the content */}
-      <div
-        className="fixed inset-0 pointer-events-none
-                   bg-gradient-to-br from-[#050510]/60 via-[#0a0a20]/45 to-[#1a0d40]/40"
-        style={{ zIndex: 1 }}
-      />
-    </>
+    <div
+      className="fixed inset-0 pointer-events-none"
+      style={{
+        zIndex: 0,
+        background:
+          "radial-gradient(120% 100% at 50% -10%, #0c0c20 0%, #070714 55%, #050510 100%)",
+      }}
+      aria-hidden
+    />
   );
 }

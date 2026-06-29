@@ -1,34 +1,46 @@
 // Right-side nav (RTL): brand, nav rows, bottom "settings + refresh"
-// panel, version footer. The bottom panel replaces the old UpdatesMenu —
-// updates now live in the dedicated /downloads view.
-import { useEffect, useMemo, useState, type ComponentType, type SVGProps } from "react";
+// panel, version footer.
+//
+// Behavior (ported from the Lovable study): a 72px rail that expands to 230px
+//  • on HOVER while floating → OVERLAYS the content + dims the backdrop,
+//  • or PINNED (lock button) → stays open and PUSHES the content.
+// SMOOTHNESS: every row keeps ONE structure in both states — labels are
+// ALWAYS mounted and only fade+slide (opacity + padding), icons live in a
+// fixed-width box — so nothing reflows/jumps while the width animates.
+import { useEffect, useMemo, useState, type ComponentType, type SVGProps, type CSSProperties } from "react";
 import { HomeIcon, LibraryIcon, DownloadsIcon, SettingsIcon } from "./NavIcons";
 import { useLauncherAuth } from "../lib/useLauncherAuth";
 import AuthModal from "./AuthModal";
+import { getSidebarMode, type SidebarMode } from "../lib/themePrefs";
 
 export type NavKey = "home" | "games" | "downloads" | "personal" | "settings";
 
 interface NavLeaf {
-  kind:   "leaf";
   key:    NavKey;
   label:  string;
   Icon:   ComponentType<SVGProps<SVGSVGElement>>;
   accent: string;
 }
 
-interface NavGroup {
-  kind:     "group";
-  id:       string;                                     // not a NavKey — header is non-routable
-  label:    string;
-  Icon:     ComponentType<SVGProps<SVGSVGElement>>;
-  accent:   string;
-  children: NavLeaf[];
+const EASE = "cubic-bezier(.22,1,.36,1)";
+
+// The reveal: a flex-1 clip that fades + slides its text. Always mounted, so
+// the row never restructures when collapsing/expanding (this kills the jump).
+function reveal(exp: boolean, pad = 12): CSSProperties {
+  return {
+    flex: "1 1 0%",
+    minWidth: 0,
+    overflow: "hidden",
+    whiteSpace: "nowrap",
+    textAlign: "right",
+    opacity: exp ? 1 : 0,
+    paddingRight: exp ? pad : 0,
+    transition: "opacity .26s ease, padding-right .26s ease",
+  };
 }
+// Fixed icon slot — the icon never moves while the row width animates.
+const ICONBOX: CSSProperties = { flex: "0 0 48px", display: "grid", placeItems: "center" };
 
-type NavItem = NavLeaf | NavGroup;
-
-// Small inline icon for the Personal Area row — kept inline so we don't
-// need to touch NavIcons.tsx and risk another runtime mismatch.
 function PersonIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -40,156 +52,133 @@ function PersonIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-// "settings" intentionally NOT in this list — it sits in the bottom
-// panel alongside the refresh button. "personal" is added as a regular
-// nav row (instead of overloading the auth-slot button) so the whole
-// row tree stays simple and crash-free.
-const NAV: NavItem[] = [
-  { kind: "leaf",  key: "home", label: "דף הבית", Icon: HomeIcon, accent: "#fff700" },
-  // "תוכנות" (Apps/Steam) hidden — only the games library remains. Kept as a
-  // single routable "ספרייה" row (the group wrapper is unnecessary with one child).
-  { kind: "leaf", key: "games", label: "ספרייה", Icon: LibraryIcon, accent: "#d4af37" },
-  { kind: "leaf", key: "downloads", label: "הורדות ועדכונים", Icon: DownloadsIcon, accent: "#22c55e" },
-  { kind: "leaf", key: "personal",  label: "אזור אישי",        Icon: PersonIcon,    accent: "#00ffe0" },
+// Outline padlock — same line-icon style as the nav icons (replaces the 🔐 emoji).
+function LockIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
+         width={20} height={20} {...props}>
+      <rect x="4.5" y="10.5" width="15" height="10" rx="2.3" />
+      <path d="M8 10.5V7a4 4 0 0 1 8 0v3.5" />
+    </svg>
+  );
+}
+
+const NAV: NavLeaf[] = [
+  { key: "home",      label: "דף הבית",         Icon: HomeIcon,      accent: "#fff700" },
+  { key: "games",     label: "ספרייה",          Icon: LibraryIcon,   accent: "#d4af37" },
+  { key: "downloads", label: "הורדות ועדכונים", Icon: DownloadsIcon, accent: "#22c55e" },
+  { key: "personal",  label: "אזור אישי",        Icon: PersonIcon,    accent: "#00ffe0" },
 ];
 
 interface Props {
   current: NavKey;
   onNavigate: (key: NavKey) => void;
   onRefresh: () => Promise<void>;
-  /** Dynamic version string from App.APP_VERSION (e.g. "v1.1.0").
-   *  Replaces the previously hardcoded "v1.0" footer. */
   version: string;
 }
 
-export default function Sidebar({ current, onNavigate, onRefresh, version }: Props) {
+export default function Sidebar({ current, onNavigate, version }: Props) {
   const year = useMemo(() => new Date().getFullYear(), []);
-  // Collapsible — persisted so the choice survives navigation/restart.
-  const [collapsed, setCollapsed] = useState<boolean>(
-    () => { try { return localStorage.getItem("sidebarCollapsed") === "1"; } catch { return false; } }
-  );
+  // Display MODE is chosen in Settings → Appearance and shared via themePrefs;
+  // mirror it here + react to live changes. "auto" = collapsed rail that
+  // expands on hover (default); "wide"/"narrow" = locked open/collapsed.
+  const [mode, setMode] = useState<SidebarMode>(getSidebarMode);
+  const [hovered, setHovered] = useState(false);
   useEffect(() => {
-    try { localStorage.setItem("sidebarCollapsed", collapsed ? "1" : "0"); } catch { /* ignore */ }
-  }, [collapsed]);
+    const onChange = (e: Event) => setMode((e as CustomEvent).detail as SidebarMode);
+    window.addEventListener("sidebarmode", onChange);
+    return () => window.removeEventListener("sidebarmode", onChange);
+  }, []);
+
+  const exp = mode === "wide" ? true : mode === "narrow" ? false : hovered;
 
   return (
     <aside
-      className={[
-        "glass-strong rounded-2xl flex flex-col flex-shrink-0 p-3 gap-3",
-        "transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
-        collapsed ? "w-[72px]" : "w-[230px]",
-      ].join(" ")}
+      className="sidebar-glass rounded-2xl flex flex-col flex-shrink-0 p-3 gap-3 overflow-hidden"
+      style={{ width: exp ? 230 : 72, transition: `width .46s ${EASE}` }}
+      onMouseEnter={() => { if (mode === "auto") setHovered(true); }}
+      onMouseLeave={() => { if (mode === "auto") setHovered(false); }}
     >
-      {/* Brand block + collapse toggle */}
-      <div className={[
-        "flex items-center gap-3 px-1 pt-1 pb-3 border-b border-white/5",
-        collapsed ? "flex-col" : "justify-end",
-      ].join(" ")}>
-        {!collapsed && (
-          <>
-            <button
-              type="button"
-              onClick={() => setCollapsed(true)}
-              title="כווץ סרגל"
-              aria-label="כווץ סרגל"
-              className="w-7 h-7 rounded-lg grid place-items-center text-slate-400
-                         hover:text-white hover:bg-white/10 transition shrink-0"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                   strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="M9 6l6 6-6 6" />
-              </svg>
-            </button>
-            <div className="text-right flex-1">
-              <div className="font-bold text-white text-[15px] leading-tight">פרויקט התרגום</div>
-              <div className="font-display text-[8px] tracking-[0.25em] text-brand-cyan mt-0.5">
-                H E B R E W &nbsp; A I
-              </div>
+        {/* Brand block — text reveal + avatar. Avatar fills the rail when collapsed
+            so it sits DEAD-CENTRE (the pin moved to the bottom row). */}
+        <div className="flex items-center px-1 pt-1 pb-3 border-b border-white/5">
+          <div
+            className="text-right overflow-hidden whitespace-nowrap"
+            style={{ flex: exp ? "1 1 0%" : "0 0 0px", opacity: exp ? 1 : 0, paddingRight: exp ? 8 : 0, transition: "opacity .26s ease" }}
+          >
+            <div className="font-bold text-white text-[15px] leading-tight">פרויקט התרגום</div>
+            <div className="font-display text-[8px] tracking-[0.25em] text-brand-cyan mt-0.5">
+              H E B R E W &nbsp; A I
             </div>
-          </>
-        )}
+          </div>
 
-        {/* NEON BRAND AVATAR (always shown). When collapsed it doubles as the
-            expand button. */}
-        <button
-          type="button"
-          onClick={collapsed ? () => setCollapsed(false) : undefined}
-          title={collapsed ? "הרחב סרגל" : undefined}
-          className="relative flex items-center justify-center w-11 h-11 rounded-full bg-[#1a0d40] border-[1.5px] border-[#00ffe0] shadow-[0_0_12px_rgba(0,255,224,0.4)] overflow-hidden shrink-0 transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(0,255,224,0.7)] group"
+          <div className="grid place-items-center" style={{ flex: exp ? "0 0 48px" : "1 1 auto" }}>
+            <div
+              title="פרויקט התרגום"
+              className="relative flex items-center justify-center w-12 h-12 rounded-full border-[1.5px] border-[#00ffe0] shadow-[0_0_12px_rgba(0,255,224,0.4)] overflow-hidden shrink-0"
+            >
+              {/* blurred cover fills the empty space with the image's own background */}
+              <img src="./app-icon.png" alt="" aria-hidden
+                   className="absolute inset-0 w-full h-full object-cover scale-125 blur-md" />
+              {/* sharp logo, contained INSIDE the frame (not clipped by the circle) */}
+              <img src="./app-icon.png" alt="פרויקט התרגום"
+                   className="relative z-[1] w-10 h-10 object-contain" />
+            </div>
+          </div>
+        </div>
+
+        {/* Nav */}
+        <nav className="flex flex-col gap-1 mt-1">
+          {NAV.map((item) => (
+            <NavRow key={item.key} item={item} current={current} onNavigate={onNavigate} exp={exp} />
+          ))}
+        </nav>
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Auth slot — sign in / avatar + logout. */}
+        <AuthSlot exp={exp} />
+
+        {/* Settings (refresh removed per request) */}
+        <SettingsPanel
+          active={current === "settings"}
+          onOpen={() => onNavigate("settings")}
+          exp={exp}
+        />
+
+        {/* Footer — height/opacity reveal (no mount/unmount → no jump). */}
+        <div
+          className="text-center text-[10px] text-slate-500 font-mono overflow-hidden"
+          dir="ltr"
+          style={{ height: exp ? 15 : 0, opacity: exp ? 1 : 0, transition: `opacity .3s ease, height .35s ${EASE}` }}
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-[#00ffe0]/30 to-[#fff700]/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none" />
-          <img
-            src="./profile.png"
-            alt="User Profile"
-            className="w-full h-full object-cover relative z-0"
-            onError={(e) => {
-              e.currentTarget.style.display = 'none';
-              e.currentTarget.nextElementSibling?.classList.remove('hidden');
-            }}
-          />
-          <span className="hidden text-[#fff700] font-black text-xl tracking-tighter drop-shadow-[0_0_8px_rgba(255,247,0,0.9)] z-10" style={{ fontFamily: 'system-ui, sans-serif', paddingBottom: '2px' }}>
-            ת
-          </span>
-        </button>
-      </div>
-
-      {/* Nav */}
-      <nav className="flex flex-col gap-1 mt-1">
-        {NAV.map((item) =>
-          item.kind === "leaf"
-            ? <NavRow key={item.key} item={item} current={current} onNavigate={onNavigate} collapsed={collapsed} />
-            : <NavGroupRow key={item.id} group={item} current={current} onNavigate={onNavigate} collapsed={collapsed} />
-        )}
-      </nav>
-
-      {/* Spacer */}
-      <div className="flex-1" />
-
-      {/* Auth slot — sign in / avatar + logout. */}
-      <AuthSlot collapsed={collapsed} />
-
-      {/* Bottom action panel — Settings + Refresh */}
-      <SettingsPanel
-        active={current === "settings"}
-        onOpen={() => onNavigate("settings")}
-        onRefresh={onRefresh}
-        collapsed={collapsed}
-      />
-
-      {!collapsed && (
-        <div className="text-center text-[10px] text-slate-500 pb-1 font-mono" dir="ltr">
           {version} • © {year}
         </div>
-      )}
     </aside>
   );
 }
 
-// Standalone nav row (leaf). Mirrors the old map-callback markup so it
-// stays visually identical to a top-level item.
+// Single-structure nav row — label always mounted (reveal), icon in a fixed
+// slot, so the row never reflows while the sidebar width animates.
 function NavRow({
-  item, current, onNavigate, indent = false, collapsed = false,
+  item, current, onNavigate, exp,
 }: {
-  item:     NavLeaf;
-  current:  NavKey;
+  item:       NavLeaf;
+  current:    NavKey;
   onNavigate: (key: NavKey) => void;
-  indent?:  boolean;
-  collapsed?: boolean;
+  exp:        boolean;
 }) {
   const active = item.key === current;
-  const iconPx = indent && !collapsed ? 16 : 20;
   return (
     <button
       type="button"
       onClick={() => onNavigate(item.key)}
-      title={collapsed ? item.label : undefined}
+      title={!exp ? item.label : undefined}
       className={[
-        "group relative flex items-center gap-3 text-right",
-        "rounded-xl py-2.5 transition-all duration-150",
-        collapsed ? "justify-center px-0" : indent ? "pr-7 pl-3 text-[13px]" : "pr-3 pl-3 text-[14px]",
-        active
-          ? "bg-white/[0.08] text-white"
-          : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-200",
+        "group relative flex items-center w-full rounded-xl py-2.5 transition-colors duration-150",
+        active ? "nav-glass text-white" : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-200",
       ].join(" ")}
       style={{ ["--ic" as string]: item.accent }}
     >
@@ -200,83 +189,35 @@ function NavRow({
         ].join(" ")}
         style={{ background: item.accent, boxShadow: active ? `0 0 16px 1px ${item.accent}, 0 0 4px ${item.accent}` : undefined }}
       />
-      {/* soft accent wash behind the active row (stronger glow) */}
       {active && (
-        <span className="absolute inset-0 rounded-xl opacity-100 pointer-events-none"
+        <span className="absolute inset-0 rounded-xl pointer-events-none"
               style={{ background: `linear-gradient(to left, ${item.accent}22, transparent 75%)` }}
               aria-hidden />
       )}
-      {!collapsed && <span className="flex-1 font-medium">{item.label}</span>}
-      {/* Monochrome at rest → accent on hover (CSS var) → accent when active. */}
-      <item.Icon
-        className={active ? "" : "group-hover:[color:var(--ic)] transition-colors duration-200"}
-        width={iconPx}
-        height={iconPx}
-        style={active ? { color: item.accent } : undefined}
-      />
+      <span className="relative z-[1] text-[14px]" style={{ ...reveal(exp), fontWeight: active ? 600 : 500 }}>
+        {item.label}
+      </span>
+      <span style={ICONBOX} className="relative z-[1]">
+        <item.Icon
+          className={active ? "" : "group-hover:[color:var(--ic)] transition-colors duration-200"}
+          width={20}
+          height={20}
+          style={active ? { color: item.accent } : undefined}
+        />
+      </span>
     </button>
   );
 }
 
-// Non-routable section header + its indented children. Header highlights
-// faintly when one of its children is the active view.
-function NavGroupRow({
-  group, current, onNavigate, collapsed = false,
-}: {
-  group:     NavGroup;
-  current:   NavKey;
-  onNavigate: (key: NavKey) => void;
-  collapsed?: boolean;
-}) {
-  const childActive = group.children.some((c) => c.key === current);
-  return (
-    <div className="flex flex-col">
-      {!collapsed && (
-        <div
-          className={[
-            "relative flex items-center gap-3 text-right",
-            "rounded-xl pr-3 pl-3 py-2 cursor-default select-none",
-            childActive ? "text-slate-100" : "text-slate-500",
-          ].join(" ")}
-        >
-          <span
-            className="absolute right-0 top-2 bottom-2 w-[2px] rounded-full opacity-30"
-            style={{ background: group.accent }}
-          />
-          <span className="flex-1 text-[14px] font-semibold tracking-wide">
-            {group.label}
-          </span>
-          <group.Icon
-            width={18}
-            height={18}
-            style={{ color: childActive ? group.accent : undefined }}
-          />
-        </div>
-      )}
-      <div className="flex flex-col gap-0.5 mt-0.5">
-        {group.children.map((child) => (
-          <NavRow
-            key={child.key}
-            item={child}
-            current={current}
-            onNavigate={onNavigate}
-            indent={!collapsed}
-            collapsed={collapsed}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function AuthSlot({ collapsed = false }: { collapsed?: boolean }) {
+function AuthSlot({ exp }: { exp: boolean }) {
   const { user, signedIn, signOut, loading } = useLauncherAuth();
-  const [modalOpen,        setModalOpen]        = useState(false);
-  const [confirmLogout,    setConfirmLogout]    = useState(false);
+  const [modalOpen,     setModalOpen]     = useState(false);
+  const [confirmLogout, setConfirmLogout] = useState(false);
 
   if (loading) {
     return (
-      <div className="px-3 py-2 mx-2 rounded-xl bg-white/[0.03] text-[11px] text-slate-500 text-center">
+      <div className="px-1 mb-1 rounded-xl bg-white/[0.03] text-[11px] text-slate-500 grid"
+           style={{ minHeight: 46, placeItems: "center" }}>
         ...
       </div>
     );
@@ -285,19 +226,24 @@ function AuthSlot({ collapsed = false }: { collapsed?: boolean }) {
   if (!signedIn) {
     return (
       <>
-        <div className={collapsed ? "px-0 mb-2 grid place-items-center" : "px-2 mb-2"}>
+        <div className={exp ? "px-1" : "px-1 grid place-items-center"}>
           <button
             type="button"
             onClick={() => setModalOpen(true)}
-            className={[
-              "flex items-center justify-center gap-2 rounded-xl",
-              "bg-[#00ffe0]/10 border border-[#00ffe0]/30 text-[#00ffe0]",
-              "hover:bg-[#00ffe0]/20 transition text-xs font-semibold",
-              collapsed ? "w-11 h-11" : "w-full px-3 py-2",
-            ].join(" ")}
             title="פותח חלון התחברות/הרשמה בתוך הלאנצ׳ר"
+            className={[
+              "flex items-center justify-center overflow-hidden border border-[#00ffe0]/30 text-[#00ffe0] hover:bg-[#00ffe0]/10 transition",
+              exp ? "w-full rounded-xl min-h-[46px] gap-2" : "w-10 h-10 rounded-full",
+            ].join(" ")}
+            style={{ background: exp ? "rgba(0,255,224,0.10)" : "transparent" }}
           >
-            <span>{collapsed ? "🔐" : "🔐 התחברות/הרשמה"}</span>
+            <LockIcon className="w-5 h-5 shrink-0" />
+            <span
+              className="text-xs font-semibold whitespace-nowrap"
+              style={{ maxWidth: exp ? 170 : 0, opacity: exp ? 1 : 0, overflow: "hidden", transition: "max-width .3s ease, opacity .26s ease" }}
+            >
+              התחברות/הרשמה
+            </span>
           </button>
         </div>
         <AuthModal open={modalOpen} onClose={() => setModalOpen(false)} />
@@ -307,75 +253,56 @@ function AuthSlot({ collapsed = false }: { collapsed?: boolean }) {
 
   const initials = (user?.fullName || user?.email || '??').slice(0, 2).toUpperCase();
 
-  if (collapsed) {
-    return (
-      <div className="px-0 mb-2 grid place-items-center">
-        <button
-          type="button"
-          onClick={() => setConfirmLogout(true)}
-          title={`${user?.fullName || user?.email || ''} — לחץ ליציאה`}
-          className="w-11 h-11 rounded-full overflow-hidden grid place-items-center
-                     border border-white/10 hover:border-rose-400/40 transition"
-        >
-          {user?.avatarUrl ? (
-            <img src={user.avatarUrl} alt={user.fullName || user.email} referrerPolicy="no-referrer"
-                 className="w-full h-full object-cover" />
-          ) : (
-            <span className="w-full h-full grid place-items-center bg-gradient-to-br from-[#00ffe0] to-[#7c3aed]
-                             text-[11px] font-extrabold text-[#0a0a14]">{initials}</span>
-          )}
-        </button>
-        <LogoutConfirm
-          open={confirmLogout}
-          userLabel={user?.fullName || user?.email?.split('@')[0] || ''}
-          onCancel={() => setConfirmLogout(false)}
-          onConfirm={async () => { setConfirmLogout(false); await signOut(); }}
-        />
-      </div>
-    );
-  }
-
   return (
-    <div className="px-2 mb-2">
-      <div className="flex items-center gap-2 px-2 py-2 rounded-xl
-                      bg-white/[0.03] border border-white/[0.05]">
-        {user?.avatarUrl ? (
-          <img
-            src={user.avatarUrl}
-            alt={user.fullName || user.email}
-            referrerPolicy="no-referrer"
-            className="w-7 h-7 rounded-full object-cover shrink-0"
-          />
-        ) : (
-          <div className="w-7 h-7 rounded-full grid place-items-center shrink-0
-                          bg-gradient-to-br from-[#00ffe0] to-[#7c3aed]
-                          text-[10px] font-extrabold text-[#0a0a14]">
-            {initials}
-          </div>
-        )}
-        <div className="min-w-0 flex-1">
-          <div className="text-[11px] font-semibold text-slate-100 truncate">
-            {user?.fullName || user?.email?.split('@')[0]}
-          </div>
+    <div className="px-1">
+      <div
+        className="flex items-center rounded-xl overflow-hidden"
+        style={{
+          minHeight: 46,
+          background: exp ? "rgba(255,255,255,0.03)" : "transparent",
+          boxShadow: exp ? "inset 0 0 0 1px rgba(255,255,255,0.06)" : "none",
+          transition: "background .3s ease, box-shadow .3s ease",
+        }}
+      >
+        {/* Avatar — on the RIGHT (first in RTL), next to the name; fills + centres when collapsed */}
+        <div className="grid place-items-center" style={{ flex: exp ? "0 0 48px" : "1 1 auto" }}>
+          <button
+            type="button"
+            onClick={() => setConfirmLogout(true)}
+            title={`${user?.fullName || user?.email || ''} — לחץ ליציאה`}
+            className="w-9 h-9 rounded-full overflow-hidden grid place-items-center border border-white/10 hover:border-rose-400/40 transition"
+          >
+            {user?.avatarUrl ? (
+              <img src={user.avatarUrl} alt={user.fullName || user.email} referrerPolicy="no-referrer"
+                   className="w-full h-full object-cover" />
+            ) : (
+              <span className="w-full h-full grid place-items-center bg-gradient-to-br from-[#00ffe0] to-[#7c3aed]
+                               text-[10px] font-extrabold text-[#0a0a14]">{initials}</span>
+            )}
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={() => setConfirmLogout(true)}
-          title="התנתק"
-          className="text-[10px] text-rose-300 hover:text-rose-200 px-1.5 py-0.5
-                     rounded border border-rose-500/20 hover:border-rose-500/40"
-        >
-          יציאה
-        </button>
+        {/* Name + logout — to the LEFT of the avatar */}
+        <div className="flex items-center gap-1 overflow-hidden"
+             style={{ flex: exp ? "1 1 0%" : "0 0 0px", opacity: exp ? 1 : 0, transition: "opacity .26s ease" }}>
+          <span className="flex-1 min-w-0 truncate text-[11px] font-semibold text-slate-100 text-right pr-2">
+            {user?.fullName || user?.email?.split('@')[0]}
+          </span>
+          <button
+            type="button"
+            onClick={() => setConfirmLogout(true)}
+            title="התנתק"
+            className="shrink-0 text-[10px] text-rose-300 hover:text-rose-200 px-1.5 py-0.5
+                       rounded border border-rose-500/20 hover:border-rose-500/40"
+          >
+            יציאה
+          </button>
+        </div>
       </div>
       <LogoutConfirm
         open={confirmLogout}
         userLabel={user?.fullName || user?.email?.split('@')[0] || ''}
         onCancel={() => setConfirmLogout(false)}
-        onConfirm={async () => {
-          setConfirmLogout(false);
-          await signOut();
-        }}
+        onConfirm={async () => { setConfirmLogout(false); await signOut(); }}
       />
     </div>
   );
@@ -389,7 +316,6 @@ function LogoutConfirm({
   onCancel: () => void;
   onConfirm: () => void | Promise<void>;
 }) {
-  // Escape to dismiss — close-on-backdrop-click is handled inline below.
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onCancel(); };
@@ -401,11 +327,7 @@ function LogoutConfirm({
   return (
     <div
       className="fixed inset-0 z-[110] grid place-items-center p-4"
-      style={{
-        direction: "rtl",
-        background: "rgba(0, 0, 0, 0.75)",
-        backdropFilter: "blur(10px)",
-      }}
+      style={{ direction: "rtl", background: "rgba(0, 0, 0, 0.75)", backdropFilter: "blur(10px)" }}
       onMouseDown={(e) => { if (e.target === e.currentTarget) onCancel(); }}
     >
       <div
@@ -456,116 +378,33 @@ function LogoutConfirm({
   );
 }
 
+// Settings — ONE structure (label reveal + fixed gear slot), exactly like a
+// nav row, so it never swaps layouts during the width animation (the old
+// two-branch swap caused the lingering teal square / delay).
 function SettingsPanel({
-  active, onOpen, onRefresh, collapsed = false,
+  active, onOpen, exp,
 }: {
   active: boolean;
   onOpen: () => void;
-  onRefresh: () => Promise<void>;
-  collapsed?: boolean;
+  exp: boolean;
 }) {
-  const [spinning, setSpinning] = useState(false);
-
-  const handleRefresh = async (e: React.MouseEvent) => {
-    e.stopPropagation();           // don't trigger the Settings click
-    if (spinning) return;
-    setSpinning(true);
-    try {
-      await onRefresh();
-    } finally {
-      // Keep the animation visible for at least 400ms so the click
-      // feels responsive even on a fast network.
-      setTimeout(() => setSpinning(false), 400);
-    }
-  };
-
-  if (collapsed) {
-    return (
-      <div className="flex flex-col items-center gap-2">
-        <button
-          type="button"
-          onClick={onOpen}
-          title="הגדרות"
-          aria-label="הגדרות"
-          className={[
-            "w-11 h-11 rounded-xl grid place-items-center transition",
-            active ? "bg-[#00ffe0] text-brand-ink" : "bg-white/[0.05] hover:bg-white/[0.10] text-slate-200",
-          ].join(" ")}
-        >
-          <SettingsIcon className="w-5 h-5" />
-        </button>
-        <button
-          type="button"
-          onClick={handleRefresh}
-          disabled={spinning}
-          title="רענון מהשרת"
-          aria-label="רענון מהשרת"
-          className="w-11 h-11 rounded-xl grid place-items-center bg-white/[0.05] hover:bg-white/[0.10]
-                     text-slate-200 transition disabled:opacity-60 disabled:cursor-wait group"
-        >
-          <svg viewBox="0 0 24 24" className={["w-5 h-5 transition-transform", spinning ? "animate-spin" : "group-hover:rotate-90"].join(" ")}
-               fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <path d="M21 12a9 9 0 1 1-3.1-6.8" /><path d="M21 4v5h-5" />
-          </svg>
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex items-stretch gap-2">
-      {/* Settings — primary, flex-1 */}
-      <button
-        onClick={onOpen}
-        className={[
-          "flex-1 rounded-xl border transition flex items-center justify-end gap-3 p-3 group",
-          active
-            ? "bg-white/[0.10] border-white/15 text-white"
-            : "bg-white/[0.04] border-white/5 hover:bg-white/[0.07] hover:border-white/10",
-        ].join(" ")}
-      >
-        <div className="text-right flex-1">
-          <div className="text-white font-semibold leading-tight text-[13px]">
-            הגדרות
-          </div>
-          <div className="text-slate-400 text-[10px]">נתיבים וגרסה</div>
-        </div>
-        <div className="relative w-10 h-10 rounded-xl bg-[#00ffe0] grid place-items-center
-                        shadow-[0_4px_14px_-4px_rgba(0,255,224,0.5)]
-                        group-hover:scale-105 transition">
-          <SettingsIcon className="w-5 h-5 text-brand-ink" />
-        </div>
-      </button>
-
-      {/* Refresh — compact icon-only square */}
-      <button
-        onClick={handleRefresh}
-        disabled={spinning}
-        title="רענון מהשרת"
-        aria-label="רענון מהשרת"
-        className={[
-          "w-12 rounded-xl border transition grid place-items-center group",
-          "bg-white/[0.04] border-white/5 hover:bg-white/[0.07] hover:border-white/10",
-          "disabled:opacity-60 disabled:cursor-wait",
-        ].join(" ")}
-      >
-        <svg
-          viewBox="0 0 24 24"
-          className={[
-            "w-5 h-5 text-slate-200 transition-transform",
-            spinning ? "animate-spin" : "group-hover:rotate-90",
-          ].join(" ")}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2.2}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden
-        >
-          <path d="M21 12a9 9 0 1 1-3.1-6.8" />
-          <path d="M21 4v5h-5" />
-        </svg>
-      </button>
-    </div>
+    <button
+      type="button"
+      onClick={onOpen}
+      title={!exp ? "הגדרות" : undefined}
+      className={[
+        "group relative flex items-center w-full rounded-xl py-2 transition-colors duration-150",
+        active ? "bg-white/[0.08] text-white" : "text-slate-300 hover:bg-white/[0.04]",
+      ].join(" ")}
+    >
+      <span className="text-[13px] font-semibold relative z-[1]" style={reveal(exp)}>הגדרות</span>
+      <span style={ICONBOX} className="relative z-[1]">
+        <span className="w-9 h-9 rounded-lg grid place-items-center bg-[#00ffe0] text-brand-ink
+                         shadow-[0_4px_14px_-4px_rgba(0,255,224,0.5)] group-hover:scale-105 transition-transform">
+          <SettingsIcon className="w-[18px] h-[18px]" />
+        </span>
+      </span>
+    </button>
   );
 }

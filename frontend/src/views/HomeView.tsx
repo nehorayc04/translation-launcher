@@ -215,15 +215,13 @@ function FeaturedCarousel({
                   onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
                 />
               ) : (
+                /* No banner → a blurred, zoomed cover backdrop — identical to the
+                   game-menu top banner ("if there's no image, a blurred background"). */
                 <img
                   src={cover}
                   alt={g.titleEn}
                   draggable={false}
-                  className="absolute inset-y-0 left-0 w-[62%] h-full object-cover"
-                  style={{
-                    WebkitMaskImage: "linear-gradient(to right, transparent, #000 45%)",
-                    maskImage: "linear-gradient(to right, transparent, #000 45%)",
-                  }}
+                  className="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl"
                   onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
                 />
               )}
@@ -274,15 +272,21 @@ function FeaturedCarousel({
               aria-label="הקודם"
               onClick={() => setIdx((i) => (i - 1 + n) % n)}
               className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full grid place-items-center
-                         bg-black/70 hover:bg-black/85 text-white text-lg border border-white/10 transition"
-            >‹</button>
+                         bg-black/70 hover:bg-black/85 text-white border border-white/10 transition"
+            >
+              {/* outward = points LEFT (toward the left edge) */}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M15 18l-6-6 6-6" /></svg>
+            </button>
             <button
               type="button"
               aria-label="הבא"
               onClick={() => setIdx((i) => (i + 1) % n)}
               className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full grid place-items-center
-                         bg-black/70 hover:bg-black/85 text-white text-lg border border-white/10 transition"
-            >›</button>
+                         bg-black/70 hover:bg-black/85 text-white border border-white/10 transition"
+            >
+              {/* outward = points RIGHT (toward the right edge) */}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M9 18l6-6-6-6" /></svg>
+            </button>
           </>
         )}
 

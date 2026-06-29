@@ -53,6 +53,6 @@ ReleaseDate: 2026-06-29
 Installers:
   - Architecture: x64
     InstallerUrl: https://github.com/nehorayc04/translation-launcher/releases/download/v1.0.0-dev/TranslationManager-Setup-1.0.0.exe
-    InstallerSha256: 1511AFD71131803E3247A2763B0CCE5EA597EF1A0C2705B1305E1B310EA7303A
+    InstallerSha256: 3215C1B79563865B6648F6B36811DAC2DC6114F5243FAFA3F63D22F1B5262B8B
 ManifestType: installer
 ManifestVersion: 1.6.0

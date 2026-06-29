@@ -1004,36 +1004,47 @@ export default function GameDetailPanel({ game, onBack, onRefresh, reportStatus,
   const bannerSrc = game.bannerUrl || resolveCoverUrl(game.cover, game.id);
 
   return (
-    <div className="h-full flex animate-scale-in">
+    <div className="h-full flex animate-scale-in relative">
       {/* ── FIXED right-side settings rail (RTL-first → appears on the RIGHT).
-          Stays put, scrolls itself, never moves with the main content.
-          Collapses to a thin ⚙ bar via the hide button. ──────────────────── */}
-      {settingsOpen ? (
+          Toggled by the prominent floating button at the bottom-LEFT. ─────── */}
+      {settingsOpen && (
         <aside className="shrink-0 w-[330px] h-full flex flex-col glass border-l border-white/10">
-          <div className="shrink-0 flex items-center justify-between px-4 py-3.5 border-b border-white/10">
+          <div className="shrink-0 flex items-center gap-3 px-4 py-3.5 border-b border-white/10">
             <button
+              type="button"
               onClick={() => setSettingsOpen(false)}
               title="הסתר הגדרות"
-              className="w-7 h-7 grid place-items-center rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition"
               aria-label="הסתר הגדרות"
-            >⟩</button>
-            <h3 className="text-white font-bold text-lg flex items-center gap-2">
+              className="w-8 h-8 grid place-items-center rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition shrink-0"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M9 6l6 6-6 6" /></svg>
+            </button>
+            <h3 className="flex-1 text-white font-bold text-lg flex items-center gap-2 justify-end">
               <span className="h-5 w-1.5 rounded-full" style={{ background: accent, boxShadow: `0 0 12px ${accent}99` }} />
               הגדרות
             </h3>
           </div>
           <div className="flex-1 min-h-0 overflow-y-auto p-4">{settingsBody}</div>
         </aside>
-      ) : (
+      )}
+
+      {/* Floating SHOW button — only when the rail is hidden; bottom-LEFT of the panel. */}
+      {!settingsOpen && (
         <button
+          type="button"
           onClick={() => setSettingsOpen(true)}
           title="הצג הגדרות"
           aria-label="הצג הגדרות"
-          className="shrink-0 w-11 h-full glass border-l border-white/10 flex flex-col items-center justify-center gap-3
-                     text-slate-300 hover:text-white hover:bg-white/5 transition"
+          className="absolute bottom-5 left-5 z-30 flex items-center gap-2 pl-3 pr-4 py-2.5 rounded-xl
+                     glass-strong border border-white/10 text-slate-200 hover:text-white
+                     hover:border-brand-cyan/50 shadow-[0_12px_30px_-10px_rgba(0,0,0,0.75)] transition group"
         >
-          <span className="text-xl" aria-hidden>⚙</span>
-          <span className="text-xs font-bold [writing-mode:vertical-rl]">הגדרות</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" aria-hidden
+               className="transition-transform group-hover:scale-110">
+            <path d="M9 6l6 6-6 6" />
+          </svg>
+          <span className="text-sm font-bold">הגדרות</span>
         </button>
       )}
 
@@ -1047,7 +1058,7 @@ export default function GameDetailPanel({ game, onBack, onRefresh, reportStatus,
           alt=""
           aria-hidden
           draggable={false}
-          className={`absolute inset-0 w-full h-full object-cover ${game.bannerUrl ? "" : "scale-110"}`}
+          className={`absolute inset-0 w-full h-full object-cover ${game.bannerUrl ? "" : "scale-125 blur-2xl"}`}
           onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
         />
         {/* Accent wash + bottom/edge scrims for legibility. */}
@@ -1081,17 +1092,17 @@ export default function GameDetailPanel({ game, onBack, onRefresh, reportStatus,
       </div>
 
       {/* ── TOP: actions (right) · info (center) · cover (left) ─────────── */}
-      <div className="grid grid-cols-[minmax(220px,260px)_1fr_320px] gap-6 items-start">
+      <div className="grid gap-6 items-start [grid-template-areas:'actions_cover'_'info_info'] [grid-template-columns:minmax(150px,220px)_minmax(140px,1fr)] xl:[grid-template-areas:'actions_info_cover'] xl:[grid-template-columns:minmax(200px,240px)_minmax(0,1fr)_minmax(180px,320px)]">
 
         {/* Actions column — stacked top-right */}
-        <div className="flex flex-col gap-3 self-start">
+        <div className="flex flex-col gap-3 self-start [grid-area:actions]">
           {actionButtons}
         </div>
 
         {/* Info column — title, badges, text, progress, contextual notes.
             The banner above carries the English title/logo; here we show the
             Hebrew title (complementary, not a duplicate). */}
-        <div className="flex flex-col">
+        <div className="flex flex-col min-w-0 [grid-area:info]">
           <h1 className="text-4xl font-extrabold leading-tight mb-3 text-right text-white">
             {game.titleHe || game.titleEn}
           </h1>
@@ -1290,7 +1301,7 @@ export default function GameDetailPanel({ game, onBack, onRefresh, reportStatus,
         </div>
 
         {/* Cover — large, on the left */}
-        <div className="self-start">
+        <div className="self-start [grid-area:cover]">
           <div className="aspect-[2/3] rounded-2xl overflow-hidden ring-1 ring-white/10
                           shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)]">
             <img

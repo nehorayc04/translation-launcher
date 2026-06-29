@@ -10,10 +10,10 @@ import type { Game, LauncherPrefs } from "../lib/types";
 import { api, type UpdatePrefs } from "../lib/eel";
 import {
   getAnims, setAnims, getDensity, setDensity, getAccent, setAccentPref,
+  getRainbow, setRainbow, getSidebarMode, setSidebarMode, type SidebarMode,
   getSounds, setSounds, type Density,
 } from "../lib/themePrefs";
 import { useAccentSetter } from "../lib/useAccent";
-import { detectGpu } from "../lib/gpuInfo";
 
 interface Props {
   games: Game[];
@@ -129,7 +129,6 @@ export default function SettingsView({
 
   // GPU acceleration is ON unless the user opted out (default = smooth UI).
   const gpuEnabled = launcherPrefs?.disableGpu !== true;
-  const gpu = detectGpu();   // the ACTUAL renderer in use (diagnostic)
   const toggleGpu = async (next: boolean) => {
     setBusy("gpu");
     try {
@@ -196,8 +195,7 @@ export default function SettingsView({
                   <h2 className="text-lg font-bold text-white text-right">על האפליקציה</h2>
                 </div>
                 <p className="text-slate-300 text-sm leading-relaxed text-right">
-                  מנהל מודי תרגום עברי למשחקי PC. כלל הלוגיקה (זיהוי משחקים, הפעלה/השבתה/הסרה של מודים)
-                  מורצת ע״י Python בעוד שכל הממשק נבנה ב-React + Tailwind. הסגנון תואם את האתר הציבורי.
+                  מנהל מודי תרגום עברי למשחקי PC — התקנה, הפעלה ועדכון בלחיצה.
                 </p>
               </section>
 
@@ -232,27 +230,6 @@ export default function SettingsView({
                   subtitle="מומלץ להשאיר דלוק — הממשק יזרום חלק יותר. כבה רק אם אתה רואה הבהוב או ריצוד בתצוגה. שינוי נכנס לתוקף בהפעלה הבאה של התוכנה."
                   disabled={launcherPrefs === null}
                 />
-
-                {/* Diagnostic — the ACTUAL renderer Chromium is using. If this
-                    says "תוכנה" the GPU isn't being used → that's the slowness. */}
-                <div className="mt-4 pt-4 border-t border-white/10">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className={gpu.accelerated ? "text-emerald-400 text-sm font-bold" : "text-rose-400 text-sm font-bold"}>
-                      {gpu.accelerated ? "● מואץ ע״י כרטיס המסך" : "● עיבוד תוכנה — לא מואץ"}
-                    </span>
-                    <span className="text-sm text-slate-400">מצב עיבוד גרפי</span>
-                  </div>
-                  <div dir="ltr" className="mt-1.5 font-mono text-[11px] text-slate-500 text-left break-all" title={gpu.renderer}>
-                    {gpu.renderer}
-                  </div>
-                  {!gpu.accelerated && (
-                    <p className="mt-2 text-xs text-rose-300/90 text-right leading-relaxed">
-                      כרטיס המסך אינו בשימוש לעיבוד הממשק — זו ככל הנראה סיבת האיטיות.
-                      ודא שהאצת החומרה דלוקה למעלה והפעל מחדש; אם עדיין כתוב "תוכנה",
-                      שלח צילום מסך של שורה זו.
-                    </p>
-                  )}
-                </div>
               </section>
             </>
           )}
@@ -316,9 +293,10 @@ export default function SettingsView({
                           className="text-xs px-3 py-1.5 bg-brand-yellow text-brand-ink rounded-lg font-bold hover:bg-yellow-300"
                         >פתח</button>
                       </div>
-                      <div className="flex-1 text-right">
-                        <div dir="ltr" className="text-white font-semibold text-left">{g.titleEn}</div>
-                        <div dir="ltr" className="text-slate-400 text-xs text-left mt-0.5 truncate">{g.install_path}</div>
+                      <div className="flex-1 min-w-0 text-right">
+                        <div dir="ltr" className="text-white font-semibold text-left truncate">{g.titleEn}</div>
+                        <div dir="ltr" title={g.install_path ?? undefined}
+                             className="text-slate-400 text-xs text-left mt-0.5 truncate">{g.install_path}</div>
                       </div>
                     </li>
                   ))}
@@ -339,7 +317,9 @@ function IconGeneral({ className }: { className?: string }) {
   return <svg className={className} width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>;
 }
 function IconAppearance({ className }: { className?: string }) {
-  return <svg className={className} width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden><circle cx="13.5" cy="6.5" r="2.5" /><circle cx="17.5" cy="10.5" r="2.5" /><circle cx="8.5" cy="7.5" r="2.5" /><circle cx="6.5" cy="12.5" r="2.5" /><path d="M12 2a10 10 0 1 0 0 20 2 2 0 0 0 2-2 2 2 0 0 1 2-2h1a4 4 0 0 0 4-4 8 8 0 0 0-9-10z" /></svg>;
+  // Clean "sparkle" mark — reads clearly at 18px (the old palette-with-dots
+  // glyph looked muddy). A big 4-point star + a small one = "look / polish".
+  return <svg className={className} width={18} height={18} viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden><path d="M12 2.5l1.9 5.1a3 3 0 0 0 1.8 1.8l5.1 1.9-5.1 1.9a3 3 0 0 0-1.8 1.8L12 20.1l-1.9-5.1a3 3 0 0 0-1.8-1.8L3.2 11.3l5.1-1.9a3 3 0 0 0 1.8-1.8z" /><path d="M18.5 2.5l.7 1.9a1.5 1.5 0 0 0 .9.9l1.9.7-1.9.7a1.5 1.5 0 0 0-.9.9l-.7 1.9-.7-1.9a1.5 1.5 0 0 0-.9-.9L15 6l1.9-.7a1.5 1.5 0 0 0 .9-.9z" /></svg>;
 }
 function IconUpdates({ className }: { className?: string }) {
   return <svg className={className} width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M21 12a9 9 0 1 1-3.1-6.8" /><path d="M21 4v5h-5" /></svg>;
@@ -367,7 +347,13 @@ function AppearanceSettings({ reportStatus }: { reportStatus: (t: string, w?: bo
   const [density, setDensityState] = useState<Density>(getDensity());
   const [accent, setAccentState]   = useState<string>(getAccent());
   const [sounds, setSoundsState]   = useState<boolean>(getSounds());
+  const [rainbow, setRainbowState] = useState<boolean>(getRainbow());
+  const [sbMode, setSbMode] = useState<SidebarMode>(getSidebarMode());
   const applyAccentNow = useAccentSetter();
+  const onRainbow = () => {
+    setRainbow(true); setRainbowState(true);
+    reportStatus("רקע צבעוני הופעל");
+  };
 
   const onSounds = (next: boolean) => {
     setSounds(next); setSoundsState(next);
@@ -384,8 +370,13 @@ function AppearanceSettings({ reportStatus }: { reportStatus: (t: string, w?: bo
   };
   const onAccent = (hex: string) => {
     setAccentPref(hex); setAccentState(hex);
+    setRainbow(false); setRainbowState(false);   // picking a solid colour exits "colourful"
     applyAccentNow(hex);   // live-paint the ambient background now
     reportStatus("צבע האווירה עודכן");
+  };
+  const onSidebar = (m: SidebarMode) => {
+    setSidebarMode(m); setSbMode(m);
+    reportStatus("מצב הסרגל עודכן");
   };
 
   return (
@@ -429,14 +420,59 @@ function AppearanceSettings({ reportStatus }: { reportStatus: (t: string, w?: bo
         </div>
       </section>
 
+      <section className="glass rounded-2xl p-6 mb-6">
+        <h2 className="text-lg font-bold text-white mb-2 text-right">סרגל הצד</h2>
+        <p className="text-slate-400 text-xs mb-4 text-right leading-relaxed">
+          איך הסרגל הצדדי מתנהג. ברירת מחדל: ריחוף — נפתח כשמעבירים עליו עכבר.
+        </p>
+        <div className="flex flex-col gap-2">
+          {([["auto", "ריחוף", "נפתח בריחוף עכבר; מצומצם כברירת מחדל"], ["wide", "נעול רחב", "תמיד פתוח"], ["narrow", "נעול מצומצם", "תמיד מצומצם"]] as [SidebarMode, string, string][]).map(([k, label, desc]) => {
+            const on = sbMode === k;
+            return (
+              <button
+                key={k}
+                type="button"
+                onClick={() => onSidebar(k)}
+                className={[
+                  "flex items-center gap-3 rounded-xl border px-4 py-2.5 transition text-right",
+                  on ? "bg-brand-cyan/15 border-brand-cyan/50" : "bg-white/[0.03] border-white/10 hover:bg-white/[0.06]",
+                ].join(" ")}
+              >
+                <span className={["w-4 h-4 rounded-full border-2 shrink-0 grid place-items-center", on ? "border-brand-cyan" : "border-slate-500"].join(" ")}>
+                  {on && <span className="w-2 h-2 rounded-full bg-brand-cyan" />}
+                </span>
+                <span className="flex-1 min-w-0">
+                  <span className="block text-white font-semibold text-sm">{label}</span>
+                  <span className="block text-slate-400 text-[11px]">{desc}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
       <section className="glass rounded-2xl p-6">
         <h2 className="text-lg font-bold text-white mb-2 text-right">צבע אווירה</h2>
         <p className="text-slate-400 text-xs mb-4 text-right leading-relaxed">
           הצבע שצובע את רקע התוכנה כשאין משחק פתוח. בתוך עמוד משחק הרקע נצבע אוטומטית בצבע הכותר.
         </p>
         <div className="flex gap-3 justify-end flex-wrap">
+          {/* Colourful / rainbow — a soft multi-colour ambient wash. */}
+          <button
+            type="button"
+            onClick={onRainbow}
+            title="צבעוני"
+            aria-label="צבעוני"
+            className="w-10 h-10 rounded-full transition-transform hover:scale-110 grid place-items-center"
+            style={{
+              background: "conic-gradient(from 210deg, #00ffe0, #7c3aed, #ff4d8d, #fff700, #22c55e, #00ffe0)",
+              boxShadow: rainbow ? "0 0 0 3px #0a0a14, 0 0 0 5px #ffffff" : "0 4px 12px -4px rgba(255,255,255,0.4)",
+            }}
+          >
+            {rainbow && <span className="text-white text-lg font-black drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">✓</span>}
+          </button>
           {ACCENT_SWATCHES.map((s) => {
-            const on = accent.toLowerCase() === s.hex.toLowerCase();
+            const on = !rainbow && accent.toLowerCase() === s.hex.toLowerCase();
             return (
               <button
                 key={s.hex}

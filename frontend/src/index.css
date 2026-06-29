@@ -259,3 +259,88 @@ html[data-density="compact"] { font-size: 14.5px; }
   border-radius: 0.5rem;
   scroll-margin: 16px;
 }
+
+/* ── Surface backdrop styles (Appearance → [data-backdrop]) ────────────────
+   The base .glass* / .sidebar-glass / .nav-glass are SOLID (the "none" look);
+   each data-backdrop value layers a backdrop-filter on top. "glass" = default
+   glassmorphism; acrylic/mica/tabbed approximate the Windows effects. One
+   attribute switch, easy to disable on weak machines.
+   NOTE: a true glass *refraction* (reactbits feDisplacementMap) needs
+   `backdrop-filter: url(#svg)`, which Chromium/QtWebEngine does NOT support, so
+   these use blur+saturate — the closest this engine can render. */
+
+/* Sidebar surface base (solid). Edge = INSET shadow, NEVER `border`, so the
+   width animation shows no 1px white seam (the old "white frame" bug). */
+.sidebar-glass {
+  background: rgba(10,10,22,0.94);
+  box-shadow: inset 1px 1px 0 rgba(255,255,255,0.10),
+              inset -1px -1px 0 rgba(255,255,255,0.03),
+              0 16px 42px -18px rgba(0,0,0,0.7);
+}
+/* Active-nav glass rectangle base (solid). */
+.nav-glass {
+  background: rgba(255,255,255,0.08);
+  box-shadow: inset 1px 1px 0 rgba(255,255,255,0.12), inset -1px -1px 0 rgba(255,255,255,0.03);
+}
+
+/* glassmorphism (default) */
+html[data-backdrop="glass"] .glass        { background: rgba(16,16,32,0.42); backdrop-filter: blur(18px) saturate(150%); -webkit-backdrop-filter: blur(18px) saturate(150%); box-shadow: inset 1px 1px 0 rgba(255,255,255,0.16), inset -1px -1px 0 rgba(255,255,255,0.04), 0 18px 40px -22px rgba(0,0,0,0.55); }
+html[data-backdrop="glass"] .glass-strong { background: rgba(12,12,26,0.46); backdrop-filter: blur(22px) saturate(150%); -webkit-backdrop-filter: blur(22px) saturate(150%); }
+html[data-backdrop="glass"] .glass-soft   { background: rgba(16,16,32,0.30); backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%); }
+html[data-backdrop="glass"] .sidebar-glass{ background: rgba(14,14,30,0.40); backdrop-filter: blur(20px) saturate(150%); -webkit-backdrop-filter: blur(20px) saturate(150%); box-shadow: inset 1px 1px 0 rgba(255,255,255,0.22), inset -1px -1px 0 rgba(255,255,255,0.05), 0 18px 46px -18px rgba(0,0,0,0.7); }
+html[data-backdrop="glass"] .nav-glass    { background: rgba(255,255,255,0.06); backdrop-filter: blur(14px) saturate(150%); -webkit-backdrop-filter: blur(14px) saturate(150%); box-shadow: inset 1px 1px 0 rgba(255,255,255,0.24), inset -1px -1px 0 rgba(255,255,255,0.05); }
+
+/* acrylic — heavier blur + saturation + tint */
+html[data-backdrop="acrylic"] .glass,
+html[data-backdrop="acrylic"] .glass-strong,
+html[data-backdrop="acrylic"] .sidebar-glass,
+html[data-backdrop="acrylic"] .nav-glass   { backdrop-filter: blur(34px) saturate(185%); -webkit-backdrop-filter: blur(34px) saturate(185%); }
+html[data-backdrop="acrylic"] .glass        { background: rgba(18,18,34,0.55); }
+html[data-backdrop="acrylic"] .glass-strong { background: rgba(14,14,28,0.58); }
+html[data-backdrop="acrylic"] .sidebar-glass{ background: rgba(16,16,32,0.55); }
+html[data-backdrop="acrylic"] .glass-soft   { background: rgba(18,18,34,0.42); backdrop-filter: blur(28px) saturate(185%); -webkit-backdrop-filter: blur(28px) saturate(185%); }
+html[data-backdrop="acrylic"] .nav-glass    { background: rgba(255,255,255,0.09); }
+
+/* mica — subtle, mostly-opaque desktop tint, minimal blur */
+html[data-backdrop="mica"] .glass,
+html[data-backdrop="mica"] .glass-strong,
+html[data-backdrop="mica"] .sidebar-glass,
+html[data-backdrop="mica"] .glass-soft,
+html[data-backdrop="mica"] .nav-glass       { backdrop-filter: blur(4px) saturate(120%); -webkit-backdrop-filter: blur(4px) saturate(120%); }
+html[data-backdrop="mica"] .glass           { background: rgba(13,13,26,0.86); }
+html[data-backdrop="mica"] .glass-strong    { background: rgba(10,10,22,0.90); }
+html[data-backdrop="mica"] .sidebar-glass   { background: rgba(11,11,24,0.90); }
+
+/* tabbed — between mica and glass */
+html[data-backdrop="tabbed"] .glass,
+html[data-backdrop="tabbed"] .glass-strong,
+html[data-backdrop="tabbed"] .sidebar-glass,
+html[data-backdrop="tabbed"] .glass-soft,
+html[data-backdrop="tabbed"] .nav-glass     { backdrop-filter: blur(10px) saturate(135%); -webkit-backdrop-filter: blur(10px) saturate(135%); }
+html[data-backdrop="tabbed"] .glass         { background: rgba(15,15,30,0.70); }
+html[data-backdrop="tabbed"] .sidebar-glass { background: rgba(13,13,28,0.72); }
+
+/* none — the solid base look (no backdrop-filter); nothing to layer. */
+
+/* ── Ambient "colourful" mode (Appearance → צבעוני / html.ambient-rainbow) ──
+   A soft multi-colour wash instead of a single accent tint. Gentle + low
+   opacity so it reads as atmosphere, not noise. */
+html.ambient-rainbow .accent-bg {
+  background: conic-gradient(from 210deg at 50% 50%,
+    rgba(0,255,224,0.10), rgba(124,58,237,0.10), rgba(255,77,141,0.10),
+    rgba(255,247,0,0.09), rgba(34,197,94,0.10), rgba(0,255,224,0.10));
+  /* "colourful" also CYCLES through colours (gentle hue rotation). */
+  animation: ambient-hue 22s linear infinite;
+}
+@keyframes ambient-hue { to { filter: hue-rotate(360deg); } }
+html.ambient-rainbow .accent-bg::before { background: radial-gradient(circle, #00ffe0 0%, transparent 70%); }
+html.ambient-rainbow .accent-bg::after  { background: radial-gradient(circle, #ff4d8d 0%, transparent 70%); }
+
+/* ── Dynamic ambient — the colour gently DRIFTS (not fixed) ────────────────
+   GPU-cheap: only `transform` on the (non-blurred) radial-gradient blobs — no
+   filter, no re-raster. Applies to both single-accent and "colourful" modes.
+   Killed under reduce-motion / animations-off (rules above). */
+@keyframes ambient-drift-a { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-6%, 9%) scale(1.14); } }
+@keyframes ambient-drift-b { 0%,100% { transform: translate(0,0) scale(1.05); } 50% { transform: translate(8%, -7%) scale(1.16); } }
+.accent-bg::before { animation: ambient-drift-a 26s ease-in-out infinite; }
+.accent-bg::after  { animation: ambient-drift-b 32s ease-in-out infinite; }

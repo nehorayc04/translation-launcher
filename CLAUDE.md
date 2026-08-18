@@ -54,6 +54,7 @@ below it is loaded ONLY on demand.
 | [`fleet-and-pool-infra.md`](docs/context/fleet-and-pool-infra.md) | Cross-game NIM/community-compute fleet infrastructure, self-hosted pool server migration, dashboard, security hardening |
 | [`translation-quality-tooling.md`](docs/context/translation-quality-tooling.md) | Gender/number ambiguity tooling, visual-LQA capture backbone, universal multilang review/translate engine, deterministic localization "brain", translation-memory + context window |
 | [`website-notes.md`](docs/context/website-notes.md) | Public website UX/feature notes that aren't launcher-specific |
+| [`security-audit-2026-07-20.md`](docs/context/security-audit-2026-07-20.md) | Security audit + ACL hardening of this repo (hardcoded creds/deps/output-dir perms/TEMP scoping) |
 
 ### Launcher app (`docs/context/launcher/`)
 | File | What's in it |

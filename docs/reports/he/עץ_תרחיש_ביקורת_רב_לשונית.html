@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ביקורת ותרגום רב-לשוני לכל משחק — תרחיש עץ מלא</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;800;900&family=Fira+Code:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+:root {
+  --bg: #070913;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --cyan: #38bdf8;
+  --purple: #c084fc;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  background-image:
+    radial-gradient(circle at 50% 10%, rgba(56, 189, 248, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 50% 90%, rgba(52, 211, 153, 0.08) 0%, transparent 50%);
+  color: var(--text-main);
+  font-family: 'Rubik', system-ui, sans-serif;
+  min-height: 100vh;
+  padding: 20px 10px 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+header { text-align: center; margin-bottom: 20px; }
+
+header h1 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 6px;
+}
+
+header p { color: var(--text-muted); font-size: 1.05rem; }
+
+.diagram-card {
+  width: 98vw;
+  max-width: 98vw;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 24px;
+  backdrop-filter: blur(28px);
+  padding: 30px 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.mermaid-wrapper { width: 100%; display: flex; justify-content: center; }
+.mermaid { width: 100%; display: flex; justify-content: center; }
+
+.mermaid svg {
+  margin: 0 auto !important;
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+.mermaid .node label, .mermaid .node div, .mermaid .node foreignObject {
+  font-size: 19px !important;
+  font-weight: 700 !important;
+  line-height: 1.5 !important;
+  padding: 6px 12px !important;
+}
+
+.mermaid .edgeLabel {
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  background-color: rgba(7, 9, 19, 0.95) !important;
+  color: #38bdf8 !important;
+  padding: 4px 10px !important;
+  border-radius: 6px !important;
+  border: 1px solid rgba(56, 189, 248, 0.3) !important;
+}
+
+.mermaid .node rect, .mermaid .node polygon, .mermaid .node circle {
+  stroke-width: 3px !important;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🗺️ ביקורת ותרגום רב-לשוני — תרחיש עץ אנכי לכל משחק</h1>
+  <p>לכל משחק — מתורגם או חדש: חילוץ פאנל → קורפוס → הכנה לפני הצי → פר-שורה: זיכרון-תרגום (התאמה פאזית, חוסך API) · חלון-קונטקסט (5 שורות + דובר) · משמעות · מגדר · שכבת-מנוע → תוצאה מושלמת ללא פספוס, בלשני וטכני.</p>
+</header>
+
+<div class="diagram-card">
+  <div class="mermaid-wrapper">
+    <div class="mermaid">
+graph TD
+    START["🎮 התחלה:<br/>משחק כלשהו —<br/>מתורגם או חדש"] --> S1["🌐 חילוץ פאנל<br/>כל שפות המשחק"]
+    S1 --> D1{"🧩 כל השפות<br/>חולצו וסודרו?"}
+
+    D1 -- "✅ כן" --> S2["🗂️ בניית קורפוס:<br/>בלשני + מנוע"]
+    D1 -- "❌ לא" --> FIX1["🛠️ חילוץ מחדש<br/>של השפה החסרה"]
+    FIX1 --> D1R{"🔁 החילוץ הושלם?"}
+    D1R -- "✅ כן" --> S2
+    D1R -- "❌ לא" --> STOP1["🛑 עצירה:<br/>ארכיון פגום"]
+
+    S2 --> D2{"🔒 החלוקה<br/>הדטרמיניסטית<br/>תקינה?"}
+    D2 -- "🟢 כן" --> PRE1["🧠 זריעת מוח:<br/>מילון ושמות<br/>מאומתים מהאינטרנט"]
+    D2 -- "🔴 לא" --> STOP2["🛑 עצירה:<br/>מפתחות לא תואמים"]
+
+    PRE1 --> DPRE{"🔍 המילון מאומת<br/>מול הקורפוס?"}
+    DPRE -- "✅ כן" --> PRE2["⚧ צירוף מקור-מגדר<br/>לכל שורה"]
+    DPRE -- "❌ לא" --> FIXG["🛠️ מדוד ותקן<br/>את המילון"]
+    FIXG --> DPRE
+
+    PRE2 --> DDEDUP{"🔑 מפתוח לפי<br/>מזהה או אנגלית?"}
+    DDEDUP -- "🟢 לפי מזהה" --> PRE3["🔣 מפת-תוקנים מלאה<br/>+ הקשחת שומר"]
+    DDEDUP -- "🔵 לפי אנגלית" --> PRE3
+    PRE3 --> PRE4["🔌 חיבור המוח לצי:<br/>הזרקת-מונחים<br/>ואיחוד במיזוג"]
+
+    PRE4 --> GOLD["🏅 מדגם-זהב:<br/>כ-100 שורות בצי"]
+    GOLD --> DGOLD{"🧪 המדגם נקי<br/>ומכוון?"}
+    DGOLD -- "✅ כן" --> DTRANS{"🈳 קיים כבר<br/>תרגום עברי<br/>למשחק?"}
+    DGOLD -- "❌ לא" --> TUNE["🎯 כוונון הנחיה<br/>ומילון"]
+    TUNE --> GOLD
+
+    DTRANS -- "🟢 כן — ביקורת" --> DTM{"🧠 זיכרון-תרגום:<br/>התאמה מאושרת?<br/>(גם לפי שאר השפות)"}
+    DTRANS -- "🔵 לא — תרגום" --> DTM
+    DTM -- "🟢 מדויקת/תבנית" --> REUSE["♻️ שכפול / החלפת-תוקן<br/>ללא קריאת-API"]
+    DTM -- "🔴 חדשה" --> CTXWIN["🪟 חלון-קונטקסט:<br/>5 שורות קודמות<br/>+ דובר"]
+    CTXWIN --> WORK["🌐 ביקורת/תרגום<br/>שורה-שורה<br/>מול כל השפות"]
+    REUSE --> DM{"💬 הקונצנזוס<br/>מסכים על<br/>המשמעות?"}
+    WORK --> DM
+
+    DM -- "✅ מסכים" --> DG{"⚧ שפה מפצלת<br/>מגדר בשורה?"}
+    DM -- "🔀 רב-משמעות" --> POLY["🎯 בחירת המשמעות<br/>לפי הקשר המשחק"]
+    POLY --> DG
+
+    DG -- "🟢 ניטרלי" --> DVAR{"🔣 משתנה מוזרק<br/>או מספר?"}
+    DG -- "🔵 מגדרי" --> DTYPE{"📋 מהו סוג<br/>השורה?"}
+    DTYPE -- "🟩 דיאלוג-פנייה" --> SPLIT["✂️ פיצול עברית:<br/>את מול אתה"]
+    DTYPE -- "🟨 פקודת-ממשק" --> NEUTRAL["➖ עברית ניטרלית:<br/>זכר-ברירת-מחדל"]
+    SPLIT --> DVAR
+    NEUTRAL --> DVAR
+
+    DVAR -- "🟢 אין" --> DUI{"📐 גלישת-תווים<br/>או ירידות-שורה?"}
+    DVAR -- "🔵 יש" --> VARFIX["🧩 ניסוח ניטרלי<br/>סביב המשתנה<br/>+ חוקי-ריבוי"]
+    VARFIX --> DUI
+
+    DUI -- "🟢 תקין" --> DS{"🔧 שגיאה מבנית:<br/>ניקוד/תוקן/כתב-זר?"}
+    DUI -- "🔴 חורג" --> UIFIX["📏 קיצור + שמירת<br/>שורות וכיווניות"]
+    UIFIX --> DS
+
+    DS -- "🟢 לא" --> VERIFY["🔎 אימות-יריב<br/>עצמאי"]
+    DS -- "🔴 כן" --> DETFIX["🛠️ תיקון דטרמיניסטי"]
+    DETFIX --> VERIFY
+
+    VERIFY --> DV{"🧪 האימות<br/>אישר את<br/>התוצאה?"}
+    DV -- "✅ כן" --> LEARN["🧠 הפקת-לקח למוח<br/>(דרך שער-אמון)"]
+    DV -- "❌ לא" --> REDO["🔄 חזרה לשורה"]
+    REDO --> DM
+
+    LEARN --> BANK["💾 שמירה בבנק"]
+    BANK --> DLOOP{"♾️ מעבר מלא<br/>ללא ממצא<br/>חדש?"}
+    DLOOP -- "🟢 יבש" --> QA["📊 ביקורת סופית:<br/>שלמות · מגדר · מנוע"]
+    DLOOP -- "🔴 עוד נמצאו" --> DM
+
+    QA --> DFINAL{"🧪 100% נקי?<br/>אפס פספוס<br/>בלשני וטכני?"}
+    DFINAL -- "✅ כן" --> BAKE["📦 אפייה ופריסה<br/>מקומית"]
+    DFINAL -- "❌ לא" --> REDO2["🔄 חזרה לתיקון"]
+    REDO2 --> DM
+
+    BAKE --> DAPPROVE{"👤 התקבל<br/>אישור לפרסום?"}
+    DAPPROVE -- "✅ כן" --> PUBLISH["🚀 פרסום<br/>לכל המשתמשים"]
+    DAPPROVE -- "🕒 לא עדיין" --> LOCAL["⏸️ מוכן מקומי,<br/>ביקורת-בלבד"]
+    PUBLISH --> END["🎉 תוצאה מושלמת<br/>לכל משחק:<br/>בלשני + טכני!"]
+    LOCAL --> END
+    </div>
+  </div>
+</div>
+
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: 'dark', securityLevel: 'loose', flowchart: { useMaxWidth: true, htmlLabels: true } });
+</script>
+</body>
+</html>

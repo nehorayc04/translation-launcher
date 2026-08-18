@@ -1,0 +1,578 @@
+[
+ {
+  "id": "btn-install-translation",
+  "labelHe": "התקנת תרגום",
+  "kind": "button",
+  "file": "frontend/src/views/GameDetailPanel.tsx",
+  "context": "כפתור ירוק להתקנת התרגום (SM2/WD2/GoWR/GTA/legacy)",
+  "suggestedIcon": "download"
+ },
+ {
+  "id": "btn-download-install",
+  "labelHe": "הורד והתקן",
+  "kind": "button",
+  "file": "frontend/src/views/GameDetailPanel.tsx",
+  "context": "כפתור הורדה+התקנה למוד מבוסס-הורדה (CP2077)",
+  "suggestedIcon": "download"
+ },
+ {
+  "id": "btn-remove-translation",
+  "labelHe": "הסרת התרגום",
+  "kind": "button",
+  "file": "frontend/src/views/GameDetailPanel.tsx",
+  "context": "כפתור אדום להסרת התרגום מהמשחק",
+  "suggestedIcon": "trash"
+ },
+ {
+  "id": "btn-disable-translation",
+  "labelHe": "השבתת תרגום",
+  "kind": "button",
+  "file": "frontend/src/views/GameDetailPanel.tsx",
+  "context": "כפתור כתום להשבתת תרגום (מוד legacy פעיל)",
+  "suggestedIcon": "power"
+ },
+ {
+  "id": "btn-reinstall",
+  "labelHe": "התקנה מחדש",
+  "kind": "button",
+  "file": "frontend/src/views/GameDetailPanel.tsx",
+  "context": "כפתור התקנה מחדש של התרגום",
+  "suggestedIcon": "refresh"
+ },
+ {
+  "id": "btn-purchase",
+  "labelHe": "רכישה",
+  "kind": "button",
+  "file": "frontend/src/views/GameDetailPanel.tsx",
+  "context": "כפתור צהוב לרכישת התרגום בתשלום",
+  "suggestedIcon": "cart"
+ },
+ {
+  "id": "btn-already-paid-refresh",
+  "labelHe": "כבר שילמתי - רענן",
+  "kind": "button",
+  "file": "frontend/src/views/GameDetailPanel.tsx",
+  "context": "כפתור לרענון בעלות אחרי תשלום",
+  "suggestedIcon": "refresh"
+ },
+ {
+  "id": "btn-save-path",
+  "labelHe": "שמור",
+  "kind": "button",
+  "file": "frontend/src/views/GameDetailPanel.tsx",
+  "context": "כפתור שמירת נתיב ההתקנה בהגדרות",
+  "suggestedIcon": "save"
+ },
+ {
+  "id": "btn-clear-path",
+  "labelHe": "נקה",
+  "kind": "button",
+  "file": "frontend/src/views/GameDetailPanel.tsx",
+  "context": "כפתור ניקוי שדה נתיב ההתקנה",
+  "suggestedIcon": "eraser"
+ },
+ {
+  "id": "btn-open-folder",
+  "labelHe": "פתח תיקיית משחק",
+  "kind": "button",
+  "file": "frontend/src/views/GameDetailPanel.tsx",
+  "context": "כפתור פתיחת תיקיית המשחק/התוכנה",
+  "suggestedIcon": "folder"
+ },
+ {
+  "id": "btn-clear-cache",
+  "labelHe": "ניקוי מטמון התרגום",
+  "kind": "button",
+  "file": "frontend/src/views/GameDetailPanel.tsx",
+  "context": "כפתור אדום לניקוי מטמון התרגום",
+  "suggestedIcon": "broom"
+ },
+ {
+  "id": "hdr-settings",
+  "labelHe": "הגדרות",
+  "kind": "header",
+  "file": "frontend/src/views/GameDetailPanel.tsx",
+  "context": "כותרת מגירת ההגדרות בצד ימין",
+  "suggestedIcon": "gear"
+ },
+ {
+  "id": "hdr-version-history",
+  "labelHe": "היסטוריית גרסאות",
+  "kind": "header",
+  "file": "frontend/src/views/GameDetailPanel.tsx",
+  "context": "כותרת מקטע היסטוריית הגרסאות",
+  "suggestedIcon": "clock"
+ },
+ {
+  "id": "hdr-game-language",
+  "labelHe": "שפת המשחק",
+  "kind": "section",
+  "file": "frontend/src/views/GameDetailPanel.tsx",
+  "context": "תווית מקטע החלפת שפת המשחק (אוטומטי/עברית/אנגלית)",
+  "suggestedIcon": "globe"
+ },
+ {
+  "id": "empty-coming-soon",
+  "labelHe": "התרגום עדיין בעבודה - בקרוב",
+  "kind": "empty",
+  "file": "frontend/src/views/GameDetailPanel.tsx",
+  "context": "הודעת 'בקרוב' כשהתרגום עדיין לא פורסם",
+  "suggestedIcon": "hourglass"
+ },
+ {
+  "id": "hdr-downloads",
+  "labelHe": "הורדות ועדכונים",
+  "kind": "header",
+  "file": "frontend/src/views/DownloadsView.tsx",
+  "context": "כותרת ראשית של מסך ההורדות",
+  "suggestedIcon": "download"
+ },
+ {
+  "id": "hdr-mod-updates",
+  "labelHe": "עדכוני תרגום למשחקים",
+  "kind": "header",
+  "file": "frontend/src/views/DownloadsView.tsx",
+  "context": "כותרת סקציית עדכוני מודים",
+  "suggestedIcon": "refresh"
+ },
+ {
+  "id": "hdr-system-updates",
+  "labelHe": "עדכוני מערכת",
+  "kind": "header",
+  "file": "frontend/src/views/DownloadsView.tsx",
+  "context": "כותרת סקציית עדכוני מערכת",
+  "suggestedIcon": "gear"
+ },
+ {
+  "id": "hdr-translation-updates",
+  "labelHe": "עדכוני תרגומים",
+  "kind": "header",
+  "file": "frontend/src/views/DownloadsView.tsx",
+  "context": "כותרת סקציית עדכוני תרגומים",
+  "suggestedIcon": "language"
+ },
+ {
+  "id": "btn-update-mod",
+  "labelHe": "עדכן",
+  "kind": "button",
+  "file": "frontend/src/views/DownloadsView.tsx",
+  "context": "כפתור עדכון מוד בכרטיס עדכון תרגום",
+  "suggestedIcon": "refresh"
+ },
+ {
+  "id": "btn-self-update",
+  "labelHe": "עדכן עכשיו",
+  "kind": "button",
+  "file": "frontend/src/views/DownloadsView.tsx",
+  "context": "כפתור עדכון התוכנה בפאנל העדכון העצמי",
+  "suggestedIcon": "download"
+ },
+ {
+  "id": "btn-check-again",
+  "labelHe": "בדוק שוב",
+  "kind": "button",
+  "file": "frontend/src/views/DownloadsView.tsx",
+  "context": "כפתור בדיקת עדכון חוזרת בפאנל העדכון",
+  "suggestedIcon": "refresh"
+ },
+ {
+  "id": "btn-download-update",
+  "labelHe": "הורד ועדכן",
+  "kind": "button",
+  "file": "frontend/src/views/DownloadsView.tsx",
+  "context": "כפתור הורדה בכרטיס עדכון בודד",
+  "suggestedIcon": "download"
+ },
+ {
+  "id": "badge-installed",
+  "labelHe": "מותקן",
+  "kind": "badge",
+  "file": "frontend/src/views/DownloadsView.tsx",
+  "context": "תגית מצב מותקן בכרטיס עדכון",
+  "suggestedIcon": "check"
+ },
+ {
+  "id": "empty-no-updates",
+  "labelHe": "אין עדכונים זמינים כרגע.",
+  "kind": "empty",
+  "file": "frontend/src/views/DownloadsView.tsx",
+  "context": "הודעת מצב ריק כשאין עדכונים",
+  "suggestedIcon": "check"
+ },
+ {
+  "id": "btn-retry-download",
+  "labelHe": "נסה שוב",
+  "kind": "button",
+  "file": "frontend/src/views/DownloadsView.tsx",
+  "context": "כפתור ניסיון חוזר לאחר כשל הורדה",
+  "suggestedIcon": "refresh"
+ },
+ {
+  "id": "hdr-software-library",
+  "labelHe": "ספריית התוכנות",
+  "kind": "header",
+  "file": "frontend/src/views/AppsView.tsx",
+  "context": "כותרת ראשית של ספריית התוכנות",
+  "suggestedIcon": "grid"
+ },
+ {
+  "id": "btn-scan-software",
+  "labelHe": "סריקת תוכנות מלאה",
+  "kind": "button",
+  "file": "frontend/src/views/AppsView.tsx",
+  "context": "כפתור סריקת תוכנות מותקנות",
+  "suggestedIcon": "search"
+ },
+ {
+  "id": "hdr-games-library",
+  "labelHe": "ספריית המשחקים",
+  "kind": "header",
+  "file": "frontend/src/views/LibraryView.tsx",
+  "context": "כותרת ראשית של ספריית המשחקים",
+  "suggestedIcon": "gamepad"
+ },
+ {
+  "id": "btn-scan-drives",
+  "labelHe": "סריקת כוננים מלאה",
+  "kind": "button",
+  "file": "frontend/src/views/LibraryView.tsx",
+  "context": "כפתור סריקת כוננים לאיתור משחקים",
+  "suggestedIcon": "search"
+ },
+ {
+  "id": "btn-sync-now",
+  "labelHe": "סנכרן עכשיו",
+  "kind": "button",
+  "file": "frontend/src/views/PersonalAreaView.tsx",
+  "context": "כפתור בכרטיס הזהות באזור האישי (משיכה מחדש מהשרת)",
+  "suggestedIcon": "refresh"
+ },
+ {
+  "id": "btn-signout",
+  "labelHe": "התנתק",
+  "kind": "button",
+  "file": "frontend/src/views/PersonalAreaView.tsx",
+  "context": "כפתור יציאה בכרטיס הזהות באזור האישי",
+  "suggestedIcon": "logout"
+ },
+ {
+  "id": "btn-back-home",
+  "labelHe": "חזרה לדף הבית",
+  "kind": "button",
+  "file": "frontend/src/views/PersonalAreaView.tsx",
+  "context": "כפתור במסך 'צריך להיכנס תחילה' באזור האישי",
+  "suggestedIcon": "home"
+ },
+ {
+  "id": "btn-show-onboarding",
+  "labelHe": "הצג מדריך התחלה",
+  "kind": "button",
+  "file": "frontend/src/views/SettingsView.tsx",
+  "context": "כפתור בהגדרות → כללי, אזור 'רענון והדרכה'",
+  "suggestedIcon": "book"
+ },
+ {
+  "id": "btn-clear-path",
+  "labelHe": "נקה",
+  "kind": "button",
+  "file": "frontend/src/views/SettingsView.tsx",
+  "context": "כפתור מחיקת נתיב מותאם בהגדרות → נתיבים",
+  "suggestedIcon": "trash"
+ },
+ {
+  "id": "btn-open-path",
+  "labelHe": "פתח",
+  "kind": "button",
+  "file": "frontend/src/views/SettingsView.tsx",
+  "context": "כפתור פתיחת תיקייה בהגדרות → נתיבים",
+  "suggestedIcon": "folder"
+ },
+ {
+  "id": "hdr-my-games",
+  "labelHe": "המשחקים שלי",
+  "kind": "header",
+  "file": "frontend/src/views/PersonalAreaView.tsx",
+  "context": "כותרת מקטע הרכישות (משחקים) באזור האישי",
+  "suggestedIcon": "gamepad"
+ },
+ {
+  "id": "hdr-my-software",
+  "labelHe": "התוכנות שלי",
+  "kind": "header",
+  "file": "frontend/src/views/PersonalAreaView.tsx",
+  "context": "כותרת מקטע הרכישות (תוכנות) באזור האישי",
+  "suggestedIcon": "grid"
+ },
+ {
+  "id": "hdr-my-votes",
+  "labelHe": "ההצבעות שלי",
+  "kind": "header",
+  "file": "frontend/src/views/PersonalAreaView.tsx",
+  "context": "כותרת מקטע ההצבעות באזור האישי",
+  "suggestedIcon": "star"
+ },
+ {
+  "id": "hdr-news",
+  "labelHe": "חדשות ועדכונים",
+  "kind": "header",
+  "file": "frontend/src/components/NewsSection.tsx",
+  "context": "כותרת מקטע החדשות בדף הבית",
+  "suggestedIcon": "bell"
+ },
+ {
+  "id": "hdr-settings",
+  "labelHe": "הגדרות",
+  "kind": "header",
+  "file": "frontend/src/views/SettingsView.tsx",
+  "context": "כותרת ראשית של מסך ההגדרות",
+  "suggestedIcon": "gear"
+ },
+ {
+  "id": "hdr-featured",
+  "labelHe": "תרגומים מובילים",
+  "kind": "header",
+  "file": "frontend/src/views/HomeView.tsx",
+  "context": "כותרת שורת המשחקים המומלצים בדף הבית",
+  "suggestedIcon": "trophy"
+ },
+ {
+  "id": "hdr-about",
+  "labelHe": "על האפליקציה",
+  "kind": "header",
+  "file": "frontend/src/views/SettingsView.tsx",
+  "context": "כותרת מקטע מידע בהגדרות → כללי",
+  "suggestedIcon": "info"
+ },
+ {
+  "id": "hdr-privacy",
+  "labelHe": "פרטיות ודיווחים",
+  "kind": "header",
+  "file": "frontend/src/views/SettingsView.tsx",
+  "context": "כותרת מקטע בהגדרות → פרטיות",
+  "suggestedIcon": "shield"
+ },
+ {
+  "id": "hdr-paths",
+  "labelHe": "נתיבים מותאמים אישית",
+  "kind": "header",
+  "file": "frontend/src/views/SettingsView.tsx",
+  "context": "כותרת מקטע בהגדרות → נתיבים",
+  "suggestedIcon": "folder"
+ },
+ {
+  "id": "tab-login",
+  "labelHe": "התחבר",
+  "kind": "tab",
+  "file": "frontend/src/components/AuthModal.tsx",
+  "context": "לשונית מצב התחברות במודל האימות",
+  "suggestedIcon": "user"
+ },
+ {
+  "id": "tab-register",
+  "labelHe": "הרשם",
+  "kind": "tab",
+  "file": "frontend/src/components/AuthModal.tsx",
+  "context": "לשונית מצב הרשמה במודל האימות",
+  "suggestedIcon": "user"
+ },
+ {
+  "id": "btn-mfa-verify",
+  "labelHe": "אמת והתחבר",
+  "kind": "button",
+  "file": "frontend/src/components/AuthModal.tsx",
+  "context": "כפתור אישור קוד דו-שלבי (2FA)",
+  "suggestedIcon": "shield"
+ },
+ {
+  "id": "hdr-buy-title",
+  "labelHe": "רכישת תרגום",
+  "kind": "header",
+  "file": "frontend/src/components/BuyModal.tsx",
+  "context": "כותרת מודל רכישת התרגום",
+  "suggestedIcon": "cart"
+ },
+ {
+  "id": "stat-amount-label",
+  "labelHe": "סכום לתשלום",
+  "kind": "stat",
+  "file": "frontend/src/components/BuyModal.tsx",
+  "context": "תווית סכום התשלום במודל הרכישה",
+  "suggestedIcon": "tag"
+ },
+ {
+  "id": "hdr-plugins",
+  "labelHe": "תוספים",
+  "kind": "header",
+  "file": "frontend/src/components/PluginsSettings.tsx",
+  "context": "כותרת מסך התוספים בהגדרות",
+  "suggestedIcon": "puzzle"
+ },
+ {
+  "id": "btn-plugin-download",
+  "labelHe": "הורדה",
+  "kind": "button",
+  "file": "frontend/src/components/PluginsSettings.tsx",
+  "context": "כפתור הורדת/הפעלת תוסף בכרטיס התוסף",
+  "suggestedIcon": "download"
+ },
+ {
+  "id": "badge-plugin-active",
+  "labelHe": "פעיל",
+  "kind": "badge",
+  "file": "frontend/src/components/PluginsSettings.tsx",
+  "context": "תג סטטוס תוסף מותקן ופעיל",
+  "suggestedIcon": "power"
+ },
+ {
+  "id": "empty-no-plugins",
+  "labelHe": "אין תוספים זמינים כרגע.",
+  "kind": "empty",
+  "file": "frontend/src/components/PluginsSettings.tsx",
+  "context": "מצב ריק כשאין תוספים זמינים",
+  "suggestedIcon": "puzzle"
+ },
+ {
+  "id": "section-backed-saves",
+  "labelHe": "שמירות שמגובות",
+  "kind": "section",
+  "file": "frontend/src/components/PluginsSettings.tsx",
+  "context": "כותרת רשימת השמירות המגובות בפאנל גיבוי",
+  "suggestedIcon": "save"
+ },
+ {
+  "id": "btn-remove-entry",
+  "labelHe": "הסר",
+  "kind": "button",
+  "file": "frontend/src/components/PluginsSettings.tsx",
+  "context": "כפתור הסרת תיקיית שמירה מהרשימה",
+  "suggestedIcon": "trash"
+ },
+ {
+  "id": "btn-add-detected",
+  "labelHe": "הוסף",
+  "kind": "button",
+  "file": "frontend/src/components/PluginsSettings.tsx",
+  "context": "כפתור הוספת שמירה שאותרה אוטומטית",
+  "suggestedIcon": "plus"
+ },
+ {
+  "id": "btn-browse-folder",
+  "labelHe": "עיון…",
+  "kind": "button",
+  "file": "frontend/src/components/PluginsSettings.tsx",
+  "context": "כפתור עיון לבחירת תיקיית שמירות ידנית",
+  "suggestedIcon": "folder"
+ },
+ {
+  "id": "section-backup-history",
+  "labelHe": "היסטוריית גיבויים",
+  "kind": "section",
+  "file": "frontend/src/components/PluginsSettings.tsx",
+  "context": "כותרת רשימת היסטוריית הגיבויים",
+  "suggestedIcon": "history"
+ },
+ {
+  "id": "btn-restore-backup",
+  "labelHe": "שחזר",
+  "kind": "button",
+  "file": "frontend/src/components/PluginsSettings.tsx",
+  "context": "כפתור שחזור גיבוי מההיסטוריה",
+  "suggestedIcon": "restore"
+ },
+ {
+  "id": "btn-logout",
+  "labelHe": "יציאה",
+  "kind": "button",
+  "file": "frontend/src/components/Sidebar.tsx",
+  "context": "כפתור התנתקות בסליבר (ליד שם המשתמש)",
+  "suggestedIcon": "sign-out"
+ },
+ {
+  "id": "btn-logout-confirm",
+  "labelHe": "כן, התנתק",
+  "kind": "button",
+  "file": "frontend/src/components/Sidebar.tsx",
+  "context": "כפתור אישור בדיאלוג ההתנתקות",
+  "suggestedIcon": "sign-out"
+ },
+ {
+  "id": "hdr-controller-mapping",
+  "labelHe": "מיפוי כפתורים",
+  "kind": "header",
+  "file": "frontend/src/components/ControllerSettings.tsx",
+  "context": "כותרת מקטע מיפוי השלט בהגדרות",
+  "suggestedIcon": "gamepad"
+ },
+ {
+  "id": "btn-controller-reset",
+  "labelHe": "איפוס לברירת מחדל",
+  "kind": "button",
+  "file": "frontend/src/components/ControllerSettings.tsx",
+  "context": "כפתור איפוס מיפוי השלט",
+  "suggestedIcon": "refresh"
+ },
+ {
+  "id": "btn-controller-remap",
+  "labelHe": "שנה",
+  "kind": "button",
+  "file": "frontend/src/components/ControllerSettings.tsx",
+  "context": "כפתור שינוי מיפוי לפעולה בשלט",
+  "suggestedIcon": "edit"
+ },
+ {
+  "id": "hdr-controller-fixed",
+  "labelHe": "קבוע (לא ניתן לשינוי):",
+  "kind": "section",
+  "file": "frontend/src/components/ControllerSettings.tsx",
+  "context": "תווית מקטע הקיצורים הקבועים בשלט",
+  "suggestedIcon": "lock"
+ },
+ {
+  "id": "link-tour-skip",
+  "labelHe": "דלג על הסיור",
+  "kind": "action",
+  "file": "frontend/src/components/CoachTour.tsx",
+  "context": "קישור דילוג בכרטיס הסיור המודרך",
+  "suggestedIcon": "cross"
+ },
+ {
+  "id": "btn-tour-back",
+  "labelHe": "הקודם",
+  "kind": "button",
+  "file": "frontend/src/components/CoachTour.tsx",
+  "context": "כפתור חזרה בסיור המודרך",
+  "suggestedIcon": "angle-right"
+ },
+ {
+  "id": "btn-changelog-ok",
+  "labelHe": "הבנתי",
+  "kind": "button",
+  "file": "frontend/src/components/ChangelogModal.tsx",
+  "context": "כפתור סגירה בחלון 'מה חדש'",
+  "suggestedIcon": "check"
+ },
+ {
+  "id": "btn-close-confirm",
+  "labelHe": "אישור",
+  "kind": "button",
+  "file": "frontend/src/components/CloseBehaviorModal.tsx",
+  "context": "כפתור אישור בחירת התנהגות הסגירה",
+  "suggestedIcon": "check"
+ },
+ {
+  "id": "badge-bp-mod-active",
+  "labelHe": "תרגום פעיל",
+  "kind": "badge",
+  "file": "frontend/src/components/BigPictureMode.tsx",
+  "context": "תג 'תרגום פעיל' במצב Big Picture",
+  "suggestedIcon": "check"
+ },
+ {
+  "id": "btn-bp-empty-exit",
+  "labelHe": "יציאה",
+  "kind": "button",
+  "file": "frontend/src/components/BigPictureMode.tsx",
+  "context": "כפתור יציאה במצב ריק של Big Picture",
+  "suggestedIcon": "cross"
+ }
+]

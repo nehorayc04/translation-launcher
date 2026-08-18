@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>מחשוב קהילתי ותהליך התרגום — תרחיש עץ מלא</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;800;900&family=Fira+Code:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+:root {
+  --bg: #070913;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --cyan: #38bdf8;
+  --purple: #c084fc;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  background-image:
+    radial-gradient(circle at 50% 10%, rgba(56, 189, 248, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 50% 90%, rgba(52, 211, 153, 0.08) 0%, transparent 50%);
+  color: var(--text-main);
+  font-family: 'Rubik', system-ui, sans-serif;
+  min-height: 100vh;
+  padding: 20px 10px 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+header h1 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 6px;
+}
+
+header p {
+  color: var(--text-muted);
+  font-size: 1.05rem;
+}
+
+.diagram-card {
+  width: 98vw;
+  max-width: 98vw;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 24px;
+  backdrop-filter: blur(28px);
+  padding: 30px 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.mermaid-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.mermaid {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.mermaid svg {
+  margin: 0 auto !important;
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+.mermaid .node label, .mermaid .node div, .mermaid .node foreignObject {
+  font-size: 19px !important;
+  font-weight: 700 !important;
+  line-height: 1.5 !important;
+  padding: 6px 12px !important;
+}
+
+.mermaid .edgeLabel {
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  background-color: rgba(7, 9, 19, 0.95) !important;
+  color: #38bdf8 !important;
+  padding: 4px 10px !important;
+  border-radius: 6px !important;
+  border: 1px solid rgba(56, 189, 248, 0.3) !important;
+}
+
+.mermaid .node rect, .mermaid .node polygon, .mermaid .node circle {
+  stroke-width: 3px !important;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🗺️ מחשוב קהילתי ותהליך התרגום — תרחיש עץ אנכי מלא</h1>
+  <p>מהתקנת האפליקציה במכשיר המתנדב, דרך תור המשימות המשותף והספקים, ועד לתרגום חי במשחק</p>
+</header>
+
+<div class="diagram-card">
+  <div class="mermaid-wrapper">
+    <div class="mermaid">
+graph TD
+    START["📱💻 התחלה:<br/>התקנת האפליקציה"] --> S1["🔑 הזנת מפתחות אישיים<br/>מוצפנים במכשיר"]
+    S1 --> S2["🟢 הפעלת המתג הראשי"]
+    S2 --> D0{"✅ המכשיר פעיל<br/>ומאושר על ידי המפעיל?"}
+
+    D0 -- "✅ כן" --> D1{"🌐 יש חיבור<br/>לשרת הבקרה?"}
+    D0 -- "❌ לא" --> STOP0["🛑 עצירה:<br/>המכשיר נחסם"]
+
+    D1 -- "✅ כן" --> S3["📥 משיכת עד 50 שורות<br/>מהתור המשותף"]
+    D1 -- "❌ לא" --> OFF1["📦 עבודה מהמאגר<br/>המקומי הקיים"]
+    OFF1 --> D1
+
+    S3 --> D2{"📭 נמצאו שורות<br/>פנויות בתור?"}
+    D2 -- "✅ כן" --> S4["🧩 קיבוץ השורות<br/>לפי סוג פעולה"]
+    D2 -- "❌ לא" --> WAIT["⏳ המתנה קצרה<br/>ובדיקה חוזרת"]
+    WAIT --> D1
+
+    S4 --> S5["🌍 בניית לוח שפות<br/>ממקורות המשחק עצמו"]
+    S5 --> S6["📡 שליחה לספק<br/>בינה מלאכותית"]
+
+    S6 --> D3{"✅ הספק השיב<br/>בהצלחה?"}
+    D3 -- "✅ כן" --> S7["🔎 בדיקת מבנה<br/>ותקינות התשובה"]
+    D3 -- "❌ לא" --> F1["⚠️ תקלת ספק<br/>או עומס יתר"]
+    F1 --> F2["🧊 השהיה קצרה<br/>לספק הכושל בלבד"]
+    F2 --> S6
+
+    S7 --> D4{"📐 המבנה תקין<br/>ומדויק?"}
+    D4 -- "✅ כן" --> S8["💾 שמירה במאגר<br/>המקומי היוצא"]
+    D4 -- "❌ לא" --> R1["🔄 ניסיון תרגום<br/>חוזר לאותה שורה"]
+    R1 --> S6
+
+    S8 --> D5{"🌐 קיים חיבור<br/>לשרת כרגע?"}
+    D5 -- "✅ כן" --> S9["📤 שליחת התוצאות<br/>לשרת הבקרה"]
+    D5 -- "❌ לא" --> S8B["📦 המתנה בתור<br/>היוצא המקומי"]
+    S8B --> D5
+
+    S9 --> D6{"✔️ כל שורה<br/>נקלטה בנפרד?"}
+    D6 -- "✅ כן" --> S10["💓 חידוש חכירת<br/>השורות בתור"]
+    D6 -- "❌ לא" --> R2["🔁 שליחה חוזרת<br/>לשורות שנכשלו"]
+    R2 --> S9
+
+    S10 --> D7{"⚙️ הספקים<br/>עדיין תקינים?"}
+    D7 -- "✅ כן" --> D8{"📭 התור המקומי<br/>של השורות התרוקן?"}
+    D7 -- "❌ לא" --> S11["🤝 שחרור השורות<br/>בחזרה לתור המשותף"]
+    S11 --> D0
+
+    D8 -- "✅ כן" --> S12["📊 עדכון סטטיסטיקת<br/>התרומה האישית"]
+    D8 -- "🔁 לא, יש עוד" --> S3
+
+    S12 --> S13["🗂️ צבירה למאגר<br/>התרגומים של המשחק"]
+    S13 --> S14["🧪 בקרת איכות<br/>אוטומטית ומגדרית"]
+
+    S14 --> D9{"🧹 השורות עברו<br/>את בקרת האיכות?"}
+    D9 -- "✅ כן" --> S15["🌐 הצגה בלוח<br/>ההתקדמות הציבורי"]
+    D9 -- "❌ לא" --> F3["🛠️ תיקון או<br/>החזרה לתרגום חוזר"]
+    F3 --> S14
+
+    S15 --> S16["👨‍💻 אישור אנושי<br/>ואפיית הטקסט למשחק"]
+    S16 --> S17["🚀 פריסת התרגום<br/>לגרסת המשחק הפעילה"]
+    S17 --> END["🎉 תרגום עברי<br/>חי ופועל במשחק"]
+    </div>
+  </div>
+</div>
+
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: 'dark', securityLevel: 'loose', flowchart: { useMaxWidth: true, htmlLabels: true } });
+</script>
+</body>
+</html>

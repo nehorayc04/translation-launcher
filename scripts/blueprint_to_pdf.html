@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Translation Manager Winhanced Master Blueprint</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Noto+Sans+Hebrew:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html, body {
+    width: 210mm;
+    background-color: #0f1423;
+    color: #e0e0e0;
+    font-family: 'Rubik', 'Noto Sans Hebrew', sans-serif;
+    line-height: 1.6;
+    direction: rtl;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* Exact A4 Pages */
+  .page {
+    width: 210mm;
+    height: 297mm;
+    padding: 16mm 16mm;
+    background: linear-gradient(135deg, #131b2e 0%, #0f1423 60%, #0b2238 100%);
+    page-break-after: always;
+    page-break-inside: avoid;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .page:last-child {
+    page-break-after: auto;
+  }
+
+  /* Typography */
+  h1 {
+    font-size: 1.95em;
+    font-weight: 700;
+    color: #00e5ff;
+    text-align: center;
+    margin-bottom: 6px;
+    text-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
+    letter-spacing: -0.5px;
+  }
+
+  h2.subtitle {
+    font-size: 1.15em;
+    color: #b388ff;
+    text-align: center;
+    margin-bottom: 18px;
+    font-weight: 400;
+  }
+
+  .intro-quote {
+    background: rgba(179, 136, 255, 0.08);
+    border-right: 4px solid #b388ff;
+    padding: 12px 18px;
+    border-radius: 0 10px 10px 0;
+    margin-bottom: 18px;
+    font-size: 0.88em;
+    color: #ccc;
+  }
+
+  .intro-quote strong {
+    color: #ff9e80;
+  }
+
+  h2 {
+    font-size: 1.35em;
+    color: #ff9e80;
+    margin-top: 0;
+    margin-bottom: 14px;
+    padding-bottom: 5px;
+    border-bottom: 2px solid rgba(255, 158, 128, 0.25);
+  }
+
+  h3 {
+    font-size: 1.05em;
+    color: #80cbc4;
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+
+  hr {
+    border: none;
+    height: 1px;
+    background: linear-gradient(to left, transparent, rgba(0, 229, 255, 0.3), transparent);
+    margin: 16px 0;
+  }
+
+  /* TOC */
+  .toc {
+    background: rgba(0, 229, 255, 0.04);
+    border: 1px solid rgba(0, 229, 255, 0.15);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+  }
+
+  .toc h3 {
+    color: #00e5ff;
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 1.05em;
+  }
+
+  .toc ol {
+    counter-reset: toc-counter;
+    list-style: none;
+    padding-right: 0;
+  }
+
+  .toc ol li {
+    counter-increment: toc-counter;
+    padding: 3px 0;
+    color: #90caf9;
+    font-size: 0.84em;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
+  .toc ol li::before {
+    content: counter(toc-counter) ". ";
+    color: #ff9e80;
+    font-weight: 600;
+  }
+
+  /* Lists */
+  ul, ol {
+    padding-right: 20px;
+    margin-bottom: 10px;
+  }
+
+  li {
+    margin-bottom: 5px;
+    color: #e0e0e0;
+    line-height: 1.5;
+    font-size: 0.86em;
+  }
+
+  li strong { color: #ff9e80; }
+
+  .perf-list {
+    list-style: none;
+    padding-right: 0;
+  }
+
+  .perf-list li {
+    padding: 9px 13px;
+    margin-bottom: 7px;
+    background: rgba(255, 158, 128, 0.05);
+    border-radius: 8px;
+    border-right: 3px solid #ff9e80;
+    font-size: 0.85em;
+  }
+
+  .perf-list li strong { color: #ffd180; }
+
+  .arch-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  .arch-list li {
+    padding: 9px 14px;
+    margin-bottom: 6px;
+    border-radius: 8px;
+    border-right: 3px solid;
+    font-size: 0.85em;
+  }
+
+  .arch-list li:nth-child(1) { background: rgba(0, 150, 136, 0.08); border-right-color: #26a69a; }
+  .arch-list li:nth-child(2) { background: rgba(255, 152, 0, 0.08); border-right-color: #ffa726; }
+  .arch-list li:nth-child(3) { background: rgba(66, 165, 245, 0.08); border-right-color: #42a5f5; }
+
+  /* Flow boxes for categories 1-7 */
+  .flow-box {
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(0, 229, 255, 0.2);
+    border-radius: 12px;
+    padding: 14px;
+    margin: 12px 0;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: 10px;
+    direction: ltr;
+  }
+
+  .flow-node {
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    border: 1px solid #38bdf8;
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: #f1f5f9;
+    font-size: 0.82em;
+    text-align: center;
+    direction: rtl;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .flow-arrow {
+    color: #38bdf8;
+    font-size: 1.4em;
+    font-weight: bold;
+  }
+
+  /* Comparison Table */
+  .table-wrapper {
+    margin: 10px 0;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.73em;
+    direction: rtl;
+    table-layout: fixed;
+  }
+
+  thead {
+    background: linear-gradient(135deg, #1a237e, #0d47a1);
+  }
+
+  thead th {
+    padding: 9px 6px;
+    color: #00e5ff;
+    font-weight: 600;
+    text-align: center;
+    border-bottom: 2px solid rgba(0, 229, 255, 0.3);
+    word-wrap: break-word;
+  }
+
+  thead th:first-child { text-align: right; width: 36%; }
+  thead th:nth-child(2), thead th:nth-child(3) { width: 17%; }
+  thead th:nth-child(4) { width: 30%; }
+
+  tbody tr { border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+  tbody tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
+  tbody td { padding: 6px 5px; text-align: center; vertical-align: middle; word-wrap: break-word; }
+  tbody td:first-child { text-align: right; font-weight: 500; color: #e0e0e0; }
+
+  .callout-important {
+    background: linear-gradient(135deg, rgba(0, 229, 255, 0.08), rgba(179, 136, 255, 0.08));
+    border: 1px solid rgba(0, 229, 255, 0.2);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-top: 10px;
+    text-align: center;
+  }
+
+  .callout-important .label { color: #00e5ff; font-weight: 700; font-size: 0.95em; margin-bottom: 4px; }
+  .callout-important p { color: #e0e0e0; line-height: 1.5; font-size: 0.85em; }
+
+  /* Scenario Header */
+  .scenario-header {
+    background: rgba(128, 203, 196, 0.08);
+    border-radius: 10px;
+    padding: 10px 16px;
+    margin-bottom: 14px;
+    border-right: 4px solid #80cbc4;
+  }
+
+  .scenario-header h3 {
+    margin: 0;
+    color: #80cbc4;
+    font-size: 1.15em;
+  }
+
+  .summary-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  .summary-list li {
+    padding: 11px 15px;
+    margin-bottom: 8px;
+    border-radius: 10px;
+    background: rgba(0, 229, 255, 0.04);
+    border: 1px solid rgba(0, 229, 255, 0.08);
+    font-size: 0.88em;
+  }
+
+  .summary-list li strong { color: #00e5ff; }
+
+  .status-yes { color: #69f0ae; }
+  .status-no { color: #ff5252; }
+  .status-partial { color: #ffd740; }
+
+  code {
+    background: rgba(0, 229, 255, 0.1);
+    padding: 1px 4px;
+    border-radius: 4px;
+    font-size: 0.88em;
+    color: #80cbc4;
+  }
+
+  /* HIGH-PRECISION STRICT UNIFORM SEQUENCE CARD CONTAINER */
+  .seq-card {
+    flex: 1;
+    background: rgba(15, 23, 42, 0.75);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-radius: 14px;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    position: relative;
+    direction: ltr !important; /* STRICT LTR GRID */
+  }
+
+  .seq-actors-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+    direction: ltr !important;
+  }
+
+  .seq-actor-pill {
+    flex: 1;
+    margin: 0 4px;
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    border: 1.5px solid #38bdf8;
+    border-radius: 8px;
+    padding: 8px 6px;
+    text-align: center;
+    color: #e2e8f0;
+    font-weight: 600;
+    font-size: 0.81em;
+    direction: rtl !important; /* Hebrew text inside pill */
+    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.15);
+  }
+
+  .seq-body {
+    flex: 1;
+    position: relative;
+    margin: 16px 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    direction: ltr !important;
+  }
+
+  /* Lifelines */
+  .seq-lifelines {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none;
+    z-index: 1;
+    direction: ltr !important;
+  }
+
+  .seq-line {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+  }
+
+  .seq-line::after {
+    content: '';
+    width: 2px;
+    height: 100%;
+    background: repeating-linear-gradient(to bottom, #38bdf8 0, #38bdf8 6px, transparent 6px, transparent 12px);
+    opacity: 0.35;
+  }
+
+  /* Step container */
+  .seq-step {
+    position: relative;
+    z-index: 3;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    direction: ltr !important;
+  }
+
+  .step-label {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0f172a;
+    border: 1px solid rgba(56, 189, 248, 0.5);
+    border-radius: 6px;
+    padding: 3px 10px;
+    font-size: 0.77em;
+    color: #f1f5f9;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+    direction: rtl !important; /* Hebrew label */
+    z-index: 5;
+  }
+
+  /* Arrow line */
+  .arrow-line {
+    width: 100%;
+    height: 2px;
+    position: relative;
+  }
+
+  .arrow-solid {
+    background: #38bdf8;
+  }
+
+  .arrow-dashed {
+    background: repeating-linear-gradient(to right, #818cf8 0, #818cf8 6px, transparent 6px, transparent 10px);
+  }
+
+  /* Arrowheads (LTR layout) */
+  /* Left to Right arrow (col A -> col B, where A < B) */
+  .to-right::after {
+    content: '';
+    position: absolute;
+    right: -2px;
+    top: -4px;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 8px solid #38bdf8;
+  }
+
+  .to-right-dashed::after {
+    content: '';
+    position: absolute;
+    right: -2px;
+    top: -4px;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 8px solid #818cf8;
+  }
+
+  /* Right to Left arrow (col B -> col A, where B > A) */
+  .to-left::before {
+    content: '';
+    position: absolute;
+    left: -2px;
+    top: -4px;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-right: 8px solid #38bdf8;
+  }
+
+  .to-left-dashed::before {
+    content: '';
+    position: absolute;
+    left: -2px;
+    top: -4px;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-right: 8px solid #818cf8;
+  }
+
+  /* Internal self-loop badge */
+  .seq-loop {
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px dashed #f59e0b;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 0.78em;
+    color: #fbbf24;
+    text-align: center;
+    direction: rtl !important;
+    margin: 0 auto;
+    z-index: 5;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+</style>
+</head>
+<body>
+
+<!-- PAGE 1: Title + TOC + Architecture -->
+<div class="page">
+  <h1>📘 תוכנית אב: הפלטפורמה המאוחדת (Master Blueprint)</h1>
+  <h2 class="subtitle">TranslationManager × Winhanced</h2>
+
+  <div class="intro-quote">
+    <strong>שפה:</strong> עברית קלה, קצרה וקולעת<br>
+    <strong>מטרה:</strong> שילוב כל היתרונות של <strong>TranslationManager</strong> (תרגום משחקים, הזרקת קבצים, צי AI ו-Game Lab) יחד עם <strong>Winhanced</strong> (ספרייה מאוחדת, חנות מחירים, שליטת TDP ומצב בקר).
+  </div>
+
+  <div class="toc">
+    <h3>📋 תוכן העניינים</h3>
+    <ol>
+      <li>קטגוריה 1: הארכיטקטורה בקצרה</li>
+      <li>קטגוריה 2: ביצועים ומהירות שיא (Extreme Performance)</li>
+      <li>קטגוריה 3: שני מצבי תצוגה (Dual UI Modes)</li>
+      <li>קטגוריה 4: חנות, מחירים וספרייה מאוחדת</li>
+      <li>קטגוריה 5: מנוע התרגומים והמודים (Game Lab)</li>
+      <li>קטגוריה 6: תרגום בזמן אמת ובינה מלאכותית (NPU & Fleet)</li>
+      <li>קטגוריה 7: שליטה בחומרה, סוללה ו-Smart Launch</li>
+      <li>קטגוריה 8: 8 תרחישים ויזואליים עם חצים (Visual Scenarios)</li>
+      <li>קטגוריה 9: סיכום מנהלים קצר</li>
+      <li>קטגוריה 10: טבלת השוואה מרכזית</li>
+    </ol>
+  </div>
+
+  <hr>
+
+  <h2>1. קטגוריה 1: הארכיטקטורה בקצרה</h2>
+  <p style="color:#ccc; margin-bottom:8px;">אנחנו מחברים 3 שכבות מנצחות למערכת אחת:</p>
+
+  <div class="flow-box">
+    <div class="flow-node">🎨 שכבה 1: UI מעוצב<br/><span style="font-size:0.85em; color:#94a3b8;">(React / WinUI 3 / Living Glass)</span></div>
+    <div class="flow-arrow">⇄</div>
+    <div class="flow-node">⚡ שכבה 2: C# System Host<br/><span style="font-size:0.85em; color:#94a3b8;">(חומרה, TDP, בקר, חסימת חלונות)</span></div>
+    <div class="flow-arrow">⇄</div>
+    <div class="flow-node">🐍 שכבה 3: Python Game Lab<br/><span style="font-size:0.85em; color:#94a3b8;">(הזרקת תרגומים, מודים, צי AI)</span></div>
+  </div>
+
+  <ul class="arch-list">
+    <li><strong>C# Host (מערכת וחומרה):</strong> אחראי על TDP, מאווררים, בקרים וחסימת חלונות קופצים.</li>
+    <li><strong>Python Service (מנוע התרגום):</strong> מריץ את כל מזרקי הקבצים של TranslationManager (<code>bsa.py</code>, <code>forge.py</code>, <code>swf.py</code>, Oodle) וצי ה-AI.</li>
+    <li><strong>Frontend UI (ממשק זכוכית):</strong> עיצוב מודרני (Living Glass) עם תמיכה מלאה בעכבר, מסך מגע ובקר.</li>
+  </ul>
+</div>
+
+<!-- PAGE 2: Performance + Dual UI -->
+<div class="page">
+  <h2>2. קטגוריה 2: ביצועים ומהירות שיא (Extreme Performance)</h2>
+
+  <div class="flow-box">
+    <div class="flow-node">🧠 1. הקפאת RAM<br/><span style="font-size:0.85em; color:#94a3b8;">(&lt;20MB RAM)</span></div>
+    <div class="flow-arrow">—</div>
+    <div class="flow-node">⚡ 2. Shared Memory<br/><span style="font-size:0.85em; color:#94a3b8;">(IPC &lt;2ms)</span></div>
+    <div class="flow-arrow">—</div>
+    <div class="flow-node">🏎️ 3. Direct I/O<br/><span style="font-size:0.85em; color:#94a3b8;">(הזרקה ב-3 שניות)</span></div>
+    <div class="flow-arrow">—</div>
+    <div class="flow-node">👁️ 4. Offline NPU<br/><span style="font-size:0.85em; color:#94a3b8;">(0% פגיעה ב-FPS)</span></div>
+  </div>
+
+  <ol class="perf-list">
+    <li><strong>הקפאת RAM בזמן משחק:</strong> כשהמשחק נפתח, התוכנה משחררת זיכרון ויורדת ל-<strong>פחות מ-20MB RAM</strong>. כשהמשחק נסגר, היא חוזרת ב-0.1 שניות!</li>
+    <li><strong>תקשורת מהירה (Shared Memory IPC):</strong> מעבר נתונים בתוך ה-RAM בפחות מ-2 מילי-שניות.</li>
+    <li><strong>הזרקה ב-3 שניות (Direct I/O):</strong> התקנת תרגום ענקי של 100GB מתקצרת מ-45 שניות ל-<strong>3 שניות בלבד!</strong></li>
+    <li><strong>תרגום מסך ב-NPU:</strong> תרגום בלייב על מאיץ ה-AI המקומי — <strong>0% פגיעה ב-FPS ובכרטיס המסך!</strong></li>
+  </ol>
+
+  <hr>
+
+  <h2>3. קטגוריה 3: שני מצבי תצוגה (Dual UI Modes)</h2>
+
+  <div class="flow-box">
+    <div class="flow-node" style="border-color:#a855f7;">🚀 הפעלת התוכנה</div>
+    <div class="flow-arrow">➔</div>
+    <div class="flow-node">💻 מצב דסקטופ<br/><span style="font-size:0.85em; color:#94a3b8;">(ספרייה, מודים, Launcher Designer)</span></div>
+    <div class="flow-arrow">/</div>
+    <div class="flow-node">🎮 מצב קונסולה (10ft UI)<br/><span style="font-size:0.85em; color:#94a3b8;">(סטיקים, אפקטי זכוכית, תרגום ב-A)</span></div>
+  </div>
+</div>
+
+<!-- PAGE 3: Store + Game Lab -->
+<div class="page">
+  <h2>4. קטגוריה 4: חנות, מחירים וספרייה מאוחדת</h2>
+
+  <div class="flow-box">
+    <div class="flow-node">🔍 סריקת משחקים<br/><span style="font-size:0.85em; color:#94a3b8;">(Steam/Epic/GOG/Xbox)</span></div>
+    <div class="flow-arrow">➔</div>
+    <div class="flow-node">📚 ספרייה מאוחדת</div>
+    <div class="flow-arrow">➔</div>
+    <div class="flow-node">🛒 השוואת מחירים</div>
+    <div class="flow-arrow">➔</div>
+    <div class="flow-node">🎁 איסוף חינמיים</div>
+  </div>
+
+  <ul style="padding-right: 18px;">
+    <li><strong>השוואת מחירים:</strong> מציגה את המחיר הזול ביותר מכל החנויות.</li>
+    <li><strong>איסוף משחקים חינמיים:</strong> זיהוי ואיסוף בלחיצה אחת מ-Epic Games ו-GOG.</li>
+  </ul>
+
+  <hr>
+
+  <h2>5. קטגוריה 5: מנוע התרגומים והמודים (Game Lab)</h2>
+
+  <div class="flow-box">
+    <div class="flow-node">🎯 בחירת משחק</div>
+    <div class="flow-arrow">➔</div>
+    <div class="flow-node">Skyrim: SWF+STRINGS<br/>AC: Forge+Oodle<br/>FarCry: FFD/XBT</div>
+    <div class="flow-arrow">➔</div>
+    <div class="flow-node" style="border-color:#22c55e;">✅ התקנה ב-3 שניות!</div>
+  </div>
+</div>
+
+<!-- PAGE 4: NPU Realtime + Hardware & Smart Launch -->
+<div class="page">
+  <h2>6. קטגוריה 6: תרגום בזמן אמת ובינה מלאכותית (NPU & Fleet)</h2>
+
+  <div class="flow-box">
+    <div class="flow-node">🎮 מקש LB+RB</div>
+    <div class="flow-arrow">➔</div>
+    <div class="flow-node">👁️ NPU OCR</div>
+    <div class="flow-arrow">➔</div>
+    <div class="flow-node">🤖 תרגום AI</div>
+    <div class="flow-arrow">➔</div>
+    <div class="flow-node">🖼️ תצוגה שקופה (Overlay)</div>
+  </div>
+
+  <hr>
+
+  <h2>7. קטגוריה 7: שליטה בחומרה, סוללה ו-Smart Launch</h2>
+
+  <div class="flow-box">
+    <div class="flow-node">🚀 הרצת משחק</div>
+    <div class="flow-arrow">➔</div>
+    <div class="flow-node">🌊 Smart Launch Watcher<br/><span style="font-size:0.85em; color:#94a3b8;">(חסימת UAC / EULA)</span></div>
+    <div class="flow-arrow">➔</div>
+    <div class="flow-node">⚡ פרופיל TDP חכם</div>
+    <div class="flow-arrow">➔</div>
+    <div class="flow-node">🔋 חיסכון בסוללה</div>
+  </div>
+</div>
+
+<!-- PAGE 5: Visual Scenario 1 -->
+<div class="page">
+  <h2>8. קטגוריה 8: 8 תרחישים ויזואליים עם חצים (Visual Scenarios)</h2>
+
+  <div class="scenario-header">
+    <h3>🛒 תרחיש 1: קניית משחק ➔ התקנה ➔ תרגום בלחיצה אחת</h3>
+  </div>
+
+  <!-- 4-actor sequence: User (0), UI (1), Engine (2), Game (3) -->
+  <div class="seq-card">
+    <div class="seq-actors-row">
+      <div class="seq-actor-pill">👤 משתמש</div>
+      <div class="seq-actor-pill">🎨 חנות / ספרייה</div>
+      <div class="seq-actor-pill">🐍 Python Game Lab</div>
+      <div class="seq-actor-pill">🎮 משחק</div>
+    </div>
+
+    <div class="seq-body">
+      <div class="seq-lifelines">
+        <div class="seq-line"></div>
+        <div class="seq-line"></div>
+        <div class="seq-line"></div>
+        <div class="seq-line"></div>
+      </div>
+
+      <!-- Step 1: User (0) -> UI (1) -->
+      <div class="seq-step" style="margin-left: 12.5%; width: 25%;">
+        <div class="arrow-line arrow-solid to-right"></div>
+        <div class="step-label">עורך עיון בחנות ומגלה משחק</div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="seq-step" style="margin-left: 12.5%; width: 25%;">
+        <div class="arrow-line arrow-dashed to-left-dashed"></div>
+        <div class="step-label">מציג מחיר זול ב-Epic + "תרגום עברית זמין"</div>
+      </div>
+
+      <!-- Step 3: User (0) -> UI (1) -->
+      <div class="seq-step" style="margin-left: 12.5%; width: 25%;">
+        <div class="arrow-line arrow-solid to-right"></div>
+        <div class="step-label">לוחץ "קנה ותרגם" (כפתור A בבקר)</div>
+      </div>
+
+      <!-- Step 4: UI (1) -> Engine (2) -->
+      <div class="seq-step" style="margin-left: 37.5%; width: 25%;">
+        <div class="arrow-line arrow-solid to-right"></div>
+        <div class="step-label">הרצת Async Direct I/O Patcher</div>
+      </div>
+
+      <!-- Step 5: Internal Loop on Engine (2) -->
+      <div class="seq-step" style="justify-content: center;">
+        <div class="seq-loop">🐍 Python Game Lab: הזרקת פונטים, Bidi וקובצי שפה (3 שניות!)</div>
+      </div>
+
+      <!-- Step 6: Engine (2) --> UI (1) -->
+      <div class="seq-step" style="margin-left: 37.5%; width: 25%;">
+        <div class="arrow-line arrow-dashed to-left-dashed"></div>
+        <div class="step-label">התרגום הותקן!</div>
+      </div>
+
+      <!-- Step 7: User (0) -> UI (1) -->
+      <div class="seq-step" style="margin-left: 12.5%; width: 25%;">
+        <div class="arrow-line arrow-solid to-right"></div>
+        <div class="step-label">לוחץ "הפעל משחק"</div>
+      </div>
+
+      <!-- Step 8: UI (1) -> Game (3) -->
+      <div class="seq-step" style="margin-left: 37.5%; width: 50%;">
+        <div class="arrow-line arrow-solid to-right"></div>
+        <div class="step-label">הרצה שקטה בעברית מלאה!</div>
+      </div>
+    </div>
+
+    <div class="seq-actors-row">
+      <div class="seq-actor-pill">👤 משתמש</div>
+      <div class="seq-actor-pill">🎨 חנות / ספרייה</div>
+      <div class="seq-actor-pill">🐍 Python Game Lab</div>
+      <div class="seq-actor-pill">🎮 משחק</div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 6: Visual Scenario 2 -->
+<div class="page">
+  <h2>8. קטגוריה 8: 8 תרחישים ויזואליים עם חצים (המשך)</h2>
+
+  <div class="scenario-header">
+    <h3>🤖 תרחיש 2: בדיקה אוטונומית ברקע (dxcam) לפני המשחק</h3>
+  </div>
+
+  <!-- 4-actor sequence: Patcher (0), Auto (1), DX (2), User (3) -->
+  <div class="seq-card">
+    <div class="seq-actors-row">
+      <div class="seq-actor-pill">🐍 Python Patcher</div>
+      <div class="seq-actor-pill">🤖 Autocheck Engine</div>
+      <div class="seq-actor-pill">📹 dxcam (DirectX)</div>
+      <div class="seq-actor-pill">👤 משתמש</div>
+    </div>
+
+    <div class="seq-body">
+      <div class="seq-lifelines">
+        <div class="seq-line"></div>
+        <div class="seq-line"></div>
+        <div class="seq-line"></div>
+        <div class="seq-line"></div>
+      </div>
+
+      <!-- Step 1: Patcher (0) -> Auto (1) -->
+      <div class="seq-step" style="margin-left: 12.5%; width: 25%;">
+        <div class="arrow-line arrow-solid to-right"></div>
+        <div class="step-label">התרגום הותקן, התחל בדיקה</div>
+      </div>
+
+      <!-- Step 2: Auto (1) Internal Loop -->
+      <div class="seq-step" style="justify-content: center;">
+        <div class="seq-loop">🤖 Autocheck: הרצת המשחק ברקע ללא חלונות</div>
+      </div>
+
+      <!-- Step 3: Auto (1) -> DX (2) -->
+      <div class="seq-step" style="margin-left: 37.5%; width: 25%;">
+        <div class="arrow-line arrow-solid to-right"></div>
+        <div class="step-label">לכידת פריים מהמסך ב-DirectX</div>
+      </div>
+
+      <!-- Step 4: DX (2) --> Auto (1) -->
+      <div class="seq-step" style="margin-left: 37.5%; width: 25%;">
+        <div class="arrow-line arrow-dashed to-left-dashed"></div>
+        <div class="step-label">תמונת פריים התקבלה</div>
+      </div>
+
+      <!-- Step 5: Auto (1) Internal Loop -->
+      <div class="seq-step" style="justify-content: center;">
+        <div class="seq-loop">🤖 Autocheck: אימות תקינות הפונטים וה-Bidi</div>
+      </div>
+
+      <!-- Step 6: Auto (1) --> User (3) -->
+      <div class="seq-step" style="margin-left: 37.5%; width: 50%;">
+        <div class="arrow-line arrow-dashed to-right-dashed"></div>
+        <div class="step-label">"המשחק מוכן ומוודא 100% בעברית!"</div>
+      </div>
+    </div>
+
+    <div class="seq-actors-row">
+      <div class="seq-actor-pill">🐍 Python Patcher</div>
+      <div class="seq-actor-pill">🤖 Autocheck Engine</div>
+      <div class="seq-actor-pill">📹 dxcam (DirectX)</div>
+      <div class="seq-actor-pill">👤 משתמש</div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 7: Visual Scenario 3 -->
+<div class="page">
+  <h2>8. קטגוריה 8: 8 תרחישים ויזואליים עם חצים (המשך)</h2>
+
+  <div class="scenario-header">
+    <h3>👁️ תרחיש 3: תרגום מסך בזמן אמת ב-NPU תוך כדי משחק</h3>
+  </div>
+
+  <!-- 4-actor sequence: User (0), Game (1), Overlay (2), NPU (3) -->
+  <div class="seq-card">
+    <div class="seq-actors-row">
+      <div class="seq-actor-pill">👤 משתמש (בקר)</div>
+      <div class="seq-actor-pill">🎮 משחק AAA</div>
+      <div class="seq-actor-pill">🖼️ C# Overlay</div>
+      <div class="seq-actor-pill">🧠 NPU (ONNX Engine)</div>
+    </div>
+
+    <div class="seq-body">
+      <div class="seq-lifelines">
+        <div class="seq-line"></div>
+        <div class="seq-line"></div>
+        <div class="seq-line"></div>
+        <div class="seq-line"></div>
+      </div>
+
+      <!-- Step 1: User (0) -> Game (1) -->
+      <div class="seq-step" style="margin-left: 12.5%; width: 25%;">
+        <div class="arrow-line arrow-solid to-right"></div>
+        <div class="step-label">נתקל בדיאלוג באנגלית</div>
+      </div>
+
+      <!-- Step 2: User (0) -> Overlay (2) -->
+      <div class="seq-step" style="margin-left: 12.5%; width: 50%;">
+        <div class="arrow-line arrow-solid to-right"></div>
+        <div class="step-label">לוחץ LB + RB + D-Pad Down</div>
+      </div>
+
+      <!-- Step 3: Overlay (2) -> NPU (3) -->
+      <div class="seq-step" style="margin-left: 62.5%; width: 25%;">
+        <div class="arrow-line arrow-solid to-right"></div>
+        <div class="step-label">העברת הפריים לתרגום</div>
+      </div>
+
+      <!-- Step 4: Internal NPU Loop -->
+      <div class="seq-step" style="justify-content: center;">
+        <div class="seq-loop">🧠 NPU: זיהוי OCR ותרגום לעברית (0% GPU Load)</div>
+      </div>
+
+      <!-- Step 5: NPU (3) --> Overlay (2) -->
+      <div class="seq-step" style="margin-left: 62.5%; width: 25%;">
+        <div class="arrow-line arrow-dashed to-left-dashed"></div>
+        <div class="step-label">טקסט מתורגם</div>
+      </div>
+
+      <!-- Step 6: Overlay (2) -> Game (1) -->
+      <div class="seq-step" style="margin-left: 37.5%; width: 25%;">
+        <div class="arrow-line arrow-solid to-left"></div>
+        <div class="step-label">הצגת כתוביות בעברית מעל המשחק!</div>
+      </div>
+    </div>
+
+    <div class="seq-actors-row">
+      <div class="seq-actor-pill">👤 משתמש (בקר)</div>
+      <div class="seq-actor-pill">🎮 משחק AAA</div>
+      <div class="seq-actor-pill">🖼️ C# Overlay</div>
+      <div class="seq-actor-pill">🧠 NPU (ONNX Engine)</div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 8: Visual Scenario 4 -->
+<div class="page">
+  <h2>8. קטגוריה 8: 8 תרחישים ויזואליים עם חצים (המשך)</h2>
+
+  <div class="scenario-header">
+    <h3>🚁 תרחיש 4: סנכרון צי התרגום (Fleet Ops) ואתר /translate</h3>
+  </div>
+
+  <!-- 3-actor sequence: Site (0), Fleet (1), Local (2) -->
+  <div class="seq-card">
+    <div class="seq-actors-row">
+      <div class="seq-actor-pill">🌐 אתר /translate</div>
+      <div class="seq-actor-pill">🚁 Fleet AI</div>
+      <div class="seq-actor-pill">🖥️ תוכנה מקומית</div>
+    </div>
+
+    <div class="seq-body">
+      <div class="seq-lifelines">
+        <div class="seq-line"></div>
+        <div class="seq-line"></div>
+        <div class="seq-line"></div>
+      </div>
+
+      <!-- Step 1: Fleet (1) -> Site (0) -->
+      <div class="seq-step" style="margin-left: 16.66%; width: 33.33%;">
+        <div class="arrow-line arrow-solid to-left"></div>
+        <div class="step-label">תרגום אוטומטי של 1,000 שורות חדשות</div>
+      </div>
+
+      <!-- Step 2: Site Internal Loop -->
+      <div class="seq-step" style="justify-content: center;">
+        <div class="seq-loop">🌐 /translate: הוספת נתוני Gender Oracle (זיהוי מגדר)</div>
+      </div>
+
+      <!-- Step 3: Local (2) -> Site (0) -->
+      <div class="seq-step" style="margin-left: 16.66%; width: 66.66%;">
+        <div class="arrow-line arrow-solid to-left"></div>
+        <div class="step-label">בדיקת עדכונים קהילתיים</div>
+      </div>
+
+      <!-- Step 4: Site (0) --> Local (2) -->
+      <div class="seq-step" style="margin-left: 16.66%; width: 66.66%;">
+        <div class="arrow-line arrow-dashed to-right-dashed"></div>
+        <div class="step-label">הורדת הפאץ' המעודכן</div>
+      </div>
+
+      <!-- Step 5: Local Internal Loop -->
+      <div class="seq-step" style="justify-content: center;">
+        <div class="seq-loop">🖥️ תוכנה מקומית: הזרקת השורות החדשות למשחק!</div>
+      </div>
+    </div>
+
+    <div class="seq-actors-row">
+      <div class="seq-actor-pill">🌐 אתר /translate</div>
+      <div class="seq-actor-pill">🚁 Fleet AI</div>
+      <div class="seq-actor-pill">🖥️ תוכנה מקומית</div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 9: Visual Scenario 5 -->
+<div class="page">
+  <h2>8. קטגוריה 8: 8 תרחישים ויזואליים עם חצים (המשך)</h2>
+
+  <div class="scenario-header">
+    <h3>🧩 תרחיש 5: התקנת מודים ופתרון קונפליקטים ב-Game Lab</h3>
+  </div>
+
+  <!-- 4-actor sequence: User (0), Lab (1), Checker (2), Game (3) -->
+  <div class="seq-card">
+    <div class="seq-actors-row">
+      <div class="seq-actor-pill">👤 משתמש</div>
+      <div class="seq-actor-pill">🧩 Game Lab</div>
+      <div class="seq-actor-pill">🔍 Conflict Checker</div>
+      <div class="seq-actor-pill">🎮 תיקיית המשחק</div>
+    </div>
+
+    <div class="seq-body">
+      <div class="seq-lifelines">
+        <div class="seq-line"></div>
+        <div class="seq-line"></div>
+        <div class="seq-line"></div>
+        <div class="seq-line"></div>
+      </div>
+
+      <!-- Step 1: User (0) -> Lab (1) -->
+      <div class="seq-step" style="margin-left: 12.5%; width: 25%;">
+        <div class="arrow-line arrow-solid to-right"></div>
+        <div class="step-label">בוחר מוד להתקנה</div>
+      </div>
+
+      <!-- Step 2: Lab (1) -> Checker (2) -->
+      <div class="seq-step" style="margin-left: 37.5%; width: 25%;">
+        <div class="arrow-line arrow-solid to-right"></div>
+        <div class="step-label">בדיקת התנגשויות ב-BSA / Forge</div>
+      </div>
+
+      <!-- Step 3: Checker (2) --> Lab (1) -->
+      <div class="seq-step" style="margin-left: 37.5%; width: 25%;">
+        <div class="arrow-line arrow-dashed to-left-dashed"></div>
+        <div class="step-label">לא נמצאו קונפליקטים!</div>
+      </div>
+
+      <!-- Step 4: Lab (1) -> Game (3) -->
+      <div class="seq-step" style="margin-left: 37.5%; width: 50%;">
+        <div class="arrow-line arrow-solid to-right"></div>
+        <div class="step-label">התקנת קובצי המוד</div>
+      </div>
+
+      <!-- Step 5: Lab (1) --> User (0) -->
+      <div class="seq-step" style="margin-left: 12.5%; width: 25%;">
+        <div class="arrow-line arrow-dashed to-left-dashed"></div>
+        <div class="step-label">"המוד הותקן בהצלחה!"</div>
+      </div>
+    </div>
+
+    <div class="seq-actors-row">
+      <div class="seq-actor-pill">👤 משתמש</div>
+      <div class="seq-actor-pill">🧩 Game Lab</div>
+      <div class="seq-actor-pill">🔍 Conflict Checker</div>
+      <div class="seq-actor-pill">🎮 תיקיית המשחק</div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 10: Visual Scenario 6 -->
+<div class="page">
+  <h2>8. קטגוריה 8: 8 תרחישים ויזואליים עם חצים (המשך)</h2>
+
+  <div class="scenario-header">
+    <h3>🧠 תרחיש 6: כניסה למשחק והקפאת זיכרון RAM</h3>
+  </div>
+
+  <!-- 4-actor sequence: User (0), Watcher (1), UI (2), Game (3) -->
+  <div class="seq-card">
+    <div class="seq-actors-row">
+      <div class="seq-actor-pill">👤 משתמש</div>
+      <div class="seq-actor-pill">🌊 Smart Launch</div>
+      <div class="seq-actor-pill">🎨 React / Web UI</div>
+      <div class="seq-actor-pill">🎮 משחק AAA</div>
+    </div>
+
+    <div class="seq-body">
+      <div class="seq-lifelines">
+        <div class="seq-line"></div>
+        <div class="seq-line"></div>
+        <div class="seq-line"></div>
+        <div class="seq-line"></div>
+      </div>
+
+      <!-- Step 1: User (0) -> UI (2) -->
+      <div class="seq-step" style="margin-left: 12.5%; width: 50%;">
+        <div class="arrow-line arrow-solid to-right"></div>
+        <div class="step-label">לוחץ "הפעל משחק"</div>
+      </div>
+
+      <!-- Step 2: UI (2) -> Watcher (1) -->
+      <div class="seq-step" style="margin-left: 37.5%; width: 25%;">
+        <div class="arrow-line arrow-solid to-left"></div>
+        <div class="step-label">המשחק נפתח!</div>
+      </div>
+
+      <!-- Step 3: Watcher (1) -> UI (2) -->
+      <div class="seq-step" style="margin-left: 37.5%; width: 25%;">
+        <div class="arrow-line arrow-solid to-right"></div>
+        <div class="step-label">מעבר למצב RAM Suspend (&lt;20MB RAM)</div>
+      </div>
+
+      <!-- Step 4: Watcher (1) -> Game (3) -->
+      <div class="seq-step" style="margin-left: 37.5%; width: 50%;">
+        <div class="arrow-line arrow-solid to-right"></div>
+        <div class="step-label">העברת 100% משאבי המחשב למשחק</div>
+      </div>
+
+      <!-- Step 5: User (0) -> Game (3) -->
+      <div class="seq-step" style="margin-left: 12.5%; width: 75%;">
+        <div class="arrow-line arrow-solid to-right"></div>
+        <div class="step-label">המשחק נסגר</div>
+      </div>
+
+      <!-- Step 6: Watcher (1) -> UI (2) -->
+      <div class="seq-step" style="margin-left: 37.5%; width: 25%;">
+        <div class="arrow-line arrow-dashed to-right-dashed"></div>
+        <div class="step-label">התעוררות מיידית ב-0.1 שניות!</div>
+      </div>
+    </div>
+
+    <div class="seq-actors-row">
+      <div class="seq-actor-pill">👤 משתמש</div>
+      <div class="seq-actor-pill">🌊 Smart Launch</div>
+      <div class="seq-actor-pill">🎨 React / Web UI</div>
+      <div class="seq-actor-pill">🎮 משחק AAA</div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 11: Visual Scenario 7 -->
+<div class="page">
+  <h2>8. קטגוריה 8: 8 תרחישים ויזואליים עם חצים (המשך)</h2>
+
+  <div class="scenario-header">
+    <h3>☁️ תרחיש 7: סנכרון ענן אוניברסלי (PC ↔ Handheld)</h3>
+  </div>
+
+  <!-- 4-actor sequence: User (0), PC (1), Cloud (2), Handheld (3) -->
+  <div class="seq-card">
+    <div class="seq-actors-row">
+      <div class="seq-actor-pill">👤 משתמש</div>
+      <div class="seq-actor-pill">🖥️ מחשב נייח</div>
+      <div class="seq-actor-pill">☁️ Universal Cloud</div>
+      <div class="seq-actor-pill">🎮 מכשיר נייד</div>
+    </div>
+
+    <div class="seq-body">
+      <div class="seq-lifelines">
+        <div class="seq-line"></div>
+        <div class="seq-line"></div>
+        <div class="seq-line"></div>
+        <div class="seq-line"></div>
+      </div>
+
+      <!-- Step 1: User (0) -> PC (1) -->
+      <div class="seq-step" style="margin-left: 12.5%; width: 25%;">
+        <div class="arrow-line arrow-solid to-right"></div>
+        <div class="step-label">משחק ומסיים שלב (Save Game + מודים)</div>
+      </div>
+
+      <!-- Step 2: PC (1) -> Cloud (2) -->
+      <div class="seq-step" style="margin-left: 37.5%; width: 25%;">
+        <div class="arrow-line arrow-solid to-right"></div>
+        <div class="step-label">העלאת שמירות והגדרות תרגום</div>
+      </div>
+
+      <!-- Step 3: User (0) -> Handheld (3) -->
+      <div class="seq-step" style="margin-left: 12.5%; width: 75%;">
+        <div class="arrow-line arrow-solid to-right"></div>
+        <div class="step-label">מדליק את המכשיר בדרכים</div>
+      </div>
+
+      <!-- Step 4: Handheld (3) -> Cloud (2) -->
+      <div class="seq-step" style="margin-left: 62.5%; width: 25%;">
+        <div class="arrow-line arrow-solid to-left"></div>
+        <div class="step-label">משיכת השמירות וההגדרות</div>
+      </div>
+
+      <!-- Step 5: Handheld (3) --> User (0) -->
+      <div class="seq-step" style="margin-left: 12.5%; width: 75%;">
+        <div class="arrow-line arrow-dashed to-left-dashed"></div>
+        <div class="step-label">ממשיך לשחק בדיוק מהנקודה שעצר!</div>
+      </div>
+    </div>
+
+    <div class="seq-actors-row">
+      <div class="seq-actor-pill">👤 משתמש</div>
+      <div class="seq-actor-pill">🖥️ מחשב נייח</div>
+      <div class="seq-actor-pill">☁️ Universal Cloud</div>
+      <div class="seq-actor-pill">🎮 מכשיר נייד</div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 12: Visual Scenario 8 -->
+<div class="page">
+  <h2>8. קטגוריה 8: 8 תרחישים ויזואליים עם חצים (המשך)</h2>
+
+  <div class="scenario-header">
+    <h3>🎁 תרחיש 8: תפיסת משחקים חינמיים אוטומטית</h3>
+  </div>
+
+  <!-- 3-actor sequence: Cron (0), Store (1), User (2) -->
+  <div class="seq-card">
+    <div class="seq-actors-row">
+      <div class="seq-actor-pill">⏰ שירות רקע</div>
+      <div class="seq-actor-pill">🛒 Epic Games / GOG</div>
+      <div class="seq-actor-pill">👤 משתמש</div>
+    </div>
+
+    <div class="seq-body">
+      <div class="seq-lifelines">
+        <div class="seq-line"></div>
+        <div class="seq-line"></div>
+        <div class="seq-line"></div>
+      </div>
+
+      <!-- Step 1: Cron (0) -> Store (1) -->
+      <div class="seq-step" style="margin-left: 16.66%; width: 33.33%;">
+        <div class="arrow-line arrow-solid to-right"></div>
+        <div class="step-label">בדיקת משחקים חינמיים שבועיים</div>
+      </div>
+
+      <!-- Step 2: Store (1) --> Cron (0) -->
+      <div class="seq-step" style="margin-left: 16.66%; width: 33.33%;">
+        <div class="arrow-line arrow-dashed to-left-dashed"></div>
+        <div class="step-label">נמצא משחק חינמי חדש!</div>
+      </div>
+
+      <!-- Step 3: Cron (0) -> Store (1) -->
+      <div class="seq-step" style="margin-left: 16.66%; width: 33.33%;">
+        <div class="arrow-line arrow-solid to-right"></div>
+        <div class="step-label">ביצוע Auto-Claim בחנות</div>
+      </div>
+
+      <!-- Step 4: Cron (0) --> User (2) -->
+      <div class="seq-step" style="margin-left: 16.66%; width: 66.66%;">
+        <div class="arrow-line arrow-dashed to-right-dashed"></div>
+        <div class="step-label">"המשחק נוסף בהצלחה לספרייה שלך!"</div>
+      </div>
+    </div>
+
+    <div class="seq-actors-row">
+      <div class="seq-actor-pill">⏰ שירות רקע</div>
+      <div class="seq-actor-pill">🛒 Epic Games / GOG</div>
+      <div class="seq-actor-pill">👤 משתמש</div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 13: Summary + Comparison Table -->
+<div class="page">
+  <h2>9. קטגוריה 9: סיכום מנהלים קצר</h2>
+
+  <ol class="summary-list">
+    <li><strong>אפס פשרות:</strong> שומרים על <strong>100% ממנועי התרגום וה-AI המתקדמים של TranslationManager</strong>, ומרוויחים את <strong>מצב הבקר, החנות וניהול החומרה של Winhanced</strong>.</li>
+    <li><strong>מהירות שיא:</strong> בזכות <strong>הקפאת ה-RAM בזמן משחק (&lt;20MB)</strong> והזרקה ב-3 שניות, המשחקים רצים חלק ב-120 FPS.</li>
+    <li><strong>פלטפורמה אחת מושלמת:</strong> פתרון מלא מקצה לקצה — מגילוי משחק ועד משחק בעברית מלאה בדרכים!</li>
+  </ol>
+
+  <hr style="margin: 10px 0;">
+
+  <h2>10. קטגוריה 10: טבלת השוואה מרכזית</h2>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>פיצ'ר / תכונה</th>
+          <th>TranslationManager</th>
+          <th>Winhanced</th>
+          <th>הפלטפורמה המאוחדת</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>מנועי הזרקה למשחקי AAA (BSA, Forge, SWF, FFD)</strong></td>
+          <td><span class="status-yes">✅ מתקדם ביותר</span></td>
+          <td><span class="status-no">❌ אין</span></td>
+          <td><span class="status-yes">✅ <strong>משולב מלא</strong></span></td>
+        </tr>
+        <tr>
+          <td><strong>צי תרגום AI (Fleet Ops) ואתר /translate</strong></td>
+          <td><span class="status-yes">✅ קיים ופועל</span></td>
+          <td><span class="status-no">❌ אין</span></td>
+          <td><span class="status-yes">✅ <strong>סנכרון מלא</strong></span></td>
+        </tr>
+        <tr>
+          <td><strong>Gender Oracle (זיהוי מגדר)</strong></td>
+          <td><span class="status-yes">✅ קיים</span></td>
+          <td><span class="status-no">❌ אין</span></td>
+          <td><span class="status-yes">✅ <strong>משולב אוטומטית</strong></span></td>
+        </tr>
+        <tr>
+          <td><strong>אימות אוטונומי ברקע (dxcam)</strong></td>
+          <td><span class="status-yes">✅ קיים</span></td>
+          <td><span class="status-no">❌ אין</span></td>
+          <td><span class="status-yes">✅ <strong>בדיקה שקטה</strong></span></td>
+        </tr>
+        <tr>
+          <td><strong>מצב בקר מותאם (Handheld 10ft UI)</strong></td>
+          <td><span class="status-no">❌ אין</span></td>
+          <td><span class="status-yes">✅ מצוין</span></td>
+          <td><span class="status-yes">✅ <strong>תמיכה מלאה בבקר</strong></span></td>
+        </tr>
+        <tr>
+          <td><strong>שליטה בחומרה (TDP / RyzenAdj / מאווררים)</strong></td>
+          <td><span class="status-no">❌ אין</span></td>
+          <td><span class="status-yes">✅ מצוין</span></td>
+          <td><span class="status-yes">✅ <strong>שליטה מלאה בחומרה</strong></span></td>
+        </tr>
+        <tr>
+          <td><strong>חנות והשוואת מחירים (Cross-Store)</strong></td>
+          <td><span class="status-no">❌ אין</span></td>
+          <td><span class="status-yes">✅ מותקן</span></td>
+          <td><span class="status-yes">✅ <strong>חנות השוואת מחירים</strong></span></td>
+        </tr>
+        <tr>
+          <td><strong>Smart Launch Watcher (חסימת חוסמים)</strong></td>
+          <td><span class="status-partial">⚠️ חלקי</span></td>
+          <td><span class="status-yes">✅ מתקדם</span></td>
+          <td><span class="status-yes">✅ <strong>מלא</strong></span></td>
+        </tr>
+        <tr>
+          <td><strong>חיסכון זיכרון בזמן משחק (RAM Suspend)</strong></td>
+          <td><span class="status-no">❌ אין</span></td>
+          <td><span class="status-partial">⚠️ חלקי</span></td>
+          <td><span class="status-yes">✅ <strong>פחות מ-20MB RAM</strong></span></td>
+        </tr>
+        <tr>
+          <td><strong>תרגום מסך ב-NPU (Offline OCR)</strong></td>
+          <td><span class="status-no">❌ אין</span></td>
+          <td><span class="status-no">❌ אין</span></td>
+          <td><span class="status-yes">✅ <strong>0% ירידה ב-FPS</strong></span></td>
+        </tr>
+        <tr>
+          <td><strong>מהירות הזרקה (Async Direct I/O)</strong></td>
+          <td><span class="status-partial">⚠️ רגיל</span></td>
+          <td><span class="status-no">❌ אין</span></td>
+          <td><span class="status-yes">✅ <strong>הזרקה ב-3 שניות</strong></span></td>
+        </tr>
+        <tr>
+          <td><strong>תקשורת מהירה (Shared Memory IPC)</strong></td>
+          <td><span class="status-partial">⚠️ WebSockets</span></td>
+          <td><span class="status-no">❌ אין</span></td>
+          <td><span class="status-yes">✅ <strong>פחות מ-2ms</strong></span></td>
+        </tr>
+        <tr>
+          <td><strong>סנכרון ענן ושמירות (Cross-Cloud Sync)</strong></td>
+          <td><span class="status-partial">⚠️ חלקי</span></td>
+          <td><span class="status-no">❌ אין</span></td>
+          <td><span class="status-yes">✅ <strong>סנכרון מלא</strong></span></td>
+        </tr>
+        <tr>
+          <td><strong>איסוף משחקים חינמיים אוטומטי</strong></td>
+          <td><span class="status-no">❌ אין</span></td>
+          <td><span class="status-no">❌ אין</span></td>
+          <td><span class="status-yes">✅ <strong>איסוף בלחיצה אחת</strong></span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout-important">
+    <div class="label">⚠️ השורה התחתונה:</div>
+    <p><strong>הפלטפורמה המאוחדת מעניקה לך את המוצר המתקדם והמהיר ביותר בשוק</strong>, המשלב את כל העוצמה ההנדסית של TranslationManager עם חוויית משתמש וביצועי קצה של Winhanced!</p>
+  </div>
+</div>
+
+</body>
+</html>

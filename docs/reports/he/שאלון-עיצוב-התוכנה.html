@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>שאלון עיצוב — התוכנה (מנהל התרגומים)</title>
+<style>
+  :root{
+    --bg:#070710; --panel:rgba(255,255,255,.035); --panel2:rgba(255,255,255,.06);
+    --line:rgba(255,255,255,.12); --txt:#e8e8f2; --mut:#9aa0b4; --acc:#00ffe0; --acc2:#fff700;
+    --good:#34d399; --bad:#f87171;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:radial-gradient(circle at 80% -10%,#1a0d40 0%,#070710 55%) fixed,var(--bg);
+    color:var(--txt); font-family:"Segoe UI",Arial,system-ui,sans-serif; line-height:1.55;
+    min-height:100vh;
+  }
+  a{color:var(--acc)}
+  .wrap{max-width:1180px;margin:0 auto;padding:18px 16px 60px}
+  header.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+  .logo{width:40px;height:40px;border-radius:11px;background:var(--acc2);display:grid;place-items:center;
+    color:#0a0a14;font-weight:900;font-size:22px;box-shadow:0 6px 18px -6px rgba(255,247,0,.5)}
+  h1{font-size:20px;margin:0}
+  .sub{color:var(--mut);font-size:12px}
+  .bar{height:8px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden;margin:6px 0 2px}
+  .bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .3s}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 16px}
+  button{font-family:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--line);
+    background:var(--panel);color:var(--txt);padding:9px 14px;font-size:13px;font-weight:600;transition:.15s}
+  button:hover{background:var(--panel2)}
+  button:disabled{opacity:.35;cursor:not-allowed}
+  button.primary{background:var(--acc2);color:#0a0a14;border-color:transparent;
+    box-shadow:0 6px 16px -6px rgba(255,247,0,.5)}
+  button.ghost{background:transparent}
+  button.danger{border-color:rgba(248,113,113,.4);background:rgba(248,113,113,.10);color:#fca5a5}
+  .layout{display:grid;grid-template-columns:300px 1fr;gap:18px;align-items:start}
+  @media(max-width:880px){.layout{grid-template-columns:1fr}}
+  .side{position:sticky;top:14px;max-height:84vh;overflow:auto;border:1px solid var(--line);
+    border-radius:16px;background:var(--panel);padding:8px}
+  .side h3{font-size:11px;letter-spacing:.18em;color:var(--mut);margin:8px 8px 6px;text-transform:uppercase}
+  .qrow{display:flex;align-items:center;gap:8px;width:100%;text-align:start;padding:7px 9px;border-radius:9px;
+    border:none;background:transparent;font-size:12.5px;color:var(--mut)}
+  .qrow:hover{background:var(--panel2)}
+  .qrow.active{background:rgba(0,255,224,.10);color:#bff;border:1px solid rgba(0,255,224,.35)}
+  .qrow .dot{width:9px;height:9px;border-radius:99px;border:1px solid var(--line);flex:none}
+  .qrow.done .dot{background:var(--good);border-color:transparent}
+  .card{border:1px solid var(--line);border-radius:18px;background:var(--panel);padding:20px 18px}
+  .catlabel{font-size:11px;letter-spacing:.16em;color:var(--acc);text-transform:uppercase;margin-bottom:8px}
+  .q{font-size:21px;font-weight:800;margin:0 0 6px}
+  .help{color:var(--mut);font-size:13.5px;margin:0 0 16px}
+  .opts{display:flex;flex-direction:column;gap:9px}
+  .opt{display:flex;gap:11px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;
+    padding:11px 13px;background:rgba(255,255,255,.015);cursor:pointer;transition:.12s}
+  .opt:hover{background:var(--panel2);border-color:rgba(255,255,255,.25)}
+  .opt.sel{border-color:var(--acc);background:rgba(0,255,224,.08);box-shadow:0 0 0 1px var(--acc) inset}
+  .opt .box{width:22px;height:22px;border-radius:6px;border:2px solid var(--line);flex:none;margin-top:2px;
+    display:grid;place-items:center;font-size:13px;color:#0a0a14}
+  .opt.sel .box{background:var(--acc);border-color:var(--acc)}
+  .opt .box .num{color:var(--mut);font-size:12px;font-weight:800}
+  .kbdhint{display:flex;gap:7px;flex-wrap:wrap;align-items:center;font-size:11.5px;color:var(--mut);margin:0 0 14px}
+  .kbdhint kbd{font-family:inherit;background:rgba(255,255,255,.06);border:1px solid var(--line);
+    border-bottom-width:2px;border-radius:6px;padding:1px 7px;font-size:11px;color:var(--txt);font-weight:700;min-width:18px;text-align:center}
+  .opt .lab{font-weight:700;font-size:14.5px}
+  .opt .desc{color:var(--mut);font-size:12.5px;margin-top:2px}
+  .free{margin-top:13px}
+  .free label{display:block;font-size:12px;color:var(--mut);margin-bottom:5px}
+  textarea,input[type=text]{width:100%;border-radius:11px;border:1px solid var(--line);background:rgba(0,0,0,.25);
+    color:var(--txt);padding:10px 12px;font-family:inherit;font-size:13.5px}
+  textarea{min-height:70px;resize:vertical}
+  .nav{display:flex;justify-content:space-between;gap:8px;margin-top:18px}
+  .pill{font-size:12px;color:var(--mut);padding:5px 10px;border:1px solid var(--line);border-radius:99px}
+  .hidden{display:none}
+  .sumcat{border:1px solid var(--line);border-radius:14px;background:var(--panel);margin-bottom:12px;overflow:hidden}
+  .sumcat > h4{margin:0;padding:11px 14px;background:rgba(255,255,255,.04);font-size:14px}
+  .sumq{padding:10px 14px;border-top:1px solid var(--line);cursor:pointer}
+  .sumq:hover{background:var(--panel2)}
+  .sumq .qt{font-weight:600;font-size:13.5px}
+  .sumq .at{color:var(--acc);font-size:13px;margin-top:3px}
+  .sumq .na{color:var(--mut);font-size:12.5px;margin-top:3px;font-style:italic}
+  .note{font-size:12px;color:var(--mut);background:rgba(255,247,0,.06);border:1px solid rgba(255,247,0,.25);
+    border-radius:10px;padding:9px 12px;margin:10px 0}
+  .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#11131f;border:1px solid var(--line);
+    color:var(--txt);padding:10px 16px;border-radius:12px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:50}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="logo">ת</div>
+    <div style="flex:1">
+      <h1>שאלון עיצוב — התוכנה (מנהל התרגומים)</h1>
+      <div class="sub">ענה איך תרצה שהתוכנה תיראה ותתנהג — מראה, סרגל צד, דף בית, כרטיסים, צבעים, אנימציות ועוד. הכול נשמר אצלך בדפדפן. בסוף שמור לקובץ או העתק סיכום והעבר אליי.</div>
+    </div>
+  </header>
+
+  <div class="bar"><i id="prog"></i></div>
+  <div class="toolbar">
+    <span class="pill" id="counter">—</span>
+    <button class="ghost" id="btnSummary">סיכום הבחירות</button>
+    <button class="ghost" id="btnSave">💾 שמירה לקובץ</button>
+    <button class="ghost" id="btnLoad">📂 טעינה מקובץ</button>
+    <button class="ghost" id="btnCopy">📋 העתק סיכום טקסט</button>
+    <button class="danger" id="btnReset">איפוס</button>
+    <input type="file" id="fileInput" accept="application/json,.json" class="hidden">
+  </div>
+
+  <div class="layout">
+    <aside class="side" id="side"></aside>
+    <main>
+      <section id="qview" class="card"></section>
+      <section id="sumview" class="hidden"></section>
+    </main>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script id="bank" type="application/json">[{"id": "01_overall", "he": "מראה כללי ואווירה", "questions": [{"q": "באיזו רמת מראה אתה רוצה שהתוכנה תהיה?", "help": "זה קובע כמה השקעה ויזואלית נכניס — מבסיסי ונקי ועד יוקרתי ועשיר באפקטים.", "multi": false, "allowFree": true, "options": [{"label": "נקי ופשוט", "desc": "מראה מינימלי, בלי הרבה אפקטים, מהיר וברור."}, {"label": "מודרני ומאוזן", "desc": "יפה ועדכני אבל לא עמוס — מה שיש עכשיו בערך."}, {"label": "יוקרתי ועשיר (כמו WeMod/Steam)", "desc": "גרדיאנטים, זוהר, אנימציות, עומק — מראה פרימיום."}, {"label": "דרמטי וקולנועי", "desc": "באנרים גדולים, תמונות רקע, תאורה — חוויה ראוותנית."}]}, {"q": "לאיזו תוכנה אתה הכי רוצה שהמראה יתדמה?", "help": "זה ייתן לי כיוון עיצובי ברור לחקות מבחינת תחושה ופריסה.", "multi": true, "allowFree": true, "options": [{"label": "WeMod", "desc": "כהה, צבעוני, כרטיסים עם זוהר, אנימציות חלקות."}, {"label": "Steam", "desc": "באנרים גדולים, גריד כריכות, כהה ומסודר."}, {"label": "Epic Games Launcher", "desc": "נקי, מרווח, תמונות ענק, לבן/כהה."}, {"label": "Discord", "desc": "כהה, סרגלים ברורים, ידידותי וצעיר."}, {"label": "אחר — אכתוב", "desc": "יש לי דוגמה אחרת בראש."}]}, {"q": "איזו ערכת צבעים ראשית אתה הכי אוהב לתוכנה?", "help": "הצבע הראשי קובע את הזהות הוויזואלית של כל התוכנה.", "multi": false, "allowFree": true, "options": [{"label": "צהוב + טורקיז (הנוכחי)", "desc": "הזהות הקיימת — אנרגטי וטכנולוגי."}, {"label": "סגול/נאון מודרני", "desc": "מראה גיימרי עכשווי בסגנון RGB."}, {"label": "כחול מקצועי", "desc": "רגוע, אמין, נקי."}, {"label": "ירוק/אזמרגד", "desc": "רענן, מרגיע לעין."}, {"label": "אבחר גוון מדויק בעצמי", "desc": "רוצה לבחור צבע ראשי משלי."}]}, {"q": "באיזה מצב תאורה התוכנה תפעל?", "help": "כרגע התוכנה כהה תמיד.", "multi": false, "allowFree": false, "options": [{"label": "כהה תמיד (הנוכחי)", "desc": "רקע כהה, נוח לעיניים, מתאים לגיימינג."}, {"label": "בהיר תמיד", "desc": "רקע בהיר ונקי."}, {"label": "שתי ערכות עם כפתור החלפה", "desc": "כהה + בהיר, המשתמש מחליף בלחיצה."}, {"label": "אוטומטי לפי המחשב", "desc": "מתאים את עצמו להגדרת Windows."}]}, {"q": "כמה זוהר ואפקטי תאורה (glow) אתה רוצה?", "help": "זוהר נותן מראה פרימיום אבל יותר מדי יכול להעמיס.", "multi": false, "allowFree": false, "options": [{"label": "בלי זוהר", "desc": "שטוח ונקי לגמרי."}, {"label": "זוהר עדין", "desc": "מעט הילה סביב כפתורים והדגשות."}, {"label": "זוהר בולט", "desc": "הילות צבעוניות, נאון, מראה גיימרי."}, {"label": "זוהר רק בריחוף", "desc": "רגוע במנוחה, נדלק כשעוברים עם העכבר."}]}, {"q": "איזה סגנון משטחים (כרטיסים ופאנלים) אתה מעדיף?", "help": "זה התחושה של ה'חומר' שממנו עשויה התוכנה.", "multi": false, "allowFree": false, "options": [{"label": "זכוכית מטושטשת (glass)", "desc": "שקיפות עם טשטוש רקע — המראה הנוכחי."}, {"label": "כהה אטום", "desc": "משטחים מלאים בלי שקיפות, נקי ויציב."}, {"label": "גרדיאנטים", "desc": "מעברי צבע רכים על הכרטיסים."}, {"label": "מתאר דק (outline)", "desc": "רקע מינימלי עם מסגרות דקות."}]}, {"q": "כמה מידע אתה רוצה לראות על המסך בבת אחת?", "help": "צפיפות גבוהה = יותר תוכן; נמוכה = יותר אוויר ורוגע.", "multi": false, "allowFree": false, "options": [{"label": "מרווח ונשימתי", "desc": "הרבה מקום ריק, פריטים גדולים."}, {"label": "מאוזן", "desc": "כמות בינונית — מה שיש עכשיו."}, {"label": "צפוף ויעיל", "desc": "כמה שיותר מידע במסך אחד."}]}, {"q": "איזו צורת פינות אתה מעדיף לכפתורים וכרטיסים?", "help": "משנה את התחושה בין רך ומודרני לחד ורשמי.", "multi": false, "allowFree": false, "options": [{"label": "מעוגלות מאוד", "desc": "רך, נעים, ידידותי."}, {"label": "מעוגלות מעט (הנוכחי)", "desc": "מודרני ומאוזן."}, {"label": "חדות וישרות", "desc": "מדויק, רשמי, טכני."}]}, {"q": "איזו אווירה כללית התוכנה צריכה לשדר?", "help": "הרושם הראשון והתחושה בכל שימוש.", "multi": false, "allowFree": true, "options": [{"label": "גיימרי ואנרגטי", "desc": "חי, צבעוני, מלא אקשן."}, {"label": "יוקרתי ופרימיום", "desc": "מהוקצע, יקר-מראה, מרשים."}, {"label": "מינימליסטי ושקט", "desc": "נקי, ממוקד, בלי הסחות."}, {"label": "עתידני וטכנולוגי", "desc": "כהה עם זוהר ופרטים מתקדמים."}, {"label": "חמים וידידותי", "desc": "רך ומזמין."}]}, {"q": "עד כמה להשתמש בצבע הייחודי של כל משחק בתוכנה?", "help": "כל משחק יכול לצבוע את הכרטיס/העמוד שלו בצבע משלו (למשל צהוב לסייברפאנק).", "multi": false, "allowFree": false, "options": [{"label": "הרבה — כל משחק צובע את הסביבה שלו", "desc": "זוהר וצבע אישי לכל כותר, מראה עשיר."}, {"label": "מעט — רק הדגשות קטנות", "desc": "צבע המשחק רק בפרטים, השאר אחיד."}, {"label": "בכלל לא — צבע אחיד לכל התוכנה", "desc": "מראה עקבי בלי השתנות בין משחקים."}]}, {"q": "מה הכי חשוב לך במראה של התוכנה?", "help": "עוזר לי לדעת על מה לשים דגש.", "multi": true, "allowFree": true, "options": [{"label": "שיהיה מרשים ויפה", "desc": "דגש על אסתטיקה."}, {"label": "שיהיה מהיר ונוח", "desc": "דגש על שימושיות ומהירות."}, {"label": "שיהיה ברור ופשוט", "desc": "דגש על הבנה מיידית."}, {"label": "שירגיש יוקרתי כמו מוצר בתשלום", "desc": "דגש על תחושת פרימיום."}, {"label": "שאוכל לשנות אותו בעצמי", "desc": "דגש על התאמה אישית."}]}]}, {"id": "02_sidebar", "he": "סרגל צד וניווט", "questions": [{"q": "איפה תרצה את סרגל הניווט הראשי?", "help": "כרגע הוא בצד ימין (מתאים לעברית).", "multi": false, "allowFree": false, "options": [{"label": "בצד ימין (הנוכחי)", "desc": "טבעי לעברית, הקישורים לאורך הצד."}, {"label": "בצד שמאל", "desc": "סרגל בצד השני."}, {"label": "למעלה לרוחב", "desc": "שורת ניווט עליונה, יותר מקום לתוכן."}, {"label": "לא משנה — תבחר את הנוח", "desc": "סמוך עליי שאבחר."}]}, {"q": "איזה רוחב סרגל צד מתאים לך?", "help": "רחב = שמות ברורים; צר = יותר מקום לתוכן.", "multi": false, "allowFree": false, "options": [{"label": "רחב עם שמות מלאים", "desc": "אייקון + טקסט גדול לכל פריט."}, {"label": "בינוני (הנוכחי)", "desc": "אייקון + שם, קומפקטי."}, {"label": "צר — אייקונים בלבד", "desc": "רק סמלים, חוסך מקום."}, {"label": "מתקפל לפי בחירה", "desc": "כפתור שמרחיב/מצמצם את הסרגל."}]}, {"q": "איך הפריט הפעיל בסרגל צריך להיראות?", "help": "הדגשת המסך שבו אתה נמצא כרגע.", "multi": false, "allowFree": false, "options": [{"label": "פס צבעוני זוהר בצד (הנוכחי)", "desc": "פס accent קטן + רקע עדין."}, {"label": "כדור/גלולה צבעונית מלאה", "desc": "הפריט הפעיל בתוך כפתור צבעוני בולט."}, {"label": "רק האייקון נצבע", "desc": "מינימלי — בלי רקע, רק צבע."}, {"label": "זוהר חזק מסביב", "desc": "הילה בולטת סביב הפריט הפעיל."}]}, {"q": "איך תרצה להציג את הפרופיל/ההתחברות בסרגל?", "help": "כרגע יש כרטיס משתמש קטן בתחתית.", "multi": false, "allowFree": false, "options": [{"label": "כרטיס משתמש בתחתית (הנוכחי)", "desc": "אווטאר + שם + יציאה."}, {"label": "אווטאר גדול למעלה", "desc": "תמונת פרופיל בראש הסרגל."}, {"label": "שורה מינימלית", "desc": "רק אייקון קטן, בלי כרטיס."}, {"label": "לא חשוב לי", "desc": "מה שיהיה נוח."}]}, {"q": "מה צריך להיות בתחתית הסרגל?", "help": "החלק התחתון הקבוע של הניווט.", "multi": true, "allowFree": true, "options": [{"label": "כפתור הגדרות", "desc": "גישה מהירה למסך ההגדרות."}, {"label": "כפתור רענון", "desc": "רענון הנתונים מהשרת."}, {"label": "מספר גרסה", "desc": "תצוגת הגרסה הנוכחית."}, {"label": "קיצור לאתר הרשמי", "desc": "לינק חיצוני לאתר."}, {"label": "כפתור עזרה/תמיכה", "desc": "גישה לעזרה."}]}, {"q": "האם תרצה אייקונים צבעוניים לכל פריט ניווט?", "help": "כרגע לכל פריט יש אייקון בצבע משלו.", "multi": false, "allowFree": false, "options": [{"label": "כן, צבע ייחודי לכל פריט (הנוכחי)", "desc": "דף בית צהוב, ספרייה זהב וכו'."}, {"label": "אייקונים בצבע אחיד", "desc": "כל האייקונים באותו צבע, רגוע יותר."}, {"label": "אייקונים מונוכרום שנצבעים בריחוף", "desc": "אפורים, נדלקים בצבע כשעוברים."}]}, {"q": "האם תרצה אנימציה כשעוברים בין מסכים?", "help": "מעבר בין דף הבית לספרייה וכו'.", "multi": false, "allowFree": false, "options": [{"label": "מעבר רך (fade/slide)", "desc": "החלקה עדינה בין המסכים — חלק יותר."}, {"label": "מיידי בלי אנימציה", "desc": "המהיר ביותר, בלי תנועה."}, {"label": "מעבר בולט", "desc": "אנימציה ברורה שמרגישה חיה."}]}, {"q": "איזה לוגו/מיתוג למעלה בסרגל?", "help": "החלק העליון של הסרגל.", "multi": false, "allowFree": true, "options": [{"label": "לוגו + שם (הנוכחי)", "desc": "אווטאר עגול + פרויקט התרגום."}, {"label": "לוגו גדול בלבד", "desc": "רק סמל מרשים בלי טקסט."}, {"label": "שם טקסטואלי מעוצב", "desc": "שם המותג בטיפוגרפיה בולטת."}, {"label": "לוגו חדש — אעצב/אספק", "desc": "רוצה לוגו אחר."}]}]}, {"id": "03_home", "he": "דף הבית (Hero ומבנה)", "questions": [{"q": "איזה סוג Hero (באנר עליון) תרצה בדף הבית?", "help": "זה הדבר הראשון שרואים בכניסה לתוכנה.", "multi": false, "allowFree": true, "options": [{"label": "מותג נקי וממורכז (הנוכחי)", "desc": "כותרת + סלוגן + כפתורים, בלי משחק."}, {"label": "באנר מתחלף של מספר משחקים", "desc": "קרוסלה שמראה כותר אחר כל כמה שניות."}, {"label": "באנר ענק של משחק אחד מומלץ", "desc": "תמונת רקע גדולה + פרטי המשחק."}, {"label": "בלי Hero בכלל", "desc": "לקפוץ ישר לרשימת המשחקים."}]}, {"q": "האם להציג משחק מומלץ בולט בראש דף הבית?", "help": "קודם הסרת אותו — רוצה לוודא מה ההעדפה הסופית.", "multi": false, "allowFree": true, "options": [{"label": "לא — מותג בלבד למעלה", "desc": "בלי כריכת משחק ב-Hero (כמו עכשיו)."}, {"label": "כן — קרוסלה מתחלפת", "desc": "כמה מומלצים מתחלפים אוטומטית."}, {"label": "כן — משחק קבוע אחד", "desc": "כותר מומלץ אחד שאני אבחר."}, {"label": "רק שורת המומלצים מתחת, בלי Hero", "desc": "המשחקים בשורה רגילה, לא בבאנר."}]}, {"q": "האם להציג כרטיסי סטטיסטיקה בדף הבית?", "help": "כרגע: משחקים בקטלוג / מותקנים / בעבודה.", "multi": false, "allowFree": false, "options": [{"label": "כן, בולטים עם אייקונים (הנוכחי)", "desc": "שלושה כרטיסים עם זוהר ומספרים גדולים."}, {"label": "כן, אבל קטנים ועדינים", "desc": "שורת מספרים דקה, פחות מקום."}, {"label": "לא, להסיר אותם", "desc": "דף בית בלי סטטיסטיקה."}]}, {"q": "אילו נתונים הכי מעניינים אותך בסטטיסטיקה?", "help": "אבחר מה להציג בכרטיסים.", "multi": true, "allowFree": true, "options": [{"label": "כמה משחקים בקטלוג", "desc": "סך הכותרים הזמינים."}, {"label": "כמה מותקנים אצלי", "desc": "משחקים שזוהו במחשב."}, {"label": "כמה תרגומים פעילים", "desc": "מודים שמופעלים כרגע."}, {"label": "כמה בעבודה/בתרגום", "desc": "כותרים שנמצאים בתהליך."}, {"label": "עדכונים זמינים", "desc": "כמה מודים יש להם עדכון."}]}, {"q": "איפה למקם את אזור החדשות/עדכונים בדף הבית?", "help": "הכרזות על גרסאות חדשות ומשחקים.", "multi": false, "allowFree": false, "options": [{"label": "בתחתית הדף (הנוכחי)", "desc": "אחרי המשחקים המובילים."}, {"label": "למעלה מתחת ל-Hero", "desc": "מבזק חדשות בולט בראש."}, {"label": "בצד כעמודה", "desc": "פיד חדשות קבוע בצד."}, {"label": "בלי חדשות בדף הבית", "desc": "חדשות רק במקום נפרד."}]}, {"q": "איך תרצה את שורת 'תרגומים מובילים'?", "help": "שורת המשחקים המומלצים בדף הבית.", "multi": false, "allowFree": false, "options": [{"label": "גלילה אופקית (הנוכחי)", "desc": "גוללים הצידה לעוד כותרים."}, {"label": "גריד קבוע", "desc": "כל המומלצים בבת אחת בשורות."}, {"label": "קרוסלה עם חצים", "desc": "מעבר בכפתורים בין הכותרים."}]}, {"q": "מה הכי חשוב שייראה ראשון בדף הבית?", "help": "סדר העדיפויות של מה שתופס את העין.", "multi": true, "allowFree": true, "options": [{"label": "המשחקים", "desc": "כריכות וכותרים — הדגש על התוכן."}, {"label": "מצב התרגומים שלי", "desc": "מה מותקן ומה יש לעדכן."}, {"label": "חדשות ועדכונים", "desc": "מה חדש בפרויקט."}, {"label": "זהות המותג", "desc": "רושם ראשוני יוקרתי."}, {"label": "התקדמות תרגומים חיה", "desc": "מה מיתרגם עכשיו."}]}, {"q": "איזה גובה/נוכחות ל-Hero?", "help": "כמה מקום הבאנר העליון יתפוס.", "multi": false, "allowFree": false, "options": [{"label": "גדול ומרשים", "desc": "תופס חלק ניכר מהמסך הראשון."}, {"label": "בינוני (הנוכחי)", "desc": "נוכח אבל משאיר מקום לתוכן."}, {"label": "נמוך וקומפקטי", "desc": "רצועה דקה, מקסימום מקום למשחקים."}]}, {"q": "איזה רקע ל-Hero אתה אוהב?", "help": "קודם רקע מטושטש נראה לך 'קטוע' — נדייק.", "multi": false, "allowFree": true, "options": [{"label": "גרדיאנט + זוהר עדין (הנוכחי)", "desc": "רקע צבע רך עם הילות, בלי תמונה."}, {"label": "תמונת אווירה כללית מטושטשת", "desc": "רקע תמוני אחיד, לא של משחק ספציפי."}, {"label": "רקע כהה אחיד ונקי", "desc": "בלי גרדיאנט, מינימלי."}, {"label": "רקע מונפש עדין", "desc": "חלקיקים/תנועה איטית ברקע."}]}, {"q": "איזה כפתור פעולה ראשי בדף הבית?", "help": "ה-CTA הבולט ב-Hero.", "multi": false, "allowFree": true, "options": [{"label": "עיין בספרייה (הנוכחי)", "desc": "מעבר לרשימת המשחקים."}, {"label": "המשך מהמקום שעצרת", "desc": "פתיחת המשחק/הפעולה האחרונה."}, {"label": "גלה מה חדש", "desc": "מעבר לעדכונים/חדשות."}, {"label": "בלי כפתור ראשי", "desc": "רק טקסט מותג."}]}, {"q": "באיזה סדר תרצה את חלקי דף הבית?", "help": "הסדר מלמעלה למטה.", "multi": false, "allowFree": true, "options": [{"label": "Hero ⮕ סטטיסטיקה ⮕ מובילים ⮕ חדשות (הנוכחי)", "desc": "הסדר הקיים."}, {"label": "Hero ⮕ מובילים ⮕ חדשות ⮕ סטטיסטיקה", "desc": "משחקים קודם, נתונים בסוף."}, {"label": "Hero ⮕ חדשות ⮕ מובילים", "desc": "דגש על מה חדש."}, {"label": "אכתוב סדר משלי", "desc": "יש לי סדר מועדף."}]}]}, {"id": "04_cards", "he": "כרטיסי משחק", "questions": [{"q": "איזה גודל כרטיסי משחק אתה מעדיף בספרייה?", "help": "גדול = מרשים; קטן = רואים יותר בבת אחת.", "multi": false, "allowFree": false, "options": [{"label": "גדולים ומרשימים", "desc": "כריכות גדולות, פחות בשורה."}, {"label": "בינוניים (הנוכחי)", "desc": "איזון בין גודל לכמות."}, {"label": "קטנים וצפופים", "desc": "הרבה כותרים במסך אחד."}, {"label": "שאוכל לשנות את הגודל", "desc": "מחוון להגדלה/הקטנה."}]}, {"q": "איזה יחס תמונה לכרטיס?", "help": "צורת הכריכה.", "multi": false, "allowFree": false, "options": [{"label": "כריכה אנכית 2:3 (הנוכחי)", "desc": "כמו פוסטר/כריכת משחק קלאסית."}, {"label": "רחב 16:9", "desc": "תמונת באנר אופקית."}, {"label": "ריבוע", "desc": "אחיד ומסודר."}, {"label": "לא משנה", "desc": "מה שייראה הכי טוב לכל משחק."}]}, {"q": "איזה אפקט ריחוף תרצה על כרטיס משחק?", "help": "מה קורה כשעוברים עם העכבר.", "multi": true, "allowFree": true, "options": [{"label": "הרמה קלה (הנוכחי)", "desc": "הכרטיס עולה מעט כלפי מעלה."}, {"label": "זום עדין לתמונה", "desc": "הכריכה מתקרבת מעט."}, {"label": "זוהר בצבע המשחק", "desc": "הילה צבעונית סביב הכרטיס."}, {"label": "הצגת כפתור 'פתח'", "desc": "כפתור פעולה מופיע על הכריכה."}, {"label": "הטיה תלת-ממדית", "desc": "הכרטיס מסתובב קלות (3D)."}]}, {"q": "מה להציג על כרטיס המשחק עצמו?", "help": "המידע שמופיע מעל/מתחת לכריכה.", "multi": true, "allowFree": true, "options": [{"label": "שם המשחק", "desc": "כותרת על הכריכה."}, {"label": "גרסה (v1.0.0-beta)", "desc": "מספר גרסת התרגום."}, {"label": "תגית שלב (אלפא/בטא)", "desc": "מצב בשלות התרגום."}, {"label": "סטטוס התקנה", "desc": "מותקן / במטמון / לא מותקן."}, {"label": "מחיר/נרכש", "desc": "אם זה תרגום בתשלום."}, {"label": "רק הכריכה, בלי טקסט", "desc": "מינימלי — המידע בעמוד הפרטים."}]}, {"q": "איך לסמן שמשחק מתורגם/פעיל על הכרטיס?", "help": "אינדיקציה ויזואלית למצב המוד.", "multi": false, "allowFree": false, "options": [{"label": "נקודה ירוקה זוהרת (הנוכחי)", "desc": "פיפס קטן שמסמן 'פעיל'."}, {"label": "תגית טקסט 'מותקן'", "desc": "באדג' ברור עם מילה."}, {"label": "מסגרת צבעונית סביב הכרטיס", "desc": "גבול ירוק לכרטיס פעיל."}, {"label": "סימן וי/אייקון", "desc": "אייקון קטן בפינה."}]}, {"q": "איפה כותרת המשחק על הכרטיס?", "help": "מיקום שם הכותר.", "multi": false, "allowFree": false, "options": [{"label": "על הכריכה למטה (הנוכחי)", "desc": "שם בתוך הכריכה עם הצללה."}, {"label": "מתחת לכריכה", "desc": "טקסט נפרד מתחת לתמונה."}, {"label": "רק בריחוף", "desc": "השם מופיע כשעוברים עם העכבר."}, {"label": "בלי שם (הכריכה מספיקה)", "desc": "מסתמכים על הזיהוי החזותי."}]}, {"q": "תצוגת גריד או רשימה בספרייה?", "help": "איך לסדר את כל הכותרים.", "multi": false, "allowFree": false, "options": [{"label": "גריד כריכות (הנוכחי)", "desc": "רשת של תמונות."}, {"label": "רשימה עם שורות מפורטות", "desc": "שורה לכל משחק עם פרטים."}, {"label": "שתי האפשרויות עם מתג", "desc": "המשתמש בוחר גריד/רשימה."}]}, {"q": "כמה כרטיסים בשורה (בספרייה)?", "help": "צפיפות הרשת.", "multi": false, "allowFree": false, "options": [{"label": "מעט וגדולים", "desc": "3-4 בשורה, כריכות גדולות."}, {"label": "בינוני (הנוכחי)", "desc": "מתאים את עצמו לרוחב."}, {"label": "הרבה וקטנים", "desc": "6+ בשורה, סקירה מהירה."}]}, {"q": "האם לקבץ את הספרייה לפי מצב?", "help": "כרגע: מותקן-פעיל / מותקן-ללא / לא נמצא.", "multi": false, "allowFree": true, "options": [{"label": "כן, סקשנים לפי מצב (הנוכחי)", "desc": "קבוצות עם כותרת לכל מצב."}, {"label": "הכל יחד עם מסננים למעלה", "desc": "רשת אחת + כפתורי סינון."}, {"label": "לפי א-ב / פופולריות", "desc": "מיון אחר, לא לפי התקנה."}, {"label": "שאוכל לבחור מיון", "desc": "תפריט מיון/סינון."}]}]}, {"id": "05_detail", "he": "עמוד המשחק (כרטיס פרטים)", "questions": [{"q": "איזו פריסה כללית לעמוד המשחק?", "help": "זה העמוד שנפתח כשלוחצים על משחק.", "multi": false, "allowFree": true, "options": [{"label": "כיסוי שמאל, פעולות ימין, הגדרות במגירה תחתונה (הנוכחי)", "desc": "הפריסה שעיצבת לאחרונה."}, {"label": "כיסוי ימין, פרטים מרכז, הגדרות בצד", "desc": "הפריסה הישנה."}, {"label": "באנר רחב למעלה + הכל מתחת", "desc": "תמונת רוחב גדולה בראש העמוד."}, {"label": "טאבים (סקירה / הגדרות / היסטוריה)", "desc": "חלוקה ללשוניות."}]}, {"q": "איפה הכיסוי (תמונת המשחק) בעמוד הפרטים?", "help": "מיקום הכריכה הגדולה.", "multi": false, "allowFree": false, "options": [{"label": "שמאל (הנוכחי)", "desc": "כריכה גדולה בצד שמאל."}, {"label": "ימין", "desc": "כריכה בצד ימין."}, {"label": "באנר רוחב מלא למעלה", "desc": "תמונה גדולה לכל הרוחב."}, {"label": "קטנה בפינה", "desc": "דגש על הטקסט, כריכה משנית."}]}, {"q": "איפה כפתורי הפעולה (הפעל/התקן/הסר)?", "help": "הכפתורים הראשיים של המשחק.", "multi": false, "allowFree": false, "options": [{"label": "מוערמים בצד ימין למעלה (הנוכחי)", "desc": "טור כפתורים בולט."}, {"label": "שורה מתחת לכותרת", "desc": "כפתורים אופקיים מתחת לשם."}, {"label": "רצועה קבועה בתחתית", "desc": "פס פעולות תמיד-גלוי למטה."}, {"label": "כפתור הפעלה ענק + השאר קטנים", "desc": "דגש חזק על 'הפעל'."}]}, {"q": "איזה סגנון לכפתור 'הפעל' הראשי?", "help": "הכפתור הכי חשוב.", "multi": false, "allowFree": false, "options": [{"label": "צהוב מלא בולט (הנוכחי)", "desc": "צבע המותג, בולט מאוד."}, {"label": "ירוק 'play' קלאסי", "desc": "כמו כפתור הפעלה במסכי גיימינג."}, {"label": "בצבע המשחק", "desc": "מתאים את עצמו לכל כותר."}, {"label": "ענק עם אייקון משולש", "desc": "כפתור הפעלה דרמטי."}]}, {"q": "איך להציג את ההגדרות בעמוד המשחק?", "help": "נתיב, שפה, ניקוי מטמון, נתונים.", "multi": false, "allowFree": false, "options": [{"label": "מגירה נפתחת בתחתית (הנוכחי)", "desc": "רוחב מלא, נפתח/נסגר בלחיצה."}, {"label": "סרגל קבוע בצד", "desc": "הגדרות תמיד-גלויות בצד."}, {"label": "בטאב/לשונית נפרדת", "desc": "לחיצה על 'הגדרות' פותחת מסך."}, {"label": "בחלון קופץ", "desc": "מודאל שנפתח מעל העמוד."}]}, {"q": "מגירת ההגדרות — פתוחה או סגורה כברירת מחדל?", "help": "איך העמוד ייפתח.", "multi": false, "allowFree": false, "options": [{"label": "פתוחה (הנוכחי)", "desc": "רואים את כל ההגדרות מיד."}, {"label": "סגורה — מסך נקי", "desc": "רק כיסוי+פעולות, ההגדרות בלחיצה."}, {"label": "זוכרת את הבחירה האחרונה", "desc": "כמו שהשארת בפעם הקודמת."}]}, {"q": "מה הכי חשוב להציג בראש עמוד המשחק?", "help": "המידע הבולט ליד הכותרת.", "multi": true, "allowFree": true, "options": [{"label": "שם המשחק גדול", "desc": "כותרת בולטת."}, {"label": "תיאור/סלוגן", "desc": "על מה התרגום."}, {"label": "תגיות (גרסה/בטא/נרכש/מותקן)", "desc": "מצב במבט מהיר."}, {"label": "שפה נוכחית", "desc": "עברית/אנגלית כעת."}, {"label": "התקדמות (אם בתרגום)", "desc": "אחוז התקדמות חי."}]}, {"q": "איפה למקם את החלפת שפת המשחק?", "help": "אוטומטי / עברית / אנגלית.", "multi": false, "allowFree": false, "options": [{"label": "בתוך מגירת ההגדרות (הנוכחי)", "desc": "יחד עם שאר ההגדרות."}, {"label": "בולט ליד כפתורי הפעולה", "desc": "גישה מהירה ללא פתיחת הגדרות."}, {"label": "כתגית/כפתור בראש העמוד", "desc": "מתג שפה בולט למעלה."}]}, {"q": "כמה תגיות סטטוס להציג?", "help": "באדג'ים של גרסה/בטא/מצב/שפה/נרכש.", "multi": false, "allowFree": false, "options": [{"label": "כל המידע בתגיות (הנוכחי)", "desc": "שורת תגיות מלאה."}, {"label": "רק החשובות", "desc": "גרסה + מצב התקנה בלבד."}, {"label": "מינימלי", "desc": "תגית אחת של מצב."}]}, {"q": "איך להציג מסך התקדמות תרגום (לכותר בעבודה)?", "help": "כשמשחק נמצא בתהליך תרגום חי.", "multi": false, "allowFree": false, "options": [{"label": "פס התקדמות + אחוז (הנוכחי)", "desc": "בר עם מספרים חיים."}, {"label": "טבעת/עיגול התקדמות", "desc": "מד מעגלי מעוצב."}, {"label": "גרף/נתונים מפורטים", "desc": "קצב, נותר, ETA."}, {"label": "מינימלי — רק אחוז", "desc": "מספר בלבד, בלי בר."}]}]}, {"id": "06_buttons", "he": "כפתורים, צבעים והדגשות", "questions": [{"q": "איזה סגנון כפתור ראשי (CTA) אתה הכי אוהב?", "help": "הכפתורים הבולטים כמו 'הפעל' / 'התקן'.", "multi": false, "allowFree": false, "options": [{"label": "מלא בצבע בולט (הנוכחי)", "desc": "רקע צהוב/צבעוני מלא."}, {"label": "גרדיאנט", "desc": "מעבר צבע על הכפתור."}, {"label": "מתאר זוהר (outline glow)", "desc": "שקוף עם מסגרת נאון."}, {"label": "זכוכית עם הילה", "desc": "חצי-שקוף עם זוהר עדין."}]}, {"q": "האם תרצה אפקט 'נצנוץ' (sheen) שעובר על כפתורים?", "help": "קו אור שחולף על הכפתור — מראה פרימיום.", "multi": false, "allowFree": false, "options": [{"label": "כן, בריחוף (הנוכחי)", "desc": "הנצנוץ עובר כשעוברים עם העכבר."}, {"label": "כן, כל הזמן על הכפתור הראשי", "desc": "נצנוץ מחזורי שמושך תשומת לב."}, {"label": "לא, בלי נצנוץ", "desc": "כפתורים סטטיים ונקיים."}]}, {"q": "כמה הצללות ועומק אתה רוצה לכפתורים וכרטיסים?", "help": "צל נותן תחושת ריחוף ועומק.", "multi": false, "allowFree": false, "options": [{"label": "עומק בולט", "desc": "צללים גדולים, הכל מרחף מעל הרקע."}, {"label": "עדין (הנוכחי)", "desc": "צל רך, מאוזן."}, {"label": "שטוח לגמרי", "desc": "בלי צללים, מינימלי."}]}, {"q": "איזה צבע לכפתורי פעולה חיוביים (התקנה/אישור)?", "help": "צבע פעולות 'טובות'.", "multi": false, "allowFree": false, "options": [{"label": "ירוק (הנוכחי)", "desc": "מקובל ל'התקן/אשר'."}, {"label": "צבע המותג (צהוב/טורקיז)", "desc": "אחיד עם הזהות."}, {"label": "צבע המשחק", "desc": "מתאים את עצמו לכל כותר."}]}, {"q": "איזה צבע לפעולות מסוכנות (הסרה/מחיקה)?", "help": "כדי שלא ילחצו עליהן בטעות.", "multi": false, "allowFree": false, "options": [{"label": "אדום עדין (הנוכחי)", "desc": "אדמדם רך, ברור אך לא צועק."}, {"label": "אדום בולט", "desc": "אדום חזק לאזהרה ברורה."}, {"label": "אפור ניטרלי", "desc": "לא בולט, פחות מפחיד."}]}, {"q": "איך תרצה שהכפתורים יגיבו בלחיצה?", "help": "משוב מגע בלחיצה.", "multi": false, "allowFree": false, "options": [{"label": "שקיעה קלה + הבהוב", "desc": "הכפתור 'נלחץ' פנימה."}, {"label": "גל אדווה (ripple)", "desc": "גל שמתפשט מנקודת הלחיצה."}, {"label": "הבהוב צבע מהיר", "desc": "בזק קצר של צבע."}, {"label": "בלי משוב מיוחד", "desc": "פעולה מיידית."}]}, {"q": "כמה צבע להשתמש בממשק בכלל?", "help": "מאזן בין צבעוני לרגוע.", "multi": false, "allowFree": false, "options": [{"label": "צבעוני וחי", "desc": "הרבה accent, גיימרי."}, {"label": "מאוזן (הנוכחי)", "desc": "צבע בהדגשות, רקע כהה."}, {"label": "רגוע ומונוכרום", "desc": "כמעט בלי צבע, נקי מאוד."}]}, {"q": "איך להציג מצב טעינה/עיבוד?", "help": "כשמשהו רץ ברקע (הורדה/התקנה).", "multi": false, "allowFree": false, "options": [{"label": "פס התקדמות עם אחוז (הנוכחי)", "desc": "בר + מספר."}, {"label": "ספינר/טבעת מסתובבת", "desc": "אנימציית טעינה עגולה."}, {"label": "שלד תוכן (skeleton)", "desc": "מסגרות אפורות שמתמלאות."}, {"label": "בר זוהר מונפש", "desc": "פס עם נצנוץ זורם."}]}]}, {"id": "07_typography", "he": "טקסט וטיפוגרפיה", "questions": [{"q": "איזה אופי גופן עברי אתה מעדיף?", "help": "הגופן קובע את כל תחושת הקריאה.", "multi": false, "allowFree": true, "options": [{"label": "מודרני ונקי (Heebo — הנוכחי)", "desc": "חד, קריא, עכשווי."}, {"label": "גיאומטרי/טכנולוגי", "desc": "מראה עתידני יותר."}, {"label": "רך ועגול", "desc": "ידידותי ונעים."}, {"label": "קלאסי/רשמי", "desc": "מהוקצע ורציני."}, {"label": "אבחר גופן ספציפי", "desc": "יש לי גופן בראש."}]}, {"q": "איזה סגנון לכותרות הגדולות?", "help": "כותרות כמו שם המשחק ושם המסך.", "multi": false, "allowFree": false, "options": [{"label": "גרדיאנט צבעוני (הנוכחי)", "desc": "כותרת בצבעי מעבר — בולט."}, {"label": "לבן נקי ובולט", "desc": "פשוט וקריא."}, {"label": "בצבע המותג", "desc": "צהוב/טורקיז אחיד."}, {"label": "עם זוהר/הילה", "desc": "טקסט עם נאון מאחורי."}]}, {"q": "האם להשתמש בגופן 'תצוגה' מיוחד לשמות באנגלית?", "help": "כרגע שמות משחקים באנגלית בגופן Orbitron טכנולוגי.", "multi": false, "allowFree": false, "options": [{"label": "כן, גופן טכנולוגי לשמות (הנוכחי)", "desc": "שמות לועזיים בולטים ומיוחדים."}, {"label": "אותו גופן לכל הטקסט", "desc": "אחידות מלאה."}, {"label": "גופן אחר — אבחר", "desc": "יש לי העדפה."}]}, {"q": "איזה גודל טקסט כללי נוח לך?", "help": "גדול=קריא; קטן=יותר תוכן.", "multi": false, "allowFree": false, "options": [{"label": "גדול וברור", "desc": "קל לעיניים."}, {"label": "בינוני (הנוכחי)", "desc": "סטנדרטי ומאוזן."}, {"label": "קומפקטי", "desc": "יותר מידע במסך."}, {"label": "שאוכל לכוון", "desc": "מחוון גודל טקסט."}]}, {"q": "כמה הדגשות טקסט (מודגש/צבעוני) אתה אוהב?", "help": "כמה מילים בולטות בתוך טקסט.", "multi": false, "allowFree": false, "options": [{"label": "הדגשות נדיבות", "desc": "מספרים ומונחים חשובים צבועים."}, {"label": "מתון (הנוכחי)", "desc": "רק עיקר הדברים."}, {"label": "מינימלי", "desc": "טקסט אחיד ורגוע."}]}, {"q": "איך תרצה להציג מספרים וגרסאות?", "help": "v1.0.0-beta, אחוזים, ספירות.", "multi": false, "allowFree": false, "options": [{"label": "גופן מונוספייס טכני (הנוכחי)", "desc": "מראה 'קוד', מדויק."}, {"label": "רגיל כמו שאר הטקסט", "desc": "אחיד ופשוט."}, {"label": "בולט וצבעוני", "desc": "מספרים גדולים ומודגשים."}]}, {"q": "מה תחושת הריווח בין שורות וטקסט?", "help": "אווריריות הטקסט.", "multi": false, "allowFree": false, "options": [{"label": "מרווח ונשימתי", "desc": "קל לקריאה ממושכת."}, {"label": "רגיל (הנוכחי)", "desc": "מאוזן."}, {"label": "צפוף", "desc": "קומפקטי."}]}]}, {"id": "08_motion", "he": "אנימציות, תנועה ורקע", "questions": [{"q": "כמה אנימציות ותנועה אתה רוצה בתוכנה בכלל?", "help": "תנועה נותנת חיים אבל יותר מדי יכול להסיח/להאט.", "multi": false, "allowFree": false, "options": [{"label": "עשיר ומלא חיים", "desc": "מעברים, זוהר נושם, אלמנטים שמופיעים בתנועה."}, {"label": "מאוזן ועדין (הנוכחי)", "desc": "כניסות רכות, בלי הגזמה."}, {"label": "מינימלי", "desc": "כמעט סטטי, הכי מהיר."}, {"label": "שאוכל לכבות לגמרי", "desc": "מתג שמבטל את כל האנימציות."}]}, {"q": "איך אלמנטים צריכים להופיע כשמסך נטען?", "help": "כניסת הכרטיסים/הסקשנים.", "multi": false, "allowFree": false, "options": [{"label": "עולים בהדרגה אחד אחרי השני (הנוכחי)", "desc": "אפקט מדורג ונעים."}, {"label": "מופיעים יחד ברכות", "desc": "fade אחיד."}, {"label": "מיידי בלי אנימציה", "desc": "הכי מהיר."}]}, {"q": "איזה רקע לתוכנה כולה אתה מעדיף?", "help": "מה שמאחורי כל המסכים.", "multi": false, "allowFree": true, "options": [{"label": "תמונת אווירה כהה קבועה (הנוכחי)", "desc": "פוסטר נייח עם שכבת כהות."}, {"label": "גרדיאנט כהה נקי", "desc": "בלי תמונה, מעבר צבע עדין."}, {"label": "רקע מונפש עדין", "desc": "חלקיקים/אור שזזים לאט."}, {"label": "שחור אחיד", "desc": "מינימלי, מקסימום ניגודיות."}, {"label": "רקע שמשתנה לפי המשחק", "desc": "הרקע נצבע בצבע הכותר הנבחר."}]}, {"q": "כמה הילות זוהר (glow blobs) ברקע המסכים?", "help": "כתמי אור צבעוניים מטושטשים שמוסיפים עומק.", "multi": false, "allowFree": false, "options": [{"label": "כמה הילות עדינות (הנוכחי)", "desc": "עומק רך בפינות."}, {"label": "הרבה וצבעוני", "desc": "אווירה גיימרית עשירה."}, {"label": "בלי הילות", "desc": "רקע נקי לגמרי."}]}, {"q": "האם תרצה אפקט ריחוף (parallax) קל?", "help": "שכבות שזזות מעט עם העכבר — תחושת עומק.", "multi": false, "allowFree": false, "options": [{"label": "כן, עדין", "desc": "תנועת עומק קלה ויוקרתית."}, {"label": "לא", "desc": "שכבות קבועות."}]}, {"q": "מהירות האנימציות — איך אתה אוהב?", "help": "קצב המעברים.", "multi": false, "allowFree": false, "options": [{"label": "מהיר וזריז", "desc": "תגובה כמעט מיידית."}, {"label": "חלק ורגוע (הנוכחי)", "desc": "מעברים נעימים לעין."}, {"label": "איטי ודרמטי", "desc": "תנועות מורגשות."}]}, {"q": "האם תרצה אנימציית פתיחה בהפעלת התוכנה?", "help": "מסך פתיחה/לוגו קצר בהרצה.", "multi": false, "allowFree": false, "options": [{"label": "כן, לוגו מונפש קצר", "desc": "כניסה ממותגת."}, {"label": "לא, ישר לתוכן", "desc": "הכי מהיר להגעה."}]}]}, {"id": "09_screens", "he": "מסכי משנה (הורדות, אזור אישי, הגדרות)", "questions": [{"q": "איך תרצה את מסך 'הורדות ועדכונים'?", "help": "המקום שמרכז עדכוני מודים והתוכנה.", "multi": false, "allowFree": true, "options": [{"label": "רשימת כרטיסים עם פס התקדמות", "desc": "שורה לכל פריט עם מצב הורדה."}, {"label": "דגש על 'עדכן הכול' בכפתור אחד", "desc": "פעולה מרוכזת אחת למעלה."}, {"label": "מינימלי — רק מה שצריך עדכון", "desc": "מציג רק פריטים פעילים."}, {"label": "מפורט עם היסטוריית גרסאות", "desc": "רואים גם מה כבר עודכן."}]}, {"q": "איך תרצה את 'האזור האישי' (פרופיל ורכישות)?", "help": "החשבון, המשחקים שנרכשו, הסטטוס.", "multi": false, "allowFree": true, "options": [{"label": "כרטיס פרופיל גדול + רשימת רכישות", "desc": "אווטאר בולט ומתחת הרכישות."}, {"label": "דשבורד עם נתונים", "desc": "סיכום פעילות וסטטיסטיקה אישית."}, {"label": "פשוט ונקי", "desc": "רק הפרטים החיוניים."}]}, {"q": "איך תרצה את מסך ההגדרות?", "help": "הגדרות התוכנה הכלליות.", "multi": false, "allowFree": false, "options": [{"label": "קטגוריות בכרטיסים (הנוכחי)", "desc": "חלקים מופרדים עם כותרות."}, {"label": "טאבים/לשוניות בצד", "desc": "ניווט בין קבוצות הגדרות."}, {"label": "רשימה ארוכה אחת", "desc": "הכול במקום אחד, גלילה."}, {"label": "חיפוש הגדרה למעלה", "desc": "שדה חיפוש שמקפיץ להגדרה."}]}, {"q": "עד כמה חשוב שכל המסכים ייראו אחיד?", "help": "עקביות בין דף הבית למסכים הפנימיים.", "multi": false, "allowFree": false, "options": [{"label": "אחידות מלאה — אותו סגנון בכל מקום", "desc": "מראה אחד עקבי לכל התוכנה."}, {"label": "דומה אבל עם אופי לכל מסך", "desc": "גמישות מסוימת בין מסכים."}, {"label": "לא חשוב לי", "desc": "מה שיעבוד הכי טוב לכל מסך."}]}, {"q": "מה הרמה של מסכי המשנה מול דף הבית?", "help": "כמה השקעה ויזואלית במסכים הפנימיים.", "multi": false, "allowFree": false, "options": [{"label": "מלוטשים בדיוק כמו דף הבית", "desc": "אותה רמת פרימיום בכל מקום."}, {"label": "מספיק נקיים ופונקציונליים", "desc": "יפים אבל הדגש על שימושיות."}]}, {"q": "איך להציג הודעות סטטוס (הצלחה/שגיאה)?", "help": "כשפעולה מסתיימת או נכשלת.", "multi": false, "allowFree": false, "options": [{"label": "טוסט קטן שנעלם (הנוכחי)", "desc": "הודעה זמנית בפינה/למעלה."}, {"label": "באנר בולט בראש המסך", "desc": "הודעה גדולה וברורה."}, {"label": "גם התראת Windows", "desc": "מתקבל גם מחוץ לתוכנה."}]}, {"q": "מסך פתיחה כשאין עדיין נתונים/לא מחובר — איך?", "help": "מצב ריק או טרום-התחברות.", "multi": false, "allowFree": false, "options": [{"label": "איור/הסבר ידידותי + כפתור", "desc": "מסך ריק מעוצב שמכוון לפעולה."}, {"label": "מינימלי עם טקסט קצר", "desc": "רק הסבר קצר."}, {"label": "לדלג ישר למה שאפשר", "desc": "להציג מה שיש בלי מסך ביניים."}]}]}, {"id": "10_ux", "he": "חוויה, התנהגות והשראה", "questions": [{"q": "מה הכי חשוב לך בחוויית השימוש?", "help": "היעד שלך: הכי חלקה, מהירה ונוחה — נדייק על מה הדגש.", "multi": true, "allowFree": true, "options": [{"label": "מהירות ותגובתיות", "desc": "הכול מיידי, בלי המתנה."}, {"label": "חלקות ואנימציות", "desc": "תחושת זרימה יוקרתית."}, {"label": "נוחות ופשטות", "desc": "קל למצוא ולעשות כל דבר."}, {"label": "מראה מרשים", "desc": "וואו ויזואלי."}, {"label": "יציבות בלי תקלות", "desc": "אף פעם לא נתקע/קורס."}]}, {"q": "האם תרצה מצב מסך-מלא בסגנון 'Big Picture' (לטלוויזיה/שלט)?", "help": "מצב ענק ונקי לניווט מרחוק — מעבר ל-Steam Big Picture.", "multi": false, "allowFree": true, "options": [{"label": "כן, מצב Big Picture מלא", "desc": "תצוגה ענקית לניווט בשלט/מקלדת מהספה."}, {"label": "כן, אבל בעדיפות נמוכה", "desc": "נחמד שיהיה, לא דחוף."}, {"label": "לא צריך", "desc": "מספיק מצב חלון רגיל."}]}, {"q": "עד כמה חשובה שליטת מקלדת מלאה בכל התוכנה?", "help": "לנווט ולהפעיל הכול בלי עכבר (חצים/Tab/Enter/קיצורים).", "multi": false, "allowFree": false, "options": [{"label": "מאוד — ניווט מלא במקלדת", "desc": "כל פעולה נגישה במקשים, כמו קונסולה."}, {"label": "קיצורים לפעולות עיקריות", "desc": "מקשים לדברים הנפוצים."}, {"label": "לא חשוב", "desc": "עכבר מספיק."}]}, {"q": "האם תרצה תמיכה בשלט גיים (controller)?", "help": "ניווט בתוכנה עם ג'ויסטיק.", "multi": false, "allowFree": false, "options": [{"label": "כן", "desc": "לנווט ולבחור עם שלט."}, {"label": "אולי בעתיד", "desc": "לא עכשיו."}, {"label": "לא צריך", "desc": "מקלדת ועכבר מספיקים."}]}, {"q": "מה צריך לקרות כשסוגרים את חלון התוכנה (X)?", "help": "התנהגות הסגירה.", "multi": false, "allowFree": false, "options": [{"label": "לשאול אותי בפעם הראשונה (הנוכחי)", "desc": "בוחרים פעם אחת ונשמר."}, {"label": "למזער למגש המערכת", "desc": "נשאר רץ ברקע."}, {"label": "לצאת לגמרי", "desc": "סגירה מלאה."}]}, {"q": "איזו רמת התראות אתה רוצה?", "help": "עדכונים, סיום התקנה, חדשות.", "multi": true, "allowFree": true, "options": [{"label": "התראת Windows על עדכון תרגום", "desc": "מתי שיש גרסה חדשה למשחק שלי."}, {"label": "התראה על סיום התקנה/הורדה", "desc": "כשפעולה ארוכה מסתיימת."}, {"label": "התראה על משחק/חדשות חדשים", "desc": "כשמשהו חדש בפרויקט."}, {"label": "מינימום התראות", "desc": "רק הכרחי."}]}, {"q": "מה עדיף כשיש התנגשות בין מראה למהירות?", "help": "לפעמים אפקט יפה עולה קצת בביצועים.", "multi": false, "allowFree": false, "options": [{"label": "תמיד מהירות", "desc": "לוותר על אפקט אם הוא מאט."}, {"label": "איזון חכם", "desc": "אפקטים יפים כל עוד נשאר חלק."}, {"label": "תמיד מראה מרשים", "desc": "המחשב שלי חזק, תן הכול."}]}, {"q": "כמה התאמה אישית של המראה לתת למשתמש הסופי?", "help": "האם משתמשים אחרים יוכלו לשנות ערכת מראה.", "multi": false, "allowFree": false, "options": [{"label": "מראה אחד מושלם, בלי הגדרות", "desc": "אני מעצב, המשתמש נהנה."}, {"label": "כמה ערכות מוכנות לבחירה", "desc": "בהיר/כהה/צבעים."}, {"label": "שליטה רחבה למשתמש", "desc": "צבעים, צפיפות, אנימציות."}]}, {"q": "מה הכי הפריע לך במראה הקודם של התוכנה?", "help": "כדי שנוודא שזה נפתר.", "multi": true, "allowFree": true, "options": [{"label": "נראתה פשוטה/בסיסית מדי", "desc": "חסר תחושת פרימיום."}, {"label": "הרגישה ריקה במקומות", "desc": "יותר מדי מקום פנוי."}, {"label": "דברים נראו קטועים/לא מסודרים", "desc": "פריסה לא מדויקת."}, {"label": "חסרו אנימציות/חיים", "desc": "סטטי מדי."}, {"label": "לא משהו מסוים", "desc": "סתם רציתי שדרוג כללי."}]}, {"q": "כמה חופש לתת לי לעצב לבד מול לשאול אותך?", "help": "קצב העבודה בינינו על העיצוב.", "multi": false, "allowFree": true, "options": [{"label": "תעצב לפי השאלון ותראה לי תוצאה", "desc": "אני סומך — תביא גרסה מלאה."}, {"label": "תתייעץ איתי בכל החלטה גדולה", "desc": "אישור לפני שינוי משמעותי."}, {"label": "שילוב — החלטות קטנות לבד, גדולות בהתייעצות", "desc": "איזון."}]}]}, {"id": "11_extra", "he": "חלון, פרטים והשראה אחרונה", "questions": [{"q": "איך תרצה את שורת הכותרת של החלון (למעלה)?", "help": "הפס עם כפתורי מזעור/סגירה.", "multi": false, "allowFree": false, "options": [{"label": "מותאמת אישית בסגנון התוכנה", "desc": "פס עליון מעוצב שמשתלב במראה."}, {"label": "של Windows רגיל", "desc": "פס מערכת סטנדרטי."}, {"label": "דקה ומינימלית", "desc": "כמעט בלי כותרת, מקסימום תוכן."}]}, {"q": "האם תרצה שדה חיפוש בספרייה?", "help": "לחפש משחק לפי שם.", "multi": false, "allowFree": false, "options": [{"label": "כן, בולט למעלה", "desc": "חיפוש מהיר תמיד-גלוי."}, {"label": "כן, נפתח בקיצור מקלדת", "desc": "מופיע בלחיצת מקש (כמו Ctrl+F)."}, {"label": "לא צריך", "desc": "מעט משחקים, לא נדרש."}]}, {"q": "האם תרצה משוב קולי עדין (צלילים) בתוכנה?", "help": "צליל קליק/הצלחה/שגיאה.", "multi": false, "allowFree": false, "options": [{"label": "כן, צלילים עדינים", "desc": "קליקים והתראות שקטים."}, {"label": "רק להתראות חשובות", "desc": "צליל רק בסיום/שגיאה."}, {"label": "בלי צלילים", "desc": "שקט מוחלט."}, {"label": "עם מתג להפעלה/כיבוי", "desc": "המשתמש מחליט."}]}, {"q": "איך להציג מחיר/רכישה של תרגום בתשלום?", "help": "כותרים בתשלום (כמו ₪53).", "multi": false, "allowFree": false, "options": [{"label": "כפתור 'רכישה — 53 ₪' בולט", "desc": "ברור וישיר."}, {"label": "תגית מחיר על הכרטיס + כפתור בעמוד", "desc": "מחיר נראה כבר ברשימה."}, {"label": "דגש על 'נרכש' אחרי קנייה", "desc": "באדג' ירוק ברור."}, {"label": "מינימלי ועדין", "desc": "לא להבליט מסחר."}]}, {"q": "איזו צורת תגיות (badges) אתה מעדיף?", "help": "באדג'ים של גרסה/בטא/מצב.", "multi": false, "allowFree": false, "options": [{"label": "גלולות מעוגלות (הנוכחי)", "desc": "pill רך."}, {"label": "מלבנים עם פינות קלות", "desc": "חד ומסודר."}, {"label": "תגיות עם אייקון", "desc": "סמל קטן + טקסט."}]}, {"q": "איזה סגנון פס גלילה (scrollbar)?", "help": "הפס בצד בעת גלילה.", "multi": false, "allowFree": false, "options": [{"label": "דק ומעוצב (הנוכחי)", "desc": "מתמזג עם המראה."}, {"label": "מוסתר עד שגוללים", "desc": "נקי, מופיע בעת צורך."}, {"label": "של המערכת", "desc": "רגיל."}]}, {"q": "כמה רמזים/הסברים (tooltips) להציג?", "help": "טקסט עזרה כשעוברים על כפתור.", "multi": false, "allowFree": false, "options": [{"label": "נדיב — הסבר לכל דבר", "desc": "ידידותי למשתמש חדש."}, {"label": "רק איפה שצריך (הנוכחי)", "desc": "לפעולות לא ברורות."}, {"label": "מינימלי", "desc": "ממשק שמדבר בעד עצמו."}]}, {"q": "האם תרצה סיור היכרות (onboarding) בהפעלה ראשונה?", "help": "הדרכה קצרה למשתמש חדש.", "multi": false, "allowFree": false, "options": [{"label": "כן, סיור קצר ומונפש", "desc": "מראה את עיקר הפיצ'רים."}, {"label": "רק טיפים נקודתיים", "desc": "בועות קטנות לפי הצורך."}, {"label": "לא צריך", "desc": "התוכנה מובנת מאליה."}]}, {"q": "כמה דיאלוגי אישור (האם אתה בטוח?) להציג?", "help": "לפני פעולות כמו הסרה.", "multi": false, "allowFree": false, "options": [{"label": "רק לפעולות מסוכנות (הנוכחי)", "desc": "מחיקה/הסרה בלבד."}, {"label": "מעט מאוד — לסמוך על המשתמש", "desc": "זרימה מהירה."}, {"label": "עם אפשרות לבטל (undo) במקום שאלה", "desc": "פעולה מיידית + 'בטל' לכמה שניות."}]}, {"q": "איך להציג יומן שינויים (changelog) של גרסה?", "help": "מה חדש בעדכון.", "multi": false, "allowFree": false, "options": [{"label": "חלון יפה עם נקודות", "desc": "רשימה מעוצבת של חידושים."}, {"label": "קישור 'מה חדש' עדין", "desc": "מי שרוצה לוחץ."}, {"label": "לא להציג", "desc": "עדכון שקט."}]}, {"q": "כמה חשוב מצב נגישות (ניגודיות/טקסט גדול)?", "help": "נוחות לאנשים עם קושי ראייה.", "multi": false, "allowFree": false, "options": [{"label": "חשוב — לתכנן עם נגישות", "desc": "ניגודיות טובה, אפשרות הגדלה."}, {"label": "בסיסי מספיק", "desc": "קריא, בלי מצב מיוחד."}, {"label": "לא רלוונטי לי", "desc": "שימוש אישי."}]}, {"q": "מאיפה לקחת תמונות כריכה/רקע למשחקים?", "help": "איכות הוויזואל תלויה במקור.", "multi": false, "allowFree": true, "options": [{"label": "כריכות רשמיות באיכות גבוהה", "desc": "מהאתר/מאגר שלי."}, {"label": "גם תמונות אווירה/רקע למשחק", "desc": "באנרים רחבים לעמוד הפרטים."}, {"label": "מה שיש, לא קריטי", "desc": "כריכה בסיסית מספיקה."}]}, {"q": "איזה אווטאר/לוגו מותג אתה רוצה?", "help": "הסמל שמייצג את התוכנה.", "multi": false, "allowFree": true, "options": [{"label": "הנוכחי (עיגול נאון עם תמונה)", "desc": "להשאיר כמו שהוא."}, {"label": "לוגו חדש ומעוצב", "desc": "רוצה משהו אחר — אעצב/אספק."}, {"label": "רק אות/מונוגרמה", "desc": "מינימלי ונקי."}]}, {"q": "כמה 'אישיות' ושפה משוחררת בטקסטים?", "help": "הטון של ההודעות בתוכנה.", "multi": false, "allowFree": false, "options": [{"label": "מקצועי ונקי", "desc": "ענייני ורשמי."}, {"label": "ידידותי עם קריצה", "desc": "חם, קצת הומור."}, {"label": "גיימרי ואנרגטי", "desc": "סלנג קליל ומגניב."}]}, {"q": "מה הדבר ה-1 שהכי ישכנע אותך ש'זו תוכנה ברמה גבוהה'?", "help": "הדגש שהכי חשוב לך לתחושת איכות.", "multi": true, "allowFree": true, "options": [{"label": "חלקות מושלמת בלי קפיצות", "desc": "60fps בכל אנימציה."}, {"label": "כל פרט קטן מלוטש", "desc": "מרווחים, יישור, אייקונים מדויקים."}, {"label": "מהירות פתיחה וטעינה", "desc": "נפתח ומגיב מיד."}, {"label": "עקביות מוחלטת", "desc": "הכל מרגיש מאותו עולם."}, {"label": "אפקטים יוקרתיים", "desc": "זוהר, עומק, מעברים."}]}, {"q": "יש דוגמה/השראה ספציפית שתרצה שאחקה?", "help": "תוכנה/אתר/צילום מסך שאהבת — תאר אותו.", "multi": false, "allowFree": true, "options": [{"label": "כן — אכתוב בתשובה החופשית", "desc": "יש לי דוגמה מדויקת בראש."}, {"label": "לא, סמוך עליך", "desc": "תביא את הפרשנות הכי טובה לפי השאלון."}]}]}]</script>
+<script>
+(function(){
+  "use strict";
+  var BANK = JSON.parse(document.getElementById('bank').textContent);
+  var LS = 'launcherDesignQuestionnaire.v1';
+
+  var FLAT = [];
+  BANK.forEach(function(cat){
+    cat.questions.forEach(function(q, li){
+      FLAT.push({ key: cat.id + '#' + li, cat: cat.he, catId: cat.id, q: q });
+    });
+  });
+  var TOTAL = FLAT.length;
+
+  var state = load() || { answers: {}, cur: 0 };
+  if (typeof state.cur !== 'number' || state.cur < 0 || state.cur >= TOTAL) state.cur = 0;
+  if (!state.answers) state.answers = {};
+  var mode = 'q';
+
+  function load(){ try { var r = localStorage.getItem(LS); return r ? JSON.parse(r) : null; } catch(e){ return null; } }
+  function save(){ try { localStorage.setItem(LS, JSON.stringify(state)); } catch(e){} }
+  function ans(key){ return state.answers[key] || { selected: [], free: '' }; }
+  function isDone(key){ var a = state.answers[key]; return !!a && ((a.selected && a.selected.length) || (a.free && a.free.trim())); }
+  function answeredCount(){ var n=0; FLAT.forEach(function(it){ if(isDone(it.key)) n++; }); return n; }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]);}); }
+
+  function toast(msg){
+    var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+    clearTimeout(t._t); t._t=setTimeout(function(){ t.classList.remove('show'); }, 1900);
+  }
+
+  function setSelected(key, label, multi){
+    var a = ans(key); var sel = a.selected.slice();
+    var i = sel.indexOf(label);
+    if (multi){ if (i>=0) sel.splice(i,1); else sel.push(label); }
+    else { sel = (i>=0 && sel.length===1) ? [] : [label]; }
+    state.answers[key] = { selected: sel, free: a.free || '' };
+    save();
+  }
+  function setFree(key, val){ var a = ans(key); state.answers[key] = { selected: a.selected||[], free: val }; save(); }
+
+  function renderProgress(){
+    var done = answeredCount();
+    document.getElementById('prog').style.width = (TOTAL? (done/TOTAL*100):0) + '%';
+    document.getElementById('counter').textContent = 'נענו ' + done + ' מתוך ' + TOTAL;
+  }
+
+  function renderSide(){
+    var side = document.getElementById('side'); var h = '';
+    BANK.forEach(function(cat){
+      h += '<h3>' + esc(cat.he) + '</h3>';
+      cat.questions.forEach(function(q, li){
+        var key = cat.id + '#' + li;
+        var gi = FLAT.findIndex(function(it){ return it.key===key; });
+        var cls = 'qrow' + (isDone(key)?' done':'') + ((mode==='q'&&gi===state.cur)?' active':'');
+        h += '<button class="'+cls+'" data-gi="'+gi+'"><span class="dot"></span><span>'+esc(q.q)+'</span></button>';
+      });
+    });
+    side.innerHTML = h;
+    Array.prototype.forEach.call(side.querySelectorAll('.qrow'), function(b){
+      b.addEventListener('click', function(){ goto(parseInt(b.getAttribute('data-gi'),10)); });
+    });
+  }
+
+  function renderQ(){
+    mode='q';
+    document.getElementById('sumview').classList.add('hidden');
+    var view = document.getElementById('qview'); view.classList.remove('hidden');
+    var it = FLAT[state.cur]; var q = it.q; var a = ans(it.key);
+    var h = '';
+    h += '<div class="catlabel">'+esc(it.cat)+' · שאלה '+(state.cur+1)+' מתוך '+TOTAL+'</div>';
+    h += '<p class="q">'+esc(q.q)+'</p>';
+    if (q.help) h += '<p class="help">'+esc(q.help)+'</p>';
+    h += '<div class="kbdhint">⌨ <kbd>1</kbd>–<kbd>'+Math.min(9,q.options.length)+'</kbd> בחירה · <kbd>←</kbd> הבא · <kbd>→</kbd> הקודם · <kbd>רווח</kbd> / <kbd>Enter</kbd> המשך</div>';
+    h += '<div class="opts">';
+    q.options.forEach(function(o, oi){
+      var on = a.selected.indexOf(o.label) >= 0;
+      h += '<div class="opt'+(on?' sel':'')+'" data-label="'+esc(o.label)+'">'
+         +   '<div class="box">'+(on?(q.multi?'✓':'●'):'<span class="num">'+(oi+1)+'</span>')+'</div>'
+         +   '<div><div class="lab">'+esc(o.label)+'</div>'
+         +   (o.desc?'<div class="desc">'+esc(o.desc)+'</div>':'')+'</div>'
+         + '</div>';
+    });
+    h += '</div>';
+    h += '<div class="'+(q.multi?'note':'note hidden')+'">אפשר לבחור כמה תשובות בשאלה הזו.</div>';
+    if (q.allowFree){
+      h += '<div class="free"><label>תשובה חופשית משלך (לא חובה):</label>'
+         + '<textarea id="freeBox" placeholder="הוסף פירוט או רעיון משלך…">'+esc(a.free||'')+'</textarea></div>';
+    }
+    h += '<div class="nav">'
+       + '<button class="ghost" id="prev">‹ הקודם</button>'
+       + '<div style="display:flex;gap:8px">'
+       +   '<button class="ghost" id="skip">דלג</button>'
+       +   '<button class="primary" id="next">'+(state.cur===TOTAL-1?'סיום ›':'הבא ›')+'</button>'
+       + '</div></div>';
+    view.innerHTML = h;
+
+    Array.prototype.forEach.call(view.querySelectorAll('.opt'), function(el){
+      el.addEventListener('click', function(){ setSelected(it.key, el.getAttribute('data-label'), q.multi); renderQ(); renderSide(); renderProgress(); });
+    });
+    var fb = document.getElementById('freeBox');
+    if (fb) fb.addEventListener('input', function(){ setFree(it.key, fb.value); renderProgress(); renderSide(); });
+    document.getElementById('prev').disabled = state.cur===0;
+    document.getElementById('prev').addEventListener('click', function(){ goto(state.cur-1); });
+    document.getElementById('skip').addEventListener('click', function(){ goto(state.cur+1); });
+    document.getElementById('next').addEventListener('click', function(){
+      if (state.cur===TOTAL-1) renderSummary(); else goto(state.cur+1);
+    });
+    renderSide();
+  }
+
+  function goto(i){
+    if (i<0) i=0; if (i>=TOTAL){ renderSummary(); return; }
+    state.cur=i; save(); renderQ();
+  }
+
+  function renderSummary(){
+    mode='summary';
+    document.getElementById('qview').classList.add('hidden');
+    var v = document.getElementById('sumview'); v.classList.remove('hidden');
+    var done = answeredCount();
+    var h = '<div class="card"><div class="catlabel">סיכום</div>'
+          + '<p class="q">הבחירות שלך</p>'
+          + '<p class="help">נענו '+done+' מתוך '+TOTAL+' שאלות. לחץ על כל שורה כדי לחזור ולערוך. אפשר לשמור לקובץ או להעתיק סיכום טקסט ולהעביר אליי.</p></div>';
+    BANK.forEach(function(cat){
+      h += '<div class="sumcat"><h4>'+esc(cat.he)+'</h4>';
+      cat.questions.forEach(function(q, li){
+        var key = cat.id+'#'+li; var gi = FLAT.findIndex(function(it){return it.key===key;});
+        var a = state.answers[key];
+        var aTxt = '';
+        if (a){ var parts=(a.selected||[]).slice(); if(a.free&&a.free.trim()) parts.push('✎ '+a.free.trim()); aTxt=parts.join('  ·  '); }
+        h += '<div class="sumq" data-gi="'+gi+'"><div class="qt">'+esc(q.q)+'</div>'
+           + (aTxt? '<div class="at">'+esc(aTxt)+'</div>' : '<div class="na">לא נענתה — לחץ לעריכה</div>')
+           + '</div>';
+      });
+      h += '</div>';
+    });
+    v.innerHTML = h;
+    Array.prototype.forEach.call(v.querySelectorAll('.sumq'), function(el){
+      el.addEventListener('click', function(){ goto(parseInt(el.getAttribute('data-gi'),10)); });
+    });
+    renderSide();
+  }
+
+  function buildText(){
+    var lines = ['# שאלון עיצוב התוכנה — סיכום בחירות', '# נענו '+answeredCount()+' מתוך '+TOTAL, ''];
+    BANK.forEach(function(cat){
+      var any = cat.questions.some(function(q,li){ return isDone(cat.id+'#'+li); });
+      if(!any) return;
+      lines.push('## '+cat.he);
+      cat.questions.forEach(function(q, li){
+        var key=cat.id+'#'+li; if(!isDone(key)) return;
+        var a=state.answers[key]; var parts=(a.selected||[]).slice();
+        if(a.free&&a.free.trim()) parts.push('('+a.free.trim()+')');
+        lines.push('- '+q.q+' → '+parts.join(' | '));
+      });
+      lines.push('');
+    });
+    return lines.join('\n');
+  }
+
+  document.getElementById('btnSummary').addEventListener('click', renderSummary);
+  document.getElementById('btnSave').addEventListener('click', function(){
+    var blob = new Blob([JSON.stringify({ meta:{ tool:'launcher-design', total:TOTAL, answered:answeredCount() }, answers: state.answers }, null, 2)], {type:'application/json'});
+    var a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download='עיצוב-התוכנה-בחירות.json'; document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+    toast('נשמר לקובץ');
+  });
+  document.getElementById('btnLoad').addEventListener('click', function(){ document.getElementById('fileInput').click(); });
+  document.getElementById('fileInput').addEventListener('change', function(e){
+    var f=e.target.files[0]; if(!f) return; var r=new FileReader();
+    r.onload=function(){ try{ var d=JSON.parse(r.result); state.answers = d.answers || d || {}; save(); toast('נטען מהקובץ');
+      if(mode==='summary') renderSummary(); else renderQ(); renderProgress(); renderSide();
+    }catch(err){ toast('קובץ לא תקין'); } };
+    r.readAsText(f); e.target.value='';
+  });
+  document.getElementById('btnCopy').addEventListener('click', function(){
+    var txt=buildText();
+    function done(){ toast('הסיכום הועתק — אפשר להדביק'); }
+    if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done, fallback); } else fallback();
+    function fallback(){ var ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');}catch(e){} ta.remove(); done(); }
+  });
+  document.getElementById('btnReset').addEventListener('click', function(){
+    if(!confirm('לאפס את כל התשובות? הפעולה לא הפיכה.')) return;
+    state={answers:{},cur:0}; save(); renderQ(); renderProgress(); renderSide(); toast('אופס');
+  });
+
+  // ── Keyboard control — fast navigation like a console UI ──────────
+  function advance(){ if(state.cur===TOTAL-1) renderSummary(); else goto(state.cur+1); }
+  document.addEventListener('keydown', function(e){
+    if (e.ctrlKey || e.altKey || e.metaKey) return;
+    var ae = document.activeElement;
+    var typing = ae && (ae.tagName==='TEXTAREA' || ae.tagName==='INPUT');
+    if (typing){ if(e.key==='Escape'){ ae.blur(); e.preventDefault(); } return; }
+    if (mode==='summary') return;
+    // let a focused button handle its own Space/Enter (avoid double-advance)
+    var btnFocus = ae && ae.tagName==='BUTTON' && (e.key==='Enter'||e.key===' '||e.key==='Spacebar');
+    var it = FLAT[state.cur]; if(!it) return; var q = it.q;
+    if (e.key>='1' && e.key<='9'){
+      var n = parseInt(e.key,10)-1;
+      if (n < q.options.length){ e.preventDefault(); if(ae&&ae.blur)ae.blur(); setSelected(it.key, q.options[n].label, q.multi); renderQ(); renderSide(); renderProgress(); }
+      return;
+    }
+    switch(e.key){
+      case 'ArrowLeft': case 'ArrowDown': case 'PageDown':
+        e.preventDefault(); advance(); break;
+      case ' ': case 'Spacebar': case 'Enter':
+        if(btnFocus) return; e.preventDefault(); advance(); break;
+      case 'ArrowRight': case 'ArrowUp': case 'PageUp': case 'Backspace':
+        e.preventDefault(); if(state.cur>0) goto(state.cur-1); break;
+    }
+  });
+
+  renderProgress(); renderQ();
+})();
+</script>
+</body>
+</html>

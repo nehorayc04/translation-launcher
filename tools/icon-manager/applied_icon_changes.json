@@ -1,0 +1,970 @@
+{
+ "generatedAt": "merged",
+ "changes": [
+  {
+   "id": "tab-paths",
+   "group": "existing",
+   "name": "טאב הגדרות · נתיבים",
+   "location": "views/SettingsView.tsx → IconPaths",
+   "action": "replace",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "api",
+   "unicode": "e08e"
+  },
+  {
+   "id": "nav-plugins",
+   "group": "existing",
+   "name": "תוספים",
+   "location": "components/Sidebar.tsx → PluginsIcon",
+   "action": "replace",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "apps-add",
+   "unicode": "e099"
+  },
+  {
+   "id": "nav-downloads",
+   "group": "existing",
+   "name": "הורדות ועדכונים",
+   "location": "components/NavIcons.tsx → DownloadsIcon",
+   "action": "replace",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "download",
+   "unicode": "e5a3"
+  },
+  {
+   "id": "nav-software",
+   "group": "existing",
+   "name": "תוכנות",
+   "location": "components/Sidebar.tsx → AppsIcon",
+   "action": "replace",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "tool-box",
+   "unicode": "eff1"
+  },
+  {
+   "id": "opt-btn-purchase",
+   "group": "optional",
+   "name": "רכישה",
+   "location": "views/GameDetailPanel.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "credit-card",
+   "unicode": "e4c1"
+  },
+  {
+   "id": "opt-btn-remove-translation",
+   "group": "optional",
+   "name": "הסרת התרגום",
+   "location": "views/GameDetailPanel.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "minus-circle",
+   "unicode": "ea64"
+  },
+  {
+   "id": "opt-btn-disable-translation",
+   "group": "optional",
+   "name": "השבתת תרגום",
+   "location": "views/GameDetailPanel.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "minus-hexagon",
+   "unicode": "ea65"
+  },
+  {
+   "id": "opt-btn-already-paid-refresh",
+   "group": "optional",
+   "name": "כבר שילמתי - רענן",
+   "location": "views/GameDetailPanel.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "money-bill-transfer",
+   "unicode": "ea83"
+  },
+  {
+   "id": "opt-btn-clear-cache",
+   "group": "optional",
+   "name": "ניקוי מטמון התרגום",
+   "location": "views/GameDetailPanel.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "magic-wand",
+   "unicode": "e9dc"
+  },
+  {
+   "id": "opt-btn-sync-now",
+   "group": "optional",
+   "name": "סנכרן עכשיו",
+   "location": "views/PersonalAreaView.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "operation",
+   "unicode": "eb2b"
+  },
+  {
+   "id": "opt-hdr-mod-updates",
+   "group": "optional",
+   "name": "עדכוני תרגום למשחקים",
+   "location": "views/DownloadsView.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "rotate-right",
+   "unicode": "ed2a"
+  },
+  {
+   "id": "opt-hdr-system-updates",
+   "group": "optional",
+   "name": "עדכוני מערכת",
+   "location": "views/DownloadsView.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "rotate-left",
+   "unicode": "ed28"
+  },
+  {
+   "id": "opt-hdr-translation-updates",
+   "group": "optional",
+   "name": "עדכוני תרגומים",
+   "location": "views/DownloadsView.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "rotate-right",
+   "unicode": "ed2a"
+  },
+  {
+   "id": "opt-btn-check-again",
+   "group": "optional",
+   "name": "בדוק שוב",
+   "location": "views/DownloadsView.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "rotate-reverse",
+   "unicode": "ed29"
+  },
+  {
+   "id": "opt-btn-clear-path",
+   "group": "optional",
+   "name": "נקה",
+   "location": "views/GameDetailPanel.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "trash-xmark",
+   "unicode": "f037"
+  },
+  {
+   "id": "opt-btn-back-home",
+   "group": "optional",
+   "name": "חזרה לדף הבית",
+   "location": "views/PersonalAreaView.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "turn-right",
+   "unicode": "f076"
+  },
+  {
+   "id": "opt-btn-signout",
+   "group": "optional",
+   "name": "התנתק",
+   "location": "views/PersonalAreaView.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "arrow-right-to-bracket",
+   "unicode": "e0cd"
+  },
+  {
+   "id": "opt-badge-installed",
+   "group": "optional",
+   "name": "מותקן",
+   "location": "views/DownloadsView.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "progress-complete",
+   "unicode": "ec81"
+  },
+  {
+   "id": "opt-empty-no-updates",
+   "group": "optional",
+   "name": "אין עדכונים זמינים כרגע.",
+   "location": "views/DownloadsView.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "progress-complete",
+   "unicode": "ec81"
+  },
+  {
+   "id": "opt-btn-update-mod",
+   "group": "optional",
+   "name": "עדכן",
+   "location": "views/DownloadsView.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "progress-download",
+   "unicode": "ec82"
+  },
+  {
+   "id": "opt-btn-logout-confirm",
+   "group": "optional",
+   "name": "כן, התנתק",
+   "location": "components/Sidebar.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "user-minus",
+   "unicode": "f0c4"
+  },
+  {
+   "id": "opt-btn-controller-remap",
+   "group": "optional",
+   "name": "שנה",
+   "location": "components/ControllerSettings.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "paint-brush",
+   "unicode": "eb41"
+  },
+  {
+   "id": "opt-btn-scan-drives",
+   "group": "optional",
+   "name": "סריקת כוננים מלאה",
+   "location": "views/LibraryView.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "audit",
+   "unicode": "e11c"
+  },
+  {
+   "id": "opt-btn-scan-software",
+   "group": "optional",
+   "name": "סריקת תוכנות מלאה",
+   "location": "views/AppsView.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "audit",
+   "unicode": "e11c"
+  },
+  {
+   "id": "opt-btn-show-onboarding",
+   "group": "optional",
+   "name": "הצג מדריך התחלה",
+   "location": "views/SettingsView.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "guide-alt",
+   "unicode": "e7d2"
+  },
+  {
+   "id": "opt-btn-open-path",
+   "group": "optional",
+   "name": "פתח",
+   "location": "views/SettingsView.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "folder-open",
+   "unicode": "e728"
+  },
+  {
+   "id": "opt-hdr-my-votes",
+   "group": "optional",
+   "name": "ההצבעות שלי",
+   "location": "views/PersonalAreaView.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "vote-yea",
+   "unicode": "f11e"
+  },
+  {
+   "id": "opt-hdr-settings",
+   "group": "optional",
+   "name": "הגדרות",
+   "location": "views/GameDetailPanel.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "settings",
+   "unicode": "eda3"
+  },
+  {
+   "id": "opt-hdr-about",
+   "group": "optional",
+   "name": "על האפליקציה",
+   "location": "views/SettingsView.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "code-simple",
+   "unicode": "e442"
+  },
+  {
+   "id": "opt-hdr-paths",
+   "group": "optional",
+   "name": "נתיבים מותאמים אישית",
+   "location": "views/SettingsView.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "api",
+   "unicode": "e08e"
+  },
+  {
+   "id": "opt-hdr-privacy",
+   "group": "optional",
+   "name": "פרטיות ודיווחים",
+   "location": "views/SettingsView.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "fingerprint-verified",
+   "unicode": "e6d9"
+  },
+  {
+   "id": "opt-section-backed-saves",
+   "group": "optional",
+   "name": "שמירות שמגובות",
+   "location": "components/PluginsSettings.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "floppy-disks",
+   "unicode": "e707"
+  },
+  {
+   "id": "opt-btn-browse-folder",
+   "group": "optional",
+   "name": "עיון…",
+   "location": "components/PluginsSettings.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "folder",
+   "unicode": "e717"
+  },
+  {
+   "id": "opt-section-backup-history",
+   "group": "optional",
+   "name": "היסטוריית גיבויים",
+   "location": "components/PluginsSettings.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "folder-times",
+   "unicode": "e72a"
+  },
+  {
+   "id": "opt-btn-restore-backup",
+   "group": "optional",
+   "name": "שחזר",
+   "location": "components/PluginsSettings.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "folder-directory",
+   "unicode": "e71b"
+  },
+  {
+   "id": "opt-hdr-buy-title",
+   "group": "optional",
+   "name": "רכישת תרגום",
+   "location": "components/BuyModal.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "wallet",
+   "unicode": "f12a"
+  },
+  {
+   "id": "opt-tab-register",
+   "group": "optional",
+   "name": "הרשם",
+   "location": "components/AuthModal.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "user-add",
+   "unicode": "f0a8"
+  },
+  {
+   "id": "opt-tab-login",
+   "group": "optional",
+   "name": "התחבר",
+   "location": "components/AuthModal.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "user-check",
+   "unicode": "f0ab"
+  },
+  {
+   "id": "opt-btn-mfa-verify",
+   "group": "optional",
+   "name": "אמת והתחבר",
+   "location": "components/AuthModal.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "user-shield",
+   "unicode": "f0d1"
+  },
+  {
+   "id": "opt-btn-retry-download",
+   "group": "optional",
+   "name": "נסה שוב",
+   "location": "views/DownloadsView.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "arrows-retweet",
+   "unicode": "e0fd"
+  },
+  {
+   "id": "opt-btn-download-update",
+   "group": "optional",
+   "name": "הורד ועדכן",
+   "location": "views/DownloadsView.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "arrow-down-to-square",
+   "unicode": "e0c0"
+  },
+  {
+   "id": "opt-empty-coming-soon",
+   "group": "optional",
+   "name": "התרגום עדיין בעבודה - בקרוב",
+   "location": "views/GameDetailPanel.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "calendar-arrow-down",
+   "unicode": "e2a2"
+  },
+  {
+   "id": "opt-empty-no-plugins",
+   "group": "optional",
+   "name": "אין תוספים זמינים כרגע.",
+   "location": "components/PluginsSettings.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "square-dashed",
+   "unicode": "eea4"
+  },
+  {
+   "id": "opt-btn-remove-entry",
+   "group": "optional",
+   "name": "הסר",
+   "location": "components/PluginsSettings.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "square-minus",
+   "unicode": "eeb6"
+  },
+  {
+   "id": "opt-btn-add-detected",
+   "group": "optional",
+   "name": "הוסף",
+   "location": "components/PluginsSettings.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "square-plus",
+   "unicode": "eebc"
+  },
+  {
+   "id": "opt-btn-logout",
+   "group": "optional",
+   "name": "יציאה",
+   "location": "components/Sidebar.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "arrow-right-to-bracket",
+   "unicode": "e0cd"
+  },
+  {
+   "id": "opt-btn-plugin-download",
+   "group": "optional",
+   "name": "הורדה",
+   "location": "components/PluginsSettings.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "arrow-square-down",
+   "unicode": "e0d3"
+  },
+  {
+   "id": "opt-hdr-plugins",
+   "group": "optional",
+   "name": "תוספים",
+   "location": "components/PluginsSettings.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "apps",
+   "unicode": "e098"
+  },
+  {
+   "id": "opt-hdr-featured",
+   "group": "optional",
+   "name": "תרגומים מובילים",
+   "location": "views/HomeView.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "ranking-star",
+   "unicode": "ecba"
+  },
+  {
+   "id": "opt-hdr-news",
+   "group": "optional",
+   "name": "חדשות ועדכונים",
+   "location": "components/NewsSection.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "newspaper",
+   "unicode": "eadc"
+  },
+  {
+   "id": "opt-stat-amount-label",
+   "group": "optional",
+   "name": "סכום לתשלום",
+   "location": "components/BuyModal.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "payroll-check",
+   "unicode": "eb74"
+  },
+  {
+   "id": "opt-hdr-controller-mapping",
+   "group": "optional",
+   "name": "מיפוי כפתורים",
+   "location": "components/ControllerSettings.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "radio-button",
+   "unicode": "ecaf"
+  },
+  {
+   "id": "opt-btn-controller-reset",
+   "group": "optional",
+   "name": "איפוס לברירת מחדל",
+   "location": "components/ControllerSettings.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "arrows-retweet",
+   "unicode": "e0fd"
+  },
+  {
+   "id": "opt-btn-changelog-ok",
+   "group": "optional",
+   "name": "הבנתי",
+   "location": "components/ChangelogModal.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "check",
+   "unicode": "e35f"
+  },
+  {
+   "id": "opt-btn-close-confirm",
+   "group": "optional",
+   "name": "אישור",
+   "location": "components/CloseBehaviorModal.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "checkbox",
+   "unicode": "e364"
+  },
+  {
+   "id": "opt-btn-bp-empty-exit",
+   "group": "optional",
+   "name": "יציאה",
+   "location": "components/BigPictureMode.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "exit",
+   "unicode": "e621"
+  },
+  {
+   "id": "opt-btn-tour-back",
+   "group": "optional",
+   "name": "הקודם",
+   "location": "components/CoachTour.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "arrow-small-right",
+   "unicode": "e0d1"
+  },
+  {
+   "id": "opt-link-tour-skip",
+   "group": "optional",
+   "name": "דלג על הסיור",
+   "location": "components/CoachTour.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "arrow-turn-down-right",
+   "unicode": "e0de"
+  },
+  {
+   "id": "opt-btn-self-update",
+   "group": "optional",
+   "name": "עדכן עכשיו",
+   "location": "views/DownloadsView.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "arrow-down-to-square",
+   "unicode": "e0c0"
+  },
+  {
+   "id": "opt-btn-save-path",
+   "group": "optional",
+   "name": "שמור",
+   "location": "views/GameDetailPanel.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "disk",
+   "unicode": "e56a"
+  },
+  {
+   "id": "opt-hdr-downloads",
+   "group": "optional",
+   "name": "הורדות ועדכונים",
+   "location": "views/DownloadsView.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "download",
+   "unicode": "e5a3"
+  },
+  {
+   "id": "opt-btn-open-folder",
+   "group": "optional",
+   "name": "פתח תיקיית משחק",
+   "location": "views/GameDetailPanel.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "folder-open",
+   "unicode": "e728"
+  },
+  {
+   "id": "opt-btn-reinstall",
+   "group": "optional",
+   "name": "התקנה מחדש",
+   "location": "views/GameDetailPanel.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "arrows-retweet",
+   "unicode": "e0fd"
+  },
+  {
+   "id": "opt-btn-download-install",
+   "group": "optional",
+   "name": "הורד והתקן",
+   "location": "views/GameDetailPanel.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "arrow-down-small-big",
+   "unicode": "e0bd"
+  },
+  {
+   "id": "opt-btn-install-translation",
+   "group": "optional",
+   "name": "התקנת תרגום",
+   "location": "views/GameDetailPanel.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "arrow-down-to-square",
+   "unicode": "e0c0"
+  },
+  {
+   "id": "opt-hdr-version-history",
+   "group": "optional",
+   "name": "היסטוריית גרסאות",
+   "location": "views/GameDetailPanel.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "calendar-clock",
+   "unicode": "e2a7"
+  },
+  {
+   "id": "tab-appearance",
+   "group": "existing",
+   "name": "טאב הגדרות · מראה",
+   "location": "views/SettingsView.tsx → IconAppearance",
+   "action": "replace",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "sparkles",
+   "unicode": "ee79"
+  },
+  {
+   "id": "tab-privacy",
+   "group": "existing",
+   "name": "טאב הגדרות · פרטיות",
+   "location": "views/SettingsView.tsx → IconPrivacy",
+   "action": "replace",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "fingerprint-verified",
+   "unicode": "e6d9"
+  },
+  {
+   "id": "nav-home",
+   "group": "existing",
+   "name": "דף הבית",
+   "location": "components/NavIcons.tsx → HomeIcon",
+   "action": "replace",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "house-chimney",
+   "unicode": "e883"
+  },
+  {
+   "id": "opt-hdr-my-software",
+   "group": "optional",
+   "name": "התוכנות שלי",
+   "location": "views/PersonalAreaView.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "tool-box",
+   "unicode": "eff1"
+  },
+  {
+   "id": "opt-hdr-my-games",
+   "group": "optional",
+   "name": "המשחקים שלי",
+   "location": "views/PersonalAreaView.tsx",
+   "action": "add",
+   "iconType": "svg-upload",
+   "newSvg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"6\" y1=\"11\" x2=\"10\" y2=\"11\"/><line x1=\"8\" y1=\"9\" x2=\"8\" y2=\"13\"/><line x1=\"15\" y1=\"12\" x2=\"15.01\" y2=\"12\"/><line x1=\"18\" y1=\"10\" x2=\"18.01\" y2=\"10\"/><path d=\"M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.544-.604-6.584-.685-7.258A4 4 0 0 0 17.32 5z\"/></svg>"
+  },
+  {
+   "id": "tab-controller",
+   "group": "existing",
+   "name": "טאב הגדרות · שלט",
+   "location": "views/SettingsView.tsx → IconController",
+   "action": "replace",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "gamepad",
+   "unicode": "e768"
+  },
+  {
+   "id": "win-close",
+   "group": "window",
+   "name": "סגירת החלון",
+   "location": "components/TitleBar.tsx → close",
+   "action": "replace",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "cross",
+   "unicode": "e4cd"
+  },
+  {
+   "id": "win-maximize",
+   "group": "window",
+   "name": "הגדלה / שחזור",
+   "location": "components/TitleBar.tsx → maximize",
+   "action": "replace",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "square",
+   "unicode": "ee92"
+  },
+  {
+   "id": "win-minimize",
+   "group": "window",
+   "name": "מזעור החלון",
+   "location": "components/TitleBar.tsx → minimize",
+   "action": "replace",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "minus",
+   "unicode": "ea63"
+  },
+  {
+   "id": "pad-generic",
+   "group": "controllers",
+   "name": "שלט כללי",
+   "location": "components/ControllerSettings.tsx → GamepadIcon",
+   "action": "replace",
+   "iconType": "svg-upload",
+   "newSvg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\"><circle cx=\"12\" cy=\"4.6\" r=\"3.4\"/><path d=\"M10.6 3.2 12 5.9 13.4 3.2\"/><circle cx=\"19.4\" cy=\"12\" r=\"3.4\"/><circle cx=\"19.4\" cy=\"12\" r=\"1.2\"/><circle cx=\"12\" cy=\"19.4\" r=\"3.4\"/><path d=\"M10.7 18.1 13.3 20.7M13.3 18.1 10.7 20.7\"/><circle cx=\"4.6\" cy=\"12\" r=\"3.4\"/><rect x=\"3.2\" y=\"10.6\" width=\"2.8\" height=\"2.8\" rx=\"0.4\"/></svg>"
+  },
+  {
+   "id": "app-downloads-self-update-emoji",
+   "group": "app",
+   "name": "עדכון התוכנה",
+   "location": "views/DownloadsView.tsx -> SelfUpdatePanel header (⬆️)",
+   "action": "replace",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "arrow-up-small-big",
+   "unicode": "e0eb"
+  },
+  {
+   "id": "app-open-triangle-play",
+   "group": "app",
+   "name": "משולש פתח/הפעל",
+   "location": "components/GameCard.tsx -> hover \"פתח\" pill (also BigPictureMode/OnboardingTour/CoachTour)",
+   "action": "replace",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "caret-circle-right",
+   "unicode": "e302"
+  },
+  {
+   "id": "app-gamedetail-version-toggle",
+   "group": "app",
+   "name": "הצג עוד/פחות",
+   "location": "views/GameDetailPanel.tsx -> VersionHistory expand/collapse (▼ / ▲)",
+   "action": "replace",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "angle-small-down",
+   "unicode": "e07c"
+  },
+  {
+   "id": "app-gamedetail-play",
+   "group": "app",
+   "name": "הפעל",
+   "location": "views/GameDetailPanel.tsx -> handleLaunch button (▶ הפעל)",
+   "action": "replace",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "caret-circle-right",
+   "unicode": "e302"
+  },
+  {
+   "id": "opt-hdr-game-language",
+   "group": "optional",
+   "name": "שפת המשחק",
+   "location": "views/GameDetailPanel.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "language-exchange",
+   "unicode": "e94f"
+  },
+  {
+   "id": "app-auth-btn-copy-link",
+   "group": "app",
+   "name": "העתק קישור",
+   "location": "components/AuthModal.tsx -> אוברליי המתנה ל-Google, כפתור \"העתק קישור\" (מתחלף ל-✓ בהעתקה)",
+   "action": "replace",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "clipboard-list-check",
+   "unicode": "e3e5"
+  },
+  {
+   "id": "app-home-stat-progress",
+   "group": "app",
+   "name": "בקרוב",
+   "location": "views/HomeView.tsx -> Stat card Icon=IconProgress",
+   "action": "replace",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "duration",
+   "unicode": "e5cd"
+  },
+  {
+   "id": "app-plugins-btn-open-folder",
+   "group": "app",
+   "name": "פתח תיקייה",
+   "location": "components/PluginsSettings.tsx -> שורות שמירה + היסטוריה, כפתור פתיחת תיקייה",
+   "action": "replace",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "folder-open",
+   "unicode": "e728"
+  },
+  {
+   "id": "app-plugins-btn-backup-now",
+   "group": "app",
+   "name": "גבה עכשיו",
+   "location": "components/PluginsSettings.tsx -> SaveBackupPanel, כפתור \"גבה עכשיו\"",
+   "action": "replace",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "disk",
+   "unicode": "e56a"
+  },
+  {
+   "id": "app-plugins-btn-autodetect",
+   "group": "app",
+   "name": "איתור אוטומטי",
+   "location": "components/PluginsSettings.tsx -> SaveBackupPanel, כפתור \"איתור אוטומטי\"",
+   "action": "replace",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "search",
+   "unicode": "ed83"
+  },
+  {
+   "id": "app-plugins-state-locked-lock",
+   "group": "app",
+   "name": "תוספים נעולים",
+   "location": "components/PluginsSettings.tsx -> באנר לא-זכאי \"התוספים נעולים\"",
+   "action": "replace",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "lock",
+   "unicode": "e9c5"
+  },
+  {
+   "id": "app-personal-state-purchases-error",
+   "group": "app",
+   "name": "שגיאת טעינה",
+   "location": "views/PersonalAreaView.tsx -> PurchasesSection, מצב שגיאה",
+   "action": "replace",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "triangle-warning",
+   "unicode": "f047"
+  },
+  {
+   "id": "app-sidebar-logout-warning",
+   "group": "app",
+   "name": "אזהרה (מודאל התנתקות)",
+   "location": "components/Sidebar.tsx -> LogoutConfirm אייקון אזהרה בראש המודאל",
+   "action": "replace",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "triangle-warning",
+   "unicode": "f047"
+  },
+  {
+   "id": "app-gamedetail-lock",
+   "group": "app",
+   "name": "נעילה",
+   "location": "views/GameDetailPanel.tsx -> locked language note (🔒)",
+   "action": "replace",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "lock",
+   "unicode": "e9c5"
+  },
+  {
+   "id": "app-onboarding-step-theme",
+   "group": "app",
+   "name": "פלטת צבעים",
+   "location": "components/OnboardingTour.tsx -> STEPS[4] icon",
+   "action": "replace",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "palette",
+   "unicode": "eb45"
+  },
+  {
+   "id": "app-onboarding-step-welcome",
+   "group": "app",
+   "name": "ברוך הבא",
+   "location": "components/OnboardingTour.tsx -> STEPS[0] icon",
+   "action": "replace",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "hand-wave",
+   "unicode": "e809"
+  },
+  {
+   "id": "app-auth-hdr-mfa-key",
+   "group": "app",
+   "name": "אייקון 2FA",
+   "location": "components/AuthModal.tsx -> מסך קוד 2FA, אייקון מפתח בקופסה",
+   "action": "replace",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "key-car",
+   "unicode": "e923"
+  },
+  {
+   "id": "opt-hdr-software-library",
+   "group": "optional",
+   "name": "ספריית התוכנות",
+   "location": "views/AppsView.tsx",
+   "action": "add",
+   "iconType": "flaticon-uicons-regular-rounded",
+   "iconName": "tool-box",
+   "unicode": "eff1"
+  },
+  {
+   "id": "opt-hdr-games-library",
+   "group": "optional",
+   "name": "ספריית המשחקים",
+   "location": "views/LibraryView.tsx",
+   "action": "add",
+   "iconType": "svg-upload",
+   "newSvg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"6\" y1=\"11\" x2=\"10\" y2=\"11\"/><line x1=\"8\" y1=\"9\" x2=\"8\" y2=\"13\"/><line x1=\"15\" y1=\"12\" x2=\"15.01\" y2=\"12\"/><line x1=\"18\" y1=\"10\" x2=\"18.01\" y2=\"10\"/><path d=\"M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.544-.604-6.584-.685-7.258A4 4 0 0 0 17.32 5z\"/></svg>"
+  },
+  {
+   "id": "app-personal-state-signin-lock",
+   "group": "app",
+   "name": "נדרש חיבור",
+   "location": "views/PersonalAreaView.tsx -> מסך לא-מחובר, אייקון גדול",
+   "action": "replace",
+   "iconType": "svg-upload",
+   "newSvg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"4.5\" y=\"9.5\" width=\"15\" height=\"11.5\" rx=\"2.5\"/><path d=\"M7.5 9.5V6.4a4.5 4.5 0 0 1 9 0V9.5\"/><circle cx=\"9\" cy=\"15.3\" r=\"2.2\"/><circle cx=\"9\" cy=\"15.3\" r=\"0.65\"/><path d=\"M11.2 15.3H16\"/><path d=\"M14.4 15.3v1.9M16 15.3v1.5\"/></svg>"
+  },
+  {
+   "id": "app-auth-hdr-brand-lock",
+   "group": "app",
+   "name": "מנעול מיתוג",
+   "location": "components/AuthModal.tsx -> מסך התחברות/הרשמה, אייקון מנעול בקופסה",
+   "action": "replace",
+   "iconType": "svg-upload",
+   "newSvg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"4\" y=\"10.5\" width=\"14\" height=\"10\" rx=\"2.2\"/><path d=\"M7 10.5V7a4 4 0 0 1 8 0v3.5\"/><circle cx=\"11\" cy=\"14.4\" r=\"1.4\"/><path d=\"M11 15.8V21M11 18.2h2.6\"/></svg>"
+  }
+ ]
+}

@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>איך המאגר העצמאי יעבוד — תרחיש עץ מלא</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;800;900&family=Fira+Code:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+:root {
+  --bg: #070913;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --cyan: #38bdf8;
+  --purple: #c084fc;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  background-image:
+    radial-gradient(circle at 50% 10%, rgba(56, 189, 248, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 50% 90%, rgba(52, 211, 153, 0.08) 0%, transparent 50%);
+  color: var(--text-main);
+  font-family: 'Rubik', system-ui, sans-serif;
+  min-height: 100vh;
+  padding: 20px 10px 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+header h1 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 6px;
+}
+
+header p {
+  color: var(--text-muted);
+  font-size: 1.05rem;
+}
+
+/* Full Width Diagram Card */
+.diagram-card {
+  width: 98vw;
+  max-width: 98vw;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 24px;
+  backdrop-filter: blur(28px);
+  padding: 30px 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.mermaid-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.mermaid {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.mermaid svg {
+  margin: 0 auto !important;
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+.mermaid .node label, .mermaid .node div, .mermaid .node foreignObject {
+  font-size: 19px !important;
+  font-weight: 700 !important;
+  line-height: 1.5 !important;
+  padding: 6px 12px !important;
+}
+
+.mermaid .edgeLabel {
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  background-color: rgba(7, 9, 19, 0.95) !important;
+  color: #38bdf8 !important;
+  padding: 4px 10px !important;
+  border-radius: 6px !important;
+  border: 1px solid rgba(56, 189, 248, 0.3) !important;
+}
+
+.mermaid .node rect, .mermaid .node polygon, .mermaid .node circle {
+  stroke-width: 3px !important;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚙️ איך המאגר העצמאי יעבוד — תרחיש עץ אנכי מלא</h1>
+  <p>מסלול חיים של שורה אחת: מהמאגר הביתי אל המכשיר, דרך התרגום והביקורת, וחזרה למאגר</p>
+</header>
+
+<div class="diagram-card">
+  <div class="mermaid-wrapper">
+    <div class="mermaid">
+graph TD
+    START["🔌 התחלה: זרם או אפליקציה<br/>נדלקים ומתחברים"] --> S1["📡 פנייה לשרת הביתי<br/>בכתובת הקבועה"]
+    S1 --> D1{"🌐 השרת נענה?"}
+
+    D1 -- "✅ כן" --> S2["📝 רישום המכשיר<br/>וקבלת הגדרות חיות"]
+    D1 -- "❌ לא" --> WAIT1["⏳ המתנה קצרה<br/>וניסיון חוזר"]
+    WAIT1 --> S1
+
+    S2 --> D2{"🚦 המכשיר מורשה<br/>לקבל עבודה?"}
+
+    D2 -- "🟢 כן" --> S3["📥 בקשת מנת שורות<br/>מהמאגר האחד"]
+    D2 -- "🔴 לא" --> STOP1["🛑 עצירה: המכשיר<br/>נחסם בידי המנהל"]
+
+    S3 --> D3{"📚 יש שורות פנויות<br/>במאגר?"}
+
+    D3 -- "✅ כן" --> S4["🔒 נעילת השורות<br/>לזמן קצוב למכשיר"]
+    D3 -- "❌ לא" --> IDLE["😴 המתנה עד<br/>שיתפנו שורות"]
+    IDLE --> S3
+
+    S4 --> S5["🤖 תרגום מקומי<br/>עם המפתח האישי"]
+    S5 --> D4{"🔑 ספק הבינה<br/>החזיר תשובה?"}
+
+    D4 -- "✅ כן" --> S6["🧪 שער איכות מקומי<br/>תקינות וסימונים"]
+    D4 -- "❌ לא" --> REL["↩️ החזרת השורות<br/>למאגר עבור אחרים"]
+    REL --> S3
+
+    S6 --> S7["📤 שליחת התרגום<br/>לשרת הביתי"]
+    S7 --> D5{"⏱️ הנעילה עדיין<br/>בתוקף למכשיר?"}
+
+    D5 -- "✅ כן" --> S8["💾 שמירה במאגר<br/>ועדכון מונה התרומה"]
+    D5 -- "❌ לא" --> DROP["🗑️ נדחה: השורות<br/>הוקצו כבר לאחר"]
+    DROP --> S3
+
+    S8 --> S9["💓 פעימת חיים<br/>כל חמש דקות"]
+    S9 --> D6{"📶 המכשיר עדיין<br/>מדווח שהוא חי?"}
+
+    D6 -- "✅ כן" --> D7{"🏁 נותרו שורות<br/>במשחק הנוכחי?"}
+    D6 -- "❌ לא" --> AUTOREL["🔓 שחרור אוטומטי<br/>של שורותיו למאגר"]
+    AUTOREL --> S3
+
+    D7 -- "🔁 כן" --> S3
+    D7 -- "🎯 לא" --> S10["🧾 ביקורת איכות סופית<br/>על כל התרגום"]
+
+    S10 --> D8{"✨ התרגום נקי<br/>ומוכן להטמעה?"}
+
+    D8 -- "✅ כן" --> S11["📦 הטמעה במשחק<br/>ובדיקה בתוך המשחק"]
+    D8 -- "❌ לא" --> BACK["🔄 החזרת השורות<br/>הפגומות למאגר"]
+    BACK --> S3
+
+    S11 --> NEXT["➡️ טעינת המשחק הבא<br/>למאגר האחד"]
+    NEXT --> END["🎉 צי אחיד רץ ברצף<br/>ללא חלוקה ידנית<br/>ובלי מגבלת אחסון"]
+    </div>
+  </div>
+</div>
+
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: 'dark', securityLevel: 'loose', flowchart: { useMaxWidth: true, htmlLabels: true } });
+</script>
+</body>
+</html>

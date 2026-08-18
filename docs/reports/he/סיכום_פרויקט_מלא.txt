@@ -1,0 +1,1988 @@
+════════════════════════════════════════════════════════════════════════════
+        פרויקט "מרכז התרגום העברי" (Hebrew Translation Hub)
+        תיעוד מלא, מקיף ומפורט — כל מה שיש בפרויקט, שלב אחרי שלב
+        נכתב: 2026-07-20 | מקורות: CLAUDE.md (זיכרון מזוקק של כל הצ׳אטים),
+        זיכרון קבוע (MEMORY.md), מבנה התיקיות בפועל, תיקיות המשחקים,
+        האתר, הלאנצ׳ר, האוטומציות, ה-orchestration.
+        אין בקובץ הזה מפתחות/סיסמאות/מידע רגיש.
+════════════════════════════════════════════════════════════════════════════
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃  תוכן העניינים                                                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+חלק 1 — סקירה כללית: מה זה הפרויקט
+חלק 2 — מבנה הרפוזיטורי והתיקיות
+חלק 3 — הלאנצ׳ר (Translation Manager)
+חלק 4 — האתר (Hebrew Translation Hub)
+חלק 5 — השיטה האוניברסלית לתרגום משחקים (Playbook)
+חלק 6 — פירוט מלא לכל משחק (סטטוס, פורמט, חסימות, deploy)
+חלק 7 — תוכנות (Software): Steam, VirtualDJ, Borderless Gaming, SignalRGB
+חלק 8 — מערכת התרגום הקהילתי (/translate)
+חלק 9 — אוטומציות, orchestration, וה-NIM fleet
+חלק 10 — אבטחה
+חלק 11 — כלים ותשתית (LM Studio, WolvenKit, fonts, פרסום)
+חלק 12 — אזהרות, חסימות ו-gotchas אוניברסליים
+חלק 13 — משימות פתוחות, תוכניות וגרסאות
+חלק 14 — תוכן צדדי במחשב (לא-פרויקט, לתיעוד)
+חלק 15 — מאחורי הקלעים: הפנימיות העמוקות (byte-level, DB, RPC, אלגוריתמים)
+חלק 16 — השלמות מבדיקת כיסוי מול CLAUDE.md (BYOK · winget HTH · FLEET OPS ·
+         Menyoo · Launcher Designer · שאלונים · גלי עיצוב · icon-manager ·
+         Visual LQA · Ubisoft DB · צינור CP2077 · ביקורת אוניברסליות)
+
+
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃  ⚠ מצב חי מאומת (2026-07-20) — גובר על כל טענת גרסה בגוף המסמך              ┃
+┃  אומת ישירות מ-https://hebrew-translation-hub.com/api (לא מ-CLAUDE.md,      ┃
+┃  שהתגלה כמיושן במספר נקודות). זו התמונה האמיתית:                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+** לאנצ׳ר: 1.1.0 פורסם וחי ** (channel beta, tag v1.1.0-beta, buildId 20260719225516).
+  filename TranslationManager-Setup-1.1.0.exe, 140,877,712 B (134.4MB),
+  sha256 f8fb523fb58c2029d094af8a1cd5d188b0e510073408fe7ed695d0a0c5418495.
+  changelog: מרכז התראות (WinRT toasts ב-Action Center), מנוע תוספים מהענן (התוסף
+  הראשון: גיבוי אוטומטי לשמירות), מיתוג+אייקון+עיצוב מחודשים, בחירת צורת אייקון,
+  שליטה בגודל טקסט, 4 רמות אנימציה מתכווננות למחשבים חלשים.
+  → CLAUDE.md אמר "1.1.0 נבנה מקומית, לא פורסם, האתר משרת 1.0.2" — זה מיושן ושגוי.
+
+** קטלוג חי — 43 שורות (id | גרסה | זמינות | מחיר₪ | תוכנה | onLauncher | onWebsite): **
+  --- מודים פורסמים+זמינים (available) ---
+  cyberpunk          1.0.0-beta.3  ₪53   launcher+web
+  spiderman2         1.0.0-beta.6  ₪53   launcher+web
+  watchdogs2         1.0.0-beta.4  ₪53   launcher+web   ← beta.4 (לא beta.3!)
+  gowragnarok        1.0.0-beta.1  ₪53   launcher+web   ← ₪53 (לא חינם!)
+  anno1800           1.0.0-beta.1  ₪53   launcher+web
+  witcher3           1.0.0-beta.1  ₪53   launcher+web   ← פורסם וזמין! (לא coming-soon)
+  gtav               1.0.0-beta.2  ₪53   web-only (onLauncher=false, מוסתר בכוונה)
+  virtualdj          1.0.0-beta.1  ₪15   תוכנה, launcher+web
+  borderless-gaming  1.0.0-beta.1  חינם  תוכנה, launcher+web
+  --- coming-soon (טרם available) ---
+  hogwarts, tlou1, tlou2, 007-first-light, plague-tale-requiem, until-dawn, ac2
+  --- planned (מתוכנן, קלף בקטלוג) ---
+  ac1, ac3, acblackflag, acmirage, acodyssey, acorigins, acsyndicate, acvalhalla,
+  acbrotherhood, acrevelations, acrogue, acunity, ac-shadows, tsushima, gow2018,
+  horizonfw, horizonzd, spiderman, spidermanmm, rdr1, rdr2, uncharted, watchdogs1,
+  ratchet-rift-apart, plague-tale-innocence, skyrim (חדש!), aot2 (Attack on Titan 2, חדש!)
+
+** תיקונים מרכזיים ל-CLAUDE.md (שהתברר כמיושן): **
+  1. הלאנצ׳ר 1.1.0 פורסם (לא "נבנה מקומית לא פורסם").
+  2. Witcher 3 פורסם, זמין, ₪53 (לא "publish-gated / Worker slug 404 / coming-soon").
+  3. GoWR עכשיו ₪53 (לא חינם).
+  4. WD2 beta.4 (לא beta.3).
+  5. כותרים חדשים בקטלוג: skyrim, aot2.
+  6. /translate תוקן לצמיתות (translation_progress_cache; 660,916 שורות ב-DB;
+     8,366ms → 0.76ms) — ראה חלק 15.
+  → סעיפי הגרסאות בגוף המסמך (במיוחד חלק 6 וחלק 13) עודכנו בהתאם; אם נותרה סתירה,
+    הבלוק הזה + הקטלוג החי גוברים.
+
+
+
+════════════════════════════════════════════════════════════════════════════
+חלק 1 — סקירה כללית: מה זה הפרויקט
+════════════════════════════════════════════════════════════════════════════
+
+המטרה: לתרגם משחקי מחשב (ותוכנות) לעברית, ולהפיץ את התרגומים דרך אתר ציבורי +
+אפליקציית לאנצ׳ר של Windows שמתקינה את המודים בלחיצה אחת.
+
+שלושת המרכיבים:
+  1. אתר ציבורי — hebrew-translation-hub.com (Vite + React + Tailwind + Supabase +
+     Vercel functions). מציג קטלוג משחקים, מאפשר קנייה, הורדה, הצבעות, ביקורות,
+     תרגום קהילתי, ופאנל אדמין מלא.
+  2. לאנצ׳ר Windows — "Translation Manager" (Eel/Qt + React). מזהה משחקים מותקנים,
+     מוריד את התרגום המתאים, ומתקין אותו לתיקיית המוד של המשחק.
+  3. מנוע התרגום — סקריפטים לוקאליים שמחלצים טקסט, מתרגמים EN→עברית, ומרכיבים מוד.
+
+הטריק המרכזי (Arabic-slot hijack): מנועי משחק כמעט אף פעם לא כוללים locale עברי, אבל
+כן כוללים ערבית (RTL). שולחים את הטקסט העברי לתוך ה-slot של הערבית → מקבלים בחינם את
+צינור ה-RTL/bidi הבדוק של המנוע. המשתמש בוחר "ערבית" בהגדרות המשחק, והעברית מוצגת RTL.
+(במשחקים בלי slot ערבי — "LTR-slot hijack": חוטפים slot אנגלי ומאחסנים עברית VISUAL,
+כלומר הפוכה מראש, כי מנוע כזה לא עושה bidi.)
+
+המשתמש: נהוראי, מפתח מנוסה, גיל 21. תחומים: תכנות, אוטומציה, סייבר, AI. שפת עבודה:
+עברית תמיד. סגנון: ישיר ותמציתי.
+
+מצב שיטת התרגום (עדכון 2026-07-01): התרגום כבר לא רץ על מודל מקומי (gemma/qwen על
+RX 9070) — הוא עבר לסוכני Google (משפחת Gemini) דרך Antigravity, ולצי (fleet) של NIM
+בענן. Claude עצמו לא מתרגם טקסט משחק — הוא בונה תשתית + מנחה סוכנים (כלל קשיח:
+[[delegate-all-translation]]). חריגה: כשהמשתמש אומר במפורש "תרגם אתה" (למשל SignalRGB,
+Borderless Gaming, VirtualDJ, GTA fixes) — אז Claude מתרגם חד-פעמית בשיטת "עידן חדש".
+
+
+
+════════════════════════════════════════════════════════════════════════════
+חלק 2 — מבנה הרפוזיטורי והתיקיות
+════════════════════════════════════════════════════════════════════════════
+
+תיקיית עבודה ראשית: c:\Users\Nehoray_Cohen\Projects\Game translator (git repo, ענף main).
+
+קבצי שורש עיקריים:
+  main_eel.py / main_qt.py    — נקודות כניסה של הלאנצ׳ר (Eel dev + Qt production)
+  build_exe.bat               — סקריפט בנייה מקצה-לקצה (frontend → PyInstaller → Inno)
+  installer.iss               — Inno Setup script
+  TranslationManager.spec / _qt.spec — PyInstaller specs (Eel + Qt)
+  publish_release.py          — מפרסם גרסת לאנצ׳ר (GitHub + Supabase launcher_releases)
+  monitor_push.py             — ספריית push של התקדמות חיה
+  games.json / news.json / updates.json — snapshot קטלוג ציבורי (המקור החי = Worker)
+  config.ini, submit_defender_fp.py, translate_menyoo.py, build_app_icons.py,
+  build_icon_manager.py, timer_continue.py
+
+תיקיות עיקריות:
+  translation_manager/  — חבילת האפליקציה (Python): views, לוגיקת נכסים/הורדות, זיהוי
+                          משחקים, theme, paths, SWR cache, appliers לכל משחק native.
+  frontend/             — React + Vite UI של הלאנצ׳ר (נצרב לתוך ה-exe)
+  website/              — האתר הציבורי (git repo נפרד! push ל-github.com/hebrew-translation-hub/A-translation-hub)
+  games/                — כל סקריפט/דוק ספציפי-משחק, מסודר בתת-תיקייה לכל משחק
+  universal/            — תשתית agnostic: audit, progress_monitor, visual_bridge,
+                          gender_oracle, publish_version, community_translate, playbooks
+  orchestration/        — שכבת הניהול העליונה (control plane) של כל הפעולות
+  build_assets/         — נכסי installer (icon, wizard BMPs, screenshots)
+  launcher-designer/    — אפליקציית Vite נפרדת לעריכה ויזואלית של ה-UI של הלאנצ׳ר
+  Cyberpunk 2077/       — עותק staging של המשחק + יעד deploy (archive/pc/mod/)
+  תרגום_משחקים/          — נתוני מקור CP2077 (1.4GB; localization_translated.json = הספיין)
+  winget-manifest/      — manifest של חבילת ה-winget
+  Output/ dist/ build/  — פלט PyInstaller + Inno (gitignored)
+  _archive/             — קבצים היסטוריים/inert; שום דבר בצינור הפעיל לא קורא אותם
+
+תיקיות משחקים ב-games/ (25):
+  007_first_light, acblackflag, acshadows, acunity, anno1800, assassinscreed2,
+  battlefield6, borderless_gaming, cyberpunk2077, ghost_of_tsushima,
+  godofwar_ragnarok, gtav, hogwarts_legacy, plague_tale_innocence,
+  plague_tale_requiem, ratchet_rift_apart, rdr2, signalrgb, spiderman2, steam,
+  tlou1, tlou2, until_dawn, virtualdj, watchdogs2, witcher3
+
+לכל משחק בדרך כלל: RECON.md (זיהוי מנוע/פורמט), FEASIBILITY.md (פסיקה GO/NO-GO),
+PIPELINE.md (מתכון deploy), + תת-תיקיות work/ tools/ extract/ fleet/.
+
+היסטוריית צ׳אטים: c:\Users\Nehoray_Cohen\.claude\projects\c--Users-Nehoray-Cohen-Projects-Game-translator\
+מכילה 85 קבצי jsonl (עשרות שיחות). ה-CLAUDE.md הוא הרשומה המזוקקת של כל השיחות האלה —
+מתעדכן אחרי כל סשן (זה כלל קשיח: "בסוף כל סשן משמעותי לעדכן את ה-CLAUDE.md").
+
+הערה על סביבת Antigravity: כשעובדים מפרופיל Antigravity, המשתנים USERPROFILE/APPDATA/
+LOCALAPPDATA מנותבים מחדש לפרופיל sandbox ריק. זה שבר בעבר: נתיב-גיבוי ברירת-מחדל, זיהוי
+שמירות generic, ה"דפדפן המבודד", ו-wrangler auth. הפתרון: להשתמש ב-SHGetKnownFolderPath
+(FOLDERID_Profile) שקורא מהטוקן/רישום ולא מהסביבה, או נתיב מוחלט C:\Users\Nehoray_Cohen.
+
+
+
+════════════════════════════════════════════════════════════════════════════
+חלק 3 — הלאנצ׳ר (Translation Manager)
+════════════════════════════════════════════════════════════════════════════
+
+──────────────────────────── 3.1 ארכיטקטורה ────────────────────────────
+
+טכנולוגיה: Eel (גשר Python↔Chromium) לפיתוח, ו-Qt/PySide6 (QWebEngineView) לפרודקשן.
+Frontend React+Vite נצרב ל-exe דרך PyInstaller + Inno Setup.
+
+זרימה: הלאנצ׳ר מושך קטלוג משחקים מ-API של ה-hub, מציג כותרים זמינים, מוריד את ארכיון
+התרגום המתאים, ומעתיק אותו לתיקיית המוד של המשחק.
+
+נקודות כניסה: main_eel.py (dev, Eel) ו-main_qt.py (production, ייבוא main_eel לוגיקה,
+routing דרך qt_shell/bridge.py). הרוב המכריע של ה-RPC-ים ב-main_eel.py; ה-bridge מריץ
+פעולות כבדות off-thread (QThreadPool) כדי לא להקפיא את ה-GUI.
+
+קבצי Python מרכזיים ב-translation_manager/:
+  __init__.py (__version__ = "1.1.0"), _build_info.py (BUILD_ID — timestamp טרי בכל בנייה)
+  app_icon.py (אייקון מתחלף), assets.py, autostart.py, config.py (GameConfig),
+  cp2077_language.py, crash_reporter.py, downloads.py, game_detector.py,
+  game_language.py (מתג שפה בתוך המשחק), game_mod.py, games_catalog.py (fallback קטלוג),
+  launcher_prefs.py, mod_logic.py, mod_source.py (fetch+verify+extract מה-Worker),
+  offline_bundle.py (חבילה אופליין), paths.py, perf_manager.py (adaptive perf),
+  resilience.py (self-healing JSON), software_catalog.py, software_detector.py,
+  swr_cache.py, theme.py, tray.py, website.py
+  appliers native לכל משחק: spiderman2_mod.py, watchdogs2_mod.py, gowr_mod.py,
+  gtav_mod.py (+gtav_rpf7.py), hogwarts_legacy_mod.py, witcher3_mod.py,
+  plague_tale_requiem_mod.py, borderless_gaming_mod.py, virtualdj_mod.py, steam_mod.py
+
+──────────────────────────── 3.2 גרסאות ופרסום ────────────────────────────
+
+גרסה נוכחית: 1.1.0 (channel beta — פומבי להורדה באתר). היה מסע גרסאות ארוך:
+  - במקור 1.0.0 → 1.0.1 → 1.0.2 (beta, האתר עדיין משרת את זה)
+  - אופס-reset: 1.1.0 → 1.0.0 עם channel נפרד (dev), כדי שהגרסה תהיה נקייה
+  - עכשיו 1.1.0 (MINOR) — "שינינו את התוכנה ב-90 מעלות". נבנה מקומית, לא פורסם.
+
+** כלל re-release (build-id self-update) **: הגרסה נשארת קבועה ומתפרסמת "in place". העדכון
+העצמי משווה BUILD_ID (timestamp) ולא version. build_exe.bat צורב timestamp טרי ל-
+translation_manager/_build_info.py בכל בנייה. כל re-release חייב, עם אותו build-id:
+  1. build_exe.bat (צורב BUILD_ID חדש)
+  2. קומפילציה של installer.iss + החלפת ה-asset ב-GitHub release (gh release upload --clobber)
+  3. PATCH לשורת launcher_releases עם sha256/size/build_id החדשים; לוודא is_current=true
+אם ה-BUILD_ID הצרוב וה-DB build_id מתפצלים → כל לאנצ׳ר מציג "עדכון זמין" נצחי שקרי.
+
+** אזהרה קריטית — build_exe.bat חייב להישאר CRLF ** (זה batch של Windows). אם עורך/git
+autocrlf ישכתב ל-LF — cmd מנתח שגוי בשקט, REM רצים כפקודות, והסקריפט לא באמת בונה →
+סכנה של shipping build ישן בשקט. לוודא אחרי כל בנייה: BUILD_ID ב-_build_info.py הוא
+timestamp טרי + ה-exe ב-dist עם mtime "עכשיו" לפני קומפילציה/פרסום.
+
+** גוצ׳ה — הרצת build_exe.bat **: חייב להריץ דרך PowerShell call operator `& '.\build_exe.bat'`.
+`cmd /c build_exe.bat` ו-Git-Bash `cmd //c` נכשלים "not recognized" במכונה הזאת גם מה-cwd
+הנכון. ISCC בנתיב מוחלט: C:\Users\Nehoray_Cohen\AppData\Local\Programs\Inno Setup 6\ISCC.exe
+
+** כלל עמידה ** ([[local-install-launcher-builds]]): שינוי בלאנצ׳ר → אוטומטית build+ISCC+
+הרצת installer מקומית; לעולם לא לפרסם אלא אם המשתמש אומר "פרסם".
+
+** winget / UniGetUI ** ([[launcher-release-checklist]]): כל release פומבי חייב גם PR ל-
+microsoft/winget-pkgs. PR #400993 (1.0.2) נתקל ב-Validation-Defender-Error (false positive
+של Defender על installer לא-חתום). כלל: להריץ `python submit_defender_fp.py` אחרי כל בנייה
+כדי להגיש false-positive ל-WDSI (login-gated). התיקון האמיתי = code-signing (Azure Trusted
+Signing ~$10/חודש הכי זול).
+
+──────────────────────────── 3.3 פיצ׳רים מרכזיים ────────────────────────────
+
+- זיהוי משחקים: game_detector.py עם דפוסי שם/exe לכל משחק. deep_scan_drives() קסקדה
+  לפי פופולריות עם early-exit (Cyberpunk נמצא ב-108ms tier-1 vs 6,305ms סריקה מלאה).
+  שרת-driven: register_patterns() ממזג רמזי detect מהקטלוג בזמן ריצה → משחק חדש שנוסף
+  באתר הופך ניתן-לזיהוי בלי עדכון אפליקציה. תמיכה ב-Steam library אמיתי (libraryfolders.vdf).
+
+- התקנת מוד: appliers native (SM2/WD2/GTAV/GoWR/HL/W3/PT/VirtualDJ/BorderlessGaming) +
+  download-mods (CP2077/Anno). כל applier native עובר לפי הדפוס: זיהוי → גיבוי (מחוץ למשחק) →
+  apply אטומי → state → revert. auto-update מה-Worker manifest (בלי rebuild).
+
+- מתג שפה בתוך המשחק (game_language.py): מתג 3-דרכי (אוטומטי/עברית/אנגלית) בפאנל הפרטים,
+  לכותרים נתמכים. מנגנונים: kind="registry" (SM2 — HKCU DWORD), kind="cp2077" (JSON),
+  kind="xmltag" (VirtualDJ), kind="ini" (Witcher 3 — עורך section-scoped ב-user.settings).
+
+- DRM/רכישה: 7 מ-42 כותרים בתשלום (₪53: gtav/cyberpunk/anno1800/watchdogs2/witcher3/
+  spiderman2; VirtualDJ ₪15). הגייט חייב שני חצאים: (א) בדיקה ב-WORKER (כי ה-Qt bridge
+  מפעיל workers ישירות, עוקף RPC gates), (ב) owned/priceCents אמיתי ב-state RPC (אחרת
+  UI מציג "✓ נרכש" שקרי בלי כפתור קנייה). כלל: הסרה/ניקוי-מטמון אף פעם לא gated על ownership.
+
+- offline package (offline_bundle.py + tools/build_offline_bundle.py): BUILDER online שרץ
+  לפי דרישה — בוחרים משחקים, מושך את הגרסאות הנוכחיות (SHA-verified), כותב חבילה למכונה
+  אופליין. ה-SHA מאומת בזמן USE, לא רק build. תמונות: מראה image + resolveAssetUrl() (file://).
+
+- perf_manager.py: מודע-מכונה. חש HOST (cores+RAM→tier) + עומס חי (CPU/RAM/idle/foreground).
+  poll_interval() מותח cadence כשברקע/AFK/hidden/pegged. trim_memory() = EmptyWorkingSet
+  (שחרר 14.8MB במדידה חיה). battery-aware. שולט על CatalogPoller.
+
+- resilience.py: self-healing. attempt(op, fallback) מסווג שגיאה (locked/memory/corrupt/
+  missing/diskfull/network/io) ומחיל healer. read_json/write_json crash-proof (אטומי + .bak
+  rescue). circuit-breaker. גשר לתוך paths/game_detector/launcher_prefs.
+
+- notifications: NotifToast (כרטיס זכוכית), WinRT ToastNotification אמיתי (ב-Action Center
+  history), NotificationsBell עם unread badge + mute.
+
+- אייקון מתחלף (app_icon.py): 12 variants (circle/rounded-square × 3 סגנונות) + "brand"
+  chrome badge (default). Settings → מראה. חי בלי restart (window/taskbar/tray/shortcuts).
+
+- controllers: תמיכת שלט מלאה (PS5/PS4/Xbox). spatialNav.ts (arrow keys → focus, right
+  stick scroll), Big Picture mode (מוסתר כרגע דרך BIG_PICTURE_ENABLED=false).
+
+- Save-backup (plugin engine): גיבוי אוטומטי של שמירות משחק. זיהוי חשבונות Ubisoft (UUID
+  folders), generic saves, תזמון, ubitree (עץ מתקפל עם שמות ניתנים-לעריכה). מנוע plugin
+  ענן-editable (engine.py — declarative, primitives מאובטחים, לא קוד מורד).
+
+- FPS deep-fix: הוסרו כל component-level backdrop-blur (re-rasterization כל frame; reduce-anims
+  לא נגע בהם), GPU flags default-on. אבחון GPU ב-Settings → ביצועים (gpuInfo.ts, WebGL
+  UNMASKED_RENDERER → ירוק=GPU/אדום=software).
+
+──────────────────────────── 3.4 באגים ותיקונים בולטים ────────────────────────────
+
+- הקפאת התחברות Google: LoopbackListener חייב threading native ולא gevent (cross-thread
+  abort מ-Qt GUI thread תולה על gevent Event/hub). transport-aware: Qt=native, Eel=gevent.
+  ([[loopback-gevent-qt-freeze]]) — עבר כמה איטרציות; הפתרון הסופי = serve loop = daemon Thread
+  עם accept() חוסם על socket לא-patched.
+
+- הרצה מחדש (restart) מכבה ולא מחזירה: הפתרון = VBScript ב-wscript.exe //B //Nologo (חסר-חלון
+  אמיתי, שורד את המוות שלנו) שסוקר עד ש-PID שלנו מת, ואז משגר מחדש ומוחק את עצמו.
+
+- copy-link לא עבד: QtWebEngine חוסם clipboard; setJavascriptCanAccessClipboard=True +
+  auto-copy ל-clipboard ברגע שהתחברות מתחילה (Win32 ctypes).
+
+- auth_me crash (TimeoutError >30s): me() רשרש עד 3 קריאות HTTPS על תפוגת token; bumped
+  ל-45s + fallback ל-cached identity (user_cache.json) בלי crash/sign-out.
+
+- ELEVATED instance שובר storage: mutex בבעלות תהליך ELEVATED נכשל עם ACCESS_DENIED לא
+  ALREADY_EXISTS → שני instances נלחמים על אותו QtWebEngine profile → localStorage מתדרדר
+  ל-in-memory (tour+welcome חוזרים כל reopen). התיקון: acquire() מתייחס ל-ACCESS_DENIED כ-
+  "כבר רץ". ([[elevated-instance-breaks-storage]])
+
+- "No module named 'potato_bundle'" (W3 install עבד ב-dev ומת ב-shipped): install.py של המוד
+  פותר את המיקום העצמי דרך sys._MEIPASS שהוא ה-bundle של הלאנצ׳ר. התיקון: pre-seed lib/*.py
+  ל-sys.modules + pin mod.HERE/mod.DATA לשורש המוד. ([[frozen-meipass-hijacks-mod-installer]])
+
+- Cached-image race (כריכות נעלמות אחרי סריקת כונן): <img> עם src cached הוא complete לפני
+  ש-React מחבר onLoad → onLoad לא נורה. התיקון: effect keyed על src בודק complete+naturalWidth.
+  ([[cached-image-onload-race]])
+
+- GPU safe-mode boot lag: sentinel "boot לא צויר" חייב לדרוש שני כשלונות רצופים (COUNTER),
+  אחרת exit חריג בודד מדרדר את ה-launch הבא ל-CPU-composited. ([[gpu-safe-mode-boot-lag]])
+
+- Installer bloat: Inno משאיר orphans (מוסיף/דורס בלבד) + מוסיף ל-unins000.dat בלי הגבלה
+  (UninstallLogMode=overwrite, לא new); [InstallDelete] מוחק את {app}\_internal. numpy+OpenBLAS
+  (27MB) נמשך רק דרך PIL._typing → הוסר; qtwebengine locales (42MB) → נשמרו en-US+he בלבד.
+  installer 186→134MB, dist 613→490MB. ([[installer-bloat-traps]])
+
+- 3,000-scenario perf audit → 21 fixes: set_hidden() היה dead code (tray-RAM feature כבוי!),
+  launcher.log בלי rotation, crash_reporter קרא כל הלוג ל-RAM, closeEvent error fallback היה
+  הענף ההרסני, swr background refresh dead תחת Qt + leak של _inflight, auto-degrade על מכונה
+  חלשה. ([[adaptive-perf-gaps]])
+
+- DRM holes תוקנו (2026-07-19): מוד בתשלום הותקן לחשבון שלא קנה — כי (א) W3/HL/PT היו FREE
+  אז אף בדיקה לא נכתבה, price admin-editable; (ב) ה-Qt bridge קורא QThreadPool.start ישירות
+  עוקף RPC. התיקון: `if _game_price_cents(gid)>0 and not auth_owns_game(gid)` בכל worker וגם RPC.
+  UI: כל state RPC native חסר owned+priceCents → פאנל צייר "✓ נרכש" שקרי. _owned_fields()
+  משותף. WD2+SM2 גם price=5300 (היו "חינם" בקוד comment, ה-catalog אומר אחרת).
+
+
+
+════════════════════════════════════════════════════════════════════════════
+חלק 4 — האתר (Hebrew Translation Hub)
+════════════════════════════════════════════════════════════════════════════
+
+──────────────────────────── 4.1 ארכיטקטורה ותשתית ────────────────────────────
+
+דומיין: hebrew-translation-hub.com. Stack: Vite + React + Tailwind + Supabase + Vercel
+functions. Repo git נפרד (website/ מתעלם ב-.gitignore החיצוני; push ל-github.com/
+hebrew-translation-hub/A-translation-hub — לעשות cd website ולהשתמש ב-git שם).
+
+** פריסה ** ([[website-deploy-method]]): `vercel --prod` (לא git auto-deploy). גוצ׳ות:
+פרופיל Antigravity מנתב APPDATA → vercel CLI לא מוצא auth (auth.json ב-xdg.config מוסתר);
+הפתרון `$env:APPDATA='C:\Users\Nehoray_Cohen\AppData\Roaming'` או `vercel login` interaktivi.
+staged production deployment צריך `vercel promote <url>` (409 "already current" = בסדר).
+לאמת code-is-live דרך grep של NEW string בתוך ה-chunk החי, לא השוואת hashes.
+
+** Vercel region ** ([[vercel-region-fra1]]): לנעוץ region ל-region של ה-DB: "regions":["fra1"]
+ב-vercel.json (DB בפרנקפורט); הוריד API 2-4s → ~0.3s.
+
+** DDL migrations ** ([[supabase-ddl-via-management-api]]): פורטי Postgres (5432/6543) חסומים
+בסביבה → migrations דרך api.supabase.com/v1/projects/<ref>/database/query עם PAT (sbp_).
+קריטי: Cloudflare bot-blocks את Python-urllib UA עם 403 "error code: 1010" → לשים browser UA
+אמיתי. runner: scratchpad/run_migration_mgmt.py. project ref = mfudkftrluabqlrpkvtj.
+
+──────────────────────────── 4.2 עמודים ציבוריים ────────────────────────────
+
+website/src/pages/: HomePage, GamesPage, GameDetailPage, SoftwarePage, SoftwareDetailPage,
+DownloadsPage, ReviewsPage, VotePage, TranslatePage, ProfilePage, FaqPage, AboutPage,
+UpdatesPage, LoginPage, AuthCallbackPage, NotFoundPage.
+
+- HomePage: ProgressDashboard חי (LiquidWave — SVG+rAF), news feed, קטלוג.
+- GamesPage + GameDetailPage: כרטיסי משחק, StageBadge (חום — maturity לפי גרסה),
+  VersionTimeline (GET /api/games?action=history&game=<id>), ביקורות, הצבעות.
+- DownloadsPage: הורדת הלאנצ׳ר + LauncherVersionHistory (timeline DB-driven, GET
+  /api/launcher?history=1). dev/canary login-gated; beta פומבי; stable=main.
+- TranslatePage (/translate): תרגום קהילתי (login-gated, אורחים read-only). בורר משחק,
+  batch 10/25/50, טבלת שורה-אחרי-שורה (EN | HE textarea | actions), QA inline,
+  file download/upload. contributors מתרגמים token-FREE (peel/reconstruct).
+- ProfilePage (/profile): "הספרייה שלי" (משחקים+תוכנות מפוצל), "ההצבעות שלי", "התרגומים שלי".
+- ReviewsPage: ביקורות + thread תגובות (admin badged "מנהל" + לוגו).
+
+──────────────────────────── 4.3 פאנל אדמין ────────────────────────────
+
+website/src/components/admin/ (עבר reorg בסגנון Good Lock — 2 tabs במקום 4 למשחקים/תוכנות):
+  AdminGuard, AnalyticsTab, ByOptionTab (cross-cutting: כל אופציה = תת-תפריט מתקפל),
+  ConfigTab, CrashReportsTab (כפתורי "📋 העתק"), FaqTab, GamesTab (kind=games/software),
+  LauncherTab (channel + version-history editable), MediaStudio, MfaChallenge, MfaTab,
+  NewsDraftsTab (הצעות AI — Claude/Gemini/all), NewsTab, NotificationsTab, PluginsTab
+  (קטלוג תוספים ב-site_config.data.plugins JSON — בלי טבלה חדשה), ProgressEditor,
+  ProgressTab, PurchasesTab, ReviewsTab, SettingsHub, SitePreview, SoftwareTab, SystemTab,
+  ToastProvider, TranslationsTab (תור סקירת תרגום קהילתי), UpdatesTab, UsersTab
+  (mfaEnrolled מתוקן — auth.admin.mfa.listFactors), VersionsTab (drift-heal + locks +
+  rollback + changelog + launcher-channel), VotesTab.
+
+──────────────────────────── 4.4 API (Vercel functions) ────────────────────────────
+
+website/api/: analytics.ts, config.ts, games.ts, launcher.ts, news.ts, paypal.ts,
+progress.ts, translate.ts, updates.ts, + _lib/ (auth.ts, rate.ts, reviewsHandler.ts), admin/.
+
+- games.ts: shape(row) → cover/bannerUrl/logoUrl/priceCents/paymentOnly/detectFolders...
+  actions: history, votes, version-state, mod-set, rollback, history-set/delete,
+  launcher-channel, drift-heal.
+- launcher.ts: /api/launcher (version+channel+build_id+sha), ?history=1, boot-ping
+  (device telemetry → launcher_installs).
+- paypal.ts: create/capture — מאמת amount+currency מול ה-capture; unique index חוסם replay;
+  RLS + service-role חוסם IDOR; owns_game מאומת בשרת fail-closed.
+- translate.ts: תרגום קהילתי — list/stats/download/admin-queue/my-submissions + submit/upload
+  (auto-QA gate inline) + approve/reject/edit. rate-limited.
+- news.ts: suggest (Gemini עם עובדות אמיתיות; IRON RULE — הצעה בלי detail≥15 נזרקת).
+
+──────────────────────────── 4.5 מצב תשלומים ────────────────────────────
+
+** PayPal LIVE ** ([[paypal-live-status]]): checkout חי; ILS אמיתי ל-PayPal של המשתמש.
+תיק KYC PP-L-840859843857 (case number שמור לתיעוד; אין פרטים רגישים כאן).
+
+
+
+════════════════════════════════════════════════════════════════════════════
+חלק 5 — השיטה האוניברסלית לתרגום משחקים (Playbook)
+════════════════════════════════════════════════════════════════════════════
+
+שני playbooks עצמאיים (universal/):
+  - NEW_GAME_GROUNDWORK_PLAYBOOK.md (Phase 1 — כל בדיקה טרום-תרגום: engine/format map,
+    Arabic-slot, logical-vs-visual bidi, font injection + atmosphere fit, identity
+    round-trip, menu-proof, ספירת UI-vs-subtitle, ה"traps" הנשכחים, נספח facts לכל מנוע).
+  - AGENT_TRANSLATION_HANDOFF_TEMPLATE.md (Phase 2 — הנחיה למלא-ב-<...> לסוכן טרי בלי
+    היסטוריה, לולאה אוטונומית + 4 helper scripts, מבוסס games/watchdogs2/agent_handoff).
+
+טריגר: כשהמשתמש אומר "מתחיל את הקרקע למשחק חדש" → להוביל Phase 1 עם ה-playbook.
+
+צורת הצינור (אותו דבר לכל משחק):
+  1. Extract: EN source (מה שמתרגמים) + Arabic skeleton (המבנה שממלאים).
+  2. Translate: EN→עברית, כתיבה לתוך מבנה ה-Arabic-slot (שמור כל tag/placeholder).
+  3. Build/pack: לפורמט המוד של המשחק.
+  4. Deploy: לתיקיית המוד של המשחק.
+  5. Publish: GitHub release + Worker manifest + Supabase games row.
+הקבצים שמתרגמים הם ה-checkpoint שניתן-לחידוש.
+
+השלב הקריטי — bidi (2 מחלקות + מקרים):
+  - LOGICAL: המנוע רץ UBA (בדרך כלל Qt/UE/ICU/cohtml/AnvilNext מודרני) → לאחסן עברית
+    לוגית טבעית, אפס קוד bidi. אנקור עם &rlm; לפי מיקומי הערבית (cohtml מתעלם מ-CSS direction).
+  - VISUAL: המנוע לא עושה bidi (מנועים מותאמים ישנים, RAGE/GTA/RDR2, Disrupt/WD2-UI,
+    Zouna/Plague Tale, Naughty Dog/TLOU, Glacier/007) → לאחסן עברית הפוכה-מראש (pre-reversed).
+    ** אף פעם לא לגלגל run-reversal ביד ** — להריץ את ה-UBA האמיתי (python-bidi) עם base RTL
+    ולהגן על tokens; hand-rolled נכון רק ל-1-char neutrals → menu-proof עובר בזמן שכל הקורפוס
+    שקט שגוי. ([[store-visual-use-real-uba]])
+  - ** אף פעם לא להפוך מילת-כיוון ** ("the left panel") ב-RTL עד שרואים אם האפליקציה
+    ממראה (mirror) את ה-layout — bidi ו-mirroring עצמאיים. ([[rtl-dont-flip-direction-words]])
+
+** menu-proof ** (הטריק הכי חשוב): לשים marker Latin (למשל "ZZ-XXX-OK-ZZ") ליד עברית +
+פונט מוזרק. צילום מסך אחד סוגר את כל ה-gates בבת אחת: (א) ה-marker מוצג = הקובץ נטען;
+(ב) עברית נקייה בלי tofu = הפונט מכסה; (ג) סדר אותיות נכון = bidi LOGICAL; (ד) untranslated
+נשאר אנגלית = fallback עובד. ה-marker הוא מה שמפריד "הקובץ לא נטען" מ"לפונט אין glyphs".
+
+** measure with a ladder ** ([[measure-with-a-ladder]]): קבוע UI שאי אפשר לקרוא מבחוץ →
+לפרוס סולם ערכים בבנייה אחת (2/3/4/5/6 NBSP, או N spaces); הערך הראשון שמוצג נכון הוא המדידה,
+ואם כולם נראים זהה זה חד-משמעי (מוכיח שהמנוף לא עושה כלום). (טריק RDR2 + SignalRGB nav headers.)
+
+** ruler string ** למדידת רוחב תיבה: שורות של בדיוק N תווים חתומות [N] בשני הקצוות; ה-N
+הגדול ביותר ששני ה-markers נשארים בשורה אחת = הרוחב השמיש. צילום אחד, בלי ניחוש.
+
+** name registry ** ([[name-registry-and-internet-check]]) — כלל קשיח לכל משחק: לבנות registry
+שמות קנוני, לאמת את האיות העברי האמיתי מהאינטרנט (Wikipedia עברית) לפני תרגום, ולאכוף אותו
+בכל שורה. (Hugo היה היוגו×203 / הוגו×155 עד שאוחד; Amicia=אמיסיה, Basilius=בסיליוס.)
+
+** gender oracle ** ([[gender-oracle-from-game-langs]] / universal/GENDER_ORACLE_ROLLOUT.md):
+אנגלית מפילה מגדר/מספר. לפתור מהמקורות הממוגדרים של המשחק עצמו: ערבית≈עברית (أنتِ/أنتَ),
+רוסית (speaker, -л/-ла), ספרדית/צרפתית/איטלקית (referent, -o/-a). universal/gender_oracle.py.
+כלל: כשלשון-אחת סוטה משאר, היא הטועה. TLOU (בלי ערבית) → RU + ES/FR by SID.
+
+** New-Era method ** ([[new-era-doctrine]]): הצי מתרגם שורה-אחרי-שורה בעזרת כל שפות המשחק
+לפי חוזק (ערבית=addressee+plural, Ru/Pl=speaker, Es/It/Fr=referent). כל שורה מוכרעת מול
+פאנל השפות של הספק, לא מהאנגלית לבד. ה-MT של הספק שגוי לעיתים קרובות (Sign Out→انقر فوق=
+"click on"; Decline→انخفاض="a decrease"; Macros→ماكرون=מקרון השם).
+
+** anti-cheat של סוכנים ** ([[parallel-agent-translation-handoff]]): merge_batch דוחה
+no-Hebrew-על-prose אמיתי (≥2 מילים lowercase; שמות/קודים/labels יכולים להישאר אנגלית),
+niqqud, foreign script, dropped-token, SKIP-על-gendered. לעולם לא לסמוך על "All done!" של
+סוכן — לסרוק את hebrew.json ל-no-Hebrew-prose אחרי כל טענת done (לקח GoWR).
+
+** QA structural (language-agnostic) **: <ts>/timing tags multiset; &rlm; iff הערבית מסתיימת
+בו; [UPPER]+{VALUE} placeholders; printf %-specs (Arabic-gated per-key); no foreign script;
+no niqqud; not byte-identical to EN. בדיקת "untranslated leak" חייבת לשתף את name/code
+passthrough של המתרגם, אחרת מתרוצצת נצח על כל שם-דמות.
+
+** QA-review multi-agent (frontier model) ** ([[qa-review-handoff]] / universal/qa_review.py):
+review→verify עצמאי adversarial. review agent מסמן רק שגוי אמיתי, מחזיר {pk,sec,new,reason}
+(לא old); verify agent שני ובלתי-תלוי שומר רק high-confidence. apply משחזר old byte-exact
+מהמקור. short-save = commit רק chunks שהושלמו. Opus/Sonnet רצפת האיכות (Haiku/Gemini-Flash
+over-flag).
+
+
+
+════════════════════════════════════════════════════════════════════════════
+חלק 6 — פירוט מלא לכל משחק
+════════════════════════════════════════════════════════════════════════════
+
+מקרא סטטוס: 🟢 GO | 🟡 GO-with-caveats | 🔴 חסום | ✅ shipped | 🔧 building
+
+────────── 6.1 Cyberpunk 2077 (id=cyberpunk) — ✅ SHIPPED, בתשלום ₪53 ──────────
+מנוע: REDengine 4 (CR2W). מוד: z_hebrew_translation.archive + z_hebrew_static.archive +
+z_hebrew_dlc.archive. Deploy דרך OpenIV-style ל-Cyberpunk 2077\archive\pc\mod\.
+Arabic-slot (ar-ar). הפעלה: Settings→Language→Interface=العربية → restart.
+מצב: משחק בסיס 99.8% (145,221/146,232), Phantom Liberty DLC 99.3%. ~120,138 מחרוזות
+עברית חיות. גרסה 1.0.0-beta.3 (פורסם). ~44,482 מתורגם / 148 open.
+מתג שפה בתוך המשחק. פוליש LQA רב-סוכני (Opus/Gemini) — ~11,926/59,291 onscreens_final
+נסקרו, 920+ תיקונים מצטברים. דו-מגדרי (femaleVariant/maleVariant לפי מגדר V):
+88.8%→95.5% clean אחרי 1,514 collapse (M=F) + 1,420 real male inflections.
+Publish keeps releases/latest stable: tag נשאר v1.0.2 (FULL release), CLOBBER assets;
+לא למטבע tag v1.0.0-beta.N (semver 1.0.2 > 1.0.0-beta.N).
+כלים: pack_cp2077_mod.py, rebuild_onscreens_and_pack.py, rebuild_subtitles_and_pack.py,
+rebuild_dlc_and_pack.py, cp2077_qa_watchdog.py, cp2077_post_pipeline.py.
+Opus weekly QA resume: universal/opus_qa_checkpoint.json (9,280) + Workflow.
+
+────────── 6.2 Marvel's Spider-Man 2 (id=spiderman2) — ✅ SHIPPED beta.6, ₪53 ──────────
+מנוע: Insomniac (TOC2/RCRA, DAT1 loc). applier native (spiderman2_mod.py) שמשחזר את
+transformation של Overstrike ב-Python (בלי Overstrike). Arabic localization variant_18.
+מצב: תרגום מלא (6,536 keys + subtitles/dialogue = 41,324). שמות קנוניים מאומתים (audit
+6-סוכני מול he.wikipedia — Lizard→הלטאה, Scorpion→העקרב canonical). עיגון RTL (opening
+quote/paren + trailing punct anchor). label "ערבית"→"עברית" בתוך המשחק. פורסם beta.6.
+בונה: 10→91→94→95→96→97→98→15→80 (BUILD_VERSION צריך bump כל rebuild). שלב 15 MANDATORY
+(patched .localization → stage). Deploy ל-4 יעדים (3 Mods Library + assets bundled).
+game-update-aware: is_applied בודק toc stat; לא משחזר גיבוי ישן מ-game update.
+cohtml: מתעלם CSS direction; empty את U+200F/U+200E glyphs ב-Heebo; אף פעם RLE/PDF.
+
+────────── 6.3 Watch Dogs 2 (id=watchdogs2) — ✅ SHIPPED beta.4 (חי), ₪53 ──────────
+מנוע: Ubisoft Disrupt, FAT5 v11. Arabic-slot (TextLanguage2=22). Text=main_arabic.loc
+(format SL, Huffman). Deploy=fat-redirect (append ל-.dat + rewrite .fat entry). הרצה עם
+EAC off: WatchDogs2.exe -eac_launcher.
+מצב: UI (19,515) + spoken subtitles (21,678) מלא. UI stored VISUAL, subtitles stored
+LOGICAL (הפוך! ה-renderer עושה bidi על subtitles). QA לשוני מלא 4-סוכני, 9,487 תיקונים.
+label "ערבית"→"עברית". font v8. פורסם beta.3.
+גוצ׳ה: WD2 יש שני full releases (beta.1 AND beta.2) → releases/latest = beta.2 → clobber
+חייב לכוון ל-beta.2. כלים: wd2_loc.py (encoder), wd2_archive.py, wd2_font.py, wd2_ui_watchdog.py.
+
+────────── 6.4 God of War Ragnarök (id=gowragnarok) — ✅ SHIPPED beta.1 (חי), ₪53 ──────────
+(הערה: CLAUDE.md תיעד "חינם"; הקטלוג החי מראה priceCents=5300. המחיר admin-editable ושונה אחרי הפרסום.)
+מנוע: Sony (LZ4 frame → WAD/WTOC → MSGS_TXT). Arabic slot רשמי (r_lang_ar.wad).
+מצב: 100% (48,886 + 313 Arabic-only + 591 full-English + 336 more = כל השורות). Font=David
+Libre Bold מוזרק (gowr_font.py — measure-driven: ink density + midtone match). delta>0
+crash תוקן (256-align delta + shift SMF 43-46 entries +0x78). English raised to match Hebrew
+(pack_boxes packer, NPAD=3, atlas neighbour-bleed fix). label "ערבית"→"עברית".
+applier native (gowr_mod.py) — swap קובץ יחיד, game-update-aware. פורסם beta.1.
+מתג שפה לא feasible (binary userpreferences, checksummed — סיכון corruption).
+פתוח: 59 mixed HE+Latin entries (bestiary glosses, לא באגים). Community pool 48,886, 0 open.
+
+────────── 6.5 Anno 1800 (id=anno1800) — ✅ SHIPPED beta.1, בתשלום ₪53 ──────────
+מנוע: Ubisoft Mainz "Anno", RDA V2.2. Text=texts_english.xml (NO Arabic → LTR-slot hijack).
+Font=inject Hebrew ל-TTFs loose (anno_font.py, Frank Ruehl). Deploy=loose-file mod ל-
+Documents\Anno 1800\mods\ (מנגנון mod loading מובנה, בלי DLL). HUD non-bidi → VISUAL.
+מצב: 100% (27,300 + 865 skip = 28,165). 5 סוכני Google ברצף. פסיקה B: English + toggle
+פעם אחת (cold-boot broad atlas gated על שפת CJK בתוך exe מוגן — לא ניתן לשנות בלי לגעת בטקסט
+web/news). המוד ממלא כל 5 slots (chinese/taiwanese/japanese/korean/english). label ב-slot
+correction. **פתוח**: הזיפ החי עדיין שולח CreatorName=nehorayc04 לשחקנים (צריך rebuild מוד).
+לשחזר 189 מודי mod.io כשמסיימים בדיקה. wrangler deploy של slug anno1800-hebrew (אופציונלי).
+
+────────── 6.6 Grand Theft Auto V Legacy (id=gtav) — ✅ SHIPPED beta.2, בתשלום ₪53 ──────────
+מנוע: RAGE, GXT2 בתוך RPF7. NO Arabic → hijack English (American) slot + VISUAL. Font
+מוזרק (font_lib_efigs Scaleform). Deploy דרך OpenIV mods folder (עריכות game-file אמיתיות
+מפעילות anti-tamper ERR_GEN_INVALID). מצב: 100% (91,480 מחרוזות). EXIT→"צא", "Story Mode"→
+"מצב עלילה". פורסם beta.2 (repo public, download ישיר).
+** OpenIV-free launcher install ** (rpf7_writer.py + gtav_mod.py — read-modify-write של mods
+RPF, לא פוגע במודים אחרים byte-exact; תיקון resource-flag bit-63 קריטי). 2 תרחישים:
+A (יש mods folder + loader) — פרוד; C (clean install) — חסום על NG-key rotation של Legacy-2025
+(רק OpenIV מחזיק את המפתחות פעם אחת). remove surgical (swap ל-vanilla in-place).
+** מוסתר מהלאנצ׳ר בכוונה ** (show_on_launcher=false, אף אחד לא קנה).
+
+────────── 6.7 Witcher 3 (id=witcher3) — ✅ פורסם + זמין (חי), ₪53 ──────────
+** מצב חי מנוגד ל-CLAUDE.md: witcher3 = availability=available, version 1.0.0-beta.1, ₪53,
+  onLauncher+onWebsite=true. כלומר ה-Worker slug + Supabase row + הפרסום כבר בוצעו (לא
+  "publish-gated / 404 / coming-soon" כמו שכתוב ב-CLAUDE.md). התרגום הושלם ופורסם. **
+מנוע: REDengine 3, .w3strings ("RTSW" v163). Arabic slot = CLEARTEXT (keyID 0), str_id
+shared, bidi=VISUAL, font כבר מכסה עברית (proof PASSED). ~94,377 str_ids. Deploy ל-
+Mods\modHebrew (בלי repack, בלי anti-cheat). הפעלה: Options→Text Language=Arabic.
+מצב: applier native (witcher3_mod.py) מריץ install.py של המוד in-process. GitHub release
+v1.0.0-beta.1 (FULL, zip 3,842,202 B, sha 38d7db64…). Community pool 92,829, 0 open.
+** תרגום ** רץ על vm5 (New-Era worker) — 1,596 שורות אחרונות עדיין ערבית, מתורגם מהערבית
+הנקייה (EN מקורי XOR-corrupt ב-1,439). font David עובד in-game.
+CHASE: מוד ל-LOOSE FILES + double-click התקנה.bat (בלי exe/GUI). ([[witcher3-installer-packaging]])
+BLOCKERS פרסום: slug witcher3-hebrew 404 (בקוד, לא deployed); Supabase row coming-soon/locked.
+מתג שפה kind:"ini" (user.settings [Localization] TextLanguage=AR, VoiceLanguage לא נגוע).
+
+────────── 6.8 Hogwarts Legacy (id=hogwarts) — 🟢 GO, gates סגורים; launcher READY ──────────
+מנוע: UE4 "Phoenix". Pak V11 unencrypted + repak (trumank/repak). Text=MAIN/SUB .bin
+("AVAFDICT 2.0", codec hl_bin.py — טריוויאלי, בלי compression/encryption/delta-0). arAE 100%
+key match, ~53,844. UE יש ICU bidi native → LOGICAL, אפס קוד bidi (proof PASSED). Font vanilla
+כבר מכסה עברית. Deploy=additive ~mods pakchunk (pakchunk0 לא נגוע). applier native (hogwarts_
+legacy_mod.py) READY-and-waiting. Community pool 53,810, 0 open. gender source מוכן.
+מצב: publish-gated (הכל coming-soon עד שיפורסם). price=0 עד שהופך available (אחרת חינם לכולם).
+
+────────── 6.9 Plague Tale: Requiem (id=plague-tale-requiem) — 🟢 GO; מוד BUILT LOCAL ──────────
+מנוע: Asobo Zouna. Text=loose TRTEXT/tt23.pc (Arabic slot, plain text KEY=value). Deploy=
+overwrite (בלי repack). bidi=THIRD class (RTL positioning בלי bidi reorder — VISUAL, LTR islands
+pre-reversed). Font=David Libre Hebrew מוזרק ל-FONT/ENGLISH.DPC (bitmap atlas, proof PASSED).
+מצב: תרגום 100% (17,964/17,964) + gender review 100% (785 inflection fixes). מוד מלא נבנה מקומית,
+לא deployed לא published (שני gates). Fleet (7 streams NIM) הריץ; name consistency (Hugo→הוגו).
+applier native (plague_tale_requiem_mod.py) READY. is_applied דורש content match (לא bare backup).
+
+────────── 6.10 The Last of Us Part I (id=tlou1) — 🟢 GO medium, proof PASSED ──────────
+מנוע: Naughty Dog. PSARC v1.4 Oodle reader + surgical repacker (pure Python). loc-v2 codec
+(tlou_loc.py, SID-mapped, SURGICAL encode — append-only, לא rebuild). NO Arabic → English-slot
+hijack + VISUAL. Font=REPLACE עם Heebo (DINPro=CFF, glyf-inject no-op). Deploy=PSARC repack
+(loose override לא עובד). ~33.8k. proof PASSED (bidi=VISUAL confirmed). Community pool 32,881.
+מתג שפה: Options→Text+Subtitles=English. gender oracle מ-RU/ES/FR. Phase 2 = delegate.
+
+────────── 6.11 The Last of Us Part II (id=tlou2) — 🟢 GO medium, proof PASSED ──────────
+מנוע: Naughty Dog (כמו Part I). DSAR→PSARC→pak reader (tools/dsar.py). loc IDENTICAL ל-Part I.
+NO Arabic → English-slot + VISUAL + Heebo. ~43,786. Deploy=plain PSARC STORED blocks ב-mods\
+דרך ndmodloader (לא זליב! ndml מותקן). proof PASSED (mod MOUNTS, bidi=VISUAL, Heebo renders).
+CRITICAL FIX: tlou_loc.encode MUST be SURGICAL (append-only, בשני המשחקים — bug זהה latent).
+Community pool 42,246, 0 open. agent handoff READY (build_mod.py). NOT published (gated).
+
+────────── 6.12 Ratchet & Clank: Rift Apart (id=ratchet-rift-apart) — 🟢 GO medium ──────────
+מנוע: Insomniac (TOC2/RCRA — reuse SM2!). loc IDENTICAL ל-SM2 (9 section tags, 24,575 entries).
+NO Arabic → LTR English hijack. spiderman2_mod.py applier works AS-IS (adversarially verified).
+Font=inject Proxima Nova (מוזרק, 27/27 Hebrew). menu-proof BUILT + deployed (ממתין screenshot).
+scope: UI 7,521 + subs 10,033 = 17,554. bidi: menu-proof decides (LOGICAL+RLM prior).
+
+────────── 6.13 Red Dead Redemption 2 (id=rdr2) — 🟢 GO; Phase 1 COMPLETE ──────────
+מנוע: RAGE, RPF8 (encrypted+Oodle). Deploy צריך NO RPF crack — LML loose-file override (plain
+KEY=value text, misnamed *.gxt2). bidi=VISUAL (85:1 presentation vs standard). Font=BUILT (+27
+Hebrew ל-18 faces Scaleform GFX). menu-proof #1-#7 PASSED in-game (mount+font+RTL+punctuation+
+justification). 231,993 keys. proofs פתרו: long paragraph auto-wrap (pre-wrap עם ~n~), neutral
+run mis-placement (rdr2_rtl.py = python-bidi UBA), proportional font metrics (rdr2_metrics.py —
+real advances, balanced wrap, measured space=58 units), FULL JUSTIFICATION (match surrounding).
+** CROSS-GAME **: GTA V ships אותו visual_line → כנראה carries אותו punctuation defect; audit לפני release.
+English corpus SOLVED 93.9% (cedricalpatch public dump, hash-keyed). LINE REPORT: subtitles/
+dialogue 158,720 + UI 59,038. Phase 2 = delegate ~218k.
+
+────────── 6.14 Assassin's Creed II 2009 (id=ac2) — 🟢 GO; UI Hebrew RENDERS ──────────
+מנוע: Scimitar v25 (.forge). NO Arabic → LTR-slot hijack (English). Text=char-INDEX serialization.
+Font=DDS bitmap atlas (inject Hebrew לover unused Latin, Persian-patch style). RTL=no engine bidi
+→ VISUAL. AnvilToolkit decompiled → format ב-FORMAT.md (pure Python repack, בלי GUI).
+מצב: UI Hebrew RENDERS correctly in-game (native size/weight, RTL). Font=Levenim MT (aspect match).
+THE SOLID-BLOCK PROBE (reusable): paint carrier cells solid → measure advance/scale. atlas fringe
+bleed fix (clear ring outside all blob bboxes). uniform pixel ascent. תרגום רץ vm3+desktop (New-Era,
+9 oracle langs, 10,003 lines). PARKED follow-ups: accented cells, pause/options menus.
+
+────────── 6.15 Assassin's Creed Unity (id=acunity) — 🟢 GO; TEXT PROVEN in-game ──────────
+מנוע: Scimitar v27 (.forge). HAS Arabic slot (subs real ~204KB / UI stub). Text=char-index u16
+STORED. codec acu_loc.py (0 mismatches). Deploy=append-relocate בתוך forge (בלי re-serialize).
+LZO Adler-32 checksum = read-and-discard. TEXT PROVEN in-game (Hebrew renders, boot חי אחרי
+תיקון content[4]=field2 + patchlevel). ~8,999 UI + subs. bidi=VISUAL. FONT GATE: runtime UI
+font=Scaleform (GFx SWF DefineFont), NOT embedded TTF (proven — remapping TTF glyphs שינה כלום).
+NEXT: locate UI GFx resource → inject Hebrew SWF glyph shapes (reuse Witcher 3 swf pipeline).
+
+────────── 6.16 AC Shadows (id=ac-shadows) — 🔴 חסום על repacker v42 ──────────
+מנוע: AnvilNext (scimitar v42 .forge). HAS Arabic (text-only). Font כבר מכיל 52 Hebrew glyphs!
+Oodle-Kraken chunks. **קריאה מלאה נסגרה** (container+bundle-names+catalog+chunks+SuperBundle
+cracked pure Python; Oodle via borrowed oo2core_9). Loc format=literal UTF-16LE (LocalizationPackage
+class hash 0x6E3C9C6F, Mermaid, LangID23, bidi LOGICAL, in-place exact_fill). **TEXT PROVEN in-game**
+(Arabic RTL setup screen). 15,997 EN שורות הועלו ל-/translate. Deploy via patch_01 forge.
+CHASE: repack v42 — רק AnvilToolkit BETA (Discord-gated, לא ניתן bundle). ([[acs-shadows-text-solved-font-gate]])
+
+────────── 6.17 AC Black Flag Resynced 2026 (id=acblackflag) — 🟡 GO-with-caveats ──────────
+Remake 2026 (Anvil כמו Shadows). scimitar v50 forge + char-index loc CRACKED (בלי כלי קהילה).
+Arabic slot (UI 11k + subs 5.3k) = Hebrew target. **Denuvo present** (VMProtect .vmp0-3 —
+first AC בפרויקט; מגן על CODE לא asset archives). Font AvenirNextWorld כבר עם 27 Hebrew.
+Activation lever = registry string HKCU\...\Language=ar-AA. ([[acbf-resynced-v50-cracked]])
+
+────────── 6.18 007 First Light (id=007-first-light) — 🟢 GO; PROVEN in-game ──────────
+מנוע: Glacier (Hitman engine). RPKG v2 ("2KPR") CRACKED (gl_rpkg.py). Text=LOCR/DLGE/CLNG,
+XTEA-encrypted (007-specific key). NO Arabic → LTR-slot hijack. Deploy=append-relocate ב-chunk0
+(patch-RPKG format crashes boot — dead end). bidi=VISUAL (מ-Arabic mod libs). Font=inject
+Scaleform GFXF (~510KB SIZE LIMIT — inject רק face שמרנדר, Arya-only PROVEN). **Hebrew renders
+in main menu, correct RTL, PROVEN.** DLGE subtitles CRACKED. Community pool 25,311, 0 open.
+NEXT: map GFXF face per context → minimal inject; delegate ~25.3k.
+
+────────── 6.19 Until Dawn 2024 remake (id=until-dawn) — 🟢 GO; proof PASSED ──────────
+מנוע: UE5 "Bates". Pak V11 unencrypted (כמו Hogwarts) + repak. Text=Unreal LocRes format (public,
+UnrealLocres port ud_locres.py). NO Arabic → LTR-slot hijack. Font=.ufont cooks כ-bare TTF/OTF
+(inject/replace, ud_font.py). bidi=LOGICAL (UE ICU). ~12,689 entries. proof PASSED (en slot loads
+at DEFAULT, bidi LOGICAL, font renders). Phase 2 = delegate.
+
+────────── 6.20 Ghost of Tsushima DC (id=tsushima) — 🟡 GO; font gate ──────────
+מנוע: Sucker Punch/Nixxes. Container=DSAR→PSARC (IDENTICAL ל-TLOU2). Text=xpps KCAP codec,
+Arabic slot LOGICAL. ~36k. Deploy=EDIT gapack_misc_l IN PLACE (added override psarc crashes boot).
+proof: marker RENDERS (override loads + Latin/Arabic work); Hebrew=TOFU. **FONT GATE**: fOnk
+compressed VECTOR font (NOT TTF/DDS) בתוך game.sprig.texmeshman, אין Hebrew glyphs. NEXT: crack
+fOnk glyph-injection. ([[tsushima-groundwork]])
+
+────────── 6.21 Plague Tale: Innocence (id=plague-tale-innocence) — תיקייה ריקה ──────────
+תת-תיקייה קיימת אבל ריקה (רק אמנות/placeholder). לא הותחל.
+
+────────── 6.22 Battlefield 6 (id=battlefield6) — 🟡 GO-with-caveats ──────────
+מנוע: Frostbite (ראשון בפרויקט). .toc+cas CRACKED (bf6_toc.py, pure Python — NOT encrypted,
+556-byte offset). bundle names Huffman CRACKED. catalog/DbObject CRACKED. CASBundle byte layout
++ chunks + SuperBundle CRACKED (4 continuation passes). Arabic locale confirmed (ArabicSA ×3).
+**BUT** התרגום עצמו בפורמט undocumented (dedicated loc subsystem — 0 hits ב-9,871 bundles).
+EA AntiCheat רץ. write/repack/deploy NOT attempted. צריך RE עיוור נוסף. שיטה=static analysis
+של FMT (Frostbite Modding Tool) decompiled, זירו הרצה.
+
+────────── 6.23 Steam UI (id=steam) — ✅ SHIPPED 2026.05.20 ──────────
+Arabic-slot hijack ב-Steam client + Big Picture. 8 קבצים (4 JSON bundles + 4 VDF), 15,946
+מחרוזות, 98.03% עברית. GitHub repo steam-hebrew-mods (private), Worker steam-hebrew-mods
+(live). applier steam_apply.py + steam_mod.py. VDF=UTF-8 BOM (לא UTF-16). Steam ships Arabic
+רק ל-4 JSON; 4 VDF פורים שלנו. **המשחק "Steam" נמחק מקטלוג התוכנות** (המשתמש ביקש) — steam_mod.py
+inert אבל בקוד.
+
+────────── 6.24 VirtualDJ / Borderless Gaming / SignalRGB — ראה חלק 7 (תוכנות) ──────────
+
+
+
+════════════════════════════════════════════════════════════════════════════
+חלק 7 — תוכנות (Software)
+════════════════════════════════════════════════════════════════════════════
+
+בלאנצ׳ר יש tab "ספרייה" עם 2 תת-פריטים: משחקים + תוכנות. באתר: nav "תוכנות" משמאל ל"משחקים".
+
+────────── 7.1 VirtualDJ 2026 build 9482 (id=virtualdj) — ✅ SHIPPED, ₪15 ──────────
+תוכנת DJ של Atomix. Text=embedded languages.zip בתוך virtualdj.exe (12 XML incl Arabic slot).
+codec vdj_lang.py (carve/parse/build_hebrew, round-trip). 3,894 מחרוזות, 18 sections. Arabic-slot
+hijack (Languages\Arabic.xml override). **תרגום 100%** (agent Google + Claude override). bidi FIX:
+wrap כל שורה ב-RLE(U+202B)…PDF(U+202C) — mixed Hebrew+Latin mis-render; RLM ignored; visual-reverse
+WRONG (engine shapes RTL within-word). menu-proof PASSED in-game. font ZERO work. applier native
+(virtualdj_mod.py, cloud-first). מתג שפה kind:"xmltag". Deploy ל-%LOCALAPPDATA%\VirtualDJ\Languages\.
+GitHub virtualdj-hebrew-mods (public), Worker virtualdj-hebrew (deployed).
+
+────────── 7.2 Borderless Gaming (id=?) — ✅ PUBLISHED free, launcher applier DONE ──────────
+כלי borderless-window/upscaler (.NET + Avalonia). Steam appid 388080. **הכי קל בפרויקט: אין
+container**. Text=loose languages/<code>.json (plain UTF-8, CRLF). codec bg_lang.py (identity
+30 files). 343 מחרוזות. **ADD real he-IL** (לא Arabic hijack — הבורר scanned). Deploy=file אחד
+ל-%APPDATA%\coreutils\borderless-gaming\languages\he-IL.json (install folder לא נגוע — Steam
+verify לא הופך). bidi=LOGICAL (Avalonia UBA), font FREE (system fallback). **תרגום 100%** (337
+translated + 6 Latin). New-Era. **SECOND surface**: effect editor — 720 strings בתוך 107 .slang
+shaders. THE MECHANISM: patch את cache/effects/*.bin (.NET BinaryWriter, validity=SHA of SOURCE)
+→ סקיפ את broken JSON reflection stage. ([[patch-the-compiled-cache]]) 535 strings across 106 effects
+DONE. **PUBLISHED FREE** (GitHub borderless-gaming-hebrew-mods v1.0.0-beta.1, Worker deployed,
+Supabase price_cents=0). applier native (borderless_gaming_mod.py). software_detector.py קיבל
+Steam-library detection אמיתי.
+
+────────── 7.3 SignalRGB (id=signalrgb) — ✅ PHASE 2+3 COMPLETE, BUILT+DEPLOYED LOCAL ──────────
+תוכנת RGB (Qt 6 + QML). Text=8 Qt .qm files בתוך SignalRgb.exe qrc (uncompressed+unencrypted, אין
+disk override — ה-exe הוא ה-deploy target). codec qm.py (rebuilds all 8 BYTE-FOR-BYTE — block order
+Language/Hashes/Messages/Contexts/NumerusRules/Dependencies; Hashes block REQUIRED). Deploy=delta-0
+in-place patch (NUL-pad ל-226,603 bytes over the Arabic .qm). NO Hebrew locale → Arabic-slot hijack
+(العربية among ~20 locales). Activation=registry HKCU\...\SignalRgb\UI\Locale=ar. 1,838 strings.
+** SIZE TRAP + LEVER **: Arabic .qm ממלא בדיוק; minimize prefixes משחרר 41% (Comment/SourceText/Context
+= VERIFICATION בלבד, lookup by elfHash). ** MISLABELED .qm ** — הקובץ שמשרת Traditional Chinese מכריז
+ru_RU! → detect by SCRIPT לא Language tag (UNIVERSAL for Qt). menu-proof PASSED in-app (bidi LOGICAL,
+font free, layout NOT mirrored). **תרגום 100%** (1,838, New-Era, 13 batches). ** PHASE 3 — .qm לא כל
+האפליקציה **: Macros page = 47 loose .js (this.Name/Description/Options[].label — codec macro_scripts.py,
+142 strings — combobox values=CODE KEYS, translate labels only). language picker native name = C string
+literal ב-exe (delta-0 patch → "עברית"). RTL nav headers clip → NBSP LAYOUT_PAD (measured with ladder,
+4 NBSPs). ** OUT OF REACH **: Fan-Curve dialog + Macros CHROME (code-generated runtime, לא בקובץ).
+BUILT+DEPLOYED local, NOT published. פרסום צריך installer שמכסה גם exe slot patch וגם Macroscripts.
+
+
+
+════════════════════════════════════════════════════════════════════════════
+חלק 8 — מערכת התרגום הקהילתי (/translate)
+════════════════════════════════════════════════════════════════════════════
+
+תרגום מיקור-המונים כדי שמשתמשים לא יתרגמו כל משחק לבד. הצוות בונה את השלד (Arabic-slot + font +
+repack + deploy), והעבודה הכבדה שנשארת — תרגום השורות — היא crowdsourced.
+
+DB (Supabase, 4 tables/views):
+  translation_strings — source-of-truth (game_id, string_key=spine pk, source_en, current_he,
+    context, char_limit, section, order_index, status, soft claim, approved_text).
+  translation_submissions — הגשות (string_id, user_id, hebrew_text, author_name, status, auto_qa).
+  translation_progress + translation_contributors (leaderboard aggregate, name לא email).
+
+pipeline bridge: universal/community_translate.py — import/export/stats. contract = strings file
+מנורמל. export = {string_key: approved_text}.
+
+מודל: PUBLIC + attributed (name+avatar, לעולם לא email), admin-gated edits, version history.
+StringCard states: VIEW/EDIT/HISTORY. filter all/open/translated. contributors מתרגמים token-FREE
+(analyzeSource → peel boundary tokens; inline tokens = palette כפתור).
+
+repair guard-dogs: (1) server deterministic — cleanHe() strips niqqud/zero-width, accept as pending
+עם auto_qa flags, לעולם לא hard-reject (רק תא ריק). (2) local LM watchdog (community_qa_watchdog.py)
+— pull pending needs_repair, rewrite, re-validate, PATCH back.
+
+** LESSON ** ([[community-translation-model]]): source_en ו-current_he חייבים לבוא מאותו id-mapping
+(ה-loc האותנטי), אף פעם לא שתי חילוצים עצמאיים — אחרת כל שורה mis-paired (WD2: 73% source_en שגוי).
+
+** קטגוריות ** ([[community-pool-by-category]]) — כלל: pool מועלה עם קטגוריות עבריות; get_batch משרת
+לפי visibility (ממשק→עלילה→רקע); TLOU2=ref.
+
+Pools חיים (unique rows / open): cyberpunk 44,482/148 · hogwarts 53,810/53,810 · gowragnarok
+48,886/0 · witcher3 92,829/0 · watchdogs2 19,419 · anno1800 56,087/0 · tlou1 32,881/32,881 ·
+tlou2 42,246/42,246 · 007-first-light 25,311/25,311 · ac-shadows 15,997/15,997 · plague-tale-
+requiem (via fleet) · הרבה עם gender hints ב-context.
+
+
+
+════════════════════════════════════════════════════════════════════════════
+חלק 9 — אוטומציות, orchestration, וה-NIM fleet
+════════════════════════════════════════════════════════════════════════════
+
+──────────────────────────── 9.1 orchestration/ (control plane) ────────────────────────────
+
+שכבת ניהול עליונה מעל כל משחק וכל פרופיל, כדי שהמפתח (נהוראי) ינהיג את כל המבצע רב-הסוכני ממקום אחד.
+docs: orchestration/README.md. **הצ׳רטר = orchestration/DOCTRINE.md** (READ FIRST — לסיים עד הסוף,
+כוח מלא על בעיות קשות, לחתוך מהר על dead-ends/טריוויה, בלי קיצורי-דרך חלשים, double-check הכל /
+לעולם לא לסמוך על "done" של סוכן, model elite לכל role).
+
+החלטות (המשתמש, AskUserQuestion):
+  - Brain = סשן MAX Claude Code בודד. מחזיק state, מייצר הנחיות, מנתב. PRO + Google/Antigravity
+    agents רק מבצעים.
+  - Delivery = one-liner file pointer. ה-brain כותב הנחיה מלאה לקובץ; המשתמש מדביק שורה אחת לכל
+    agent (`קרא <file> ובצע`). דורש repo folder פתוח בכל פרופיל Antigravity.
+  - Roles: MAX = orchestrate + launcher/site כבד · PRO = overflow · 3-5 Google agents = translate/QA.
+  - Full-auto עם 3 hard gates. אוטומטי בלי לשאול: instruction generation, output merge + QA
+    מבנית, shared-rule updates, board refresh. דורש OK מפורש: (1) פרסום מוד, (2) shipping לאנצ׳ר,
+    (3) מחיקה/דריסה של קבצי משחק אמיתיים.
+  - Initiative = propose + wait.
+
+Command vocabulary (COMMANDS.md): מצב/status, תרגם/translate <game> <N>, בקר/qa <game> <N>,
+מזג/merge <game>, בנה/build, פרסם/publish 🔒, שגר לאנצ'ר 🔒, כלל/rule "<text>", חדש/new <game>,
+המשך/continue (PRO).
+
+Files: MISSION.md (הluach שהמשתמש פותח — auto-generated), state.json (source of truth),
+RULES.md (כללים חוצי-משחק), HANDOFF.md (MAX→PRO), orchestrate.py (board/status/set/dispatch).
+regenerate: `python orchestration/orchestrate.py board`.
+
+──────────────────────────── 9.2 NIM fleet (תרגום מבוזר) ────────────────────────────
+
+([[nim-fleet-game-queue]]) — 7-stream NIM fleet: desktop+laptop+VM1-5, IP+key ייחודי לכל,
+SSH פורטים 2222-2226. Queue: CP2077→W3→PT. כל VM מריץ NIM worker (למשל w3_nim.py, pt_nim.py).
+prompt לכל משחק, STRUCT tokens preserved, stores LOGICAL (RTL נבנה ב-BUILD לא worker).
+selfheal_*.ps1, scheduled tasks (hidden.vbs), progress pusher (60s → /api/admin/progress).
+reslice_split.py + reslice_deploy.sh למחלק מחדש כשמשאב עסוק. NIM free-tier throttles keys
+(0.27-8 tok/s) → fast-finish = agent handoff.
+
+** fleet QA/gender hardening ** ([[fleet-qa-review-hardening]]): SAFE inflection-only merge guard
+(scaffold+tokens+word-lev≤3), PID-lock singleton worker, heartbeat-mtime heal, cp1255-safe detached
+launch, Scheduled-Task persistence, "disabling a task ≠ killing running instances", Tailscale off-LAN.
+
+──────────────────────────── 9.3 Audit infrastructure ────────────────────────────
+
+universal/ — continuous_audit_loop.py (LM Studio judge qwen2.5-32b, self-healing), get_next_audit_
+batch.py (read-only batch fetcher + flag-logger + dashboard), classify_flags.py (NO-AI false-positive
+filter), smart_filter_queue.py (NO-AI source pre-filter), progress_monitor/ (universal TUI).
+sidecars: cross_audit_*.json, audit.lock.
+
+** מדד איכות ** (2026-06-11): audit local-32B הוא poor (precision ~32%, recall ~23%). רצפת האיכות
+= Claude Sonnet 4.6 (Haiku/Gemini-Flash over-flag). audit STOPPED, flags cleaned deterministically
+(512 real defects). deterministic sweep (deep_scan_deterministic.py) מצא 503 defects בלי AI.
+
+audit watchdog false-kills תוקן: per-row mtime heartbeat (מנתק "slow" מ-"hung"), max_tokens 300→160,
+REQUEST_TIMEOUT 90→180s, LM Studio --parallel 4→1 (audit serial, 8192 ctx מלא לכל request).
+
+──────────────────────────── 9.4 progress monitor + push ────────────────────────────
+
+<game>_progress.py — 60s loop → POST /api/admin/progress (MONITOR_TOKEN מ-.env) עם {gameId, phase,
+processed, total, meta.alive, aiModel, gpuModel}. homepage pickActiveSnapshot מציג את הטרי (>2h stale
+מסונן). gameId חייב להתאים Supabase games.id.
+
+** שיטת תרגום שינתה ** (2026-07-01): progress_snapshots ב-DB עדיין הציגו gemma-4/RX-9070 → PATCH כל
+שורה ל-ai_model='Google Gemini', gpu_model=''. הדשבורד קורא מ-DB לא מקוד.
+
+──────────────────────────── 9.5 אוטומציות נוספות ────────────────────────────
+
+- claude_suggest.py ([[claude-news-suggestions]]) — כלל: אחרי כל שינוי site/launcher, לכתוב הצעות
+  news current-state (source='claude') ל-admin. וגם מדי פעם כשיש משהו ראוי-לפרסום (מוד/גרסה/משחק חדש/
+  תיקון בולט/milestone) — proactively, בלי לחכות שיבקשו.
+- run hidden ([[run-hidden-no-popups]]) — כלל קשיח: כל bg/scheduled/loop רץ HIDDEN (hidden.vbs/
+  pythonw/run_in_background), לעולם לא לפתוח חלון terminal.
+- simple_auto_check.py ([[auto-simple-check]]) — טריגר "תעשה בדיקה אוטומטי" → final-letter/mixed-
+  script/niqqud/foreign, ולשפוט כל אחד.
+- rtl_anchor.py — anchor_value() משותף (leading opener + trailing punct per <ts>).
+
+
+
+════════════════════════════════════════════════════════════════════════════
+חלק 10 — אבטחה
+════════════════════════════════════════════════════════════════════════════
+
+audit אבטחה מקיף (2026-07-01, 5 surfaces, adversarial subagents + אימות עצמאי). פסיקה: אין חורי
+account-takeover/payment-forgery קריטיים. PayPal money path solid (amount+currency מאומת מול capture,
+replay חסום unique index, IDOR חסום RLS+service-role, owns_game fail-closed). 2FA admin נאכף server-side.
+
+תיקונים ([[hub-security-hardening]]):
+  - M1: raw user_id (auth UUID) exposure סגור בשתי שכבות (isMine computed server-side + DB revoke).
+  - M2: password change דורש re-auth.
+  - L2: launcher boot-ping rate-limited. L3: admin MFA fails CLOSED. L4: rate-limiter fail-closed
+    על writes רגישים. L5: signup לא מאשר קיום email. L7: public buckets content-type-locked.
+    L6: MOD_PROXY_BASE HTTPS+host-pinned.
+  - M4: Supabase auto-grants anon SELECT לכל טבלה חדשה → RLS-on-every-table הוא הרשת. 100% מהטבלות
+    anon-readable יש RLS enabled.
+
+** SECURITY_AUDIT_2026-06-14.md ** — 23 findings, launcher self-update hardening (SHA-256 mandatory
++ HTTPS host allowlist), GUI-freeze fixes, cache race, PayPal capture verification, rate-limit IP.
+
+** resilience audit ** (RESILIENCE_SCROLL.md, 1,082 scenarios) — ~95% resilient. site wrapped ב-safe()
++ ErrorBoundary + lazyWithRetry; launcher ב-catch-all + fallbacks + atomic writes.
+
+לא נעשה (צריך cert): Authenticode signing של ה-installer → SmartScreen "Unknown publisher".
+
+
+
+════════════════════════════════════════════════════════════════════════════
+חלק 11 — כלים ותשתית
+════════════════════════════════════════════════════════════════════════════
+
+──────────────────────────── LM Studio (מקומי, כרגע לא בשימוש לתרגום) ────────────────────────────
+
+חומרה: Ryzen 5 5600X, RX 9070 (RDNA4, gfx1201, ~16GB VRAM, runtime Vulkan — NOT ROCm על RDNA4).
+מודל 31B (~20GB) SPILLS ל-RAM → ~1-2 tok/s. חייב serial --parallel 1. reload: attrib -R
+%USERPROFILE%\.lmstudio\.internal /S /D → lms load <model> -y --gpu max --context-length 8192 --parallel 1.
+hang signature: STATUS=GENERATING דקות בלי output. recovery: kill client FIRST → unload --all → probe.
+מאזין 0.0.0.0:1234 (נגיש מהרשת). שני מודלים: qwen2.5-32b (GPU, ביקורת), qwen2.5-1.5b (CPU, הודעות).
+
+** שני killer gotchas ** (עלו 10 שעות ב-SM2): (1) UTF-8 stdout — child בלי PYTHONIOENCODING מקבל
+cp1255 → print עם →/…/emoji זורק UnicodeEncodeError והורג בשקט. תמיד sys.stdout.reconfigure(utf-8)
++ env PYTHONIOENCODING=utf-8. (2) reload-while-busy — לעולם לא unload/load בזמן client תלוי, ולא
+unload MODEL על hung → unload --all אחרי kill client.
+
+──────────────────────────── WolvenKit (CP2077) ────────────────────────────
+
+WolvenKit CLI 8.17.4 ב-…AppData\Local\Programs\WolvenKit-CLI\. extract/serialize/deserialize/pack.
+CR2W (REDengine 4). subtitle keys by stringId, onscreens by primaryKey. TOC entries ordered by
+md5(path) ASCENDING (bug שנכשל: positional mapping מפתה text→random audio).
+
+──────────────────────────── Fonts ────────────────────────────
+
+טכניקות injection לכל class: fontTools glyph-merge (TTF/glyf — Anno/GoWR/W3), REPLACE (CFF/PostScript
+— TLOU DINPro→Heebo), DDS bitmap atlas (SM2/WD2/AC2), Scaleform SWF DefineFont (GTA/W3/AC Unity/007),
+Zouna bitmap atlas (Plague Tale), fOnk vector (Tsushima — לא נפתר), .ffd+FTX (WD2).
+** inject כל face ** ([[font-inject-every-face]]): font resource יש MULTIPLE faces; inject רק אחד →
+SOME elements tofu (הפיצול הזה = החתימה).
+FFdec (Free Flash Decompiler) 26.2.1 ל-swf2xml/xml2swf. texconv.exe ל-DDS. Pillow ל-DXT5.
+
+──────────────────────────── פרסום + version sync ────────────────────────────
+
+4 surfaces שחייבים להסכים: Supabase games, mod_version_history, GitHub release manifest.json,
+GitHub release zip (sha256 חייב להתאים). ** manifest.archive_name הוא contract קשיח ** ([[mod-manifest-
+archive-name-contract]]) — Worker asset lookup + mod_source; W3 packer כתב 'archive' → /archive 502
++ fetch_manifest reject; Worker normalize archive_name ||= archive.
+
+publish_version.py <game> <ver> --stage <s> --sha --size --archive-url --apply — DRY-RUN preview →
+--apply כותב games + mod_version_history. keep releases/latest stable, CLOBBER assets (לא lower semver tag).
+
+** mod price = ₪53 ** ([[mod-price-53-default]]) — כלל קשיח: כל מוד לאנצ׳ר price_cents=5300, נקבע
+AT PUBLISH (כותר שהופך available ב-0 = חינם לכולם). חריגות: VirtualDJ ₪15, Borderless Gaming חינם.
+
+** no bundled mods, server-first ** ([[no-bundled-mods-server-first]]) — כלל קשיח: אין payload מוד
+ב-installer; כל מוד יורד מה-Worker ל-launcher cache. installed-marker חייב להיות content-evidence,
+לא "backup נלקח פעם" ([[installed-marker-must-be-evidence]]).
+
+Read live Windows files ([[read-live-windows-files-powershell]]) — MSYS stat/tail/cat משקרים על mtime+
+content; PowerShell (Get-Item/Get-Content -Tail).
+
+Cloudflare Worker: steam_mod_worker/src/index.js (REPOS map slug→GitHub). redeploy: cd games/steam/
+steam_mod_worker && npx wrangler deploy (needs CF token). GitHub org = hebrew-translation-hub (repos
+transferred from user nehorayc04; שני השמות מתפענחים, לא לשחזר rename). ([[github-org-hebrew-translation-hub]])
+
+
+
+════════════════════════════════════════════════════════════════════════════
+חלק 12 — אזהרות, חסימות ו-gotchas אוניברסליים
+════════════════════════════════════════════════════════════════════════════
+
+- Oodle codec ([[oodle-codec-is-byte1-not-byte0]]): byte0=0x8C = "Oodle LZ"; ה-compressor האמיתי =
+  byte1&0x7F (Kraken 6/Mermaid 10).
+- Anvil class hash ([[anvil-class-hash-crc32]]): = crc32(ClassName); כל forge שולח class-name table
+  plaintext ב-TAIL.
+- Edge cache hides slow query ([[edge-cache-hides-slow-query]]): cache מול query איטי הוא symptom fix;
+  כל deploy מוחק אותו והאיטיות חוזרת. precompute במקום.
+- PowerShell tool is 32-bit ([[powershell-tool-is-32bit]]): HKLM:\SOFTWARE reads redirect ל-WOW6432Node
+  → 64-bit key נקרא MISSING; reg /reg:64 או powershell.exe דרך Bash.
+- Translate labels never values ([[translate-labels-never-values]]): dropdown values ב-data-driven UI
+  = code lookup keys; translating one breaks the app at runtime; רק read-back verify תופס miss שקט.
+- Patch the compiled cache ([[patch-the-compiled-cache]]): כש-build/reflection stage דוחה non-ASCII,
+  patch את ה-post-compile cache keyed by hash of SOURCE.
+- USM embedded subtitles ([[usm-embedded-subtitles]]): כתובית cinematic שלא משתנה = MULTIPLEXED ב-.usm
+  (CRI Sofdec @SBT stream, UTF-8 VISUAL), לא ב-.subs/.w3strings.
+- W3 RTL dynamic-value bug ([[w3-rtl-dynamic-value-bug]]): W3 bidi's ONLY Arabic → Flash-composed
+  dynamic values (numbers/time) בצד הלא-נכון של label עברי.
+- QtWebEngine UI ([[qtwebengine-ui-gotchas]]): backdrop-filter composites PROGRESSIVELY (use clip-path
+  wipe, אל תאנימו transform/opacity תחתיו). frameless חייב אימות חי (לא ניתן מ-build env).
+- shell-cwd-leak: Bash `cd` מדליף ל-PowerShell cwd (משותף). להשתמש בנתיבים מוחלטים ל-build/ISCC/install.
+- Always finish full pipeline ([[always-finish-full-pipeline]]): לשאת משימות עד הסוף כולל build +
+  launcher re-release, בלי לעצור לשאול authorization לפרסום.
+- Delegate all translation ([[delegate-all-translation]]): HARD RULE — Claude אף פעם לא מתרגם/מתקן
+  תרגום טקסט משחק; תמיד fleet/second-agent/local-LM. Claude רק בונה tooling + מנחה. (חריגה: המשתמש
+  אומר מפורש "תרגם אתה".)
+- Respond in full Hebrew ([[respond-full-hebrew]]): תמיד עברית תקינה (terms/paths/code בלטינית).
+- Lines report on "works" ([[lines-report-on-works]]): "עובד, כתוב דוח שורות" → דוח לפי VISIBILITY +
+  לפי TYPE (ממשק/כתוביות).
+- Env-redirection ([[env-redirection-real-home]]): FOLDERID_Profile הוא ה-real home; %APPDATA%/
+  FOLDERID_RoamingAppData מנותבים ל-sandbox בפרופיל Antigravity.
+- CP2077 re-translate env deleter ([[cp2077-retrans-env-deleter]]): תהליך מוחק root pipeline .py תוך
+  ~15s (subfolders SAFE); banking/prep INLINE.
+
+
+
+════════════════════════════════════════════════════════════════════════════
+חלק 13 — משימות פתוחות, תוכניות וגרסאות
+════════════════════════════════════════════════════════════════════════════
+
+──────────────────────────── משימות פתוחות (per orchestration/state.json) ────────────────────────────
+
+- cyberpunk2077: LQA רב-סוכני פעיל (agent_handoff_qa), 11,926/59,291 onscreens_final נסקרו.
+  דו-מגדרי דרגה-2: ~1,770 נבנקו (checkpoint 15,020), נותרו 8,574. bake(🔒) כשנצבר.
+- godofwar_ragnarok: אימות in-game של build delta>0 → פרסום (gate). 100% מתורגם, טרם פורסם.
+- gtav: אימות in-game של התקנת launcher; פרסום OIV לאתר (gate). מוסתר בכוונה.
+- witcher3: BLOCKERS פרסום — Worker slug 404, Supabase row coming-soon/locked. תרגום 1,596 שורות
+  אחרונות על vm5. launcher READY.
+- hogwarts_legacy: publish-gated (הכל coming-soon). launcher READY. delegate ~53.8k.
+- plague_tale_requiem: deploy + פרסום (gated). מוד BUILT LOCAL.
+- tlou1/tlou2: delegate translation → build → publish (gated).
+- ratchet_rift_apart: ממתין screenshot menu-proof → delegate ~17.5k.
+- rdr2: Phase 2 delegate ~218k.
+- acshadows: חסום repacker v42 (ATK external).
+- assassinscreed2: pause/options menus, accented cells (PARKED). תרגום רץ.
+- acunity: locate UI GFx resource → inject Hebrew SWF glyphs.
+- 007-first-light: map GFXF face per context → delegate ~25.3k.
+- until_dawn: delegate ~12.7k.
+- tsushima: crack fOnk font glyph-injection.
+- anno1800: rebuild מוד (CreatorName exposure), wrangler deploy slug, restore 189 mod.io mods.
+- signalrgb: פרסום (installer שמכסה exe slot + Macroscripts).
+- borderless_gaming: publish launcher binary (card חי, כפתור צריך launcher release).
+- launcher: המשתמש פותח Settings→ביצועים, מדווח GPU line. פרסום 1.1.0 (gate).
+
+──────────────────────────── תוכניות ────────────────────────────
+
+- CP2077 QA fleet ([[cp2077-qa-fleet-plan]]): כש-W3+PT free, 5-stream NIM line-by-line QA על CP2077
+  Hebrew (gender/plural+phrasing); model על w3g_nim.
+- Attack on Titan → 3D (פרויקט צדדי Video AI): מושהה עד AoT 3 (יוצא ל-PC).
+
+──────────────────────────── גרסאות מסכמות (נכון ל-2026-07-20) ────────────────────────────
+
+לאנצ׳ר: **1.1.0 פורסם וחי** (channel beta, tag v1.1.0-beta, buildId 20260719225516, 134.4MB).
+מודים פורסמו + זמינים (available, מאומת מהקטלוג החי):
+  CP2077 1.0.0-beta.3 ₪53 · SM2 1.0.0-beta.6 ₪53 · WD2 1.0.0-beta.4 ₪53 · GoWR 1.0.0-beta.1 ₪53 ·
+  Anno 1800 1.0.0-beta.1 ₪53 · Witcher 3 1.0.0-beta.1 ₪53 · GTA V 1.0.0-beta.2 ₪53 (web-only,
+  מוסתר מהלאנצ׳ר) · Steam 2026.05.20 · VirtualDJ 1.0.0-beta.1 ₪15 (תוכנה) ·
+  Borderless Gaming 1.0.0-beta.1 חינם (תוכנה).
+מודים BUILT LOCAL לא published (מהיום 2026-07-20): SignalRGB (100%, exe .qm + Macroscripts),
+  Plague Tale Requiem (100% + gender review, מחכה deploy+publish).
+coming-soon בקטלוג (קלף חי, טרם available): Hogwarts, TLOU1, TLOU2, 007-first-light,
+  Plague Tale Requiem, Until Dawn, AC2.
+groundwork/GO ready (planned בקטלוג): Ratchet, RDR2, AC Unity, AC Shadows (חסום repacker),
+  ועוד ה-planned האחרים (ראה הקטלוג החי בבלוק העליון).
+חסום: AC Shadows (repacker v42 חיצוני), Battlefield 6 (loc format RE + EA AntiCheat),
+  Tsushima (fOnk font glyph-injection).
+כותרים חדשים בקטלוג שלא היו ב-CLAUDE.md: skyrim (planned, onLauncher=false),
+  aot2 = Attack on Titan 2 (planned), plague-tale-innocence (planned, תיקייה ריקה).
+
+
+
+════════════════════════════════════════════════════════════════════════════
+חלק 14 — תוכן צדדי במחשב (לא-פרויקט, לתיעוד בלבד)
+════════════════════════════════════════════════════════════════════════════
+
+(פרויקטים אחרים על המחשב, מתועדים ב-CLAUDE.md האישי — לא חלק ממרכז התרגום, אבל נהוראי עובד עליהם):
+
+- Antigravity → Multigravity profiles: 4 פרופילים על internal v2.1.1; junction .claude\projects → גלובלי.
+- PerfWidget: רפליקה של הבר הצף של Advanced SystemCare (ב-C:\Users\Nehoray_Cohen\Projects\
+  advanced-systemcare\). CPU/GPU/RAM/Disk + ניקוי RAM.
+- WSA (Windows Subsystem for Android): הרצת APK כאפליקציות Windows. WSABuilds LTS 7. WSAPatch (2 byte
+  patches) + תיקון רשת.
+- Video AI: המרת אנימה ל-3D מסוגנן (Blender 5.1.2 + RX 9070 HIP). מושהה עד AoT 3.
+- ביקורות אבטחה למשחקים (repacks): C:\Users\Nehoray_Cohen\Game security testing\.
+- כריכת סינגל "סיבוב בעולם" (Pillow assembly).
+- APK patches: כשר פליי פלוס, כושראפ, YouTube Music (Morphe), System Guard, Telegram downloaders.
+- Home Assistant: WoL + WireGuard + Tuya (שרת 10.0.0.20).
+- Telegram Alert Filter → Gemini.
+
+
+
+════════════════════════════════════════════════════════════════════════════
+חלק 15 — מאחורי הקלעים: הפנימיות העמוקות
+════════════════════════════════════════════════════════════════════════════
+
+(השכבה שמתחת ל-"מה עובד" — ה-byte-level, ה-DB, ה-RPC/threading, והאלגוריתמים
+המדויקים. נמשך מקבצי FORMAT.md, schema.sql, website/CLAUDE.md, וה-git log.)
+
+──────────────────────────── 15.1 פנימיות הלאנצ׳ר ────────────────────────────
+
+** מודל ה-RPC/threading (Eel dev vs Qt production): **
+- main_eel.py מכיל את רוב לוגיקת ה-@eel.expose. main_qt.py מייבא את main_eel ומנתב
+  דרך qt_shell/bridge.py (QWebChannel).
+- ב-Qt build אין gevent hub שנפעם → כל דבר שהיה gevent.spawn ב-Eel (למשל swr background
+  refresh, mod install) מת בשקט תחת Qt. הפתרון: transport-aware _use_gevent() = 'PySide6'
+  in sys.modules → real threading; אחרת gevent. אותו דפוס ב-loopback.py + swr_cache.
+- bridge slots כבדים רצים off-thread: _run_off_thread (30s), _safe_off_thread (fail-safe,
+  לא זורק TimeoutError מה-slot = לא crash), QThreadPool. slots שקוראים HTTPS
+  (auth_owns_game, auth_me, set_game_language) חייבים off-thread או ה-GUI קופא עד ~8s.
+- eel.ts call() עם timeout per-name (auth_login 240s, scan_deep 960s, default 120s) — slot
+  שזורק לפני שהוא קורא ל-callback לא תוקע Promise לנצח.
+
+** שרשרת הבנייה (build_exe.bat, חייב CRLF): **
+  1. npm run build ב-frontend → frontend/dist/
+  2. build_exe.bat צורב UTC timestamp → translation_manager/_build_info.py (BUILD_ID)
+  3. pyinstaller TranslationManager_qt.spec → dist/TranslationManager/ (Qt build)
+     spec datas: ('translation_manager','translation_manager') = כל ה-assets bundled
+     _keep() filter: זורק numpy/OpenBLAS, qtwebengine locales (שומר en-US+he),
+     devtools pak, debug pak, tkinter/tcl/tk, media (*.mp4 guard); שומר Qt6Quick/Qt6Qml
+     (QWebEngineView backed by QQuickWidget ב-Qt6 — הסרה שוברת את ה-webview).
+  4. ISCC installer.iss → Output/TranslationManager-Setup-<version>.exe
+     installer.iss: [InstallDelete] מוחק {app}\_internal (מונע orphans),
+     UninstallLogMode=overwrite (לא new — new יוצר unins001/002 + משאיר legacy log ענק),
+     KillRunningLauncher [Code] (poll-kill + settle + file-lock probe),
+     [Run] runasoriginaluser (משגר non-elevated), PrivilegesRequired=admin,
+     PrivilegesRequiredOverridesAllowed=dialog (מאפשר per-user install ל-%LOCALAPPDATA%).
+  5. publish_release.py <ver> [channel] → gh release (prerelease אם channel!=stable,
+     tag v<ver>-<channel>) + Supabase launcher_releases row (is_current, sha256, size,
+     build_id). channel-aware: dev/canary login-gated, beta פומבי, stable=main.
+
+** self-update (build-id): ** get_launcher_update_info משווה BUILD_ID של הרוץ מול
+  build_id של השורה is_current ב-launcher_releases. OR עם _version_is_newer (מאפשר
+  1.1.0→1.0.0 reset). SHA-256 MANDATORY (feed בלי hash → abort) + URL HTTPS על host
+  allowlist (github/githubusercontent/hebrew-translation-hub). _is_trusted_update_url.
+  אם ה-BUILD_ID הצרוב ≠ DB build_id → "עדכון זמין" נצחי שקרי.
+
+** native applier pattern (SM2/WD2/GTAV/GoWR/HL/W3/PT/VirtualDJ/BorderlessGaming): **
+  detect scenario → is_writable pre-flight probe → backup (מחוץ למשחק, ב-
+  ~/.translation_manager/mod_cache/<id>/backup/) → apply אטומי (temp + os.replace) →
+  state.json ({version, cached_at, enabled, installed_files, sha}) → revert.
+  game-update-aware: is_applied חייב content evidence (live file stat/sha == recorded),
+  לא bare "backup exists"; לעולם לא לשחזר גיבוי ישן מלפני game update (toc/archive
+  mismatch → crash). _native_download_payload(slug, cb, cache_dir, pick) = download
+  מה-Worker → pick() → payload; bundled fallback. auto-update מ-manifest.
+
+** state/config files ב-~/.translation_manager/: **
+  device_id (uuid4 יציב, ל-single-session + telemetry), user_cache.json (identity
+  offline fallback), launcher_prefs.json, custom_paths.json, detected_games.json,
+  game_langs.json (pre-mod language capture), mod_cache/<id>/{backup,state.json},
+  save_backups/, mod_backups/, session.enc (Fernet-encrypted token, keyring key).
+  swr cache.json (compact JSON, 96MB HTTP cache cap, negative-age guard, 8 MRU
+  progress keys). launcher.log (RotatingFileHandler 2MB×3).
+
+** single-session (one install per account): ** profiles.active_device + active_device_at.
+  על sign-in: PATCH active_device=<device_id>. me() אחרי 200 בודק _device_owner_status:
+  mine (==שלנו, או NULL→claim/grandfather) → stay; taken (≠) → sign-out + marker; unknown
+  (network error) → KEEP (transient לעולם לא מנתק). poll me() כל 60s. NO server
+  logout?scope=others (GoTrue ישן עלול fallback ל-global → מנתק את הסשן החדש).
+
+──────────────────────────── 15.2 פנימיות האתר ────────────────────────────
+
+** Stack: ** Vite 5 + React 18 + TypeScript + Tailwind v4 + Framer Motion 11 + GSAP 3.12
+  ScrollTrigger. הרקע: main-bg.mp4 (1.57GB, מוגש ישירות ע"י Vite — אסור להזיז ל-src/assets
+  או ה-bundler נחנק) + starfield canvas (starfieldEngine.ts, offscreen worker בדסקטופ,
+  MAX_DPR=1, capped 60fps). ה-3D R3F/Three הוסר (הוחלף בסקרול-scrubbed video).
+  route-level code splitting: רק HomePage+GamesPage ב-main bundle, השאר React.lazy
+  (lazyWithRetry.ts — chunk-load fail → auto reload פעם אחת, sessionStorage-guarded).
+  static hero shell ב-index.html #root (LCP fires ~1.2s לא מחכה JS→React→API).
+
+** perf saga (מתועד ב-website/CLAUDE.md): ** Lighthouse mobile 28→76. TBT 23.7s →
+  starfield off-thread (OffscreenCanvas worker). CLS 0.178 → ProgressDashboard skeleton
+  (pop-in shoved featured strip). backdrop-filter מעל bg מונפש = re-blur כל frame →
+  data-live-bg gate מכבה backdrop-filter (המשתמש בחר: animated bg + drop glass).
+  GameCard: הוסרו useTilt 3D (117 permanent GPU layers) + ~75 backdrop-blur chips +
+  blur-3xl halos. cover images: חייבים covers bucket (webp, ≤1.3MB אם animated) — לא
+  steamgriddb (33MB!). Vercel regions=fra1 (co-located עם DB בפרנקפורט; API 2-4s→0.3s).
+
+** /translate cache (התיקון הקבוע, website/CLAUDE.md): ** translation_strings גדל ל-660,916
+  שורות; translation_progress VIEW = seq scan 8,366ms. edge cache (s-maxage) נמחק בכל
+  deploy → הביקור הראשון שילם cold. הפתרון: טבלת translation_progress_cache (14 שורות, PK)
+  + refresh_translation_progress_cache(game) + STATEMENT-level triggers (INSERT/UPDATE/
+  DELETE עם transition tables) שמסמנים game כ-stale. read 8,366ms→0.76ms. statement-level
+  (לא row) → 500-row import chunk = update אחד קטן. community_translate.py import קורא
+  refresh RPC בסוף.
+
+** admin studio "Good Lock" (website/CLAUDE.md): ** AdminLayout מחולק ל-5 ENVIRONMENTS
+  (עיצוב/תוכן/מדיה/ניהול/הגדרות), כל אחד workspace עם tab set. motion system (motion.ts —
+  springs, envVariants, gated ע"י motionLevel rich/subtle/off). SettingsHub (accent/layout/
+  density/corners/motion/text-scale, per-admin localStorage). MediaStudio (signed upload
+  ל-launcher-screenshots bucket, OG image editor). ConfigTab = Design Studio (12 sections,
+  SitePreview live iframe עם postMessage draft preview). ⚠ position:sticky/fixed נשבר בתוך
+  motion.div transform → game editor inline max-w-3xl בלי sticky.
+
+** email notifications (Resend, website/CLAUDE.md): ** api/_lib/notify.ts sendAdminEmail
+  (fire-safe, לעולם לא זורק). fires על: review חדש, reply (gated !is_admin), crash
+  (analytics.ts handleCrash אחרי crash_reports insert), vote חדש (רק אם באמת חדש —
+  ignoreDuplicates upsert.select). NOTIFY_TO=admin@, NOTIFY_FROM=notifications@ (על הדומיין
+  המאומת). מוכח דרך action=test-notify זמני (נוסף→curl→הוסר).
+
+** telemetry (launcher_installs): ** boot-ping GET /api/launcher?device=<device_id>&v&ch&b&os.
+  server upsert on device_id (last_seen=now, first_seen preserved), no-store ל-device ping.
+  count active: last_seen > now() - 30d. dev/local builds (בלי launcher_releases row) מסוננים
+  מ-byVersion analytics (footnote "N התקנות על בילדים מקומיים").
+
+──────────────────────────── 15.3 סכמת ה-DB המלאה (Supabase) ────────────────────────────
+
+** RLS + grants (הכלל החוזר): ** RLS מגביל רק אחרי ש-Postgres מאשר GRANT. grant select on
+  <table> to anon, authenticated + grant all to service_role. alter default privileges
+  לטבלאות עתידיות. anon read policy (using true) על content; writes דרך service-role
+  (עוקף RLS). Supabase auto-grants anon SELECT לכל טבלה חדשה → RLS-on-every-table = הרשת.
+
+** טבלאות ליבה (schema.sql): **
+  games — id(PK text), title_en, title_he, version, version_label, status
+    (final/locked/stable/beta), cover_url, theme_key, availability (available/in-progress/
+    coming-soon/planned), progress(0-100), download_url, tagline, description, next_up,
+    featured (pinned ל-"תרגומים מובילים"), sort_order, + עמודות שנוספו במיגרציות:
+    price_cents (admin-editable!), release_stage, changelog, locked_fields(jsonb),
+    banner_url, logo_url, show_on_launcher, show_on_website, is_software, payment_only,
+    interface_only_notice, show_dashboard, detect_folders, detect_exes. trigger touch_updated_at.
+  progress_snapshots — game_id(PK FK), phase (extraction/translation/packaging/qa/idle),
+    phase_label_he, processed(bigint), total(bigint), rate_per_hour, unit (שורות/משפטים/
+    קבצים), gpu_model, ai_model, meta(jsonb), show_dashboard. נכתב ע"י <game>_progress.py.
+  news — id, date, kind (system/mod), badge, title, detail, link(FK games), created_at.
+  updates — id, kind, title, version, size_mb, notes, url, simulated.
+  admin_emails — email(PK). whitelist ל-/api/admin/*.
+
+** טבלאות ממיגרציות (website/supabase/*.sql): **
+  auth_profiles (profiles — active_device, active_device_at, avatar_url),
+  paypal_purchases / user_purchases (unique_completed index — חוסם replay), stripe_purchases,
+  reviews + review_replies (is_admin server-side, admin_reply dormant), votes (revoke select
+  from anon/authenticated אחרי hardening → הלאנצ׳ר קורא דרך HUB API עם bearer),
+  crash_reports (+ crash_severity), analytics_events (download/buy_click, anonymous),
+  launcher_releases (channel, notes, build_id), launcher_installs (device_id PK, telemetry),
+  launcher_screenshot, translation_strings (game_id, string_key, source_en, current_he,
+  context, char_limit, section, category [subtitles/ui/credits/other via ts_category_for],
+  order_index, status, claimed_by, claim_expires_at, approved_text) +
+  translation_submissions (string_id, user_id, hebrew_text, author_name, status, auto_qa) +
+  translation_progress (VIEW) + translation_progress_cache (precomputed) +
+  translation_contributors (VIEW, aggregate, name לא email),
+  feedback, rate_limits, config (site_config.data.plugins — קטלוג תוספים JSON),
+  featured, platform_flags (show_on_launcher/website), software (retired endpoint),
+  software_status_notice, delete_own_account, security_hardening_2026-07-01, grants,
+  storage_policies (covers public / mods private / launcher-screenshots).
+  Storage buckets: covers (public), mods (private), launcher-screenshots.
+
+──────────────────────────── 15.4 מפרטי פורמט byte-level לכל מנוע ────────────────────────────
+
+** GXT2 (GTA V, RAGE): ** magic 0x52504637, UTF-8 NUL-terminated, keys=joaat(label),
+  entries sorted ascending. אסור dedup — ה-loader גוזר אורך מ-offset[i+1]-offset[i]
+  (contiguous ב-hash order); shared offset → garbage length → ERR_MEM_EMBEDDEDALLOC_ALLOC.
+  codec: gtav_gxt2.py (read/write/visual_line).
+
+** RPF7 (GTA V mods folder): ** file entry = u64[NameOffset(0:16) | FileSize-compressed
+  (16:40, 24-bit) | OffsetBlocks(40:64, 24-bit)] + u32 FileUncompressedSize + u32 flags.
+  FileSize==0 ⇒ stored RAW (אורך אמיתי ב-FileUncompressedSize). compression = raw DEFLATE
+  (zlib wbits=-15). ⚠ bit 63 = RESOURCE flag (.ymt/.ydr, flags=0x20000000) — offblocks=
+  (packed>>40)&0x7FFFFF + _res=(packed>>63)&1. קריאה שגויה כ-24-bit offset מקלקלת כל
+  resource file. serialize: BFS index reassign + 512-align. NG-key rotation ב-Legacy-2025
+  (uncrackable, רק OpenIV) — clean install חסום.
+
+** .qm (SignalRGB, Qt): ** block order Language, Hashes, Messages, Contexts, NumerusRules,
+  Dependencies (סדר שגוי = היחיד שחסם byte-identity). message item tags 6/7/8 = u32 lengths
+  (לא u8). item order Translation*, [Comment], [SourceText], [Context], End. Hashes block
+  REQUIRED (elfHash lookup) או QTranslator לא מוצא כלום. lookup by elfHash(source+comment)
+  בלבד → Comment/SourceText/Context = VERIFICATION → minimize prefixes משחרר 41%.
+  deploy: delta-0 in-place, NUL-pad ל-226,603 bytes (slot הערבית). Qt reader עוצר ב-tag==0.
+  qrc: {u32be length}{payload}, ה-u32 == parsed size.
+
+** AC2 LocalizationPackage (Scimitar v25, char-index): ** forge → resource FILEDATA header +
+  DataFile → CompressedFileData (magic 0x1004FA9957FBAA33, Algorithm=2=LZO1X, block
+  [u16 comp][u16 uncomp] + [u32 CRC32-zlib][compressed]; stored כשcomp==uncomp) → payload
+  BIG-ENDIAN: u16 MaxIndexSize(255) + u16 fragCount + StringFragment[{u16 right/char,u16
+  left}] + u16 tableCount + StringTable[{u32 FirstEntryID, u32 HeadersOffset, u32
+  EntriesOffset}]. fragment tree: left==0&&right==0→"", left==0→char(right), else Decode(left)
+  +Decode(right). WRITE = leaves only (char per unique, sorted, ""@0). code stream: b<255→
+  fragment[b+1]. block CRC32 = zlib (init 0xFFFFFFFF, נזרק בקריאה). LZO via bundled liblzo2
+  (ctypes.CDLL __cdecl, לא WinDLL). deploy = in-place אם נכנס ל-0x800-aligned slot.
+
+** AC Shadows oasis (Scimitar v42, Mermaid): ** forge header "scimitar"+0+u32 v42 + u64@13
+  index off; index u32@+0x0C=count, u32@+0x28=record array; record 24B {u64 offset, u32 ts,
+  u32 flags, u32 size, u32 nameHash}. invariant off[n+1]==off[n]+size[n]. CFD: magic + i16
+  Version=3 + u8 Algorithm=8(Oodle,oo2core_9) + u16 max sizes + i32 blockCount + BlockInfo
+  [{i32 uncomp(262144), i32 comp}] + Data[{u32 adler=zlib.adler32(comp,0) START 0, u8[]
+  Oodle-Kraken/Mermaid lead 0x8C}]. loc = literal UTF-16LE: oasis record [u64 lineID][u32
+  0xFADE9F44][00][u64 convID][u32 0000][u32 charLen][UTF-16LE]; bare UI = [u32 charLen]
+  [UTF-16LE]. LocalizationPackage class hash 0x6E37B1AF ABSENT (מודרן). deploy = in-place
+  exact size + patch_01 forge.
+
+** GoWR font (Sony WAD): ** LZ4 frame (magic 04 22 4D 18, compression_level=0 = byte-identical
+  לpacker! level-9 נדחה) → WAD/WTOC → MSGS_TXT (*<id>*\n<value>\n, UTF-8). delta-0 pad (Hebrew
+  קומפקטי מהערבית). font atlas = GNF (Sony PS4 tex, linear BC4 1024², לא PS4-tiled) + SMF
+  glyph table. SMF4 record: 28B, records@0x70, sorted by cp, sentinel 0xfffc, cp@+0 u16,
+  atlasX·8@+12, atlasY·8@+14, height·8@+16, x-bearing·8@+20(i16), width·8@+22, advance·8@+24.
+  length-preserving trick: Hebrew (0x5D0-0x5EA, 27 letters) מחליף 27 records ערביים
+  (cp 0x60c-0x638) in place → array נשאר sorted, SMF_1 נשאר 40,520B. BC4 encode רק ה-4×4
+  blocks שנגעו. font=David Bold (measure-driven: ink density 0.529≈native, midtone 0.74≈0.72).
+  delta>0 crash fix: 256-align delta + shift SMF 43-46 +0x78 by delta + entry-31 size + stream-0 size.
+
+** DSAR/PSARC (TLOU1/TLOU2/Tsushima, Naughty Dog/Sony): ** DSAR (magic DSAR, LZ4 256KB chunks,
+  entry 32B <qqiiB7s>) → inner PSARC v1.4 (zlib/STORED, block 64KB, TOC by md5(path)) → pak.
+  ⚠ TLOU2 mod: inner blocks MUST be STORED (raw) — zlib → "UNKNOWN STRING". loc-v2: u32 count
+  + count×{u64 SID, u64 offset} + UTF-8 NUL blob. SURGICAL encode (append-only, לא rebuild —
+  encode(orig,{})==orig; ה-engine מסתמך על ה-blob layout המקורי). Tsushima=xpps KCAP (index
+  16B {u64 KEY, u64 OFFSET}). deploy TLOU2=plain STORED PSARC ב-mods\ דרך ndmodloader; TLOU1=
+  PSARC repack; Tsushima=edit gapack_misc_l in place.
+
+** .w3strings (Witcher 3, REDengine 3): ** magic "RTSW" v163, key1 → block1 {str_id^encKey,
+  offset, strlen} → block2 {key_hash, str_id^encKey} → block3 UTF-16LE blob → footer key2.
+  keyID=key1<<16|key2 → language-key table → encKey. XOR-encrypted per-lang EXCEPT keyID 0 =
+  Arabic = CLEARTEXT. str_id shared cross-lang (^encKey). bit6 varint. bidi=VISUAL. font
+  swap=potato_bundle (POTATO70+Snappy) → CR2W→CFX(zlib)→GFx DefineFont3; repack pack=1 zlib
+  (לא delta-0 zero-pad — שובר bundle loader, black screen).
+
+** LOCR/DLGE (007, Glacier): ** RPKG v2 "2KPR": base header 25B + file table {u64 hash, u64
+  offset, u32 data_size} (bit 0x80000000=XORed) + metadata table. XOR key DC 45 A6 9C D3 72 4C
+  AB (byte%8). LOCR = u8 ver + numLangs×u32 offset + per-lang u32 numStrings + {u32 lineHash,
+  u32 encLen, encLen XTEA bytes, u8 0}. XTEA key 007-specific {0x68AC3361, 0x562B4AA0,
+  0xB9F2771F, 0x28EB3CE7}, delta 0x9E3779B9, 32 rounds. lineHash shared → EN→HE by hash.
+  deploy=append-relocate ב-chunk0 (patch-RPKG crashes boot). bidi=VISUAL. font=GFXF Scaleform
+  (~510KB size limit — inject רק face שמרנדר, Arya-only).
+
+** FAT5 (WD2, Disrupt): ** .fat+.dat, v11 stored (UncompressedSize=0). main_arabic.loc = SL
+  format, custom Huffman. deploy=fat-redirect (append ל-.dat + rewrite 20-byte .fat entry).
+  UI stored VISUAL, subtitles stored LOGICAL (renderer bidis subtitles). run: WatchDogs2.exe
+  -eac_launcher (EAC off).
+
+** RDA (Anno 1800, Anno engine): ** "Resource File V2.2", header 0x318 (firstBlockOffset u64
+  @0x310), 32B BlockInfo chain, 560B DirEntry (UTF-16LE name[520]+offset+csz+usz+ts+unk),
+  zlib. text=texts_english.xml (<GUID>n</GUID><Text>s</Text>). NO Arabic → LTR hijack. HUD
+  non-bidi → VISUAL. deploy=loose-file mod ל-Documents\Anno 1800\mods\.
+
+** tt (Plague Tale Requiem, Zouna): ** TRTEXT/tt23.pc, plain UTF-8 CRLF: FreeLanguage/
+  ResetEnumTT/TT <idx> "<value>" <KEY>/EndLoadTT. line-break=| (לא \n). value לעולם לא מכיל
+  ASCII " (delimiter). bidi=THIRD class (RTL positioning בלי reorder — VISUAL, LTR islands
+  pre-reversed). font=Zouna bitmap atlas (Fonts_Z, DXT5 512×512, glyph DXT5 alpha; CharacterID
+  = glyph UTF-8 bytes reversed+null-padded). DPC = BigFile (u64 hashes + LZ4).
+
+──────────────────────────── 15.5 האלגוריתמים המרכזיים ────────────────────────────
+
+** visual_line (VISUAL bidi ידני — GTA/RDR2/WD2-UI/AC2): ** reverse כל Hebrew run + flip run
+  order, keep Latin/digit/[TOKEN]/%-spec forward, mirror brackets, handle maqaf boundary,
+  split על ~n~/\n. ⚠ נכון רק ל-1-char neutrals — לרצף neutral רב-תווי (סוגריים/פיסוק) צריך
+  UBA אמיתי. lesson: menu-proof עובר בזמן שכל הקורפוס שקט שגוי.
+
+** rdr2_rtl (UBA אמיתי — RDR2): ** python-bidi עם base RTL → visual output (המנוע לא עושה bidi
+  → אנחנו עושים את עבודתו offline). RAGE token handling: leading control tokens בחזית (כל
+  162,997 ~z~ מתחילים בו), ~n~/~sl:a:b~ = order-preserving separators, inline tokens →
+  private-use placeholders (atomic LTR run). L4 bracket mirroring חינם.
+
+** rdr2_metrics (proportional font, RDR2): ** SMF glyph advances (units nominalSize=256).
+  space=60 table / 58 measured (ladder). wrap_px_balanced = binary-search smallest target width
+  שעדיין נותן אותו line count (מאזן, pad קטן). justify = slack ב-word gaps (לא margin) חוץ
+  מהשורה האחרונה. balance ≠ justify (pipeline = holes ענקיים). floor (לא round — over-budget
+  → engine wraps → inverted order). ruler = 13,537 units FITS / 14,849 לא → 13,500 safe.
+
+** delta-0 in-place patch: ** כל resource {u32be length}{payload}, ה-u32 == parsed size.
+  NUL-pad ל-slot size המדויק. Qt reader עוצר ב-tag==0. שום offset/length/resource אחר לא זז.
+  ⚠ guard על deploy path חייב להיערך גם מול ה-DEPLOYED state (patched .qm הוא NUL-padded →
+  parses shorter → assert pristine==parsed נכשל ב-revert).
+
+** append-relocate (007/AC Unity): ** append bytes ב-EOF + repoint table entry offset→EOF +
+  patch data_size + size_final. header/tables/כל resource אחר byte-identical → engine עדיין
+  parse-י את זה כ-BASE תקין. patch order: data→desc→record (record LAST) → interrupted write
+  משאיר original loadable.
+
+** font measure-driven (GoWR/AC2): ** למדוד מ-native glyphs: (א) ink density (>90 alpha) =
+  weight, (ב) midtone fraction = softness — ולהתאים שניהם. solid-block probe (AC2): צובע
+  carrier cells solid → מודד advance/scale/atlas-scale בצילום אחד. atlas fringe bleed fix:
+  clear ring outside all blob bboxes. uniform pixel ascent (variance 1-3 units = 1px height diff).
+
+** New-Era translation (fleet/agent): ** כל שורה מוכרעת מול פאנל שפות הספק לפי חוזק — ערבית
+  =addressee+plural, Ru/Pl=speaker, Es/It/Fr=referent. consensus ≥2-lang מפריד speaker↔
+  addressee. anti-cheat merge: reject no-Hebrew-prose (≥2 lowercase), niqqud, foreign, dropped
+  token, SKIP-on-gendered, copy-EN. dualgender (CP2077): scaffold(non-Hebrew) byte-identical +
+  heb(Hebrew) changed + word-lev≤3 (חוסם paraphrase). control-byte repair (0x01-0x07 leading).
+
+──────────────────────────── 15.6 הצי (NIM) והאוטומציה — פנימיות ────────────────────────────
+
+** NIM worker (<game>_nim.py): ** NVIDIA NIM cloud endpoint, key ייחודי לכל stream, free-tier
+  throttle 0.27-8 tok/s. prompt לכל משחק, STRUCT tokens preserved, stores LOGICAL. banking:
+  out.json → pull_<game>.sh (scheduled task hidden.vbs, 3 min) folds ל-fleet/hebrew.json +
+  name canon (name_fixes.json) + gender_overrides overlay. selfheal_<game>.ps1: PID-lock
+  singleton, heartbeat-mtime heal, cp1255-safe detached launch (PYTHONIOENCODING=utf-8),
+  Scheduled-Task persistence, Tailscale off-LAN. reslice_split.py + reslice_deploy.sh למחלק
+  מחדש כשמשאב עסוק (disjoint md5%N + complete).
+
+** progress push (<game>_progress.py): ** 60s loop → POST /api/admin/progress (MONITOR_TOKEN)
+  {gameId, phase, processed, total, ratePerHour, unit, meta.alive, aiModel, gpuModel}.
+  W3=sentences (split [.!?…]+, 160,155 vs 92,829 lines, unit="משפטים"). dashboard
+  pickActiveSnapshot מציג את הטרי (>2h stale מסונן), 2 tabs hover-switch.
+
+** LM Studio (audit, לא תרגום עוד): ** RX 9070 RDNA4 Vulkan (לא ROCm). 31B spills RAM ~1-2
+  tok/s. serial --parallel 1. reload: attrib -R %USERPROFILE%\.lmstudio\.internal /S /D →
+  lms load <model> -y --gpu max --context-length 8192 --parallel 1. hang: STATUS=GENERATING.
+  recovery: kill client → unload --all → probe. audit qwen2.5-32b: precision 32%/recall 23%
+  (poor) → נעצר, deterministic sweep (503 defects בלי AI).
+
+
+════════════════════════════════════════════════════════════════════════════
+חלק 16 — השלמות מבדיקת כיסוי מול CLAUDE.md
+════════════════════════════════════════════════════════════════════════════
+
+(נוצר אחרי הצלבה שיטתית של כל ~140 כותרות הסעיפים ב-CLAUDE.md מול הקובץ הזה.
+כל מה שכאן היה מתועד ב-CLAUDE.md ולא הופיע בסיכום — עכשיו הוא כאן.)
+
+──────── 16.1 ⚖️ רעיון BYOK key-pooling — נחקר, פסיקה: אין ספק נקי (2026-07-20) ────────
+
+רעיון חוזר של המשתמש (עלה 2026-07-07, נבדק שוב 2026-07-20): פיצ׳ר בלאנצ׳ר שבו **כל משתמש
+רושם ביודעין מפתח API חינמי משלו על המכונה שלו** (המפתח שלו, ה-IP שלו, בהסכמתו), המחשב
+תמיד-דלוק שלו הופך ל**worker תרגום אנונימי**, והמפעיל שולח batches לתרגום **בלי לראות את
+המפתח לעולם** (השרת לא מקבל/שומר; ה-node המקומי מפענח רק כדי לקרוא לספק). ממוסגר כ**מאמץ
+קהילתי**, כשה-MOD עצמו חינם (רק הלאנצ׳ר/התקנה-אוטומטית ממונטזים). המשתמש לא רוצה להחזיק
+את המפתח; המשתמש מריץ הכול.
+
+- **הארכיטקטורה לגיטימית** — זה BYOK + הסכמה + צי pull-model של מכונות מתנדבים (אותה צורה
+  כמו ה-NIM fleet הקיים, nodes = משתמשים). המפתח נשאר מוצפן על מכונת המשתמש (אותו נתיב
+  keyring+Fernet כמו טוקן ה-auth), השרת רק שולח עבודה ומקבל תרגומים, QA gate מאמת.
+  חשש גניבת-credentials מוסר לגמרי ע"י "המשתמש מריץ, המפתח לא עוזב את המכונה".
+- **🔴 החסם הוא ToS של הספק, והוא מבני — לא ניתן לתיקון ע"י שום מיסגור.** נקראו התנאים
+  בפועל של כל ספק עם מודל-חינמי-גדול (llama-3.1-70b ומעלה); לכולם אותן שתי פסקאות:
+  (1) free tier = "prototyping / research / development / testing only" (NVIDIA NIM,
+  Cerebras "dev/testing only, contact sales for production", SambaNova "free developer
+  tier for testing", Groq Beta = "evaluation"), ו-(2) פסקת anti-circumvention /
+  "in a manner intended to avoid incurring Fees" (Groq אוסר ריבוי חשבונות לעקיפת
+  rate limits; NIM anti-circumvention). **איגום מפתחות חינמיים של הרבה משתמשים כדי להגיע
+  ל-throughput בקנה-מידה production בחינם הוא בדיוק מה שפסקה (2) מכוונת אליו** — מודל
+  גדול ניתן חינם דווקא כי הוא מיועד ל-dev/testing, וצבירת גישה חינמית כדי לשרת מוצר חי
+  היא ההתנהגות האסורה. כל מיסגור של המשתמש מסיר התנגדות אחת אבל אף פעם לא את ה-pooling:
+  "אני לא מחזיק את המפתח" הורג את חשש האבטחה; "חינם/קהילתי" הורג את הזווית המסחרית;
+  "המשתמש מריץ על המכונה שלו" הורג את מי-פועל-עבור-מי — **אף אחד לא נוגע בפסקת
+  fee-avoidance/anti-pooling.** (לא ייעוץ משפטי; ToS משתנים; אבל הדפוס אחיד בכל השוק.)
+- **✅ המקבילה הנקייה = compute מקומי על מכונת המתנדב.** המשתמש מריץ **מודל מקומי**
+  (Ollama / llama.cpp) על ה-GPU שלו; המפעיל שולח רק את עבודת התרגום. **אין מפתח API, אין
+  חשבון, אין מכסה, אין ToS להפר** — מתאים ל-100% מהאילוצים של המשתמש (המכונה שלו, המשאב
+  שלו, קהילתי, חינם, המפעיל לא נוגע בכלום). Trade-off (נאמר בכנות): llama-70b צריך GPU חזק
+  (~48GB VRAM או קוונטיזציה כבדה); רוב המתנדבים ירוצו 8b-14b מקוונטז, חובבים 70b+. זה
+  המודל היחיד שנותן "מודל גדול + מכונת המשתמש + קהילה + חינם + המפעיל לא נוגע" בלי לפגוע
+  בשום תנאי ספק. **אם זה ייבנה אי-פעם — לבנות את גרסת ה-compute-המקומי, לא pooling מפתחות.**
+- **נקי גם (נדחה ע"י המשתמש, לשלמות):** מפתח בתשלום של המשתמש עצמו אצל ספק שתנאיו מתירים
+  production, או compute בתשלום ממומן-תרומות (משתמשים תורמים כסף, לא מפתחות). המשתמש
+  מתעקש על מפתחות חינמיים + מודלים גדולים — בדיוק הצירוף שאין לו מסלול pooling תואם.
+- **לא נבנה כלום.** זו החלטת עיצוב, לא קוד. זיכרון [[byok-key-pooling-tos-verdict]].
+
+──────── 16.2 📦 winget — הגירה למזהה הנקי HTH.TranslationManager (2026-07-20) ────────
+
+UniGetUI הוא רק GUI מעל המקור הציבורי microsoft/winget-pkgs — הכול עובר דרך PR-ים שם.
+המזהה עם השם הפרטי `Nehoray.TranslationManager` (1.0.1/1.0.2) פורש לטובת
+**`HTH.TranslationManager`** נקי (Publisher: Hebrew Translation Hub) תחת הגירת הארגון.
+- **שלושת ה-PR-ים** (דרך Git Data API על ה-fork `nehorayc04/winget-pkgs`; PR של הסרה יכול
+  לגעת רק בתיקיית גרסה אחת): `#404647` הסרת Nehoray **1.0.1 — MERGED**;
+  `#404617` הוספת `HTH.TranslationManager 1.1.0` — validation PASSED, ממתין ל-moderator;
+  `#404624` הסרת Nehoray **1.0.2** — validation עבר, moderator שאל את שאלת
+  "highest-version removal" הסטנדרטית (נענתה: אותה אפליקציה פורסמה מחדש תחת המזהה החדש
+  ב-1.1.0, וה-`Publisher: Nehoray` של המניפסט הישן כבר לא תואם ל-ARP של המתקין
+  `Hebrew Translation Hub`, ולכן `winget list/upgrade` לא יכול לקשר עותקים מותקנים —
+  זה שגוי אקטיבית, לא רק מיותר).
+- **🔑 מלכודת ה-HASH על asset שמתפרסם-מחדש-במקום:** ה-GitHub release asset הציבורי של
+  הלאנצ׳ר עובר `--clobber` בכל פרסום (אותו tag `v1.1.0-beta`, בייטים משתנים), ולכן
+  ה-`InstallerSha256` של מניפסט ה-winget מתיישן ברגע שנבנה build חדש. ה-CI של winget מוריד
+  מחדש ומחשב hash → `Error-Hash-Mismatch`. התיקון בכל re-publish: לחשב מחדש את ה-sha של
+  ה-asset **החי** (להוריד אותו, לא לסמוך על לוג הבנייה) ולעדכן את המניפסט לפני שה-PR יעבור.
+  בסבב הזה: `5C995099…` (מיושן) → `F8FB523F…` (חי, 140,877,712 B, תאם בדיוק).
+- **`Validation-Defender-Error` לא נורה בסבב הזה** (הוא כן נורה על 1.0.1 הקודם) — המתקין
+  Inno הלא-חתום עבר את Defender נקי; התיקון האמיתי ל-FP הזה לטווח ארוך הוא code-signing
+  (Azure Trusted Signing ~$10/חודש).
+- **⚠️ הטוקן ל-API של ה-fork מגיע מ-`git credential fill` (host github.com); דרוש header
+  של User-Agent של דפדפן אחרת GitHub מחזיר 401.** `urllib` על ה-Python הבסיסי של המכונה
+  עובד; קריאת credential מחדש דרך `os.popen` בתוך אותו `python -` heredoc עלולה להחזיר 401
+  — לקרוא את הטוקן ב-bash ולהעביר דרך env.
+
+──────── 16.3 🚁 FLEET OPS — 3 משחקים במקביל + שתי מחלקות הכשל השקט (2026-07-20) ────────
+
+הצי מריץ **שלושה משחקים בו-זמנית** וכולם משדרים לדף הבית הציבורי.
+
+**הקצאה נוכחית (7 streams, מפתח NIM אחד לכל, `meta/llama-3.1-70b-instruct`):**
+| מכונה | streams | משחק | worker |
+|---|---|---|---|
+| Laptop `100.116.78.88` (Tailscale — נגיש בכל רשת) | `laptop`(:22) · `vm4`(:2225) · `vm5`(:2226) | **CP2077 QA** | `cpqa_nim.py` |
+| Main PC | `vm`(127.0.0.1:2222) · `vm2`(:2223) | **Witcher 3 QA** | `C:\w3qa\w3qa_nim.py` |
+| Main PC | `vm3`(:2224) · `desktop` (מקומי) | **AC2 translation** | `ac2_nim.py` |
+
+**הקצאה-מחדש = קובץ אחד.** `games/<game>/fleet/paused_streams` מחזיק שם stream בכל שורה;
+`deploy_*.sh`, `reslice_deploy_*.sh`, `pull_*.sh` ו-`*_reslice.py` מדלגים על מה שרשום.
+מתכון: **pull סופי (לבנק הכול) → להוסיף את השמות ל-paused_streams → להרוג רק את ה-worker
+של אותו משחק על אותם VMs (`pkill -f cpqa_nim`, לעולם לא kill גורף של `python` — כמה
+משחקים חיים על אותו VM) → reslice של הקורפוס הנותר על ה-streams הנותרים → deploy.**
+המיזוג מונוטוני (banks + `.prev` seeding) → שום עבודה שנסקרה לא אובדת ב-re-slice.
+⚠️ **לעולם לא לסמוך על התיעוד לגבי מי-מריץ-מה** — לאמת עם
+`Get-CimInstance Win32_Process -Filter "name='python.exe'" | Select -Expand CommandLine`.
+VM מיושן יכול להחזיק worker **מרוקן** עם `out.json` בן ימים לצד החי האמיתי.
+
+**כל 3 המשחקים חיים בדף הבית, נספרים ב-משפטים.** לכל משחק pusher (`cpqa_progress.py` /
+`w3qa_progress.py` / `ac2_progress.py`) ששולח ל-`/api/admin/progress` כל 60 שניות. הם חולקים
+**מפצל משפטים זהה** כדי שהיחידה "משפטים" תהיה בת-השוואה:
+```python
+_TAG  = re.compile(r'<[^>]*>|\{[^}]*\}|%[#0-9.*\-+]*[a-zA-Z]+|&[a-zA-Z#0-9]+;')
+_SENT = re.compile(r'[.!?…]+|\n+')
+# strip tags → split → max(1, non-empty parts)
+```
+- **🔴 ה-gate שמסתיר משחק:** `ProgressDashboard.tsx` בונה `publicIds` מ-
+  `games.filter(g => g.availability !== 'planned')`, ולכן **pusher חי לבדו לא מספיק** —
+  משחק ששורת הקטלוג שלו `planned` לא יקבל tab לעולם, לא משנה כמה טרי ה-snapshot. AC2 דרש
+  היפוך `availability` מ-`planned` ל-`in-progress` כדי להופיע. Tabs דורשים גם טריות (<2ש'),
+  לא-idle, ו-`processed > 0`; deduped ל-snapshot הטרי ביותר לכל משחק, מסודר לפי הקטלוג.
+- **⚠️ מלכודת W3:** "reviewed" = **איחוד `banks/qa_out_*.json`**, לא `qa_reviewed.json` —
+  הקובץ הזה מחזיק רק את *השינויים המוצעים*, תת-קבוצה קטנה, ושימוש בו מדווח חסר פי ~5.
+- כל `pull_*.sh` **מרפא את ה-pusher של עצמו** (התאמה idempotent דרך `Get-CimInstance` →
+  `Invoke-CimMethod ... Create` אם חסר), כך שקריסה/reboot לא יכולים להקפיא tab בדף הבית.
+
+**🔴🔴 מחלקת כשל שקט #1 — `rc=0` של scheduled task לא מוכיח כלום על העבודה.**
+**AC2 איבד 8¼ שעות.** `AC2FleetPull` דיווח `State=Ready, LastTaskResult=0` בכל tick של 3
+דקות; ה-workers היו חיים וכתבו `out.json` כרגיל; **אבל המיזוג לא רץ מאז 12:47** — תרגום
+גמור ישב לא-ממוזג ב-banks. שום דבר לא הופיע בהיסטוריית ה-task, בלוג ה-pull, או ברשימת
+התהליכים. הרצה ידנית של הסקריפט מיזגה מיד את כל הפיגור (444 → 2,726), מה שגם הוכיח
+שהסקריפט תקין ושה-**launcher** אשם.
+- **`LastTaskResult = 0` אומר שה-LAUNCHER יצא נקי, לא שה-payload רץ.**
+  **תמיד לאמת job מתוזמן לפי טריות ה-OUTPUT** — tail של לוג, mtime של קובץ ממוזג, mtime של
+  bank — לעולם לא לפי exit code.
+- **שורש = צורת ה-VBS launcher.** היו שתי צורות; רק אחת אמינה:
+  - ✅ **מוכח (CP2077/W3):** `hidden.vbs` = `sh.Run """" & WScript.Arguments(0) & """", 0, False`,
+    task = `wscript.exe "<hidden.vbs>" "<pull_once.bat>"`, וה-`.bat` מחזיק את הפקודה האמיתית
+    (`"C:\Program Files\Git\bin\bash.exe" -lc "cd '<fleet>' && bash pull_X.sh"`). כל שכבה
+    מצוטטת בדיוק פעם אחת.
+  - ❌ **שביר (היה AC2):** כל מחרוזת `bash.exe --login -c "..."` מוטמעת ישירות ב-`sh.Run`
+    עם נתיב `C:\Program Files\...` שמכיל רווח **לא מצוטט**. עובד עד שלא, וכשזה נפסק אין
+    שגיאה בשום מקום.
+- **אוניברסלי:** כשחבר אחד בצי של jobs כמעט-זהים מתנהג לא נכון, **להשוות את ה-launcher שלו
+  מול אח עובד** לפני שמדבגים את הסקריפט — היוצא-דופן הוא הבאג.
+
+**🔴 מחלקת כשל שקט #2 — חלונות popup (כלל עמידה: אפס popups, לעולם).**
+המשתמש לעולם לא אמור לראות הבזק קונסולה. נמצאו ותוקנו שני מקורות:
+1. **task שהצביע ישירות ל-`powershell.exe -File <script>.ps1`**, חוזר כל 5 דקות
+   (`AC2Desktop`) = 12 הבזקים לשעה. **`-NoProfile` / `-WindowStyle Hidden` לא עוזרים** —
+   מארח ה-task יוצר את הקונסולה *לפני* ש-PowerShell יכול להסתיר. תיקון = VBS בשורה אחת
+   (`CreateObject("WScript.Shell").Run "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ""<ps1>""", 0, False`)
+   כשה-task מצביע ל-`wscript.exe "<that>.vbs"`.
+2. **`Invoke-CimMethod Win32_Process Create` על console app** בתוך סקריפט self-heal פותח
+   חלון גם כן. לשגר מחדש דרך `wscript.exe "<hidden.vbs>" "<run_X.bat>"` — ה-`.bat` גם
+   מפנה stdout ללוג עם `>>`, מה ש-`pythonw.exe` חשוף היה זורק בשקט כשל-worker אין logging
+   משלו (ל-`ac2_nim.py` אין).
+
+`$t.Settings.Hidden = $true` מסתיר task בממשק Task Scheduler אבל **לא מדכא את הקונסולה** —
+לעולם לא התיקון לבדו. **פקודת audit** (תופסת כל task שמריץ powershell/python/cmd/bat ישירות):
+```powershell
+Get-ScheduledTask | ?{$_.TaskPath -notlike '\Microsoft*' -and $_.State -ne 'Disabled'} |
+  %{ $_.TaskName; $_.Actions | %{ '  ' + $_.Execute + ' ' + $_.Arguments } }
+```
+מוסתר-כברירת-מחדל הוא חלק מ"גמור" לכל task/relaunch — לא follow-up. [[run-hidden-no-popups]]
+
+**Gate + cadence עומדים:** 🔒 ביקורת-בלבד מונוטונית — אל תאפה ואל תפרסם. תיקוני QA נצברים
+ב-`cpqa_fixes.jsonl` (~48k: phrasing/gender/error/slang/foreign) לביקורת ידנית **לפני** כל
+bake. לאפות רק batches שנבדקו; לפרסם רק על "פרסם" מפורש.
+Pull cadence: `CPQAFleetPull` 3 דק' · `AC2FleetPull` 3 דק' · `W3qaFleetPull` 20 דק' ·
+pushers 60 שנ'. ⚠️ Harness: `sleep` משורשר ב-Bash חסום — להשתמש ב-`run_in_background: true`
+או לולאת `until <check>; do sleep 2; done`.
+
+──────── 16.4 Menyoo (מוד trainer ל-GTA V) עברית — 301 מחרוזות, deployed מקומית (2026-06-23) ────────
+
+לא משחק — התפריט של **מוד ה-trainer Menyoo v2.3.0** בתוך `F:\Games\Grand Theft Auto V Legacy`.
+נבדל מפרויקט טקסט-המשחק של GTA V (שם GXT2 בתוך RPF7). זיכרון [[gta-menyoo-hebrew]].
+
+- **טקסט = מערכת שפות מובנית, בלי patching בינארי.** `menyooStuff/Language/<Lang>.json` =
+  `{english_string: hebrew}` (המפתחות הם מחרוזות ה-UI האנגליות המדויקות, verbatim), מופעל ע"י
+  `menyooConfig.ini [settings] language = Hebrew`. מפתח חסר פשוט מרונדר באנגלית → **תרגום
+  חלקי מתדרדר בחן**. `menyooLog.txt` מאשר `Loaded language file ...`.
+- **🔑 טריק גילוי-ההיקף (אוניברסלי, לכל מוד/משחק עם loc מבוסס-lookup):** Menyoo רושם
+  **`ERROR - Missing translation for: <string>`** לכל מחרוזת שחיפש ולא מצא. לכן: לשלוח קובץ
+  שפה חלקי → לשחק בתפריטים פעם אחת → **לקצור את הלוג** = יקום המפתחות הסמכותי והמלא, ישירות
+  מהמנוע. הרבה יותר טוב מניחוש מתרגום קהילתי (ה-`French.json` המשוגר כיסה רק 234 מ-~520).
+- **🔑 הפרדת labels של UI משמות פרטיים — היוריסטיקת רבים/יחיד.** הרשימה הקצורה נשלטת ע"י
+  שמות רכבים שחייבים להישאר אנגלית. המפריד הנקי: **labels של קטגוריות בתפריט הם ברבים,
+  מאפייני שמות-רכב הם ביחיד** — `Compacts`/`Planes`/`Boats`/`Coupes` (קטגוריות, לתרגם) מול
+  `Blista Compact`/`Cargo Plane`/`Cheetah Classic` (רכבים, להשאיר). הורדת צורות היחיד מפילטר
+  מילות-המפתח הביאה את שיעור ה-false-positive ל-~0 (92→80 מועמדים, כולם UI אמיתי).
+  תוצאה: 80 מחרוזות UI מול 205 שמות/קודים (`keep_english_names.json`).
+- **פונט** — טקסט native של GTA V מגובה-Scaleform (ראה 8c בחלק 5). Menyoo מצייר עם ה-natives
+  `SET_TEXT_FONT`+`_DRAW_TEXT`; ה-glyphs מגיעים מ-`font_lib_efigs_pc.gfx`. עברית הוזרקה
+  ל-`$Font2`/`$Font2_cond` דרך FFDec, נשלחה כ-`.oiv` → `mods/update/update.rpf/x64/data/
+  cdimages/scaleform_platform_pc.rpf/`. **bidi: אין → לאחסן VISUAL** (ל-Scaleform אין מנוע RTL).
+- **🔴🔴 הבאג שהפך את הכול ל-tofu — אי-התאמה בין font-ID לבין ה-export שהוזרק.** עברית הוזרקה
+  ל-`$Font2` (font native **0**) ו-`$Font2_cond` (font **4**), אבל `menyooConfig [fonts]` בחר
+  **title=7 (Pricedown), options/selection=4, breaks=1 (HouseScript)** — 7 ו-1 הם exports
+  נפרדים שלא קיבלו עברית → כותרת התפריט ומפרידי הסקציות רונדרו כקופסאות. **התיקון: לכווץ כל
+  slot פונט בתפריט ל-0** (`title/options/selection/breaks/font_xyzh = 0`) כך שרק face אחד
+  צריך עברית. **אוניברסלי: אחרי הזרקת glyphs לפונט, לאמת באיזה font ID / face הטקסט באמת
+  משתמש — הזרקה ל-export הלא-נכון בלתי-נראית offline ונראית בדיוק כמו "הפונט נכשל".**
+- **צינור (סופי):** הסוכן המתרגם מייצר עברית **LOGICAL** (`Hebrew_logical.json`, לפי
+  [[delegate-all-translation]]) → Claude מחיל `visual()` מ-`translate_menyoo.py` בשורש →
+  כותב `Hebrew.json`. שמירת הקובץ הלוגי כמקור-אמת אומרת שה-visual bake ניתן להרצה-חוזרת
+  והתרגום לעולם לא נפגם ע"י באג היפוך.
+- **מצב:** **301 מחרוזות deployed** (234 בסיס + 67 UI שנקצרו מהלוג). באנגלית במכוון: 205
+  שמות רכבים/דמויות + קודים, ו-13 שורות הישג `N. Unlock '<Mission>'` (כותרת Latin רב-מילתית
+  — ראה מגבלת visual() בחלק 5 §8b #10). גיבויים `*.bak.<ts>`.
+- **⚠️ לקחי אימות (עלו זמן אמיתי):** (1) דוח כתוב של סוכן קודם טען "הותקן בהצלחה / אומת"
+  בזמן שפער ה-`[fonts]` שובר-הרינדור לא נגע — רק קריאת הקבצים בפועל חשפה. **לעולם לא לקבל
+  דוח hand-off כאימות.** (2) **`strings` לא קיים ב-Git-Bash הזה** → `strings file | grep X`
+  החזיר ריק וכמעט הובלתי למסקנה "ה-.gfx לא מכיל נתוני פונט" — פסיקה שגויה לחלוטין מ-pipeline
+  שנכשל בשקט. **לאמת שבינארי קיים לפני שסומכים על grep ריק**; לחלץ מחרוזות עם Python
+  (`re.findall(rb'[\x20-\x7e]{4,}', data)`). (3) **איך לאמת הזרקת פונט OFFLINE** (בלי הרצת
+  משחק): (א) גודל מול הגיבוי vanilla (97KB → 711KB = glyphs באמת נוספו), (ב) **שמות ה-export
+  המקוריים חייבים עדיין להיות שם** (`$Font2`, `$Font2_cond` — שינוי שם ל-"Arial" שובר את
+  קישור ה-Scaleform → fallback/tofu), (ג) לספור **codepoints LE-u16 בטווח היוניקוד היעד**
+  (2,071 פגיעות ב-0x0590–05FF = עברית ממופה בטבלאות הקוד).
+
+──────── 16.5 Launcher Designer — כלי "עריכת האפליקציה האמיתית" (2026-06-28) ────────
+
+`launcher-designer/` — אפליקציית Vite+React+TS **נפרדת** (לא נצרבת ללאנצ׳ר) לעיצוב מחדש
+ויזואלי של ה-UI. **עבר pivot** מ-block editor מבוסס Craft.js לבנייה-מאפס אל **inspector
+שעורך את האפליקציה האמיתית**, אחרי משוב שרפליקות-בלוקים לא נראו כמו התוכנה האמיתית.
+המשתמש בחר מפורשות (AskUserQuestion): "התוכנה האמיתית + עריכת כל אלמנט".
+הרצה: `cd launcher-designer && npm install && npm run dev` → http://localhost:5180
+(**להריץ בלי ארגומנטים נגררים** — הערת `→ http://localhost:PORT` מודבקת הופכת ל-`root` של
+vite → דף ריק/פורט שגוי). תיעוד: `launcher-designer/README.md`.
+
+- **ה-preview = האפליקציה האמיתית, 1:1.** `preview.html` + `src/preview/main.tsx` מרכיבים את
+  `@fe/App` האמיתי (`@fe` → `../frontend/src`) עם `@fe/index.css` האמיתי. תוסף Vite
+  `designer-mock-eel` (`vite.config.ts`) מחליף כל import שמגיע ל-backend eel של הלאנצ׳ר
+  (`lib/eel`) ב-`src/mock/eel.ts` — mock מלא של 7 ה-exports של eel (`api`, `jsLog`,
+  `isReady`, `onModProgress`, `onLauncherUpdateProgress`, `onCatalogRefreshComplete`,
+  `safeReportCrash`) שמחזיר משחקים/חדשות/משתמש/העדפות לדוגמה. כך ה-App האמיתי + כל ה-views
+  וה-hooks מרונדרים עם נתונים אמינים ובלי runtime של Qt/Eel. (multi-page build: index.html =
+  inspector, preview.html = האפליקציה האמיתית.)
+- **ה-inspector (`src/App.tsx`).** `<iframe src="/preview.html">` (same-origin → גישה מלאה) +
+  פאנל מאפיינים. "בחירה" ON → ריחוף מעל ה-iframe מדגיש אלמנט, לחיצה בוחרת (listener בשלב
+  capture על מסמך ה-iframe עושה `preventDefault` כדי שה-click של האפליקציה לא יירה). הפאנל
+  עורך: background/color/font/padding/margin/border/radius/width/height/opacity/text-align,
+  **הזזה חופשית** (transform translate), **טקסט**, ו**הסתרה**. להחלפת מסך: לכבות "בחירה",
+  ללחוץ על ה-sidebar האמיתי ב-preview, להדליק חזרה.
+- **מודל ה-overrides (`src/inspector/overrides.ts`).** כל עריכה נשמרת לפי selector יציב
+  (`cssPath` = נתיב `:nth-child` מעוגן ב-`#root`). `buildCss` → גיליון סגנון אחד
+  (`sel{prop:val!important}`, `display:none` למוסתרים); מוזרק כ-`<style id="design-overrides">`
+  לתוך ה-iframe (שורד re-renders של React). טקסט = מעבר DOM best-effort. ייצוא →
+  `design-overrides.json`; נשמר ל-localStorage.
+- **העיצוב הופך ללאנצ׳ר האמיתי.** `frontend/src/designer/applyOverrides.ts`
+  (`initDesignOverrides`/`applyDesignOverrides`) — חסר-framework, משקף את `buildCss`; מזריק
+  את אותו `<style>` + מעבר טקסט מגובה-MutationObserver. מחובר ב-`frontend/src/main.tsx`
+  (`initDesignOverrides()` לפני `createRoot`), קורא `frontend/src/designer/design-overrides.json`
+  (ברירת מחדל **`{}`** ⇒ no-op מובטח, הלאנצ׳ר המשוגר זהה-בייטים). להחלת עיצוב: להחליף את
+  ה-JSON בייצוא של ה-designer + לבנות מחדש (`build_exe.bat`).
+- **הוכחת E2E headless:** לחיצה על כפתור ה-Hero הראשי האמיתי → הפאנל בחר אותו; שינוי רקע →
+  האלמנט האמיתי הפך לצהוב-מותג→ירוק חי + ה-`<style>` הוזרק. שתי האפליקציות בונות ירוק.
+- **מגבלות (נאמרו למשתמש):** זה RESTYLE של ה-UI הקיים (CSS/טקסט/הסתרה/הזזה לכל אלמנט), לא
+  גרירת רכיבים חדשים מאפס. טקסט/הסתרה הם best-effort. קבצי גישת ה-Craft המיושנת
+  (`blocks.tsx`/`launcherBlocks.tsx`/`RenderNode.tsx`/`renderDesign.tsx`/`sample-design.json`)
+  נמחקו ב-pivot; `@craftjs/core` נשאר ב-package.json, לא בשימוש.
+
+──────── 16.6 שני שאלוני העיצוב (לאנצ׳ר 104 שאלות + אדמין 154 שאלות) ────────
+
+**שאלון עיצוב הלאנצ׳ר (104 שאלות, 2026-06-28):** RTL עברי, נפרד משאלון האדמין/אתר. המטרה
+שנתפסה מהמשתמש: דרג עליון, החלק/מהיר/נוח ביותר, "מעבר ל-Steam Big Picture".
+- **גנרטור:** `_faq_build_launcher/build_launcher_questionnaire.py` קורא כל `*.json` בקטגוריות
+  שם → פולט `שאלון-עיצוב-התוכנה.html` עצמאי בשורש (שאלון האדמין `שאלון-התאמה-אישית.html`
+  מ-`_faq_build/` לא נגוע). בנייה מחדש: `python _faq_build_launcher/build_launcher_questionnaire.py`.
+- **11 קטגוריות** (`01_overall`…`11_extra`): מראה/וייב כללי, sidebar+ניווט, בית/hero, כרטיסי
+  משחק, פאנל פרטים, כפתורים/צבעים, טיפוגרפיה, תנועה/רקע, מסכים משניים, UX/התנהגות (כולל
+  שאלת Big-Picture + ניווט מקלדת/שלט מלא), ותוספת חלון/פרטים/השראה. Schema לשאלה:
+  `{q,help,multi,allowFree,options:[{label,desc}]}`.
+- **שליטת מקלדת (בקשת המשתמש):** אפשרויות מציגות תגי מספר; **1–9 בוחר**,
+  **←/↓/Space/Enter מתקדם**, **→/↑/Backspace חוזר**, מוגן כך שלא חוטף את תיבת הטקסט
+  החופשי (Esc מטשטש) ולא יורה כפול על כפתור ממוקד. שורת רמז `⌨` לכל שאלה. אשף שאלה-אחת-
+  בכל-פעם + רשימת קטגוריות בצד + autosave ל-localStorage + שמירה/טעינת JSON + העתקת סיכום.
+- **התוצאה:** המשתמש מילא 104/104 (`עיצוב-התוכנה-בחירות.json`). פוענח מול
+  `_faq_build_launcher/*.json` (קובץ התשובות mojibake בתצוגה גולמית אבל UTF-8 נקי על הדיסק;
+  `scratchpad/decode_answers.py` מצליב תשובות↔אפשרויות לתדריך קריא). ההנחיות הפעילות
+  (לא-"נוכחי") הניעו overhaul פרימיום רב-גלי — ראה 16.7.
+
+**שאלון האתר/אדמין (154 שאלות):** `שאלון-התאמה-אישית.html` בשורש, נבנה ע"י
+`_faq_build/build_questionnaire.py`; תשובות מפוענחות ע"י `_faq_build/decode_answers.py` →
+`_faq_build/ANSWERS_DECODED.txt`. המשתמש בחר "התאמה אישית מקסימלית" כמעט בכל מקום; ההנחיה
+הייתה לממש admin + public **הפיך, בלי deploy ציבורי**. הניע את Batches 1–4 של התאמת האתר
+ואת ה-Admin Studio (ראה חלק 4.3 + website/CLAUDE.md). Revert:
+`python website/_faq_build_revert/RESTORE_customization.py`.
+
+──────── 16.7 גלי עיצוב הלאנצ׳ר (WAVE 1/2/3) + page-2 + overhaul פרימיום ────────
+
+**Premium UI overhaul (2026-06-28)** — משוב: הלאנצ׳ר נראה "פשוט ובסיסי מדי" → רצה ליטוש
+ברמת WeMod/Steam. tokens: `tailwind.config.js` קיבל keyframes/animations `rise`, `shimmer`,
+`sheen`, `float`, `gradient-pan`, `glow-pulse`; `index.css` קיבל ערכת UI פרימיום:
+`.text-gradient`, `.sheen-layer` (סוויפ אור נע ב-`.group:hover`), `.grid-texture`, `.lift`,
+`.stagger`, `.scroll-x`. **`@keyframes rise`+`sheen` מוצהרים עצמאית ב-index.css** (לא לסמוך
+על Tailwind שיפלוט אותם — `.stagger`'s `opacity:0` היה מסתיר תוכן בלי ה-keyframe).
+⚠️ **`launcher-designer/tailwind.config.js` חייב לשקף** את אותם keyframes (הוא מעבד את
+`@fe/index.css` ל-preview) — אחרת אלמנטי `.stagger` מרונדרים בלתי-נראים ב-preview בלבד.
+
+**GameDetailPanel "page-2" (2026-06-28)** — מסך פרטי המשחק עבר re-layout מ-grid 3-עמודות ישן
+(`[380px_1fr_300px]`) ל**עיצוב page-2 שהמשתמש צייר ב-PowerPoint** (`עריכת תוכנה.pdf`):
+שורה עליונה `grid-cols-[minmax(220px,260px)_1fr_320px]` (RTL → ימין·מרכז·שמאל): **פעולות
+מוערמות ימין-עליון** (▶ הפעל + ענף התקנה/הסרה/קנייה), **כותרת + תגי סטטוס + tagline + תיאור
++ התקדמות + הערות הקשר במרכז**, **כריכה גדולה משמאל**. תחתית: **מגירת "הגדרות" מתקפלת ברוחב
+מלא** (`settingsOpen`, ▲/▼) ב-3 תת-עמודות. **כל הלוגיקה נשמרה בייט-בייט** — רק JSX זז
+(ענף הפעולות חולץ ל-`actionButtons`, ההגדרות ל-`settingsBody`).
+
+**WAVE 1 (2026-06-28, BUILD_ID `20260628014118`, release id=48):** accent לכל משחק צובע את
+האפליקציה (`useAccent.tsx` → `--accent` CSS var + `.accent-bg`); ripple גלובלי בלחיצה
+(`ripple.ts`, listener capture-phase אחד); hero מונפש + carousel מומלצים מסתובב
+(`FeaturedCarousel` — spotlight מוכל וממוסך, auto-advance 6ש', pause-on-hover, חצים+נקודות);
+מסגרת ירוקה ל-GameCard פעיל; toggle grid/list + מיון ב-Library; ערכת CSS פרימיום
+(`aurora-drift`, `ripple-out`, `skeleton-sweep`, scrollbar מוסתר-עד-hover,
+`prefers-reduced-motion` הורג anims מחזוריים).
+
+**WAVES 2+3 (2026-06-28, BUILD_ID `20260628022701`, release id=49; המשתמש בחר "הכול ואז
+שיגור אחד"):** sidebar מתקפל (persisted, 230↔72, אייקונים-בלבד); Settings → tabs צד;
+theming (`themePrefs.ts` — anims on/off, density, accent ambient, sounds); פאנל פרטים
+עם banner קולנועי בסגנון Steam (`bannerUrl` → אחרת כריכה מטושטשת/מוגדלת, `logoUrl` →
+אחרת הכותרת האנגלית) + כפתור **"✨ מה חדש"** → `ChangelogModal` + `VersionHistory` (מושך
+`GET /api/games?action=history&game=<id>`); `EmptyState.tsx` + skeletons; splash מונפש
+(`SplashScreen.tsx`, ~2ש'); סיור onboarding (`OnboardingTour.tsx`, 4 שלבים, localStorage);
+ניווט מקלדת+שלט בסגנון קונסולה (`spatialNav.ts` — handler מסמך אחד, arrow→focus הקרוב,
+Backspace→`nav-back`, לולאת Gamepad rAF: D-pad/stick→כיוון, A→click, B→back,
+Start→`toggle-bigpicture`); **Big Picture** (`BigPictureMode.tsx` — overlay מסך-מלא, spotlight
+מרכזי + רצועת כריכות תחתונה, ←/→ מחליף, Enter/A פותח, Esc/B יוצא; owns את המקלדת דרך
+capture + `stopImmediatePropagation`); צלילי UI אופציונליים (`sound.ts`, Web-Audio, default OFF).
+**נדחה במכוון: פס כותרת frameless מותאם (11-Q1)** — צמוד-Qt (`main_window.py` FramelessWindowHint
++ startSystemMove/Resize + גשר JS↔Python) ו**לא ניתן לאימות מסביבת הבנייה**; frameless שבור
+שובר גרירה/שינוי-גודל/סגירה. (מומש מאוחר יותר ב-2026-07-13 עם זכוכית מוקפאת + פינות DWM
+מעוגלות, ואז הפך ל-**default ON**.)
+
+**Launcher polish (2026-06-28, BUILD_ID `20260628032218`, release id=50):** תיקון רגרסיית
+FPS (ה-`.accent-bg` היה שני blobs `filter: blur(90px)` 46rem מונפשים אינסופית מאחורי
+`backdrop-filter: blur(28px)` → Chromium מרסטר מחדש משטח מטושטש ענק כל frame → הפכו
+לגרדיאנטים רדיאליים **סטטיים**; `spatialNav` הריץ **לולאת rAF קבועה** גם בלי שלט → עכשיו רק
+כששלט מחובר); banner+logo לכל משחק מהשרת (25 משחקים, 50 תמונות ~7MB לדלי `covers`, עמודות
+`games.banner_url`+`logo_url`); מגירת הגדרות **מוצמדת לתחתית**; תיקון Big Picture (פתיחת
+משחק נשארת במסך מלא במקום ליפול לחלון).
+
+──────── 16.8 מנהל האייקונים + UICONS (3,933 אייקונים) ────────
+
+`icon-manager.html` בשורש (נוצר ע"י `build_icon_manager.py` מ-`uicons_map.json`) — כלי לניהול
+כל האייקונים של הלאנצ׳ר. פותחים מקומית.
+- **4 קבוצות / 93 slots:** **קיימים** (15 אייקוני לאנצ׳ר, החלפה) · **פס חלון** (3 בקרות
+  min/max/close) · **התראות** (3 מצבי פעמון) · **ללא אייקון** (**72** מקומות UI בלי אייקון —
+  כפתורים/כותרות/empty-states — שאותרו ע"י סריקת Workflow 5-סוכנית של ה-frontend).
+- **הספרייה:** כל **3,933** האייקונים של Flaticon UICONS "Interface icons · Regular Rounded"
+  (דרך ה-webfont של ה-CDN → דורש אינטרנט; שמות המחלקות + codepoints נגזרים מה-CSS ההוא),
+  מחולקים ל-**23 קטגוריות** (categorize-by-keyword) עם שורת chips + חיפוש בתוך קטגוריה.
+- **ספריית שלטים/גיימינג offline מאוצרת:** 20 SVG `currentColor` בכתב-יד (Xbox / Xbox-Series /
+  PlayStation / PS5 / Switch-Pro / Joy-Con / Steam-Deck / רטרו / ארקייד / הגה מרוצים / ג׳ויסטיק
+  טיסה / VR / קליפ נייד / D-pad / אנלוגי / כפתורי-פנים PS ✕◯□△ / bumper / אוזניות גיימינג) על
+  קנבס רחב 0 0 36 24, לצד 51 glyphs גיימינג מהפונט. פריטי ספרייה מעורבים font-`<i>` +
+  inline-SVG; שיוך של כל אחד עובד, SVG-ים מיוצאים כ-`svg-upload`.
+- **UX:** פריסת RTL דו-פאנלית — שמאל = ספרייה נגללת/חיפוש; ימין = ה-slots כ-drop targets.
+  שיוך ע"י גרירה **או** לחיצה-על-slot-אז-לחיצה-על-אייקון (שניהם עובדים תוך כדי גלילה), +
+  "העלה SVG" לכל slot, + אפשרות **"🚫 ללא אייקון"** (הסרה). "ייצוא שינויים" →
+  `icon-changes.json` (`{id,group,action:'add'|'replace'|'remove',iconName/newSvg}`).
+  משקף את המצב המיושם (קורא `applied_icon_changes.json`) כך ש-re-pick מייצא רק את הדלתא.
+- **הצינור להחלה:** `C:/tmp/extract_uicons.py` מפענח את ה-woff2 של UICONS (צריך `brotli`;
+  `fontTools` `SVGPathPen`+`BoundsPen`+`TransformPen` מתאים כל glyph ל-0 0 24 24, filled
+  `currentColor`, הפוך ב-Y) → **`frontend/src/components/UiIcons.tsx`** (רכיבים מיוצאים
+  `{width,height,className,style}`). **70 אייקונים הוחלו** (7 nav/tab החלפה + 63 הוספה
+  לכפתורים/כותרות/תגים ב-17 קבצים) ע"י Workflow לכל-קובץ (סוכן אחד לקובץ, בלי התנגשויות),
+  האייקון מוכנס כילד ראשון = צד ימין ב-RTL, גדלים לפי סוג (כפתור 15 / כותרת 17 / תג 12 /
+  empty 26), `shrink-0 opacity-90`, currentColor. **63/63 הוצבו, 0 דילוגים.**
+  ⚠️ `args` של Workflow לא נקשר (רץ 0 סוכנים) → רשימת הקבצים קודדה קשיח והורץ מחדש.
+  מאוחר יותר גדל ל-76→78+ בחירות (`applied_icon_changes.json`), האייקונים הוגדלו
+  (sidebar 20→25px, Settings tabs 18→20px), ושלטים הוחלפו ב-PNG של המשתמש
+  (`build_assets/controllers/{ps5,ps4,xbox}.png` → data URIs ב-`lib/controllerIcons.ts`,
+  מצוירים כ-**CSS masks** `backgroundColor:currentColor` כי ה-PNG שחור אחיד — `<img>` היה
+  יוצא שחור-על-שחור).
+- **🔴 "חלק מהאייקונים לא במקום" — שורש:** ה-workflow של 63 האייקונים אייקן רק את ענף
+  `gm.modSlug` של כפתורי הפעולה ב-GameDetailPanel, כך שסוגי משחק native-applier
+  (SM2/WD2/GoWR/GTA) רינדרו את **אותם כפתורים בלי אייקונים** → חוסר עקביות בין משחקים.
+  נוספו האייקונים התואמים לכל אותם ענפים בלעדיים-הדדית (רכישה/כבר-שולם/התקנה/הסרה).
+
+──────── 16.9 Visual LQA — גשר לכידת מסך + הקשר מגדרי (visual_bridge) ────────
+
+`universal/visual_bridge/` — לוגר לכידת-מסך קריאה-בלבד שמכין frames של גיימפליי ל-VLM
+שיבדוק גלישת טקסט על המסך, אותיות RTL הפוכות, ואי-התאמות הקשר. **agnostic למשחק** — dict
+תצורה אחד משרת גם CP2077 וגם SM2.
+
+- **`game_visual_logger.py`** — לולאת לכידה מודעת-focus. סוקר את כותרת חלון ה-*foreground*
+  כל כמה שניות דרך Win32 native (`ctypes` user32: `GetForegroundWindow` +
+  `GetWindowTextW`). משחק יעד ב-focus → grab → הקטנה (צלע ארוכה ≤1280) → JPEG (q70) ב-buffer
+  `BytesIO` → כתיבה תחת `_archive/visual_logs/frames/<game_id>/` + שורה
+  `{timestamp, game_id, frame_path, window_title, …}` ל-`_archive/visual_logs/runtime_log.jsonl`.
+  אין משחק ב-focus → **מצב idle**: רק שינה, אף פעם לא לוכד מסך (0 GPU).
+  `GAME_WINDOW_TITLES` ממפה `game_id` → שברי כותרת (substring case-insensitive).
+- **אפס תלויות חדשות.** רק **Pillow** (כבר קיים) + Win32 דרך `ctypes` — בלי
+  `pywin32`/`pygetwindow`/`mss`, מה ששומר על ניקיון ב-**Python 3.13**. `psutil` רק אם ניתן
+  לייבוא (העשרת שם תהליך); היעדרו לא משנה כלום.
+- **בטיחות קריאה-בלבד.** כל כתיבה עוברת `_safe_write_check()` → עצירה קשה (exit 99,
+  `SystemExit`) על כל יעד מחוץ ל-`_archive/visual_logs/`. הסקריפט לעולם לא פותח/קורא/כותב
+  קובץ משחק או ספיין תרגום.
+- **חוסן (אחרי review).** grab→encode→write הכול בתוך try/except אחד כך ששום שגיאת I/O
+  (דיסק מלא, נעילת AV/indexer) לא בורחת; `log_event` בולע OSError משלו; לגוף הלולאה
+  `except Exception` רחב שרושם וממשיך. `SystemExit` מהשומר עדיין בורח בכוונה.
+- **ריבוי מסכים.** ה-grab מוגבל ל-`GetWindowRect` של חלון המשחק מעל שולחן העבודה הווירטואלי
+  (`ImageGrab.grab(bbox=…, all_screens=True)`), כך שמשחק במסך משני נלכד נכון; fallback לכל
+  שולחן העבודה הווירטואלי אם ה-rect לא ניתן לקריאה.
+- **מסך-מלא בלעדי.** לכידת GDI (ImageGrab) לא יכולה לקרוא משטח DXGI בלעדי → frame שחור לגמרי.
+  מזוהה דרך קיצוני luminance (`hi==0`) ונרשם כ-`capture_failed`; **להשתמש ב-borderless windowed**.
+- CLI: `selftest` (בדיקת deps/IO, בלי משחק) · `probe` (הצגת החלון הממוקד + התאמה) · `--once`
+  (לכידה אחת) · `run` (הלולאה). אומת: `py_compile` נקי על 3.13.13, `selftest` PASS.
+
+**מערכת ההקשר-המגדרי (הבקשה המקורית: להראות את ה-frame שבו מחרוזת מופיעה) — נבנתה 2026-07-06:**
+1. **`frame_match.py`** — הגשר לכידה→שורה. עושה OCR לרצועת הכתוביות של frame (תחתון ~32%)
+   עם **Tesseract `heb`** (`_tessdata/` עצמאי שהועתק מפרויקט Video Ai; `--tessdata-dir`,
+   בלי admin/שינוי PATH), ואז **התאמה מטושטשת** (difflib על צורה עברית מנורמלת — ניקוד/
+   תגים/בתי-בקרה/פיסוק מוסרים) מול ספיין ה-base+DLC כדי לזהות את ה-`(section, key)` המדויק.
+   CP2077 מרנדר את עברית ה-Arabic-slot עם bidi RTL אמיתי, ולכן Tesseract מחזיר סדר LOGICAL
+   שתואם לספיין. `index` עושה OCR לכל frame ב-`runtime_log.jsonl` → `frame_matches.jsonl`.
+   **`selftest` PASS 5/5** (מרנדר שורות ספיין ידועות הפוך-ויזואלית → OCR heb → מתאים חזרה
+   ביחס 1.00 — מוכיח את הצינור בלי גיימפליי). אפס תלויות כבדות (Tesseract subprocess + PIL +
+   difflib). CLI: `python frame_match.py selftest | index | ocr <img>`.
+2. **`context_review.py`** — **גלריית "טקסט + צילום מסך"**. מריץ `gender_filter` על הספיין,
+   מפצל ל-**fixed-referent** (NPC/קבוצה/מכשיר — המגדר קבוע בעולם → צילום עוזר) מול
+   **player-dependent** (V = you/I → המנוע פותר, אין צורך בצילום), מושך את
+   femaleVariant/maleVariant ה**חיים** מהספיין הנוכחי, ופולט דף HTML RTL עצמאי אחד: לכל שורה
+   — מקור EN · נ׳/ז׳ חיים (עם תג זהה⚠/שונה✓) · צירי מגדר · שאלת מגדר בעברית · רמז סצנה
+   מ-secondaryKey · צילום המסך המותאם (base64) אם נלכד, אחרת placeholder "שחק כדי ללכוד" —
+   כך שאותו דף מתמלא תוך כדי משחק. נבנה: **1,999 fixed-referent** (1,199 onscreens + 800
+   subtitles) + **1,579 player-dependent**; subtitles שנסרקו 3,672 → **2,379 ambiguous**
+   (מאשש שה-ROI הוא בכתוביות). CLI: `python context_review.py [--subs N] [--out f.html]`.
+3. **`gender_filter.py`** — מסמן אילו מחרוזות אנגליות **עלולות** לדרוש בחירת מגדר/מספר בעברית
+   (כדי שצילום/annotation יוצף רק להן ולא לכל שורה). `classify(en)` →
+   `{ambiguous, axes[addressee/speaker/referent/number], confidence, player_dependent}`.
+   **ניואנס CP2077: למנוע כבר יש שני slots מגדריים** (femaleVariant/maleVariant נבחרים לפי
+   מגדר V) → שורה היא `player_dependent` (V = "you"/"I" → למלא את **שניהם**, המנוע פותר, אין
+   צורך בצילום) מול referent קבוע (NPC/קבוצה → צריך הקשר/צילום). Selftest PASS.
+   CLI: `python gender_filter.py cp2077 --report`.
+   **מספרים אמיתיים ל-CP2077 onscreens (89,768 שורות):** 12.6% ambiguous / 87.4% ניטרלי
+   (דילוג בטוח). מתוך ה-ambiguous: 8,936 player-dependent מול ~1,199 fixed-referent (deduped).
+   **ממצא: רוב שורות ה-onscreens fixed-referent לא מרוויחות מצילום** — הן טקסט פריט/HUD שבו
+   "they"=האובייקט המתואר (מגדר קבוע ע"י שם העצם העברי, ניתן לפתרון מ-secondaryKey) או
+   תבניות ממוחזרות (זכר גנרי). ה-ROI האמיתי של הצילום הוא ב**כתוביות/דיאלוג** עם דובר/סצנה
+   ספציפיים. הערה: לקסיקון הציווי חלקי → פעלי פעולה חד-מיליים (Examine/Lock/Play/Stun)
+   נספרו-חסר כניטרליים, ולכן שיעור ה-ambiguous האמיתי גבוה מ-12.6%.
+
+──────── 16.10 מסד שמות משחקי Ubisoft (12,984) + זיהוי שמירות ────────
+
+**שם המשחק מתוך מזהה התיקייה המספרי של Ubisoft.** `savegames\<account-uuid>\<numeric-id>` —
+התיקייה המספרית **היא** מזהה המוצר של Ubisoft, אבל מטמון ה-`configurations` המקומי של
+Ubisoft **לא** נושא את המזהה בתוך ה-YAML שלו → נדרש מסד סטטי משוגר. נבנה
+`translation_manager/assets/ubisoft_games.json` (~522KB, **12,984 משחקים**) ע"י **מיזוג שתי
+רשימות ציבוריות משלימות** (`iArtorias/ubisoft_game_ids` בפורמט `ID, Name` +
+`Haoose/UPLAY_GAME_ID` בפורמט `ID - Name`); `save_backup.ubisoft_game_name(number)` פותר,
+ונופל חזרה למספר החשוף כשחסר (למשל `61402`, כותר מדצמבר-2025 שבאמת לא נמצא באף אחת מהרשימות
+הציבוריות — סירוב לנחש). משוגר דרך רשומת ה-datas `('translation_manager','translation_manager')`.
+
+**זיהוי שמירות אוניברסלי (המשתמש: "לגבות את כל המשחקים, גם לא-מקוטלגים; Ubisoft לפי חשבון
+עם עץ מתרחב; שמות משתמש ניתנים לעריכה"):**
+- `save_backup.detect_ubisoft_accounts()` — **חשבון** = תיקייה בשם **UUID** תחת `savegames\`,
+  שנמצאת בעומק 1 **או** רמה אחת בתוך מכולה שיצר המשתמש (למשל תיקיית `עוד משתמשים` של המשתמש
+  החזיקה 4 UUID-ים נוספים); תת-התיקיות המספריות של כל חשבון = המשחקים שלו (**כולל** משחקים
+  שהלאנצ׳ר לא מכיר).
+- `detect_generic_saves()` — סורק את השורשים ה**ייעודיים-למשחקים** (`Saved Games`,
+  `Documents\My Games` = לחשוף כל תת-תיקייה; `LocalLow` = מעורב → blocklist `_NONGAME_VENDORS`
+  [AMD/Adobe/Microsoft/UnrealEngine/…] + ניקוד save-likeness) כך שכל משחק לא-מקוטלג מוצע.
+- **על המכונה האמיתית: 5 חשבונות / 27 משחקי Ubisoft + 28 משחקים שטוחים** (Far Cry/Watch Dogs/
+  Division/TLOU/…).
+- ⚠️ **הבאג `.tmp.driveupload`:** ה-wildcard `savegames\*` התאים לתיקיית-נקודה זמנית של
+  Google-Drive (ו-`cache`) במקום לתיקיית החשבון האמיתית; `save_backup._expand_all` מדלג עכשיו
+  על תיקיות עם קידומת `.` ועל `_JUNK_NAMES` → תיקיית `savegames\<account-uuid>` האמיתית מזוהה.
+- `engine.py` הוסיף `ubisoftAccounts` ל-`get_state` (לכל חשבון: `label` ניתן-לעריכה מ-
+  `cfg["ubi_account_labels"]`, משחקים עם דגל `added`, `addedCount`/`allAdded`); פעולות
+  `add_ubi_game` / `add_ubi_account` / `rename_account` (משנה שם לחשבון **ולמשחקים שכבר
+  נוספו**) / `rename_entry`. ה-renderer קיבל node **`ubitree`** (חשבונות מתקפלים, עריכת שם
+  משתמש דרך עיפרון→input→`rename_account`, "הוסף חשבון" לכל חשבון + "הוסף"/✓נוסף לכל משחק).
+- **שמירה כבדה — guard:** `folder_size(path)` (os.scandir, תקרה 300K קבצים, דגל `truncated`)
+  + `HEAVY_BYTES=500MB`; `add_ubi_game` מחזיר מחרוזת `confirm` (עם הגודל) כשכבד אלא אם
+  `confirmed`; `add_ubi_account`/"הוסף הכל" מפרטים אילו כבדים ובאיזה גודל. ה-renderer מטפל
+  דרך `window.confirm` → קורא שוב עם `confirmed:true`. (autosaves של Anno 1800 ≈ 31GB הוא
+  המקרה המניע.)
+
+──────── 16.11 צינור CP2077 המפורט (הסקריפטים בפועל) ────────
+
+(חלק 6.1 מסכם את המצב; זה התיעוד התפעולי שהיה ב-CLAUDE.md.)
+
+**הצינור העובד (ניתן להרצה חוזרת בכל עת):** `translate_queue_fast.py` →
+`fill_translations_from_queue.py lm_output.json --rebuild`, ששרשור `rebuild_onscreens_and_pack.py`
+ב-7 שלבים: (1) חילוץ שלד CR2W ערבי פריסטין מ-`lang_ar_text.archive` → (2) serialize CR2W →
+text JSON (WolvenKit `convert serialize`) → (3) החלת עברית ע"י
+`cp2077_apply_translations_to_wkit_json.py` → (4) deserialize text JSON → CR2W → (5) הצבת
+ה-CR2W ב-`<project>/source/archive/base/localization/ar-ar/onscreens/` → (6) pack עם
+WolvenKit → `archive.archive` → (7) deploy → `<game>/archive/pc/mod/z_hebrew_translation.archive`.
+**זמן ריצה כולל ~1.6 דק' (94 שניות).** **תנאי מוקדם: Cyberpunk 2077 חייב להיות סגור.**
+
+**כוונון throughput (`translate_queue_fast.py`, טלאים 2026-05-17 — הורידו יחס שגיאה/תרגום
+מ-22% ל-0.1% על ריצה מלאה של 23k):** `DYN_MAX_WORDS` 150→100; `LONG_ITEM_CHAR_THRESHOLD`
+חדש=200 (פריטים >200 תווים עוקפים batching והולכים ישר ל-single-mode); ניסיונות חוזרים של
+batch על 400: 2 ניסיונות × 2ש' שינה → **0** (fallback מיידי ל-single-mode); ניסיונות
+`translate_one` על שגיאת גודל-הקשר: 3 × 2ש' → **0** (`_is_context_error()` מקצר את הלולאה).
+**Throughput מתמשך ~13 פריטים/דקה** (Gemma-2-27B, RX 9070, 4 workers) → 23,792 פריטים ≈
+31 שעות. הצוואר הוא inference של LM Studio, לא Python (התהליך צרך 228 שניות CPU ב-16.5 שעות
+ריצה — >99% idle בהמתנה לתשובות HTTP).
+
+**קבצי מפתח:** `translate_queue_fast.py` (מתרגם ראשי) · `fix_missing_translations.log`
+(לוג שהמוניטור צופה בו — **אסור לשנות שם**, ה-regex של האדפטר תלוי בו) · `lm_output.json`
+(dict פלט לפי section) · `missing_translations_queue.json` (תור קלט deduped) ·
+`fill_translations_from_queue.py` · `rebuild_onscreens_and_pack.py` ·
+`rebuild_subtitles_and_pack.py` (re-bake כירורגי של כתוביות, מונע ע"י `patch_615_report.json`) ·
+`cp2077_apply_translations_to_wkit_json.py` · `patch_615_flagged.py` (ניקוי מונע-ביקורת דינמי) ·
+`cp2077_orchestrator.py` (נהג צינור סופי לא-מפוקח — מנטר batch כתוביות → ביקורת טרייה →
+משעה clients מתחרים של LM דרך ctypes `NtSuspendProcess` → `patch_615_flagged.py` → pack מחדש) ·
+`cp2077_status_report.py` (ביקורת שלמות קריאה-בלבד) · `cp2077_consolidate_dlc.py` ·
+`dlc_ep1_text.json` (716 sections, 47,905 רשומות) · `cp2077_qa_defects.py` (גלאי 4 מחלקות
+משותף — `scan_all()` הוא מקור האמת היחיד ל-QA sweep ול-watchdog) · `cp2077_qa_sweep.py`
+(מעבר QA חד-פעמי, לולאת audit→fix→re-audit, תקרה 5) · `cp2077_qa_watchdog.py` ("שומר הטירה"
+מתמיד — כל ~20 דק' ביקורת+תיקון אוטומטי של ה-JSON, לעולם לא אופה/משגר; כותב
+`~/.translation_manager/cp2077_qa_status.json`; מחנה כשלונות 3+ ב-`qa_watchdog_giveup.json`) ·
+`cp2077_post_pipeline.py` (אוטומציה ראשית: סיום תרגום → QA sweep → אפיית כתוביות → אפיית
+onscreens+deploy → דוח סטטוס → הפעלת watchdog).
+
+**מחסנית המוניטור:** `cp2077_monitor.bat` → `python -m progress_monitor --adapter cp2077 --tui`.
+האדפטר `progress_monitor/adapters/cp2077.py` מנתח את לוג המתרגם ישירות ובונה snapshot
+3-שלבי (חילוץ/תרגום/אריזה). הליבה `progress_monitor/core.py` דוחפת ל-API של האתר כל 15 דק'
+ומרעננת TUI כל 1.5ש'. טיפול bidi: `tui.py` `_LEGACY_CONSOLE` — ב-cmd.exe של המשתמש
+`fix_rtl()` הופך רצפים עבריים (הטרמינל שלו לא מריץ את אלגוריתם ה-bidi); טרמינלים מודרניים
+(Windows Terminal, ConEmu, VS Code) מזוהים דרך env vars ומדלגים על ההיפוך.
+**מיפוי cleanup-mode:** כשרץ `translate_cleanup_all.py`, האדפטר מזהה את הסמן `cleanup mode`
+וממפה את התת-קבוצה חזרה להיקף הגלובלי (`CLEANUP_GLOBAL_TOTAL = 23792`): baseline = total −
+גודל תת-הקבוצה; processed = baseline + תוקנו-בריצה. בלי המיפוי סרגל האתר קפץ ל-"417/950"
+ונראה כרגרסיה במקום 98% + ליטוש סופי. ⚠️ שינוי ב-`cp2077.py` דורש הפעלה מחדש של ה-TUI
+(Python מטמן את המודול); ל-push חד-פעמי מיידי: `python -m progress_monitor --adapter cp2077
+--once --no-tui`.
+
+**⚠️ יעד ה-DEPLOY — קריטי:** המשחק שהמשתמש מפעיל/בודק הוא עותק ה-staging של הפרויקט
+(`…\תרגום משחקים\Cyberpunk 2077`), **לא** `C:\Games\Cyberpunk 2077` (התקנה נפרדת שהמשתמש
+לא משחק בה). הערה "פורנזית" מ-2026-05-19 הסיקה בטעות ש-`C:\Games` היא ההתקנה האמיתית
+והפנתה שני סקריפטים לשם → כל re-pack נחת בתיקייה שהמשתמש לא משחק, והמשתמש המשיך לטעון
+ארכיון מיושן. זה מה שגרם לכתוביות להיראות "ריקות". **לעולם לא להפנות deploy ל-`C:\Games` שוב.**
+
+**סאגת הכתוביות ה"ריקות" — נפתרה:** הסימפטום היה אך ורק טעות תיקיית ה-deploy לעיל — לא
+נתונים, לא פונטים, לא מנגנון ה-override (אומת: נתונים 95% עברית, פונטים md5-זהים ל-Heebo,
+ארכיון זהה מבנית לפריסטין, ווידג׳ט הכתוביות משתמש בפונט `raj` ש**כן** הוחלף).
+
+**גיבוי-על-deploy:** `rebuild_onscreens_and_pack.py` (`step7_deploy`) ו-`cp2077_subtitle_batch.py`
+(`phase3_pack_deploy`) מעתיקים את `z_hebrew_translation.archive` הנוכחי ל-
+`Cyberpunk 2077\archive\pc\mod_backups\<timestamp>\` לפני דריסה (רק את הארכיון הזה — מודי
+התפריט/startup לא נגועים).
+
+**מיזוג המודים הסטטיים:** שני המודים הסטטיים — `z_hebrew_menu_name_patch.archive` (עקיפת
+תווית Settings>Language, 18 locales) ו-`z_hebrew_startup_fix.archive` (החלפת וידאו פתיחה ערבי)
+— מוזגו ל-**`z_hebrew_static.archive`** יחיד (~81MB, 37 קבצים: 36 onscreens CR2W + 1 bk2).
+נתיבי המשחק שלהם זרים → המיזוג חסר-אובדן (`merge_static_archives.py`). תיקיית המוד מחזיקה
+בדיוק שני ארכיונים: `z_hebrew_static.archive` (סטטי) + `z_hebrew_translation.archive` (החי).
+
+**כוונון LM Studio (היסטורי, CP2077):** LM Studio מחלק `--context-length` לכל slot מקבילי.
+עם `--ctx 2048 --parallel 4` כל slot מקבל ~512 tokens, ו-batch של 12 פריטים צריך ~1,200
+(SYSTEM_PROMPT ~430 + header ~25 + פריטים ~300 + `MAX_TOKENS=512`) → batches טוריים הצליחו
+(slot יחיד מנצל 2048) אבל מקביליים נכשלו ב-`400 — Context size has been exceeded` ונפלו
+ל-single-mode → throughput קרס ל-~0.3 רשומות/דקה. **התיקון:**
+`lms load gemma-2-27b-it -y --gpu max --context-length 8192 --parallel 4` (ההקשר הטבעי של
+Gemma-2). נמדד עם `_lm_client_test.py`: טורי 194.8ש', מקבילי 117.2ש', **speedup 1.66×,
+24.6 פריטים/דקה**, אפס שגיאות הקשר. (מבחן `_lm_parallel_test.py` הקודם דיווח 2.51× — מטעה,
+כי ה-prompts שלו היו זעירים; להשתמש ב-`_lm_client_test.py` לכל כוונון עתידי.)
+
+**ביקורת איכות (2026-05-18, post-bulk):** `audit_translations.py` סורק את
+`localization_translated.json` לזיהום כתב-זר בעברית נרטיבית, מסיר תגי passthrough קודם
+(`<kiroshi l="jpn" o="..."/>`, `<Rich color="...">`, `{VALUE,...}`). על 220,485 variants
+(3,085 sections): עם תווים עבריים 214,615; **דליפות כתב-זר אמיתיות 615 (0.28%)**; כתבים
+מובילים Hangul 268 · Greek 101 · Cyrillic 88 · Katakana 78 · Devanagari 35 · Arabic 31 ·
+Hiragana 20 · Han 8 · Thai 4 · Armenian 3; **הפרות ניקוד 0**. דוח: `audit_translations_report.txt`.
+
+**הקשחת prompt (2026-05-18):** `SYSTEM_PROMPT` מאוחד ומחמיר יותר לשני המתרגמים: פתיח
+"מלוקליזציה מקצועית של Cyberpunk 2077" עם טון נייט סיטי; כלל קשיח: אלפבית עברי+אנגלי בלבד
+(רשימה מפורשת של כתבים אסורים: קירילי, ערבי, תאי, יווני, CJK, Hangul…); כלל קשיח: **לעולם
+לא ניקוד**; שימור תגים מורחב (`<Rich color="...">`, `{VALUE,...}`); מילון מורחב
+(Shard → שארד, Edgerunner → אדג'ראנר). סקריפט ה-cleanup גם מסנן מראש פריטים שמתחילים בבתי
+בקרה 0x01–0x05 ואחריהם סמני Rich-text/JSON (placeholders של framework CR2W) —
+`_looks_like_framework_placeholder()`.
+
+──────── 16.12 ביקורת אוניברסליות + תיקוני UX של הלאנצ׳ר (2026-06-09) ────────
+
+**ביקורת אוניברסליות (ניידוּת) רב-סוכנית** (נתיבי-dev צרובים, גרסת/ארכיטקטורת Windows,
+לוקאל/קידוד, הרשאות/רישום, תלויות משוגרות) עם אימות adversarial. **רוב הסיכונים שסומנו
+אומתו כלא-בעיות:** Win7/8/8.1 כבר חסומים ע"י `MinVersion`; `certifi` משוגר ו-`requests`
+עם `verify=True` משתמש בו (אין תלות ב-cert store של ה-OS); שמות משתמש לא-ASCII נתמכים
+לגמרי (pathlib + `utf-8`/`utf-8-sig`, Win32 wide APIs); הפעלה ראשונה offline נופלת חזרה
+לקטלוג `_bundled_games()` (build ה-Qt לעולם לא קורא לדיאלוג ה-offline של Eel); שגיאת כתיבת
+הרישום של השפה כבר מוצפת דרך `langErr`; שמות mutex/event של single-instance כבר מבודדים
+לכל session ע"י Windows (בלי קידומת `Global\` → Local namespace). **שלושה תיקונים אמיתיים:**
+1. **`installer.iss` `MinVersion` 10.0 → 10.0.17763** (Windows 10 1809) — הרצפה ל-Qt6/
+   QtWebEngine. מתחת לזה ה-Chromium המשוגר נכשל בשגיאת DLL סתומה; עכשיו המתקין מסרב בהודעה
+   נקייה. 1809 מזמן EOL אז אף משתמש אמיתי לא נחסם.
+2. **בדיקת כתיבוּת מקדימה** — `game_mod.is_writable(game_root)` (בדיקת `NamedTemporaryFile`
+   לא-הרסנית). `main_eel._run_game_mod_install` בודק **לפני** ההורדה (הגדולה), כך שמשתמש
+   לא-מוגבה שמכוון למשחק תחת `C:\Program Files` מקבל מיד הודעת "הרץ כמנהל / העבר את המשחק"
+   במקום להוריד מאות MB ורק אז להיכשל בהעתקה.
+3. **תקינות `game_mod.disable()`** — מסמן `installed=False` רק כשכל הקבצים באמת נמחקו.
+   קודם קובץ נעול (משחק פתוח) שבר את הלולאה אבל ה-state עדיין התהפך ל-"disabled", כך
+   שה-UI שיקר בזמן שהמוד נשאר על הדיסק. עכשיו נשאר "פעיל" בכשל חלקי וניסיון חוזר מנסה שוב.
+**סומן ולא תוקן** (דורש נכס בתשלום, לא קוד): המתקין וה-exe **לא חתומים Authenticode** →
+SmartScreen "Unknown publisher" בהורדה ראשונה (קליק אחד "Run anyway"; המוניטין מתרפא מעצמו).
+
+**תיקוני UX של הלאנצ׳ר (2026-06-09, אותו שיגור כמו מתג השפה):**
+- **סריקת כונן מלאה כבר לא מקפיאה את ה-UI.** `scan_deep` (ו-`scan_quick`) רצו סינכרונית על
+  ה-GUI thread של Qt, כך שההליכה במערכת הקבצים (דקות) נעלה את כל הלאנצ׳ר. שני ה-slots
+  עוברים עכשיו דרך `_run_off_thread` (scan_deep 900ש', scan_quick 120ש').
+- **קליק שמאלי על ה-tray פותח את החלון.** `qt_shell/tray.py` `_on_activated` טיפל רק
+  ב-`DoubleClick`; עכשיו גם `Trigger` → `show_and_activate()`.
+- **קיצור דרך / הפעלה שנייה ממקדים את החלון הקיים.** שורש: `MainWindow.show_and_activate`
+  היה מתודה רגילה, ולכן `QMetaObject.invokeMethod(window, "show_and_activate", …)` של
+  מאזין ה-single-instance (הפעלה **לפי שם**) עשה no-op בשקט (תפריט ה-tray עבד כי הוא קורא
+  ישירות). התיקון: לקשט ב-`@Slot()`. נוסף גם `_force_foreground()` (ctypes
+  `ShowWindow(SW_RESTORE)` + `SetForegroundWindow`) וב-`single_instance.signal_show()`
+  `AllowSetForegroundWindow(ASFW_ANY)` מהתהליך המשגר, כדי לעקוף את מניעת גניבת-הפוקוס.
+- **הצגת השפה הנוכחית לכל משחק.** `_enrich_game_row` מוסיף `currentLanguage` (ממשק +
+  כתוביות) דרך `game_language.get_state` — no-op לכותרים לא-נתמכים, קריאה ~1-5ms
+  ל-spiderman2/cyberpunk. `Game.currentLanguage` ב-`types.ts`; `GameDetailPanel` מציג chip
+  "שפה: …" בכותרת ו-"ממשק/כתוביות כעת: …" במתג השפה.
+
+──────── 16.13 פערים קטנים נוספים שאותרו ────────
+
+- **`_dev_build.txt` = 180** (מונה dev_build רציף; האתר מוסיף אותו לתווית הגרסה רק
+  ל-dev/canary — beta מציג `v1.1.0` נקי).
+- **`git log`:** ההיסטוריה ב-repo הזה מתחילה ב-`4ef2452 Initial project commit` (הרפו אורגן
+  מחדש 2026-05-27; ההיסטוריה האמיתית של הפרויקט חיה ב-CLAUDE.md ובצ׳אטים). ה-commit האחרון
+  `da6682b feat(launcher): UI redesign — smart hover/lock sidebar, glassmorphism, ambient bg,
+  responsive game panel`. עבודה חדשה יותר (בניית 1.1.0 והפרסום) לא בהכרח committed — עץ
+  העבודה מכיל שינויים רבים שלא נכנסו ל-commit.
+- **`Game Lab/`** — תיקיית עותקי staging של משחקים (GoWR, Ratchet, 007, SM2 ועוד) שעליה
+  מתבצע ה-deploy לבדיקה, בנפרד מההתקנות "האמיתיות" (`C:\Games`, `D:\Games`, `F:\Games`,
+  `E:\SteamLibrary`).
+- **קבצי root נוספים:** `CLAUDE_PRIVATE.md`, `CLOUD_PLUGIN_HOST.md` (עיצוב מנוע התוספים),
+  `GEMINI_HANDOFF.md`, `LAUNCHER_3GAMES_PUBLISH.md` (מתכון פרסום HL/W3/PT), `RESILIENCE_SCROLL.md`
+  (1,082 תרחישים), `SECURITY_AUDIT_2026-06-14.md`, `audit_findings.txt`, `qa/`, `docs/`,
+  `my-app/`, `tools/`, `_faq_build/`, `_faq_build_launcher/`, `לוגו לאייקון/` (נכסי מיתוג),
+  `עריכת תוכנה.pptx/pdf` (סקיצות ה-page-2 של המשתמש), `timer_continue.py`, `test.py`.
+- **`Output/`** מכיל את קובצי ה-installer הבנויים; `dist/` + `build/` פלט PyInstaller
+  (כולם gitignored).
+
+
+════════════════════════════════════════════════════════════════════════════
+                              סוף התיעוד
+        לעדכון: כל שינוי משמעותי נכתב ל-CLAUDE.md (הרשומה החיה) ולזיכרון (MEMORY.md).
+        הקובץ הזה הוא snapshot נכון ל-2026-07-20.
+════════════════════════════════════════════════════════════════════════════

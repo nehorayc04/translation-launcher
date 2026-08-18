@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>מעבר לשרת מאגר עצמאי — תרחיש עץ מלא</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;800;900&family=Fira+Code:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+:root {
+  --bg: #070913;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --cyan: #38bdf8;
+  --purple: #c084fc;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  background-image:
+    radial-gradient(circle at 50% 10%, rgba(56, 189, 248, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 50% 90%, rgba(52, 211, 153, 0.08) 0%, transparent 50%);
+  color: var(--text-main);
+  font-family: 'Rubik', system-ui, sans-serif;
+  min-height: 100vh;
+  padding: 20px 10px 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+header h1 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 6px;
+}
+
+header p {
+  color: var(--text-muted);
+  font-size: 1.05rem;
+}
+
+/* Full Width Diagram Card */
+.diagram-card {
+  width: 98vw;
+  max-width: 98vw;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 24px;
+  backdrop-filter: blur(28px);
+  padding: 30px 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.mermaid-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.mermaid {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.mermaid svg {
+  margin: 0 auto !important;
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+.mermaid .node label, .mermaid .node div, .mermaid .node foreignObject {
+  font-size: 19px !important;
+  font-weight: 700 !important;
+  line-height: 1.5 !important;
+  padding: 6px 12px !important;
+}
+
+.mermaid .edgeLabel {
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  background-color: rgba(7, 9, 19, 0.95) !important;
+  color: #38bdf8 !important;
+  padding: 4px 10px !important;
+  border-radius: 6px !important;
+  border: 1px solid rgba(56, 189, 248, 0.3) !important;
+}
+
+.mermaid .node rect, .mermaid .node polygon, .mermaid .node circle {
+  stroke-width: 3px !important;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🗺️ מעבר לשרת מאגר עצמאי — תרחיש עץ אנכי מלא</h1>
+  <p>מבדיקת המחשב המארח ועד לצי אחיד שמושך שורות ממאגר יחיד, ללא חלוקה ידנית וללא מגבלת אחסון</p>
+</header>
+
+<div class="diagram-card">
+  <div class="mermaid-wrapper">
+    <div class="mermaid">
+graph TD
+    START["🖥️ התחלה: החלטה לאחד<br/>הכול למאגר אחד עצמאי"] --> S1["🔎 בדיקת המחשב המארח<br/>זיכרון · דיסק · רשת"]
+    S1 --> D1{"🧩 המחשב מתאים<br/>לריצה רצופה?"}
+
+    D1 -- "✅ כן" --> S2["🌐 הקצאת רשומת דומיין<br/>לכתובת הקבועה"]
+    D1 -- "❌ לא" --> ALT1["🛠️ בחירת מחשב אחר<br/>שדולק תמיד"]
+    ALT1 --> D1
+
+    S2 --> S3["🔓 הפניית פורט מוצפן<br/>בנתב הביתי"]
+    S3 --> D2{"📡 הכתובת נענית<br/>מחוץ לרשת?"}
+
+    D2 -- "✅ כן" --> S4["🔐 הפקת תעודת הצפנה<br/>אוטומטית"]
+    D2 -- "❌ לא" --> FIX1["🛠️ תיקון הפניית הפורט<br/>ובדיקה מרשת סלולרית"]
+    FIX1 --> D2
+
+    S4 --> D3{"🔒 החיבור המוצפן<br/>תקין ובתוקף?"}
+
+    D3 -- "✅ כן" --> S5["🗄️ הקמת מסד נתונים<br/>מקומי על המחשב"]
+    D3 -- "❌ לא" --> FIX2["🛠️ תיקון הרשומה<br/>וחידוש התעודה"]
+    FIX2 --> D3
+
+    S5 --> S6["🛡️ הגנות: שער סוד<br/>הגבלת קצב · הרשאות"]
+    S6 --> S7["📥 טעינת כל שורות<br/>המשחק למאגר האחד"]
+    S7 --> D4{"🔢 מספר השורות<br/>תואם למקור?"}
+
+    D4 -- "✅ כן" --> S8["📱 הפניית מכשיר ניסיון<br/>אחד לשרת החדש"]
+    D4 -- "❌ לא" --> FIX3["🔄 טעינה מחדש<br/>ואימות שלמות"]
+    FIX3 --> D4
+
+    S8 --> D5{"🔁 משיכה ושליחה<br/>עובדות תקין?"}
+
+    D5 -- "✅ כן" --> S9["💻 המרת עשרים ואחד<br/>הזרמים ללקוחות המאגר"]
+    D5 -- "❌ לא" --> FIX4["🛠️ תיקון החוזה<br/>והשער הסודי"]
+    FIX4 --> D5
+
+    S9 --> D6{"⚙️ כל הזרמים מושכים<br/>מהמאגר האחד?"}
+
+    D6 -- "✅ כן" --> S10["🗑️ ביטול החלוקה הפיזית<br/>הישנה לכל מחשב"]
+    D6 -- "❌ לא" --> FIX5["🛠️ תיקון מפתחות<br/>והפעלת השירות"]
+    FIX5 --> D6
+
+    S10 --> S11["💾 גיבוי יומי אוטומטי<br/>למחשב שני"]
+    S11 --> D7{"♻️ שחזור הגיבוי<br/>נבדק והצליח?"}
+
+    D7 -- "✅ כן" --> S12["👁️ שומר ריצה<br/>והתראה על נפילה"]
+    D7 -- "❌ לא" --> FIX6["🛠️ תיקון תהליך<br/>הגיבוי והשחזור"]
+    FIX6 --> D7
+
+    S12 --> D8{"📊 יממה שלמה<br/>ללא נפילות?"}
+
+    D8 -- "✅ כן" --> CUT["🔀 ניתוק האחסון החיצוני<br/>והשארתו כגיבוי"]
+    D8 -- "❌ לא" --> FIX7["🔄 איתור התקלה<br/>וייצוב חוזר"]
+    FIX7 --> S12
+
+    CUT --> END["🎉 מאגר אחד עצמאי<br/>אפס מגבלת אחסון<br/>אפס חלוקה ידנית"]
+    </div>
+  </div>
+</div>
+
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: 'dark', securityLevel: 'loose', flowchart: { useMaxWidth: true, htmlLabels: true } });
+</script>
+</body>
+</html>

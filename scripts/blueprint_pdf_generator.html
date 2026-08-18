@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📘 תוכנית אב: הפלטפורמה המאוחדת | TranslationManager × Winhanced</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+
+/* ════════════════════════════════════════
+   BASE RESET & VARIABLES
+════════════════════════════════════════ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg:        #0b0d17;
+  --surface:   #111827;
+  --surface2:  #141c2e;
+  --surface3:  #0f172a;
+  --blue:      #3b82f6;
+  --cyan:      #06b6d4;
+  --purple:    #8b5cf6;
+  --green:     #10b981;
+  --orange:    #f59e0b;
+  --pink:      #ec4899;
+  --red:       #ef4444;
+  --text:      #f1f5f9;
+  --muted:     #94a3b8;
+  --dim:       #64748b;
+  --border:    #1e293b;
+  --border2:   #334155;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Heebo', 'Arial Hebrew', Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.75;
+  direction: rtl;
+  text-align: right;
+}
+
+/* ════════════════════════════════════════
+   PRINT PAGE SETTINGS
+════════════════════════════════════════ */
+@page {
+  size: A4 portrait;
+  margin: 12mm 14mm;
+}
+
+@media print {
+  html, body {
+    background: #0b0d17 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* Each .pdf-page = exactly one printed page */
+  .pdf-page {
+    page-break-before: always;
+    page-break-after: always;
+    page-break-inside: avoid;
+    break-before: page;
+    break-after: page;
+    break-inside: avoid;
+  }
+
+  /* The very first page has no forced break before it */
+  .pdf-page:first-child {
+    page-break-before: auto;
+    break-before: auto;
+  }
+
+  /* Block-level containers that must never be split */
+  .no-cut {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Diagrams must stay whole */
+  .mermaid-box {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Each scenario card stays whole */
+  .scenario {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+}
+
+/* ════════════════════════════════════════
+   PDF PAGE WRAPPER  (one per page)
+════════════════════════════════════════ */
+.pdf-page {
+  width: 100%;
+  min-height: 100vh;
+  padding: 40px 50px;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  position: relative;
+}
+
+.pdf-page + .pdf-page {
+  border-top: 3px solid #1e2540;
+  margin-top: 20px;
+}
+
+/* ════════════════════════════════════════
+   COVER PAGE
+════════════════════════════════════════ */
+.cover-page {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background:
+    radial-gradient(ellipse at 50% 35%, rgba(59,130,246,0.14) 0%, rgba(139,92,246,0.09) 55%, transparent 75%),
+    linear-gradient(160deg, #0b0d17 0%, #0f172a 50%, #0b0d17 100%);
+}
+
+.cover-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    45deg, transparent, transparent 58px,
+    rgba(59,130,246,0.025) 58px, rgba(59,130,246,0.025) 59px
+  );
+  pointer-events: none;
+}
+
+.cover-badge {
+  display: inline-block;
+  padding: 5px 22px;
+  background: linear-gradient(135deg, rgba(59,130,246,0.18), rgba(139,92,246,0.18));
+  border: 1px solid rgba(59,130,246,0.45);
+  border-radius: 50px;
+  font-size: 11px;
+  color: var(--cyan);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.cover-h1 {
+  font-size: 52px;
+  font-weight: 900;
+  line-height: 1.15;
+  margin-bottom: 14px;
+  background: linear-gradient(135deg, #f1f5f9 0%, #3b82f6 55%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.cover-sub {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--cyan);
+  letter-spacing: 1px;
+  margin-bottom: 36px;
+}
+
+.cover-desc {
+  max-width: 640px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.85;
+  background: rgba(17,24,39,0.85);
+  border: 1px solid var(--border2);
+  border-radius: 18px;
+  padding: 26px 36px;
+  margin-bottom: 40px;
+}
+
+.cover-stats {
+  display: flex;
+  gap: 40px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.stat-item { text-align: center; }
+.stat-val {
+  font-size: 34px;
+  font-weight: 900;
+  color: var(--blue);
+  display: block;
+  line-height: 1.1;
+  margin-bottom: 5px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.stat-lbl { font-size: 13px; color: var(--muted); }
+
+/* ════════════════════════════════════════
+   TOC PAGE
+════════════════════════════════════════ */
+.toc-page { justify-content: flex-start; }
+
+.toc-box {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 36px 44px;
+  flex: 1;
+}
+
+.toc-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--blue);
+  margin-bottom: 26px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.toc-list { list-style: none; }
+.toc-list li {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 11px 0;
+  border-bottom: 1px solid rgba(30,41,59,0.55);
+  color: var(--muted);
+  font-size: 15px;
+}
+.toc-list li:last-child { border-bottom: none; }
+
+.toc-num {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: #fff;
+  flex-shrink: 0;
+}
+
+/* ════════════════════════════════════════
+   SECTION PAGES
+════════════════════════════════════════ */
+.section-page { justify-content: flex-start; }
+
+.sec-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--border2);
+  position: relative;
+}
+.sec-header::after {
+  content: '';
+  position: absolute;
+  bottom: -2px; right: 0;
+  width: 70px; height: 2px;
+  background: linear-gradient(90deg, var(--blue), var(--purple));
+}
+
+.sec-num {
+  width: 44px; height: 44px;
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  border-radius: 13px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 900; color: #fff;
+  flex-shrink: 0;
+  box-shadow: 0 4px 18px rgba(59,130,246,0.35);
+}
+
+.sec-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+/* ════════════════════════════════════════
+   MERMAID DIAGRAM BOX
+════════════════════════════════════════ */
+.mermaid-box {
+  background: var(--surface3);
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+  padding: 28px 24px;
+  margin: 20px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.mermaid-box.glow-blue  { box-shadow: 0 0 28px rgba(59,130,246,0.13); border-color: rgba(59,130,246,0.35); }
+.mermaid-box.glow-cyan  { box-shadow: 0 0 28px rgba(6,182,212,0.13);  border-color: rgba(6,182,212,0.35); }
+.mermaid-box.glow-purple{ box-shadow: 0 0 28px rgba(139,92,246,0.13); border-color: rgba(139,92,246,0.35); }
+
+.mermaid-box .mermaid { width: 100%; display: flex; justify-content: center; }
+
+/* ════════════════════════════════════════
+   TEXT ELEMENTS
+════════════════════════════════════════ */
+.intro-text { color: var(--muted); font-size: 15px; margin-bottom: 18px; }
+
+.bullet-list { list-style: none; margin: 14px 0; }
+.bullet-list li {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(30,41,59,0.5);
+  color: var(--muted);
+  line-height: 1.65; font-size: 14px;
+}
+.bullet-list li:last-child { border-bottom: none; }
+.bullet-list li::before { content: '→'; color: var(--blue); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+.num-list { list-style: none; margin: 14px 0; }
+.num-list li {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(30,41,59,0.5);
+  color: var(--muted);
+  line-height: 1.65; font-size: 14px;
+}
+.num-list li:last-child { border-bottom: none; }
+.num-badge {
+  width: 26px; height: 26px;
+  background: linear-gradient(135deg, var(--cyan), var(--blue));
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; color: #fff;
+  flex-shrink: 0; margin-top: 2px;
+}
+
+strong { color: var(--text); font-weight: 700; }
+code {
+  font-family: 'JetBrains Mono', monospace;
+  background: rgba(59,130,246,0.1);
+  border: 1px solid rgba(59,130,246,0.22);
+  border-radius: 5px;
+  padding: 2px 7px;
+  font-size: 12px;
+  color: var(--cyan);
+  direction: ltr;
+  display: inline-block;
+}
+
+/* ════════════════════════════════════════
+   SCENARIO CARDS
+════════════════════════════════════════ */
+.scenario {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 18px;
+  padding: 22px 26px;
+  margin: 18px 0;
+}
+
+.scenario-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.s-icon  { font-size: 22px; }
+.s-title { font-size: 15px; font-weight: 700; color: var(--text); flex: 1; }
+.s-badge {
+  background: linear-gradient(135deg, var(--blue), var(--cyan));
+  color: #fff; font-size: 10px; font-weight: 700;
+  padding: 3px 12px; border-radius: 50px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 1px; direction: ltr;
+}
+
+/* ════════════════════════════════════════
+   SUMMARY CARDS
+════════════════════════════════════════ */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 16px;
+  margin: 20px 0;
+}
+.sum-card {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  padding: 20px 16px;
+  text-align: center;
+}
+.sum-icon  { font-size: 28px; margin-bottom: 10px; }
+.sum-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.sum-text  { font-size: 12px; color: var(--muted); line-height: 1.55; }
+
+/* ════════════════════════════════════════
+   CALLOUT
+════════════════════════════════════════ */
+.callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(139,92,246,0.12));
+  border: 1px solid rgba(59,130,246,0.45);
+  border-radius: 16px;
+  padding: 18px 24px;
+  margin: 18px 0;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.75;
+}
+.callout-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+.callout strong { color: var(--blue); }
+
+/* ════════════════════════════════════════
+   TABLE
+════════════════════════════════════════ */
+.tbl-wrap {
+  border-radius: 14px;
+  border: 1px solid var(--border2);
+  overflow: hidden;
+  margin: 18px 0;
+}
+
+table { width: 100%; border-collapse: collapse; font-size: 12px; direction: rtl; }
+
+thead tr { background: linear-gradient(135deg, rgba(59,130,246,0.22), rgba(139,92,246,0.22)); }
+
+th {
+  padding: 12px 13px;
+  text-align: right;
+  font-weight: 700; color: var(--text);
+  font-size: 11.5px; white-space: nowrap;
+  border-bottom: 2px solid var(--border2);
+}
+
+tbody tr { border-bottom: 1px solid var(--border); }
+tbody tr:nth-child(even) { background: rgba(15,23,42,0.5); }
+
+td { padding: 10px 13px; color: var(--muted); vertical-align: middle; line-height: 1.4; }
+td:first-child { color: var(--text); font-weight: 600; font-size: 11.5px; }
+
+.yes  { color: #10b981; font-weight: 700; }
+.no   { color: #ef4444; font-weight: 700; }
+.part { color: #f59e0b; font-weight: 700; }
+.super{ color: #3b82f6; font-weight: 700; }
+
+.divider { height: 1px; background: linear-gradient(90deg, transparent, var(--border2), transparent); margin: 20px 0; }
+
+@media screen {
+  .pdf-page { max-width: 960px; margin: 0 auto; box-shadow: 0 0 60px rgba(0,0,0,0.5); }
+}
+</style>
+</head>
+<body>
+
+<!-- PAGE 1: COVER -->
+<div class="pdf-page cover-page">
+  <div class="cover-badge">MASTER BLUEPRINT · 2026</div>
+  <div class="cover-h1">📘 תוכנית אב</div>
+  <div class="cover-sub">TranslationManager × Winhanced</div>
+  <div class="cover-desc">
+    <strong style="color:var(--blue)">שפה:</strong> עברית קלה, קצרה וקולעת<br><br>
+    <strong style="color:var(--blue)">מטרה:</strong> שילוב כל היתרונות של
+    <strong>TranslationManager</strong> (תרגום משחקים, הזרקת קבצים, צי AI ו-Game Lab)
+    יחד עם <strong>Winhanced</strong> (ספרייה מאוחדת, חנות מחירים, שליטת TDP ומצב בקר).
+  </div>
+  <div class="cover-stats">
+    <div class="stat-item"><span class="stat-val">10</span><span class="stat-lbl">קטגוריות</span></div>
+    <div class="stat-item"><span class="stat-val">8</span><span class="stat-lbl">תרחישים ויזואליים</span></div>
+    <div class="stat-item"><span class="stat-val">&lt;3s</span><span class="stat-lbl">הזרקת תרגום</span></div>
+    <div class="stat-item"><span class="stat-val">&lt;20MB</span><span class="stat-lbl">RAM בזמן משחק</span></div>
+  </div>
+</div>
+
+<!-- PAGE 2: TOC -->
+<div class="pdf-page toc-page">
+  <div class="toc-box">
+    <div class="toc-title">📋 תוכן העניינים</div>
+    <ol class="toc-list">
+      <li><span class="toc-num">1</span> קטגוריה 1: הארכיטקטורה בקצרה</li>
+      <li><span class="toc-num">2</span> קטגוריה 2: ביצועים ומהירות שיא (Extreme Performance)</li>
+      <li><span class="toc-num">3</span> קטגוריה 3: שני מצבי תצוגה (Dual UI Modes)</li>
+      <li><span class="toc-num">4</span> קטגוריה 4: חנות, מחירים וספרייה מאוחדת</li>
+      <li><span class="toc-num">5</span> קטגוריה 5: מנוע התרגומים והמודים (Game Lab)</li>
+      <li><span class="toc-num">6</span> קטגוריה 6: תרגום בזמן אמת ובינה מלאכותית (NPU &amp; Fleet)</li>
+      <li><span class="toc-num">7</span> קטגוריה 7: שליטה בחומרה, סוללה ו-Smart Launch</li>
+      <li><span class="toc-num">8</span> קטגוריה 8: 8 תרחישים ויזואליים עם חצים (Visual Scenarios)</li>
+      <li><span class="toc-num">9</span> קטגוריה 9: סיכום מנהלים קצר</li>
+      <li><span class="toc-num">10</span> קטגוריה 10: טבלת השוואה מרכזית</li>
+    </ol>
+  </div>
+</div>
+
+<!-- PAGE 3: CAT 1 -->
+<div class="pdf-page section-page">
+  <div class="sec-header no-cut">
+    <div class="sec-num">1</div>
+    <div class="sec-title">קטגוריה 1: הארכיטקטורה בקצרה</div>
+  </div>
+  <p class="intro-text">אנחנו מחברים 3 שכבות מנצחות למערכת אחת:</p>
+  <div class="mermaid-box glow-blue no-cut">
+    <div class="mermaid" id="d1">
+graph LR
+    UI["🎨 שכבה 1: UI מעוצב<br/>(React / WinUI 3 / Living Glass)"] <--> CS["⚡ שכבה 2: C# System Host<br/>(חומרה, TDP, בקר, חסימת חלונות)"]
+    CS <--> PY["🐍 שכבה 3: Python Game Lab<br/>(הזרקת תרגומים, מודים, צי AI)"]
+    </div>
+  </div>
+  <ul class="bullet-list">
+    <li><strong>C# Host (מערכת וחומרה):</strong> אחראי על TDP, מאווררים, בקרים וחסימת חלונות קופצים.</li>
+    <li><strong>Python Service (מנוע התרגום):</strong> מריץ את כל מזרקי הקבצים של TranslationManager (<code>bsa.py</code>, <code>forge.py</code>, <code>swf.py</code>, Oodle) וצי ה-AI.</li>
+    <li><strong>Frontend UI (ממשק זכוכית):</strong> עיצוב מודרני (Living Glass) עם תמיכה מלאה בעכבר, מסך מגע ובקר.</li>
+  </ul>
+</div>
+
+<!-- PAGE 4: CAT 2 -->
+<div class="pdf-page section-page">
+  <div class="sec-header no-cut">
+    <div class="sec-num">2</div>
+    <div class="sec-title">קטגוריה 2: ביצועים ומהירות שיא (Extreme Performance)</div>
+  </div>
+  <div class="mermaid-box glow-cyan no-cut">
+    <div class="mermaid" id="d2">
+graph TD
+    RAM["🧠 1. הקפאת RAM בזמן משחק<br/>(ירידה ל-פחות מ-20MB RAM)"]
+    IPC["⚡ 2. Shared Memory IPC<br/>(תקשורת מהירה מ-2ms)"]
+    IO["🏎️ 3. Direct I/O Async Patcher<br/>(הזרקת תרגום ב-3 שניות)"]
+    NPU["👁️ 4. Offline NPU OCR<br/>(תרגום מסך ללא ירידת FPS)"]
+    RAM --- IPC --- IO --- NPU
+    </div>
+  </div>
+  <ol class="num-list">
+    <li><div class="num-badge">1</div><div><strong>הקפאת RAM בזמן משחק:</strong> כשהמשחק נפתח, התוכנה משחררת זיכרון ויורדת ל-<strong>פחות מ-20MB RAM</strong>. כשהמשחק נסגר, היא חוזרת ב-0.1 שניות!</div></li>
+    <li><div class="num-badge">2</div><div><strong>תקשורת מהירה (Shared Memory IPC):</strong> מעבר נתונים בתוך ה-RAM בפחות מ-<strong>2 מילי-שניות</strong>.</div></li>
+    <li><div class="num-badge">3</div><div><strong>הזרקה ב-3 שניות (Direct I/O):</strong> התקנת תרגום ענקי של 100GB מתקצרת מ-45 שניות ל-<strong>3 שניות בלבד!</strong></div></li>
+    <li><div class="num-badge">4</div><div><strong>תרגום מסך ב-NPU:</strong> תרגום בלייב על מאיץ ה-AI המקומי — <strong>0% פגיעה ב-FPS ובכרטיס המסך!</strong></div></li>
+  </ol>
+</div>
+
+<!-- PAGE 5: CAT 3 -->
+<div class="pdf-page section-page">
+  <div class="sec-header no-cut">
+    <div class="sec-num">3</div>
+    <div class="sec-title">קטגוריה 3: שני מצבי תצוגה (Dual UI Modes)</div>
+  </div>
+  <div class="mermaid-box glow-purple no-cut">
+    <div class="mermaid" id="d3">
+graph TD
+    App["🚀 הפעלת התוכנה"] --> Detect{"איזה מכשיר זה?"}
+    Detect -- "🖥️ מחשב נייח" --> Desktop["💻 מצב דסקטופ<br/>(ספרייה מורחבת, ניהול מודים, Launcher Designer)"]
+    Detect -- "🎮 Handheld / בקר" --> Console["🎮 מצב קונסולה (10ft UI)<br/>(ניווט סטיקים, אפקטי זכוכית, תרגום ב-A)"]
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 6: CAT 4 -->
+<div class="pdf-page section-page">
+  <div class="sec-header no-cut">
+    <div class="sec-num">4</div>
+    <div class="sec-title">קטגוריה 4: חנות, מחירים וספרייה מאוחדת</div>
+  </div>
+  <div class="mermaid-box glow-blue no-cut">
+    <div class="mermaid" id="d4">
+graph LR
+    Scan["🔍 סריקת משחקים<br/>(Steam / Epic / GOG / Xbox)"] --> Catalog["📚 ספרייה מאוחדת אחת"]
+    Catalog --> Store["🛒 השוואת מחירים בזמן אמת"]
+    Store --> Free["🎁 איסוף משחקים חינמיים אוטומטי"]
+    </div>
+  </div>
+  <ul class="bullet-list">
+    <li><strong>השוואת מחירים:</strong> מציגה את המחיר הזול ביותר מכל החנויות.</li>
+    <li><strong>איסוף משחקים חינמיים:</strong> זיהוי ואיסוף בלחיצה אחת מ-Epic Games ו-GOG.</li>
+  </ul>
+</div>
+
+<!-- PAGE 7: CAT 5 -->
+<div class="pdf-page section-page">
+  <div class="sec-header no-cut">
+    <div class="sec-num">5</div>
+    <div class="sec-title">קטגוריה 5: מנוע התרגומים והמודים (Game Lab)</div>
+  </div>
+  <div class="mermaid-box glow-cyan no-cut">
+    <div class="mermaid" id="d5">
+graph TD
+    Select["🎯 בחירת משחק"] --> DetectEngine{"זיהוי מנוע המשחק"}
+    DetectEngine -- "Skyrim SE" --> Creation["הזרקת SWF + STRINGS + Visual Bidi"]
+    DetectEngine -- "AC Odyssey / Origins" --> Anvil["פענוח Forge + Oodle + text_em Pre-wrap"]
+    DetectEngine -- "Far Cry 5 / 6" --> Dunia["הזרקת FFD/XBT + Scheme-2"]
+    Creation & Anvil & Dunia --> Deploy["✅ התקנה בלחיצה אחת ב-3 שניות!"]
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 8: CAT 6 -->
+<div class="pdf-page section-page">
+  <div class="sec-header no-cut">
+    <div class="sec-num">6</div>
+    <div class="sec-title">קטגוריה 6: תרגום בזמן אמת ובינה מלאכותית (NPU &amp; Fleet)</div>
+  </div>
+  <div class="mermaid-box glow-purple no-cut">
+    <div class="mermaid" id="d6">
+graph LR
+    User["🎮 משתמש במשחק"] --> Press["לחצן בבקר LB+RB"]
+    Press --> OCR["👁️ NPU OCR (זיהוי טקסט)"]
+    OCR --> AI["🤖 תרגום AI לעברית"]
+    AI --> Overlay["🖼️ תצוגה שקופה מעל המשחק"]
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 9: CAT 7 -->
+<div class="pdf-page section-page">
+  <div class="sec-header no-cut">
+    <div class="sec-num">7</div>
+    <div class="sec-title">קטגוריה 7: שליטה בחומרה, סוללה ו-Smart Launch</div>
+  </div>
+  <div class="mermaid-box glow-blue no-cut">
+    <div class="mermaid" id="d7">
+graph TD
+    Launch["🚀 הרצת משחק"] --> Watcher["🌊 Smart Launch Watcher<br/>(חסימת חלונות UAC / EULA / AntiCheat)"]
+    Watcher --> TDP["⚡ הפעלת פרופיל TDP מותאם (RyzenAdj)"]
+    TDP --> Battery["🔋 חיסכון חכם בסוללה"]
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 10: CAT 8 header + Scenarios 1+2 -->
+<div class="pdf-page section-page">
+  <div class="sec-header no-cut">
+    <div class="sec-num">8</div>
+    <div class="sec-title">קטגוריה 8: 8 תרחישים ויזואליים עם חצים (Visual Scenarios)</div>
+  </div>
+
+  <div class="scenario no-cut" style="border-color:rgba(59,130,246,0.45);box-shadow:0 0 22px rgba(59,130,246,0.1);">
+    <div class="scenario-header">
+      <span class="s-icon">🛒</span>
+      <span class="s-title">תרחיש 1: קניית משחק → התקנה → תרגום בלחיצה אחת</span>
+      <span class="s-badge">SCENARIO 01</span>
+    </div>
+    <div class="mermaid-box" style="background:rgba(10,12,20,0.85);margin:0;">
+      <div class="mermaid" id="s1">
+sequenceDiagram
+    actor User as 👤 משתמש
+    participant UI as 🎨 חנות / ספרייה
+    participant Engine as 🐍 Python Game Lab
+    participant Game as 🎮 משחק
+
+    User->>UI: עורך עיון בחנות ומגלה משחק
+    UI-->>User: מציג מחיר זול ב-Epic + "תרגום עברית זמין"
+    User->>UI: לוחץ "קנה ותרגם" (כפתור A בבקר)
+    UI->>Engine: הרצת Async Direct I/O Patcher
+    Engine->>Engine: הזרקת פונטים, Bidi וקובצי שפה (3 שניות!)
+    Engine-->>UI: התרגום הותקן!
+    User->>UI: לוחץ "הפעל משחק"
+    UI->>Game: הרצה שקטה בעברית מלאה!
+      </div>
+    </div>
+  </div>
+
+  <div class="scenario no-cut" style="border-color:rgba(6,182,212,0.45);box-shadow:0 0 22px rgba(6,182,212,0.1);">
+    <div class="scenario-header">
+      <span class="s-icon">🤖</span>
+      <span class="s-title">תרחיש 2: בדיקה אוטונומית ברקע (<code>dxcam</code>) לפני המשחק</span>
+      <span class="s-badge">SCENARIO 02</span>
+    </div>
+    <div class="mermaid-box" style="background:rgba(10,12,20,0.85);margin:0;">
+      <div class="mermaid" id="s2">
+sequenceDiagram
+    participant Patcher as 🐍 Python Patcher
+    participant Auto as 🤖 Autocheck Engine
+    participant DX as 📹 dxcam (DirectX Capture)
+    participant User as 👤 משתמש
+
+    Patcher->>Auto: התרגום הותקן, התחל בדיקה
+    Auto->>Auto: הרצת המשחק ברקע ללא חלונות
+    Auto->>DX: לכידת פריים מהמסך ב-DirectX
+    DX-->>Auto: תמונת פריים התקבלה
+    Auto->>Auto: אימות תקינות הפונטים וה-Bidi
+    Auto-->>User: "המשחק מוכן ומוודא 100% בעברית!"
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 11: Scenarios 3+4 -->
+<div class="pdf-page section-page">
+  <div class="scenario no-cut" style="border-color:rgba(139,92,246,0.45);box-shadow:0 0 22px rgba(139,92,246,0.1);">
+    <div class="scenario-header">
+      <span class="s-icon">👁️</span>
+      <span class="s-title">תרחיש 3: תרגום מסך בזמן אמת ב-NPU תוך כדי משחק</span>
+      <span class="s-badge">SCENARIO 03</span>
+    </div>
+    <div class="mermaid-box" style="background:rgba(10,12,20,0.85);margin:0;">
+      <div class="mermaid" id="s3">
+sequenceDiagram
+    actor User as 👤 משתמש (בקר)
+    participant Game as 🎮 משחק AAA
+    participant Overlay as 🖼️ C# Overlay
+    participant NPU as 🧠 NPU (ONNX Engine)
+
+    User->>Game: נתקל בדיאלוג באנגלית
+    User->>Overlay: לוחץ LB + RB + D-Pad Down
+    Overlay->>NPU: העברת הפריים לתרגום
+    NPU->>NPU: זיהוי OCR ותרגום לעברית (0% GPU Load)
+    NPU-->>Overlay: טקסט מתורגם
+    Overlay->>Game: הצגת כתוביות בעברית מעל המשחק!
+      </div>
+    </div>
+  </div>
+
+  <div class="scenario no-cut" style="border-color:rgba(245,158,11,0.45);box-shadow:0 0 22px rgba(245,158,11,0.1);">
+    <div class="scenario-header">
+      <span class="s-icon">🚁</span>
+      <span class="s-title">תרחיש 4: סנכרון צי התרגום (Fleet Ops) ואתר <code>/translate</code></span>
+      <span class="s-badge">SCENARIO 04</span>
+    </div>
+    <div class="mermaid-box" style="background:rgba(10,12,20,0.85);margin:0;">
+      <div class="mermaid" id="s4">
+sequenceDiagram
+    participant Site as 🌐 אתר /translate
+    participant Fleet as 🚁 Fleet AI (Multi-Provider)
+    participant Local as 🖥️ תוכנה מקומית
+
+    Fleet->>Site: תרגום אוטומטי של 1,000 שורות חדשות
+    Site->>Site: הוספת נתוני Gender Oracle (זיהוי מגדר)
+    Local->>Site: בדיקת עדכונים קהילתיים
+    Site-->>Local: הורדת הפאץ' המעודכן
+    Local->>Local: הזרקת השורות החדשות למשחק!
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 12: Scenarios 5+6 -->
+<div class="pdf-page section-page">
+  <div class="scenario no-cut" style="border-color:rgba(16,185,129,0.45);box-shadow:0 0 22px rgba(16,185,129,0.1);">
+    <div class="scenario-header">
+      <span class="s-icon">🧩</span>
+      <span class="s-title">תרחיש 5: התקנת מודים ופתרון קונפליקטים ב-Game Lab</span>
+      <span class="s-badge">SCENARIO 05</span>
+    </div>
+    <div class="mermaid-box" style="background:rgba(10,12,20,0.85);margin:0;">
+      <div class="mermaid" id="s5">
+sequenceDiagram
+    actor User as 👤 משתמש
+    participant Lab as 🧩 Game Lab
+    participant Checker as 🔍 Conflict Checker
+    participant Game as 🎮 תיקיית המשחק
+
+    User->>Lab: בוחר מוד להתקנה
+    Lab->>Checker: בדיקת התנגשויות ב-BSA / Forge
+    Checker-->>Lab: לא נמצאו קונפליקטים!
+    Lab->>Game: התקנת קובצי המוד
+    Lab-->>User: "המוד הותקן בהצלחה!"
+      </div>
+    </div>
+  </div>
+
+  <div class="scenario no-cut" style="border-color:rgba(59,130,246,0.45);box-shadow:0 0 22px rgba(59,130,246,0.1);">
+    <div class="scenario-header">
+      <span class="s-icon">🧠</span>
+      <span class="s-title">תרחיש 6: כניסה למשחק והקפאת זיכרון RAM</span>
+      <span class="s-badge">SCENARIO 06</span>
+    </div>
+    <div class="mermaid-box" style="background:rgba(10,12,20,0.85);margin:0;">
+      <div class="mermaid" id="s6">
+sequenceDiagram
+    actor User as 👤 משתמש
+    participant Watcher as 🌊 Smart Launch Watcher
+    participant UI as 🎨 React / Web UI
+    participant Game as 🎮 משחק AAA
+
+    User->>UI: לוחץ "הפעל משחק"
+    UI->>Watcher: המשחק נפתח!
+    Watcher->>UI: מעבר למצב RAM Suspend (<20MB RAM)
+    Watcher->>Game: העברת 100% משאבי המחשב למשחק
+    User->>Game: המשחק נסגר
+    Watcher->>UI: התעוררות מיידית ב-0.1 שניות!
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 13: Scenarios 7+8 -->
+<div class="pdf-page section-page">
+  <div class="scenario no-cut" style="border-color:rgba(236,72,153,0.45);box-shadow:0 0 22px rgba(236,72,153,0.1);">
+    <div class="scenario-header">
+      <span class="s-icon">☁️</span>
+      <span class="s-title">תרחיש 7: סנכרון ענן אוניברסלי (PC ↔ Handheld)</span>
+      <span class="s-badge">SCENARIO 07</span>
+    </div>
+    <div class="mermaid-box" style="background:rgba(10,12,20,0.85);margin:0;">
+      <div class="mermaid" id="s7">
+sequenceDiagram
+    actor User as 👤 משתמש
+    participant PC as 🖥️ מחשב נייח
+    participant Cloud as ☁️ Universal Cloud
+    participant Handheld as 🎮 מכשיר נייד (ROG Ally)
+
+    User->>PC: משחק ומסיים שלב (Save Game + מודים)
+    PC->>Cloud: העלאת שמירות והגדרות תרגום
+    User->>Handheld: מדליק את המכשיר בדרכים
+    Handheld->>Cloud: משיכת השמירות וההגדרות
+    Handheld-->>User: ממשיך לשחק מהנקודה שעצר!
+      </div>
+    </div>
+  </div>
+
+  <div class="scenario no-cut" style="border-color:rgba(245,158,11,0.45);box-shadow:0 0 22px rgba(245,158,11,0.1);">
+    <div class="scenario-header">
+      <span class="s-icon">🎁</span>
+      <span class="s-title">תרחיש 8: תפיסת משחקים חינמיים אוטומטית</span>
+      <span class="s-badge">SCENARIO 08</span>
+    </div>
+    <div class="mermaid-box" style="background:rgba(10,12,20,0.85);margin:0;">
+      <div class="mermaid" id="s8">
+sequenceDiagram
+    participant Cron as ⏰ שירות רקע
+    participant Store as 🛒 Epic Games / GOG
+    participant User as 👤 משתמש
+
+    Cron->>Store: בדיקת משחקים חינמיים שבועיים
+    Store-->>Cron: נמצא משחק חינמי חדש!
+    Cron->>Store: ביצוע Auto-Claim בחנות
+    Cron-->>User: "המשחק נוסף בהצלחה לספרייה שלך!"
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 14: CAT 9 + CAT 10 -->
+<div class="pdf-page section-page">
+  <div class="sec-header no-cut">
+    <div class="sec-num">9</div>
+    <div class="sec-title">קטגוריה 9: סיכום מנהלים קצר</div>
+  </div>
+
+  <div class="summary-grid no-cut">
+    <div class="sum-card" style="border-color:rgba(59,130,246,0.4);">
+      <div class="sum-icon">🎯</div>
+      <div class="sum-title">אפס פשרות</div>
+      <div class="sum-text">100% ממנועי התרגום וה-AI המתקדמים של TranslationManager + כל עוצמת Winhanced</div>
+    </div>
+    <div class="sum-card" style="border-color:rgba(6,182,212,0.4);">
+      <div class="sum-icon">⚡</div>
+      <div class="sum-title">מהירות שיא</div>
+      <div class="sum-text">הקפאת RAM (&lt;20MB) + הזרקה ב-3 שניות = 120 FPS חלק</div>
+    </div>
+    <div class="sum-card" style="border-color:rgba(139,92,246,0.4);">
+      <div class="sum-icon">🌐</div>
+      <div class="sum-title">פלטפורמה שלמה</div>
+      <div class="sum-text">מגילוי משחק ועד משחק בעברית מלאה בדרכים — קצה לקצה</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="sec-header no-cut">
+    <div class="sec-num">10</div>
+    <div class="sec-title">קטגוריה 10: טבלת השוואה מרכזית</div>
+  </div>
+
+  <div class="tbl-wrap no-cut">
+    <table>
+      <thead>
+        <tr>
+          <th>פיצ'ר / תכונה</th>
+          <th>TranslationManager</th>
+          <th>Winhanced</th>
+          <th>הפלטפורמה המאוחדת</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>מנועי הזרקה למשחקי AAA (BSA, Forge, SWF, FFD)</td><td><span class="yes">✅ מתקדם ביותר</span></td><td><span class="no">❌ אין</span></td><td><span class="super">✅ משולב מלא</span></td></tr>
+        <tr><td>צי תרגום AI (Fleet Ops) ואתר <code>/translate</code></td><td><span class="yes">✅ קיים ופועל</span></td><td><span class="no">❌ אין</span></td><td><span class="super">✅ סנכרון מלא</span></td></tr>
+        <tr><td>Gender Oracle (זיהוי מגדר)</td><td><span class="yes">✅ קיים</span></td><td><span class="no">❌ אין</span></td><td><span class="super">✅ משולב אוטומטית</span></td></tr>
+        <tr><td>אימות אוטונומי ברקע (<code>dxcam</code>)</td><td><span class="yes">✅ קיים</span></td><td><span class="no">❌ אין</span></td><td><span class="super">✅ בדיקה שקטה</span></td></tr>
+        <tr><td>מצב בקר מותאם (Handheld 10ft UI)</td><td><span class="no">❌ אין</span></td><td><span class="yes">✅ מצוין</span></td><td><span class="super">✅ תמיכה מלאה בבקר</span></td></tr>
+        <tr><td>שליטה בחומרה (TDP / RyzenAdj / מאווררים)</td><td><span class="no">❌ אין</span></td><td><span class="yes">✅ מצוין</span></td><td><span class="super">✅ שליטה מלאה בחומרה</span></td></tr>
+        <tr><td>חנות והשוואת מחירים (Cross-Store)</td><td><span class="no">❌ אין</span></td><td><span class="yes">✅ מותקן</span></td><td><span class="super">✅ חנות השוואת מחירים</span></td></tr>
+        <tr><td>Smart Launch Watcher (חסימת חוסמים)</td><td><span class="part">⚠️ חלקי</span></td><td><span class="yes">✅ מתקדם</span></td><td><span class="super">✅ מלא</span></td></tr>
+        <tr><td>חיסכון זיכרון בזמן משחק (RAM Suspend)</td><td><span class="no">❌ אין</span></td><td><span class="part">⚠️ חלקי</span></td><td><span class="super">✅ פחות מ-20MB RAM</span></td></tr>
+        <tr><td>תרגום מסך ב-NPU (Offline OCR)</td><td><span class="no">❌ אין</span></td><td><span class="no">❌ אין</span></td><td><span class="super">✅ 0% ירידה ב-FPS</span></td></tr>
+        <tr><td>מהירות הזרקה (Async Direct I/O)</td><td><span class="part">⚠️ רגיל</span></td><td><span class="no">❌ אין</span></td><td><span class="super">✅ הזרקה ב-3 שניות</span></td></tr>
+        <tr><td>תקשורת מהירה (Shared Memory IPC)</td><td><span class="part">⚠️ WebSockets</span></td><td><span class="no">❌ אין</span></td><td><span class="super">✅ פחות מ-2ms</span></td></tr>
+        <tr><td>סנכרון ענן ושמירות (Cross-Cloud Sync)</td><td><span class="part">⚠️ חלקי</span></td><td><span class="no">❌ אין</span></td><td><span class="super">✅ סנכרון מלא</span></td></tr>
+        <tr><td>איסוף משחקים חינמיים אוטומטי</td><td><span class="no">❌ אין</span></td><td><span class="no">❌ אין</span></td><td><span class="super">✅ איסוף בלחיצה אחת</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout no-cut">
+    <span class="callout-icon">⚠️</span>
+    <div>
+      <strong style="font-size:15px;display:block;margin-bottom:5px;">השורה התחתונה:</strong>
+      הפלטפורמה המאוחדת מעניקה לך את <strong>המוצר המתקדם והמהיר ביותר בשוק</strong>,
+      המשלב את כל העוצמה ההנדסית של TranslationManager עם חוויית משתמש וביצועי קצה של Winhanced!
+    </div>
+  </div>
+</div>
+
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'dark',
+  themeVariables: {
+    darkMode: true,
+    background: '#0b0d17',
+    mainBkg: '#111827',
+    primaryColor: '#1e3a5f',
+    primaryTextColor: '#e2e8f0',
+    primaryBorderColor: '#3b82f6',
+    lineColor: '#3b82f6',
+    secondaryColor: '#1a2744',
+    tertiaryColor: '#0f172a',
+    nodeBorder: '#3b82f6',
+    clusterBkg: '#141c2e',
+    titleColor: '#f1f5f9',
+    edgeLabelBackground: '#1e293b',
+    actorBkg: '#1e3a5f',
+    actorBorder: '#3b82f6',
+    actorTextColor: '#e2e8f0',
+    actorLineColor: '#3b82f6',
+    signalColor: '#06b6d4',
+    signalTextColor: '#e2e8f0',
+    labelBoxBkgColor: '#1e293b',
+    labelBoxBorderColor: '#3b82f6',
+    labelTextColor: '#e2e8f0',
+    loopTextColor: '#e2e8f0',
+    noteBorderColor: '#8b5cf6',
+    noteBkgColor: '#1a1040',
+    noteTextColor: '#e2e8f0',
+    activationBorderColor: '#06b6d4',
+    activationBkgColor: '#0c2340',
+    sequenceNumberColor: '#ffffff',
+    fontFamily: 'Heebo, Arial, sans-serif',
+    fontSize: '13px',
+  },
+  sequence: {
+    diagramMarginX: 10,
+    diagramMarginY: 10,
+    actorMargin: 50,
+    width: 160,
+    height: 55,
+    boxMargin: 8,
+    boxTextMargin: 6,
+    noteMargin: 8,
+    messageMargin: 30,
+    mirrorActors: false,
+    useMaxWidth: true,
+    wrap: true,
+    wrapPadding: 8,
+  },
+  flowchart: {
+    htmlLabels: true,
+    curve: 'cardinal',
+    useMaxWidth: true,
+    padding: 18,
+  },
+  securityLevel: 'loose',
+});
+</script>
+</body>
+</html>

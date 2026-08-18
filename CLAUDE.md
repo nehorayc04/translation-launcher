@@ -113,6 +113,33 @@ below it is loaded ONLY on demand.
 
 ---
 
+## Project Structure Map (quick lookup — avoid searching)
+
+| Path | What |
+|---|---|
+| `main_qt.py` / `main_eel.py` | App entry points (Qt = current, Eel = legacy). Bundled by `TranslationManager_qt.spec` — stays in root. |
+| `translation_manager/` | Core Python package — mods, auth, UI shell, plugins |
+| `frontend/` | React UI (built into `frontend/dist/`, bundled into the exe) |
+| `games/<slug>/` | Per-game translation pipeline work (RECON/FEASIBILITY/PIPELINE/work/) |
+| `games.json` / `news.json` / `updates.json` | Root-relative, bundled by the PyInstaller spec — do not move |
+| `community_compute/`, `biglaunch/`, `launcher-designer/` | Plugin/companion subsystems, each self-contained |
+| `universal/` | Cross-game QA/translation-quality tooling (gender guard, audits, brain) |
+| `orchestration/` | Multi-agent control-plane (see `docs/context/orchestration.md`) |
+| `docs/context/` | Split project knowledge base — see index above |
+| `docs/reports/` | Archived planning docs/PDFs (winhanced research, unified-platform blueprints); `docs/reports/he/` = Hebrew scenario-tree docs |
+| `scripts/` | Standalone one-off utility scripts (dev overlay, PDF export, monitor push, Menyoo translate) — not imported by the app |
+| `tools/` | Dev-tooling with its own data — `tools/icon-manager/` (icon inventory builder + its JSON/HTML), `tools/build_offline_bundle.py`, `tools/fleet_dashboard/` |
+| `config/` | `config.ini` (orphaned config, kept for reference) |
+| `qa/` | Windows Sandbox test harness |
+| `website/` | Public website — **separate git repo**, own `CLAUDE.md` |
+| `_archive/` | Dead weight kept for reference only (old logs, duplicate saves, loose images) |
+| `TranslationManager_qt.spec` / `build_exe.bat` / `installer.iss` / `publish_release.py` | Build/publish chain — all path-coupled to the root layout, keep in root |
+| `CLAUDE_INDEX.md` / `CLAUDE_INDEX_games.md` | ⚠️ Auto-generated navigation aids from `.claude/skills/daily-ops/build_index.py` — **stale**: they still describe the old 21k-line monolithic `CLAUDE.md`. Re-run the skill (or retire these) before trusting them. |
+| `CLAUDE_PRIVATE.md` | Private working notes, untracked, not part of this index |
+| `LOCAL_CHANGELOG.md` | Live, actively-appended release-notes log — not a stale report, do not archive |
+
+---
+
 ## Root-level things NOT covered above
 
 If a task involves the `website/` subfolder (its own git repo), read `website/CLAUDE.md` there

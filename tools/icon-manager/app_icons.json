@@ -1,0 +1,522 @@
+[
+ {
+  "id": "app-badge-check",
+  "name": "אישור/נרכש",
+  "purpose": "סימן וי בתגי 'נרכש' ו'התוכנה מעודכנת'",
+  "location": "views/GameDetailPanel.tsx -> '✓ נרכש' badge (also DownloadsView '✓ התוכנה מעודכנת')",
+  "kind": "badge",
+  "svg": "✓"
+ },
+ {
+  "id": "app-bigpicture-featured-star",
+  "name": "כוכב מומלץ",
+  "purpose": "גליף ★ לצד תווית \"מומלץ\" בזרקור Big Picture",
+  "location": "components/BigPictureMode.tsx -> spotlight \"מומלץ\" label",
+  "kind": "badge",
+  "svg": "★"
+ },
+ {
+  "id": "app-home-stat-available",
+  "name": "זמינים",
+  "purpose": "אייקון כרטיס הסטטיסטיקה 'זמינים' (עיגול עם וי)",
+  "location": "views/HomeView.tsx -> Stat card Icon=IconAvailable",
+  "kind": "badge",
+  "svg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"9\" /><path d=\"m8.5 12 2.5 2.5 4.5-5\" /></svg>"
+ },
+ {
+  "id": "app-home-stat-catalog",
+  "name": "משחקים בקטלוג",
+  "purpose": "אייקון כרטיס הסטטיסטיקה 'משחקים בקטלוג'",
+  "location": "views/HomeView.tsx -> Stat card Icon=IconCatalog",
+  "kind": "badge",
+  "svg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"7\" height=\"7\" rx=\"1.5\" /><rect x=\"14\" y=\"3\" width=\"7\" height=\"7\" rx=\"1.5\" /><rect x=\"3\" y=\"14\" width=\"7\" height=\"7\" rx=\"1.5\" /><rect x=\"14\" y=\"14\" width=\"7\" height=\"7\" rx=\"1.5\" /></svg>"
+ },
+ {
+  "id": "app-home-stat-installed",
+  "name": "מותקנים במחשב",
+  "purpose": "אייקון כרטיס הסטטיסטיקה 'מותקנים במחשב' (הורדה לתיבה)",
+  "location": "views/HomeView.tsx -> Stat card Icon=IconInstalled",
+  "kind": "badge",
+  "svg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7\" /><path d=\"M12 3v12\" /><path d=\"m8 11 4 4 4-4\" /></svg>"
+ },
+ {
+  "id": "app-home-stat-progress",
+  "name": "בקרוב",
+  "purpose": "אייקון כרטיס הסטטיסטיקה 'בקרוב' (שעון)",
+  "location": "views/HomeView.tsx -> Stat card Icon=IconProgress",
+  "kind": "badge",
+  "svg": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3a9 9 0 1 0 9 9\" /><path d=\"M12 7v5l3 2\" /></svg>"
+ },
+ {
+  "id": "app-personal-badge-purchase-date",
+  "name": "תאריך רכישה",
+  "purpose": "סימן וי לפני תאריך הרכישה על כרטיס המשחק",
+  "location": "views/PersonalAreaView.tsx -> PurchaseCard, תווית תאריך על הכרטיס",
+  "kind": "badge",
+  "svg": "✓"
+ },
+ {
+  "id": "app-plugins-card-default-icon",
+  "name": "אייקון תוסף ברירת מחדל",
+  "purpose": "אמוג'י פאזל כאייקון ברירת מחדל של כרטיס תוסף (כשהענן לא סיפק אייקון)",
+  "location": "components/PluginsSettings.tsx -> כרטיס תוסף, p.icon ?? \"🧩\"",
+  "kind": "badge",
+  "svg": "🧩"
+ },
+ {
+  "id": "app-auth-btn-copy-link",
+  "name": "העתק קישור",
+  "purpose": "אמוג'י לוח בכפתור העתקת קישור ההתחברות (הופך ל-✓ אחרי העתקה)",
+  "location": "components/AuthModal.tsx -> אוברליי המתנה ל-Google, כפתור \"העתק קישור\" (מתחלף ל-✓ בהעתקה)",
+  "kind": "button",
+  "svg": "📋"
+ },
+ {
+  "id": "app-auth-btn-google",
+  "name": "המשך עם Google",
+  "purpose": "לוגו Google רב-צבעוני (צבעי מותג קבועים, לא currentColor) בכפתור התחברות עם Google",
+  "location": "components/AuthModal.tsx -> GoogleGlyph, כפתור \"המשך עם Google\"",
+  "kind": "button",
+  "svg": "<svg width=\"18\" height=\"18\" viewBox=\"0 0 18 18\"><path fill=\"#4285F4\" d=\"M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.91c1.7-1.57 2.69-3.88 2.69-6.62z\"/><path fill=\"#34A853\" d=\"M9 18c2.43 0 4.47-.81 5.96-2.18l-2.91-2.26c-.81.54-1.84.86-3.05.86-2.34 0-4.33-1.58-5.04-3.71H.96v2.33A9 9 0 0 0 9 18z\"/><path fill=\"#FBBC05\" d=\"M3.96 10.71A5.41 5.41 0 0 1 3.68 9c0-.59.1-1.17.28-1.71V4.96H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.04l3-2.33z\"/><path fill=\"#EA4335\" d=\"M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58A9 9 0 0 0 9 0 9 9 0 0 0 .96 4.96l3 2.33C4.67 5.16 6.66 3.58 9 3.58z\"/></svg>"
+ },
+ {
+  "id": "app-back-arrow",
+  "name": "חזרה/אחורה",
+  "purpose": "חץ חזרה/מעבר לספרייה",
+  "location": "views/GameDetailPanel.tsx -> '← חזרה לספרייה' (also HomeView 'לכל הספרייה ←')",
+  "kind": "button",
+  "svg": "←"
+ },
+ {
+  "id": "app-bigpicture-close-exit",
+  "name": "סגור / יציאה",
+  "purpose": "גליף ✕ בכפתור \"יציאה\" בסרגל העליון של Big Picture",
+  "location": "components/BigPictureMode.tsx -> top-bar exit button",
+  "kind": "button",
+  "svg": "✕"
+ },
+ {
+  "id": "app-closebehavior-option-close",
+  "name": "סגור לצמיתות",
+  "purpose": "אייקון X בכרטיס אפשרות 'סגור לצמיתות'",
+  "location": "components/CloseBehaviorModal.tsx -> CloseIcon, כרטיס אפשרות \"סגור לצמיתות\"",
+  "kind": "button",
+  "svg": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 6l12 12\" /><path d=\"M18 6L6 18\" /></svg>"
+ },
+ {
+  "id": "app-closebehavior-option-minimize",
+  "name": "מזער לרקע",
+  "purpose": "אייקון מזעור (שני קווים אופקיים) בכרטיס אפשרות 'מזער לרקע'",
+  "location": "components/CloseBehaviorModal.tsx -> MinimizeIcon, כרטיס אפשרות \"מזער לרקע\"",
+  "kind": "button",
+  "svg": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 13h14\" /><path d=\"M5 19h14\" /></svg>"
+ },
+ {
+  "id": "app-downloads-recheck",
+  "name": "רענון בדיקה",
+  "purpose": "סמל רענון לבדיקת עדכון מחדש כשמעודכן",
+  "location": "views/DownloadsView.tsx -> up-to-date re-check icon button (↻)",
+  "kind": "button",
+  "svg": "↻"
+ },
+ {
+  "id": "app-ext-link-arrow",
+  "name": "קישור חיצוני",
+  "purpose": "חץ קישור חיצוני לאתר/דפדפן",
+  "location": "views/GameDetailPanel.tsx -> 'פתח את אתר OpenIV ↗' (also HomeView 'האתר הרשמי ↗')",
+  "kind": "button",
+  "svg": "↗"
+ },
+ {
+  "id": "app-gamedetail-drawer-chevron",
+  "name": "פתיחת מגירת הגדרות",
+  "purpose": "צ'ברון פתיחה/סגירה של מגירת ההגדרות (מסתובב 180°)",
+  "location": "views/GameDetailPanel.tsx -> settings drawer toggle button (rotating chevron)",
+  "kind": "button",
+  "svg": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15 6l-6 6 6 6\" /></svg>"
+ },
+ {
+  "id": "app-gamedetail-play",
+  "name": "הפעל",
+  "purpose": "סמל הפעלת המשחק בכפתור הראשי",
+  "location": "views/GameDetailPanel.tsx -> handleLaunch button (▶ הפעל)",
+  "kind": "button",
+  "svg": "▶"
+ },
+ {
+  "id": "app-gamedetail-restore-language",
+  "name": "שחזר שפה",
+  "purpose": "סמל שחזור שפת המשחק שלפני המוד",
+  "location": "views/GameDetailPanel.tsx -> '↺ שחזר לשפה שלפני המוד' link",
+  "kind": "button",
+  "svg": "↺"
+ },
+ {
+  "id": "app-gamedetail-update-arrow",
+  "name": "עדכן תרגום",
+  "purpose": "חץ-מעלה בכפתורי/תגי עדכון התרגום",
+  "location": "views/GameDetailPanel.tsx -> '⬆ עדכן תרגום' buttons + '⬆ עדכון זמין'/'⬆ קיים עדכון' badges",
+  "kind": "button",
+  "svg": "⬆"
+ },
+ {
+  "id": "app-gamedetail-version-toggle",
+  "name": "הצג עוד/פחות",
+  "purpose": "משולש הרחבה/כיווץ רשימת הגרסאות (▼ הצג הכול / ▲ הצג פחות)",
+  "location": "views/GameDetailPanel.tsx -> VersionHistory expand/collapse (▼ / ▲)",
+  "kind": "button",
+  "svg": "▼"
+ },
+ {
+  "id": "app-gamedetail-whatsnew-sparkles",
+  "name": "מה חדש",
+  "purpose": "סמל 'מה חדש' לפתיחת מודל ה-changelog",
+  "location": "views/GameDetailPanel.tsx -> '✨ מה חדש בגרסה' button",
+  "kind": "button",
+  "svg": "✨"
+ },
+ {
+  "id": "app-home-bigpicture",
+  "name": "מצב מסך-מלא",
+  "purpose": "אמוג'י מסך בכפתור מצב מסך-מלא (Big Picture)",
+  "location": "views/HomeView.tsx -> big picture button (🖥 מצב מסך-מלא)",
+  "kind": "button",
+  "svg": "🖥"
+ },
+ {
+  "id": "app-home-browse-triangle",
+  "name": "עיין בספרייה",
+  "purpose": "משולש בכפתור ה-CTA הראשי 'עיין בספרייה'",
+  "location": "views/HomeView.tsx -> hero primary CTA (▸ עיין בספרייה)",
+  "kind": "button",
+  "svg": "▸"
+ },
+ {
+  "id": "app-home-carousel-next",
+  "name": "הבא (קרוסלה)",
+  "purpose": "חץ 'הבא' בקרוסלת התרגומים המובילים",
+  "location": "views/HomeView.tsx -> FeaturedCarousel next arrow",
+  "kind": "button",
+  "svg": "<svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9 18l6-6-6-6\" /></svg>"
+ },
+ {
+  "id": "app-home-carousel-prev",
+  "name": "הקודם (קרוסלה)",
+  "purpose": "חץ 'הקודם' בקרוסלת התרגומים המובילים",
+  "location": "views/HomeView.tsx -> FeaturedCarousel prev arrow",
+  "kind": "button",
+  "svg": "<svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15 18l-6-6 6-6\" /></svg>"
+ },
+ {
+  "id": "app-open-triangle-play",
+  "name": "משולש פתח/הפעל",
+  "purpose": "גליף ▸ בכפתורי \"פתח\"/\"בואו נתחיל\"/\"סיום\" ברחבי ה-UI",
+  "location": "components/GameCard.tsx -> hover \"פתח\" pill (also BigPictureMode/OnboardingTour/CoachTour)",
+  "kind": "button",
+  "svg": "▸"
+ },
+ {
+  "id": "app-plugins-btn-autodetect",
+  "name": "איתור אוטומטי",
+  "purpose": "אמוג'י זכוכית מגדלת בכפתור איתור שמירות אוטומטי",
+  "location": "components/PluginsSettings.tsx -> SaveBackupPanel, כפתור \"איתור אוטומטי\"",
+  "kind": "button",
+  "svg": "🔎"
+ },
+ {
+  "id": "app-plugins-btn-backup-now",
+  "name": "גבה עכשיו",
+  "purpose": "אמוג'י דיסקט בכפתור גיבוי מיידי",
+  "location": "components/PluginsSettings.tsx -> SaveBackupPanel, כפתור \"גבה עכשיו\"",
+  "kind": "button",
+  "svg": "💾"
+ },
+ {
+  "id": "app-plugins-btn-open-folder",
+  "name": "פתח תיקייה",
+  "purpose": "אמוג'י תיקייה פתוחה לפתיחת מיקום השמירה/הגיבוי (מופיע פעמיים, סלוט אחד)",
+  "location": "components/PluginsSettings.tsx -> שורות שמירה + היסטוריה, כפתור פתיחת תיקייה",
+  "kind": "button",
+  "svg": "📂"
+ },
+ {
+  "id": "app-settings-btn-refresh",
+  "name": "רענן את התוכנה",
+  "purpose": "אייקון חץ רענון בכפתור רענון הקטלוג (זהה בגליף לאייקון טאב 'עדכונים', סלוט נפרד)",
+  "location": "views/SettingsView.tsx -> general tab, כפתור \"רענן את התוכנה\"",
+  "kind": "button",
+  "svg": "<svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M21 12a9 9 0 1 1-3.1-6.8\" /><path d=\"M21 4v5h-5\" /></svg>"
+ },
+ {
+  "id": "app-settings-btn-textsize-reset",
+  "name": "איפוס גודל טקסט",
+  "purpose": "חץ מעגלי נגד-כיוון-השעון לאיפוס גודל הטקסט",
+  "location": "views/SettingsView.tsx -> AppearanceSettings, כפתור איפוס גודל הטקסט ל-100%",
+  "kind": "button",
+  "svg": "<svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 12a9 9 0 1 0 2.6-6.4L3 8\" /><path d=\"M3 3v5h5\" /></svg>"
+ },
+ {
+  "id": "app-onboarding-step-activate",
+  "name": "אישור/הפעלה",
+  "purpose": "אייקון שלב 3 - הפעלה בתוך המשחק",
+  "location": "components/OnboardingTour.tsx -> STEPS[3] icon",
+  "kind": "emoji",
+  "svg": "✅"
+ },
+ {
+  "id": "app-onboarding-step-controller",
+  "name": "שלט/בקר",
+  "purpose": "אייקון שלב \"שליטה מלאה במקלדת ובשלט\"",
+  "location": "components/OnboardingTour.tsx -> STEPS[5] icon",
+  "kind": "emoji",
+  "svg": "🕹️"
+ },
+ {
+  "id": "app-onboarding-step-find-game",
+  "name": "איתור משחק",
+  "purpose": "אייקון שלב 1 - שהתוכנה תמצא את המשחק",
+  "location": "components/OnboardingTour.tsx -> STEPS[1] icon",
+  "kind": "emoji",
+  "svg": "🔍"
+ },
+ {
+  "id": "app-onboarding-step-install",
+  "name": "הורדה/התקנה",
+  "purpose": "אייקון שלב 2 - התקנת התרגום",
+  "location": "components/OnboardingTour.tsx -> STEPS[2] icon",
+  "kind": "emoji",
+  "svg": "⬇️"
+ },
+ {
+  "id": "app-onboarding-step-theme",
+  "name": "פלטת צבעים",
+  "purpose": "אייקון שלב \"כל משחק וצבע משלו\"",
+  "location": "components/OnboardingTour.tsx -> STEPS[4] icon",
+  "kind": "emoji",
+  "svg": "🎨"
+ },
+ {
+  "id": "app-onboarding-step-welcome",
+  "name": "ברוך הבא",
+  "purpose": "אייקון שלב הפתיחה \"ברוך הבא למנהל התרגומים\"",
+  "location": "components/OnboardingTour.tsx -> STEPS[0] icon",
+  "kind": "emoji",
+  "svg": "👋"
+ },
+ {
+  "id": "app-auth-hdr-brand-lock",
+  "name": "מנעול מיתוג",
+  "purpose": "אמוג'י מנעול ככותרת המיתוג של מסך ההתחברות/הרשמה",
+  "location": "components/AuthModal.tsx -> מסך התחברות/הרשמה, אייקון מנעול בקופסה",
+  "kind": "header",
+  "svg": "🔐"
+ },
+ {
+  "id": "app-auth-hdr-mfa-key",
+  "name": "אייקון 2FA",
+  "purpose": "אמוג'י מפתח ככותרת מסך האימות הדו-שלבי",
+  "location": "components/AuthModal.tsx -> מסך קוד 2FA, אייקון מפתח בקופסה",
+  "kind": "header",
+  "svg": "🔑"
+ },
+ {
+  "id": "app-changelog-hdr-whatsnew",
+  "name": "מה חדש",
+  "purpose": "אמוג'י נצנוצים בכותרת-העל 'מה חדש'",
+  "location": "components/ChangelogModal.tsx -> כותרת-משנה \"✨ מה חדש\"",
+  "kind": "header",
+  "svg": "✨"
+ },
+ {
+  "id": "app-closebehavior-hdr-close",
+  "name": "סגירת התוכנה",
+  "purpose": "תו ✕ ככותרת מודל התנהגות הסגירה",
+  "location": "components/CloseBehaviorModal.tsx -> כותרת \"סגירת התוכנה\", תו ✕ בקופסה צהובה",
+  "kind": "header",
+  "svg": "✕"
+ },
+ {
+  "id": "app-downloads-self-update-emoji",
+  "name": "עדכון התוכנה",
+  "purpose": "אמוג'י חץ-מעלה בכותרת פאנל עדכון התוכנה",
+  "location": "views/DownloadsView.tsx -> SelfUpdatePanel header (⬆️)",
+  "kind": "header",
+  "svg": "⬆️"
+ },
+ {
+  "id": "app-notiftoast-bell",
+  "name": "פעמון כרטיס התראה",
+  "purpose": "אייקון פעמון בכרטיס ההתראה הצף (אותו גליף כמו notif-bell-none, מופע נפרד)",
+  "location": "components/NotifToast.tsx -> ToastCard (אייקון מוביל בכרטיס ה-pop; זהה ל-notif-bell-none)",
+  "kind": "header",
+  "svg": "<svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9\" /><path d=\"M13.73 21a2 2 0 0 1-3.46 0\" /></svg>"
+ },
+ {
+  "id": "app-newssection-open-game-arrow",
+  "name": "חץ פתח משחק",
+  "purpose": "חץ CTA \"פתח משחק ←\" בכרטיס חדשה לחיצה",
+  "location": "components/NewsSection.tsx -> NewsCard clickable footer span",
+  "kind": "inline",
+  "svg": "←"
+ },
+ {
+  "id": "app-auth-modal-close",
+  "name": "סגירת מודל",
+  "purpose": "תו × לסגירת מודל האימות",
+  "location": "components/AuthModal.tsx -> כפתור סגירה (×) בפינת המודל",
+  "kind": "modal",
+  "svg": "×"
+ },
+ {
+  "id": "app-buy-modal-close",
+  "name": "סגירת מודל",
+  "purpose": "תו ✕ לסגירת מודל הרכישה",
+  "location": "components/BuyModal.tsx -> כפתור סגירה (✕)",
+  "kind": "modal",
+  "svg": "✕"
+ },
+ {
+  "id": "app-sidebar-logout-warning",
+  "name": "אזהרה (מודאל התנתקות)",
+  "purpose": "אימוג'י אזהרה בכותרת מודאל 'האם להתנתק?'",
+  "location": "components/Sidebar.tsx -> LogoutConfirm אייקון אזהרה בראש המודאל",
+  "kind": "modal",
+  "svg": "⚠️"
+ },
+ {
+  "id": "app-buy-state-payment-done",
+  "name": "תשלום הושלם",
+  "purpose": "סימן וי בבאנר השלמת תשלום",
+  "location": "components/BuyModal.tsx -> באנר הצלחה \"✓ התשלום הושלם\"",
+  "kind": "state",
+  "svg": "✓"
+ },
+ {
+  "id": "app-emptystate-default-sparkle",
+  "name": "ניצוץ מצב-ריק (ברירת מחדל)",
+  "purpose": "אייקון ברירת המחדל בבועת ה-EmptyState כשלא הועבר icon",
+  "location": "components/EmptyState.tsx -> EmptyState icon-bubble fallback",
+  "kind": "state",
+  "svg": "<svg width=\"34\" height=\"34\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3l1.9 4.6L18.5 9l-4.6 1.4L12 15l-1.9-4.6L5.5 9l4.6-1.4L12 3z\" /><path d=\"M19 14l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8.8-2z\" /></svg>"
+ },
+ {
+  "id": "app-gamedetail-lock",
+  "name": "נעילה",
+  "purpose": "סמל נעילה - החלפת שפה נעולה עד לרכישה",
+  "location": "views/GameDetailPanel.tsx -> locked language note (🔒)",
+  "kind": "state",
+  "svg": "🔒"
+ },
+ {
+  "id": "app-library-empty-search",
+  "name": "חיפוש (מצב ריק)",
+  "purpose": "אייקון זכוכית מגדלת במצב 'לא נמצאו משחקים/תוכנות'",
+  "location": "views/LibraryView.tsx -> EmptyState icon (also AppsView)",
+  "kind": "state",
+  "svg": "<svg width=\"34\" height=\"34\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"11\" cy=\"11\" r=\"7\" /><path d=\"m21 21-4.3-4.3\" /></svg>"
+ },
+ {
+  "id": "app-personal-state-purchases-empty",
+  "name": "אין רכישות",
+  "purpose": "אמוג'י חבילה במצב 'עדיין לא רכשת'",
+  "location": "views/PersonalAreaView.tsx -> PurchasesSection, מצב ריק",
+  "kind": "state",
+  "svg": "📦"
+ },
+ {
+  "id": "app-personal-state-purchases-error",
+  "name": "שגיאת טעינה",
+  "purpose": "אמוג'י אזהרה כשלא ניתן לטעון רכישות",
+  "location": "views/PersonalAreaView.tsx -> PurchasesSection, מצב שגיאה",
+  "kind": "state",
+  "svg": "⚠️"
+ },
+ {
+  "id": "app-personal-state-signin-lock",
+  "name": "נדרש חיבור",
+  "purpose": "אמוג'י מנעול במסך 'צריך להיכנס תחילה'",
+  "location": "views/PersonalAreaView.tsx -> מסך לא-מחובר, אייקון גדול",
+  "kind": "state",
+  "svg": "🔐"
+ },
+ {
+  "id": "app-plugins-state-locked-lock",
+  "name": "תוספים נעולים",
+  "purpose": "אמוג'י מנעול כשהתוספים נעולים (לא רכש משחק)",
+  "location": "components/PluginsSettings.tsx -> באנר לא-זכאי \"התוספים נעולים\"",
+  "kind": "state",
+  "svg": "🔒"
+ },
+ {
+  "id": "app-settings-accent-selected-check",
+  "name": "וי בחירת צבע",
+  "purpose": "סימן וי המסמן את צבע האווירה הפעיל בבורר הגוונים",
+  "location": "views/SettingsView.tsx -> AppearanceSettings, סימון על גוון-הצבע הנבחר (גם על צבעוני)",
+  "kind": "state",
+  "svg": "✓"
+ },
+ {
+  "id": "app-library-view-grid",
+  "name": "תצוגת רשת",
+  "purpose": "מתג תצוגת רשת בסרגל הספרייה (משותף לספריית המשחקים והתוכנות)",
+  "location": "views/LibraryView.tsx -> grid view toggle (also AppsView)",
+  "kind": "tab",
+  "svg": "<svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><rect x=\"3\" y=\"3\" width=\"8\" height=\"8\" rx=\"1.5\" /><rect x=\"13\" y=\"3\" width=\"8\" height=\"8\" rx=\"1.5\" /><rect x=\"3\" y=\"13\" width=\"8\" height=\"8\" rx=\"1.5\" /><rect x=\"13\" y=\"13\" width=\"8\" height=\"8\" rx=\"1.5\" /></svg>"
+ },
+ {
+  "id": "app-library-view-list",
+  "name": "תצוגת רשימה",
+  "purpose": "מתג תצוגת רשימה בסרגל הספרייה (משותף למשחקים ותוכנות)",
+  "location": "views/LibraryView.tsx -> list view toggle (also AppsView)",
+  "kind": "tab",
+  "svg": "<svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"3\" rx=\"1.5\" /><rect x=\"3\" y=\"10.5\" width=\"18\" height=\"3\" rx=\"1.5\" /><rect x=\"3\" y=\"17\" width=\"18\" height=\"3\" rx=\"1.5\" /></svg>"
+ },
+ {
+  "id": "app-settings-tab-appearance",
+  "name": "טאב מראה",
+  "purpose": "אייקון נצנוצים (sparkles) לטאב 'מראה'",
+  "location": "views/SettingsView.tsx -> IconAppearance, טאב הגדרות \"מראה\"",
+  "kind": "tab",
+  "svg": "<svg className={className} width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M18.27 22Q18 22 17.8 21.87Q17.6 21.73 17.47 21.47L16.8 19.73L15 19Q14.8 18.87 14.67 18.67Q14.53 18.47 14.53 18.2Q14.53 17.93 14.67 17.73Q14.8 17.53 15.07 17.4L16.8 16.73L17.47 15Q17.6 14.8 17.8 14.67Q18 14.53 18.27 14.53Q18.53 14.53 18.73 14.67Q18.93 14.8 19 15L19.73 16.8L21.47 17.47Q21.73 17.6 21.87 17.8Q22 18 22 18.27Q22 18.53 21.87 18.73Q21.73 18.93 21.47 19L19.73 19.73L19 21.47Q18.93 21.73 18.73 21.87Q18.53 22 18.27 22ZM10.33 19.47Q9.8 19.53 9.33 19.2Q8.87 18.87 8.73 18.33L7.4 14.13L3.13 12.73Q2.6 12.53 2.3 12.07Q2 11.6 2 11.07Q2 10.53 2.33 10.1Q2.67 9.67 3.2 9.47L7.4 8.2L8.8 4Q8.93 3.47 9.4 3.13Q9.87 2.8 10.43 2.83Q11 2.87 11.43 3.2Q11.87 3.53 12 4L13.27 8.2L17.47 9.53Q18 9.73 18.33 10.17Q18.67 10.6 18.67 11.17Q18.67 11.73 18.33 12.17Q18 12.6 17.47 12.8L13.27 14.13L11.93 18.33Q11.8 18.87 11.33 19.2Q10.87 19.53 10.33 19.47ZM10.4 4.53 8.87 9.13Q8.67 9.53 8.27 9.67L3.67 11.07L8.33 12.67Q8.73 12.8 8.87 13.2L10.33 17.8L11.87 13.2Q11.93 12.8 12.4 12.67L17 11.2L12.4 9.67Q11.93 9.53 11.8 9.13ZM17.27 12ZM19.07 7.8Q18.8 7.8 18.57 7.63Q18.33 7.47 18.27 7.2L18 6L16.8 5.67Q16.53 5.6 16.33 5.37Q16.13 5.13 16.17 4.87Q16.2 4.6 16.37 4.37Q16.53 4.13 16.8 4.07L18 3.8L18.27 2.6Q18.33 2.33 18.57 2.17Q18.8 2 19.1 2Q19.4 2 19.6 2.17Q19.8 2.33 19.87 2.6L20.2 3.8L21.4 4.13Q21.67 4.2 21.83 4.4Q22 4.6 22 4.9Q22 5.2 21.83 5.43Q21.67 5.67 21.4 5.73L20.2 6L19.87 7.2Q19.8 7.47 19.6 7.63Q19.4 7.8 19.07 7.87Z\" /></svg>"
+ },
+ {
+  "id": "app-settings-tab-controller",
+  "name": "טאב שלט",
+  "purpose": "אייקון גיים-פאד לטאב 'שלט'",
+  "location": "views/SettingsView.tsx -> IconController, טאב הגדרות \"שלט\"",
+  "kind": "tab",
+  "svg": "<svg className={className} width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M20.53 6.2Q19.93 5.27 19 4.7Q18.07 4.13 16.93 4.13H7Q5.87 4.13 4.93 4.7Q4 5.27 3.4 6.2Q2 8.73 2 11.6Q2 13.87 2.57 15.77Q3.13 17.67 4.07 18.77Q5 19.87 6.13 19.87Q8 19.87 9.13 16.33Q9.2 16.07 9.43 15.9Q9.67 15.73 10 15.73H14Q14.27 15.73 14.5 15.9Q14.73 16.07 14.87 16.33Q16 19.87 17.87 19.87Q19 19.87 19.93 18.77Q20.87 17.67 21.43 15.77Q22 13.87 22 11.6Q21.87 8.67 20.53 6.2ZM17.8 18.2Q17.53 18.2 17.13 17.6Q16.73 17 16.33 15.8Q16.13 15 15.47 14.53Q14.8 14.07 13.93 14.07H10Q9.13 14.07 8.47 14.57Q7.8 15.07 7.53 15.8Q7.13 17 6.77 17.6Q6.4 18.2 6.13 18.2Q5.73 18.2 5.13 17.37Q4.53 16.53 4.13 15.13Q3.67 13.47 3.67 11.6Q3.67 9.2 4.8 7Q5.2 6.47 5.77 6.13Q6.33 5.8 7 5.8H16.93Q17.53 5.8 18.13 6.13Q18.73 6.47 19.07 7Q20.27 9.2 20.27 11.6Q20.27 13.47 19.8 15.13Q19.4 16.53 18.8 17.37Q18.2 18.2 17.8 18.2ZM9.53 9.47H8.67V8.67Q8.67 8.27 8.43 8.07Q8.2 7.87 7.83 7.87Q7.47 7.87 7.23 8.07Q7 8.27 7 8.67V9.47H6.2Q5.8 9.47 5.57 9.7Q5.33 9.93 5.33 10.33Q5.33 10.73 5.57 10.93Q5.8 11.13 6.2 11.13H7V12Q7 12.4 7.23 12.6Q7.47 12.8 7.83 12.8Q8.2 12.8 8.43 12.6Q8.67 12.4 8.67 12V11.2H9.53Q9.87 11.2 10.1 10.97Q10.33 10.73 10.33 10.33Q10.33 9.93 10.1 9.73Q9.87 9.53 9.47 9.53ZM16.2 9.07Q16.2 9.6 16.53 9.97Q16.87 10.33 17.4 10.33Q17.93 10.33 18.3 9.97Q18.67 9.6 18.67 9.07Q18.67 8.53 18.3 8.17Q17.93 7.8 17.4 7.8Q16.87 7.8 16.53 8.17Q16.2 8.53 16.2 9.07ZM13.67 11.6Q13.67 12.13 14.03 12.47Q14.4 12.8 14.93 12.8Q15.47 12.8 15.83 12.47Q16.2 12.13 16.2 11.6Q16.2 11.07 15.83 10.7Q15.47 10.33 14.93 10.33Q14.4 10.33 14.03 10.7Q13.67 11.07 13.67 11.6Z\" /></svg>"
+ },
+ {
+  "id": "app-settings-tab-general",
+  "name": "טאב כללי",
+  "purpose": "אייקון גלגל שיניים לטאב 'כללי' בהגדרות",
+  "location": "views/SettingsView.tsx -> IconGeneral, טאב הגדרות \"כללי\"",
+  "kind": "tab",
+  "svg": "<svg className={className} width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"3\" /><path d=\"M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z\" /></svg>"
+ },
+ {
+  "id": "app-settings-tab-paths",
+  "name": "טאב נתיבים",
+  "purpose": "אייקון API/צמתים לטאב 'נתיבים'",
+  "location": "views/SettingsView.tsx -> IconPaths (local), טאב הגדרות \"נתיבים\"",
+  "kind": "tab",
+  "svg": "<svg className={className} width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M19.73 13.53 19.4 13.33Q19.53 12.67 19.53 12Q19.53 11.33 19.4 10.6L19.73 10.4Q20.67 9.93 20.93 8.9Q21.2 7.87 20.67 7Q20.13 6.13 19.17 5.83Q18.2 5.53 17.27 6.07L16.87 6.27Q15.8 5.4 14.53 4.93V4.47Q14.53 3.47 13.77 2.73Q13 2 12 2Q11 2 10.27 2.73Q9.53 3.47 9.53 4.47V4.93Q8.2 5.4 7.13 6.27L6.73 6.07Q5.87 5.6 4.87 5.87Q3.87 6.13 3.33 7Q2.8 7.87 3.07 8.87Q3.33 9.87 4.27 10.4L4.6 10.6Q4.47 11.33 4.47 12Q4.47 12.67 4.6 13.33L4.27 13.53Q3.33 14.07 3.07 15.07Q2.8 16.07 3.33 16.97Q3.87 17.87 4.83 18.13Q5.8 18.4 6.73 17.87L7.13 17.67Q8.2 18.6 9.47 19.07V19.47Q9.47 20.53 10.2 21.27Q10.93 22 11.97 22Q13 22 13.73 21.27Q14.47 20.53 14.47 19.47V19.07Q15.8 18.6 16.87 17.67L17.27 17.87Q18.13 18.4 19.13 18.13Q20.13 17.87 20.67 16.97Q21.2 16.07 20.93 15.07Q20.67 14.07 19.73 13.53ZM17.6 10.47Q17.87 11.27 17.87 12Q17.87 12.73 17.6 13.53Q17.53 13.8 17.63 14.07Q17.73 14.33 18 14.47L18.93 15Q19.2 15.2 19.3 15.53Q19.4 15.87 19.23 16.17Q19.07 16.47 18.73 16.57Q18.4 16.67 18.07 16.47L17.2 15.93Q16.93 15.8 16.67 15.83Q16.4 15.87 16.2 16.07Q15 17.27 13.47 17.67Q13.2 17.73 13.03 17.97Q12.87 18.2 12.87 18.47V19.53Q12.87 19.87 12.6 20.1Q12.33 20.33 12 20.33Q11.67 20.33 11.43 20.1Q11.2 19.87 11.2 19.53V18.47Q11.2 18.2 11 17.97Q10.8 17.73 10.53 17.67Q9 17.27 7.87 16.07Q7.6 15.8 7.3 15.8Q7 15.8 6.8 15.93L5.93 16.47Q5.6 16.67 5.27 16.57Q4.93 16.47 4.77 16.17Q4.6 15.87 4.7 15.53Q4.8 15.2 5.07 15L6 14.47Q6.2 14.33 6.33 14.07Q6.47 13.8 6.4 13.53Q6.13 12.73 6.13 12Q6.13 11.27 6.4 10.47Q6.47 10.2 6.33 9.93Q6.2 9.67 6 9.53L5.07 9Q4.8 8.8 4.7 8.47Q4.6 8.13 4.77 7.83Q4.93 7.53 5.27 7.43Q5.6 7.33 5.93 7.53L6.8 8.07Q7.07 8.2 7.33 8.17Q7.6 8.13 7.8 7.93Q8.93 6.73 10.53 6.33Q10.8 6.27 10.97 6.03Q11.13 5.8 11.13 5.53V4.47Q11.13 4.13 11.4 3.9Q11.67 3.67 12 3.67Q12.33 3.67 12.57 3.9Q12.8 4.13 12.8 4.47V5.53Q12.8 5.8 13 6.03Q13.2 6.27 13.47 6.33Q15 6.73 16.13 7.93Q16.33 8.13 16.63 8.17Q16.93 8.2 17.2 8.07L18.07 7.53Q18.4 7.33 18.7 7.43Q19 7.53 19.2 7.83Q19.4 8.13 19.3 8.47Q19.2 8.8 18.93 9L18 9.53Q17.73 9.67 17.63 9.93Q17.53 10.2 17.6 10.47ZM13.47 8.8 12.13 15.47Q12.07 15.8 11.83 15.97Q11.6 16.13 11.33 16.13H11.2Q10.8 16.07 10.63 15.8Q10.47 15.53 10.53 15.13L11.87 8.47Q11.93 8.13 12.2 7.97Q12.47 7.8 12.83 7.87Q13.2 7.93 13.37 8.2Q13.53 8.47 13.47 8.8ZM9.67 11.07 8.67 12.07 9.67 13.07Q9.93 13.27 9.93 13.63Q9.93 14 9.7 14.23Q9.47 14.47 9.1 14.47Q8.73 14.47 8.47 14.2L7.47 13.2Q7 12.73 7 12.03Q7 11.33 7.47 10.87L8.47 9.87Q8.73 9.6 9.07 9.6Q9.4 9.6 9.67 9.87Q9.93 10.13 9.93 10.47Q9.93 10.8 9.67 11ZM16.53 10.87Q17 11.33 17 12.03Q17 12.73 16.53 13.2L15.53 14.2Q15.27 14.47 14.93 14.47Q14.6 14.47 14.33 14.23Q14.07 14 14.07 13.63Q14.07 13.27 14.33 13.07L15.33 12.07L14.33 11.07Q14.07 10.8 14.07 10.47Q14.07 10.13 14.33 9.87Q14.6 9.6 14.93 9.6Q15.27 9.6 15.53 9.87Z\" /></svg>"
+ },
+ {
+  "id": "app-settings-tab-privacy",
+  "name": "טאב פרטיות",
+  "purpose": "אייקון טביעת-אצבע מאומתת לטאב 'פרטיות'",
+  "location": "views/SettingsView.tsx -> IconPrivacy (local), טאב הגדרות \"פרטיות\"",
+  "kind": "tab",
+  "svg": "<svg className={className} width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M2.82 18.59Q2.55 18.59 2.32 18.39Q2.08 18.19 2.02 17.9Q1.95 17.6 2.15 17.3Q2.35 17 2.68 16.93Q4.15 16.66 4.81 14.8Q5.35 13.4 5.35 11.13Q5.35 10.67 5.41 10.27Q5.48 9.87 5.78 9.67Q6.08 9.47 6.41 9.54Q6.75 9.6 6.95 9.87Q7.15 10.13 7.08 10.47Q7.01 10.8 7.01 11.2Q7.01 14.86 5.68 16.8Q4.68 18.26 3.02 18.59ZM2.82 14.46Q3.22 14.46 3.45 14.23Q3.68 14 3.68 13.67V11.13Q3.68 9.14 4.68 7.4Q5.68 5.67 7.41 4.67Q9.14 3.67 11.21 3.67Q13.67 3.67 15.67 5.21Q15.94 5.41 16.27 5.34Q16.6 5.27 16.84 5.01Q17.07 4.74 17 4.41Q16.94 4.07 16.67 3.87Q14.21 2.01 11.14 2.01Q8.68 2.01 6.58 3.24Q4.48 4.47 3.25 6.57Q2.02 8.67 2.02 11.13V13.67Q2.02 14 2.25 14.26Q2.48 14.53 2.88 14.53ZM11.21 5.34Q9.94 5.34 8.81 5.84Q7.68 6.34 6.81 7.27Q6.61 7.54 6.61 7.87Q6.61 8.2 6.88 8.44Q7.15 8.67 7.51 8.67Q7.88 8.67 8.08 8.4Q8.68 7.74 9.48 7.37Q10.28 7 11.18 7Q12.07 7 12.87 7.37Q13.67 7.74 14.27 8.4Q14.54 8.67 14.87 8.67Q15.21 8.67 15.47 8.47Q15.74 8.27 15.77 7.94Q15.81 7.6 15.54 7.34Q14.74 6.4 13.57 5.87Q12.41 5.34 11.21 5.34ZM18.27 8.8Q18.4 9.07 18.6 9.24Q18.8 9.4 19 9.4Q19.2 9.4 19.34 9.34Q19.67 9.27 19.84 8.94Q20 8.6 19.87 8.34Q19.6 7.4 19.14 6.6Q18.94 6.27 18.6 6.2Q18.27 6.14 17.97 6.3Q17.67 6.47 17.57 6.8Q17.47 7.14 17.67 7.4Q18.07 8.07 18.27 8.8ZM22 16.13Q22 17.73 21.2 19.06Q20.4 20.39 19.07 21.19Q17.74 21.99 16.17 21.99Q14.61 21.99 13.27 21.19Q11.94 20.39 11.14 19.06Q10.34 17.73 10.34 16.16Q10.34 14.6 11.14 13.27Q11.94 11.93 13.27 11.13Q14.61 10.33 16.17 10.33Q17.74 10.33 19.07 11.13Q20.4 11.93 21.2 13.27Q22 14.6 22 16.13ZM20.33 16.13Q20.33 15.06 19.77 14.1Q19.2 13.13 18.24 12.57Q17.27 12 16.17 12Q15.07 12 14.11 12.57Q13.14 13.13 12.57 14.1Q12.01 15.06 12.01 16.16Q12.01 17.26 12.57 18.23Q13.14 19.19 14.11 19.76Q15.07 20.33 16.17 20.33Q17.27 20.33 18.24 19.76Q19.2 19.19 19.77 18.23Q20.33 17.26 20.33 16.2ZM8.28 16.6Q7.81 16.6 7.61 16.93Q6.68 18.26 5.95 18.86Q4.75 19.86 3.02 20.33Q2.68 20.46 2.52 20.76Q2.35 21.06 2.45 21.36Q2.55 21.66 2.78 21.83Q3.02 21.99 3.28 21.99H3.48Q5.55 21.39 7.01 20.13Q7.88 19.39 8.88 17.93L8.94 17.86Q9.08 17.66 9.08 17.36Q9.08 17.06 8.84 16.83Q8.61 16.6 8.28 16.6ZM17.67 15.13 15.81 16.93Q15.74 17 15.61 17Q15.47 17 15.41 16.93L14.47 16Q14.21 15.73 13.87 15.73Q13.54 15.73 13.27 16Q13.01 16.26 13.01 16.6Q13.01 16.93 13.27 17.2L14.21 18.13Q14.81 18.66 15.61 18.66Q16.4 18.66 17 18.13L18.8 16.33Q19.07 16.06 19.07 15.73Q19.07 15.4 18.84 15.16Q18.6 14.93 18.27 14.9Q17.94 14.86 17.67 15.13ZM10.34 11.13Q10.34 10.8 10.71 10.53Q11.08 10.27 11.41 10.33Q11.74 10.4 12.04 10.23Q12.34 10.07 12.41 9.74Q12.47 9.4 12.31 9.1Q12.14 8.8 11.81 8.74Q11.14 8.54 10.41 8.84Q9.68 9.14 9.18 9.77Q8.68 10.4 8.68 11.2V12Q8.68 12.33 8.91 12.57Q9.14 12.8 9.51 12.8Q9.88 12.8 10.11 12.57Q10.34 12.33 10.34 12Z\" /></svg>"
+ },
+ {
+  "id": "app-settings-tab-updates",
+  "name": "טאב עדכונים",
+  "purpose": "אייקון חץ רענון לטאב 'עדכונים'",
+  "location": "views/SettingsView.tsx -> IconUpdates, טאב הגדרות \"עדכונים\"",
+  "kind": "tab",
+  "svg": "<svg className={className} width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M21 12a9 9 0 1 1-3.1-6.8\" /><path d=\"M21 4v5h-5\" /></svg>"
+ }
+]

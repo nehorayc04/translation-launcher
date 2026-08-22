@@ -55,7 +55,7 @@ def github_token_from_git_credential() -> str | None:
         return None
     return None
 
-OWNER  = "nehorayc04"
+OWNER  = "hebrew-translation-hub"
 REPO   = "translation-launcher"
 SCRIPTS_DIR = Path(r"C:\Users\Nehoray_Cohen\Projects\Game translator")
 WEBSITE_ENV = SCRIPTS_DIR / "website" / ".env"

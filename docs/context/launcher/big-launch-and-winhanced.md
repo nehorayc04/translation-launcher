@@ -686,3 +686,378 @@ UI/UX · safety · replication blueprint). Delivered as **`winhanced_deep_analys
   ~2% translated) is untouched and still needs its `RECON/FEASIBILITY/PIPELINE.md`.
 
 
+
+## 2026-08-19 — Big Launch is now a Windows "home app" (מצב XBOX)
+
+The ask: Big Launch should appear in **הגדרות ‹ משחקים ‹ מצב XBOX ‹ "בחר אפליקציית בית"**, where
+Windows previously offered only `ללא / XBOX / Winhanced`. **Big Launch alone** - the regular
+launcher was registered too in the first pass and then deliberately removed: a home app is what the
+full-screen experience boots INTO and drives with a pad, and a mouse-first window is the wrong thing
+to offer there.
+
+**The mechanism** (found by inspecting how the one working third-party entry is registered — the
+sparse package's manifest, which is public metadata, not its code):
+
+- The picker lists exactly the packages holding the custom capability
+  `Microsoft.appCategory.gamingHome_8wekyb3d8bbwe`. Verified as a set: `Microsoft.GamingApp`,
+  `Winhanced`, and now Big Launch — nothing else on the machine has it.
+- An unpackaged Win32 exe can join that set through a **sparse (external-location) package**: a
+  manifest + tile art + `uap10:AllowExternalContent`, `-ExternalLocation` pointing at the real
+  install folder. No code is packaged and no file moves.
+- The app must be **mediumIL**. FSE activates the home app through package identity and cannot
+  elevate — `requireAdministrator` fails to launch and the home app silently does nothing.
+  `BigLaunch.exe` is `asInvoker`, so it is pointed at
+  directly (Winhanced needed a `WinhancedFseBridge.exe` shim for exactly this reason).
+
+**Four traps, each of which cost a failed registration or a wrong-looking entry:**
+
+1. **The SCCD is read from the EXTERNAL LOCATION, not from the manifest folder.** The deployment
+   log names the pattern outright — `CC file pattern C:\...\*.sccd` — while the PowerShell error is
+   only "The system cannot find the file specified" with no file named. `Get-AppPackageLog
+   -ActivityID <id>` is what turns that into a one-line diagnosis.
+2. **The descriptor must be plain.** An SCCD with a leading XML comment fails with `0x8007007A`
+   ("data area too small"). The accepted file is 408 bytes, CRLF, no comments.
+3. **The tile art is read from the external location too.** Registered without an `Assets\` folder
+   in the install dir, the picker draws the generic placeholder even though the package folder holds
+   the logos. Proven in both directions on one variable: rename the folder away and re-register ->
+   placeholder; put it back and re-register -> our logo.
+4. **A re-register does NOT relocate the package.** Registering the same identity from a new folder
+   reports success and leaves `InstallLocation` on the old one — so a first run from the source tree
+   quietly keeps the entry tied to the source tree. Only `Remove-AppxPackage` then register moves
+   it. `register.ps1` now detects this and removes first.
+
+**What shipped:** `tools/msix/biglaunch/` (manifest + tile art + dev SCCD) and
+`tools/msix/register.ps1`; `installer.iss` copies them to `{app}\msix`, drops the SCCD in `{app}` and
+the tile art in `{app}\Assets`, registers on install (`runasoriginaluser` — packages register per
+user) and unregisters on uninstall.
+
+**The distribution caveat:** the SCCD is the development form (`AllowAny` + catalog `FFFF`), which
+Windows honours only on a developer-unlocked machine (`AllowDevelopmentWithoutDevLicense=1`, true
+here). Shipping the home-app entry to ordinary users needs a Microsoft-issued SCCD bound to our own
+publisher certificate. Registration is best-effort and swallows its own errors, so a machine that
+cannot have it simply installs without it.
+
+**Verified:** the entry appears in the picker with the real Big Launch logo, and activates through
+package identity (`shell:appsFolder\<PFN>!App` starts the real exe — the same path FSE uses);
+registration lives entirely under `C:\Program Files\Translation Manager\msix`, so the repo can move.
+
+**Watch this:** selecting a newly registered home app is not the only thing that changed — after the
+registration, **"היכנס למצב XBOX בעת ההפעלה" came back ON** (it was off before), i.e. the machine
+would boot into the shell. Nothing in our code touches that toggle; Windows appears to arm it when a
+home app is chosen. Check it after any registration round.
+
+## 2026-08-19 — glass, motion, and the core the shell was burning
+
+**What was asked:** make every floating surface look like the reference's frosted glass, smooth
+every transition, give the audio/Bluetooth panels the reference's full option set, and make the
+size sliders look like the volume slider (with a knob).
+
+**Glass is a RELATIONSHIP, not a fill.** A translucent panel over a sharp screen is a dirty window;
+what makes the reference read as glass is that the shell BEHIND it is blurred and pushed back. So
+`Frost()`/`UpdateFrost()` (`MainWindow.Glass.cs`) blurs `Chrome` (and `Blade`, when something opens
+over it) while any overlay is up, and the panel fills in `Tokens.xaml` (`GlassPanel`, `GlassEdge`)
+stay genuinely translucent instead of creeping toward opaque every time something is hard to read.
+The blade's action list was an explicitly opaque plate for exactly that reason — with the frost
+behind it, it became glass too.
+
+- Frost is hooked to the HOSTS' `IsVisibleChanged`, not to the thirteen call sites that open
+  something. `UpdateFrost()` derives the answer from what is visible, because the layers stack (a
+  confirmation over the blade over the shell) and a boolean gets the two-deep case wrong.
+- The blur effect is **removed** on close, never left at radius 0 — a zero-radius effect still taxes
+  the layer every frame.
+
+**Motion:** one house curve (`KeySplineEase` over the measured `EaseDecel`/`EaseStandard` splines),
+arriving soft and leaving brisk; panels now materialise (scale 0.96→1 + rise + fade) instead of
+appearing.
+
+**🔴🔴 THE REAL FIND — the shell idled at ~104% of one core doing nothing.** Measured, then
+bisected: with every animation disabled it was still ~85%, which ruled out the visuals. The cause
+was `Interop/Gamepad.cs` polling **all four XInput slots plus four winmm joystick ids, 60 times a
+second**, with a comment claiming it "costs nothing when no pad is attached" — the early-out is the
+RESULT of the query, not a way to avoid it, and querying an empty slot goes to the device layer.
+Now: a full sweep twice a second, and once a slot answers that one slot is read at the full 16ms.
+**104% → 26%.** Capping the ambient bloom's animations (`DesiredFrameRate` 20 for the drift, 10 for
+the hue walk — a 22-second colour cycle does not need 60 samples a second) and caching the blurred
+background layers took the animated state to ~33%.
+
+**Audio panel: the options were not missing, they were failing silently.** `AudioMixer.OutputDevices()`
+and `Sessions()` returned empty because `new MMDeviceEnumerator()` threw
+`InvalidCastException: Unable to cast object of type 'MMDeviceEnumerator' to type 'MMDeviceEnumerator'`
+— **two `[ComImport]` types with the same CLSID/IID in one assembly** (Volume.cs and AudioMixer.cs
+each carried their own private copy, deliberately, "so the vtable sits beside the code that calls
+it"). The runtime binds one COM identity to whichever it sees first; the loser dies. Now declared
+once in `Interop/CoreAudio.cs`. What found it was not more reading — it was `AudioMixer.LastError`
+plus an empty-state row that says WHY a section is empty, i.e. giving the failure a place to appear.
+
+**Also:** output device is now one row that opens a picker (a machine with four outputs used to push
+the mixer off the panel); Bluetooth opens with a state card and its search button becomes
+"עצירת החיפוש" while scanning (with a generation counter so the late result is discarded); device
+names, SSIDs and percentages are LRM-fenced (they rendered as `%30` and `(Speakers (V18`).
+
+**Home screen (same day, separate ask):** one screenful, no scrolling — the "שוחקו לאחרונה" shelf
+plus four destination tiles stretched into the remaining height. The "הספרייה שלך" and "זמין בעברית"
+shelves are gone; two of the four tiles open the same lists.
+
+## 2026-08-19 (later) — "the floating windows are not stable at all"
+
+Read off a 66-second screen recording, frame by frame (contact sheet → dense sheet around each
+transition → full-res frames). Four separate faults were doing it:
+
+1. **The panel jumped across the screen on its own.** `AnchorToChip` re-measured the header chip on
+   EVERY refresh — and the header redraws itself every two seconds for the live CPU/RAM readout,
+   which replaces the chip element. The panel then held an element that was no longer in the tree,
+   `IsVisible` came back false, and the catch-all fallback parked it in the opposite corner: open it
+   on the left, touch nothing, and two seconds later it had moved. **The position is now computed
+   once at open and frozen until close** — a better fallback would not have fixed it, because the
+   panel must not move at all while it is up.
+2. **Every arrow press rebuilt the whole card**, so holding a direction made the window pulse
+   (entrance animation replayed) and shift (re-anchor). A level change is not structural, so the row
+   now writes its new value into the controls it already owns; only a mute (glyph + title) redraws.
+   A refresh no longer replays the entrance animation either.
+3. **The per-app list re-ordered itself** between refreshes — Windows returns sessions in
+   enumeration order — so the row being aimed at moved out from under the cursor. Sorted by name.
+4. **The knob was clipped into a half-circle at 0% and 100%**, exactly the two values people sit at,
+   and the value bubble was hung on a negative margin outside the row where the focus ring sliced it.
+   Both now live inside the row (half-knob inset, and the track's top inset is the bubble's room).
+
+Verified by measuring frame-to-frame diffs while holding a direction: the changed region stays
+inside the slider strip (y 157..209), i.e. the card itself does not move.
+
+**Elastic slider** (asked for alongside, after reactbits' ElasticSlider): the fill is now an
+animatable attached property (`FracProperty`) whose callback writes the two star column widths — a
+`GridLength` cannot be animated, which is why a value change used to jump. Steps settle with a light
+`BackEase` overshoot, the track thickens and the knob grows while the row is in use, and a press that
+cannot move the value (right at 100%) stretches the track from the opposite end and springs back
+instead of doing nothing.
+
+**App icons** in the per-app mixer: `Interop/AppIcons.cs` resolves each session's process path with
+`QueryFullProcessImageName` (NOT `Process.MainModule`, which throws for any process this one cannot
+open for VM read — i.e. most of them) and extracts the shell icon, cached by path, `DestroyIcon`'d
+after conversion because `CreateBitmapSourceFromHIcon` copies the pixels but does not own the handle.
+
+## 2026-08-19 (evening) — the batch read off screenshots
+
+**Sliders.** Pinned LTR to cure "the right arrow moves the handle left", then un-pinned when the
+answer came back: in a Hebrew UI the bar belongs right-to-left with everything else, and it was the
+ARROWS that were wrong. They are mirrored now — a direction key promises a DIRECTION, not an
+arithmetic sign, which is what Windows does for its own mirrored sliders. Also: press-and-drag with
+the mouse (a slider you cannot hold is the one thing every other volume control allows); mute moved
+off the row and onto the speaker mark, because reaching for the track used to silence the thing you
+were setting; the pad keeps A on the row.
+
+**The knob was sliced in half at 0% and 100%** — the two values people actually sit at. It hung half
+its width past the boundary between the filled and empty columns, and at either end that boundary IS
+the track's edge, so half of it was arranged outside the cell. Widening the inset did nothing
+(the overhang is measured from the CELL). Fixed by giving the knob **its own fixed middle column**:
+`[filled*][knob px][empty*]`, so it is never outside anything. The value bubble rides the same
+column — inside a `Canvas`, because a child of a 20px cell is MEASURED against 20px and the read-out
+came out squeezed to a sliver.
+
+**🔴 The pale blurred screen before the opening film was not a splash.** `Backdrop.Apply` makes the
+WPF composition target transparent so DWM's acrylic can show — and between that call and this
+window's first painted frame, what shows through is the blurred DESKTOP. Deferring the backdrop
+request to `ContextIdle` (after layout and the first render) fixes it. Verified by watching the
+first second of startup: the first frame is now `mean = 0.0`, i.e. pure black.
+
+**"There is a delay switching menus"** — measured before changing anything: building a screen costs
+**0–12ms** (205ms once, the first home render). So the entire wait was the transition I had
+lengthened to 260ms earlier the same day. Back to 170ms with the opacity leading at 110ms. Smooth is
+not the same as slow.
+
+**"זמין להתקנה" was a lie for anything still in production.** The catalog has always carried
+`availability`; nothing read it. A mod that is not `available` now states its stage (בתהליך תרגום,
+בבקרת איכות, בקרוב) and links to the site instead of offering a download that does not exist. The
+tile badges follow the same rule.
+
+**Missing covers** (Ubisoft titles with no Steam cache and no hub entry): the tile now falls back to
+the game's own executable icon — not box art, but local, instant, and the mark the user already
+associates with the game. `GameIconPath` picks the biggest .exe in the install root, skipping
+installers/crash handlers.
+
+**Home screen:** more covers in the shelf, the four destinations back to a strip (stretching them
+into the lower half made four shortcuts dwarf the library), and a "מה חדש" row underneath — wide,
+short cards carrying the linked game's artwork blurred behind the text, cached so the blur is
+rasterised once rather than per frame of a scrolling strip.
+
+## 2026-08-20 — the tuned sizes became 100%
+
+The four multipliers the user had dialled in (tiles 120%, header 130%, text 120%, hints 125%) are
+now the code's own baseline (`MainWindow.Sizes.GroupBase`), so "רגיל" opens at the size the shell was
+actually tuned to on a television and every percentage above it is genuinely larger. Existing
+settings files are rebased exactly once (`AppSettings.SizeBaseline`): the multipliers that PRODUCED
+that look are reset to 1.0, so nobody's screen moves on the day it shipped.
+
+**What that broke, and why the fix took six rounds:** at the bigger baseline the home screen no
+longer fit, and the "מה חדש" band came out sliced. Three separate causes, each hidden behind the
+next:
+
+1. **A star row inside a ScrollViewer is not a share of the frame.** The page host measures its
+   child against infinite height, so `Height=Star` resolves to the content's own height and the last
+   band simply lands below the fold. Same family as the horizontal shelf, where
+   `HorizontalAlignment` could not work until the holder was given a real width.
+2. **The footer legend is drawn OVER the page, not beside it** (deliberately — it must stay above
+   every layer), so the host's height includes the strip the footer covers. A page that trusts that
+   number puts its last band underneath it. The band was never short; it was hidden.
+3. **Auto rows take what they want.** Even with the height right, the two rows above claimed the
+   remainder. All three bands now get explicit measured heights, and the covers - the only elastic
+   band - shrink until everything fits.
+
+**🔴 And the reason several "verified" rounds were worthless:** the elevated mirror that copies the
+build into Program Files exited on its own 8-hour deadline, while the cycle script's freshness check
+compared file SIZE - and consecutive builds of the same code are usually the same size. It kept
+printing `mirrored=True` against a stale exe. Now it compares `LastWriteTimeUtc` and says so out
+loud when it falls back to the dev copy.
+
+## 2026-08-21 — mining Winhanced's 22-version changelog
+
+The user supplied `WINHANCED_VERSION_REPORT.md` (their public release notes for 22 versions) and
+asked what we can learn. The boundary held throughout: their notes tell us WHAT KIND of thing breaks
+in a shell like this and WHAT users needed; every fix below is our own code.
+
+**The pattern their bug list keeps landing on — and we had the same shape:**
+
+1. **A failed enumeration adopted as truth.** They shipped "a failed or interrupted sync can no
+   longer delete, hide, empty or duplicate your games" TWICE in one month, plus "a failed scan can
+   no longer change install status" and "playtime no longer resets to zero after a failed fetch".
+   Ours: `ReloadLibraryAsync` assigned the scan result straight over the library, and EVERY failure
+   path returned an empty list — one locked registry key and the library was gone until the next
+   good scan. Now `LibraryScanner.LastScanComplete` reports completeness, a complete scan is adopted
+   whole, and a partial one is unioned with what it could not look at (and says so).
+2. **Watching the wrong process.** Their "a game reported as closed seconds after launching" and
+   "detection through nested launchers". Ours was worse: for a `steam://` launch `Process.Start`
+   returns null, so `Alive` was false on the first 2-second tick — every store-launched title
+   "closed" immediately, banked no playtime, and could not be suspended. Sessions now adopt the real
+   process from under the game's install folder and get a 90-second appearance window.
+3. **The shell hiding the thing that is blocking it.** Their "Steam pop-ups that block a launch now
+   surface instead of the app looking stuck". Ours is a maximised borderless window: if the game has
+   not appeared after 8s AND we are still the foreground window, we minimise and say why. And when a
+   game exits we come back (`RestoreShell`), instead of leaving the user on the desktop.
+4. **Focus that forgets where you were.** Their "Back returned to the first tile instead of the game
+   you came from". Ours did exactly that — `_focusTag` only matched string tags and a tile's Tag is
+   the game object. Added `_focusGameKey`.
+5. **Re-decoding art on every render.** Their "covers are cached and no longer re-decoded when
+   scrolling back" and "faster library load". Ours had no image cache at all: every screen build
+   re-read and re-decoded every cover. Measured after the fix: a home rebuild went from 250-400ms to
+   5-16ms.
+6. **Settings that do not always save.** Their "fixed settings that sometimes did not save". Our
+   `SaveThrottled` DROPPED a write inside its window rather than deferring it - the last press of a
+   drag is exactly the call with nothing after it. Now the burst still coalesces and a trailing write
+   always lands.
+7. **A pointer parked on a 10ft screen.** They fixed cursor hiding twice. We never had it: the
+   pointer now hides on pad input and returns on a real mouse move (with a 3px threshold, because
+   WPF raises MouseMove for a pointer that has not moved when the visual under it changes).
+
+**Checked and already right:** playtime is forward-only; hide-not-delete with a restore screen;
+scroll resets on filter change; a clean close takes 283ms (they had a 10-second shutdown freeze);
+rapid Back hammering does not crash; `SaveThrottled` on exit is covered by `OnClosing`.
+
+**Not for us:** everything TDP/fan-curve/RGB/handheld-hardware, emulator and ROM libraries, console
+Remote Play, the store/wishlist/price-comparison stack. Different product, different catalog.
+
+**🔴 A note on instruments:** late in the night every screenshot came back black or uniform grey and
+it read exactly like "the shell renders nothing". The app was fine - the display had powered down
+(and the primary adapter is a Parsec virtual display), so PrintWindow and BitBlt were handing back
+placeholder surfaces. `std == 0` across a whole screen is not a UI state. Verified instead through
+the app's own trace log (build times, row heights), `errors.log` and a stress pass.
+
+### What the 15-agent mining run found on top of that
+
+372 changelog items → 372 generalized lessons → each checked against our source by six mappers →
+139 claims → three skeptics refuted 35 → **111 survived**. Two of the refutations were the workflow
+catching up with fixes made the same night (the session lifecycle and the blade focus), which is a
+fair check on the method. Acted on immediately:
+
+- **🔴 The pad drove the shell while a game was in front.** `OnPad` never asked whether the shell was
+  active, so during a game the stick walked an invisible focus ring and A activated whatever it was
+  sitting on. Now deaf while a session runs and we are not in front — deliberately NOT a bare
+  `!IsActive`, because Windows hands activation away for reasons (a toast, an installer) that would
+  otherwise strand someone holding a controller.
+- **"שוחקו לאחרונה" was not sorted by recency** — it took the first N of the LIBRARY order
+  (installed-first, favourites floated) and called them recent.
+- **Prices lost their agorot**: `PriceCents / 100` is integer division, so 5350 displayed as "53 ₪"
+  on the one screen that quotes a price. One formatting helper now, so no call site can round again.
+- **"Clear the image cache" cleared a folder nothing writes to** — `Catalog.ArtDir` versus the
+  `%LocalAppData%\BigLaunch\art` that `ArtCache` actually mirrors into. It always reported 0 files
+  while the real cache grew without bound.
+- **The purchase page opened behind a maximised borderless window** — the same lesson `HandOff`
+  already carried; both blade routes minimise now.
+- **The system panels had no controller route at all.** Volume, network and Bluetooth live behind
+  header chips that are deliberately outside the focus map, and nothing else opened them: with a pad,
+  on a couch, there was no way to reach the Wi-Fi list — the exact situation the Bluetooth panel's own
+  comment gives as its reason to exist. Three rows in the quick menu.
+- **Art arriving in the background stole the focus ring** every 450ms while the user was browsing.
+- **Per-tile shadows**: measured 2969ms → 2438ms of CPU for the same scroll, an 18% tax for an effect
+  that is invisible on a bright cover. A hairline rim was tried as a middle ground and measured
+  2812ms — a border is another draw per tile — so the card carries nothing at rest, which is what
+  both reference shells do.
+
+Still on the list from that run (not done tonight): a `_modBusy` guard and a timeout/cancel for mod
+installs; dedupe folding Manual/Emulator entries into a store record by install directory; the
+library filter not persisting; "not installed" shown while a game is merely updating; a Discord RPC
+supervisor; `_sessions.ReleaseAll()` before sleep/shutdown; and a real re-arm on resume.
+
+## 2026-08-21 (afternoon) — closing the deferred list ("מה נשאר בשביל 100%")
+
+The user asked what was still open **from rounds where I had stopped short** — items that were
+documented and skipped rather than hard. Everything below was implemented and verified in one pass.
+All LOCAL. Nothing published.
+
+### The mod-install path was the worst of them
+
+`RunMod` had three separate holes, and they compound:
+
+1. **No busy guard.** The row stays clickable behind the progress card and the pad auto-repeats, so a
+   double-press started a SECOND headless applier on the same game folder. The second one can back up
+   a half-patched archive as if it were the original — which is how a "revert" restores a broken game.
+   The guard is on the worker (`_modBusy`), not on the row, because the blade and the quick menu both
+   reach the same call.
+2. **No way out.** `_dialogBack` was `() => { }` on purpose (an interrupted patch is dangerous), but
+   "you may not leave" was implemented as "there is no exit at all": a worker that hung left a frozen
+   progress bar with every button dead. B now CANCELS through a `CancellationTokenSource`, which kills
+   the worker so the launcher's own journal can roll back, and the card carries the same action as a
+   real button.
+3. **🔴 A redirected stderr that nobody read.** `RedirectStandardError = true` and not one read: the
+   child blocks the moment it writes past the ~4 KB pipe buffer, which is exactly what a Python
+   traceback does. **The one case that most needed an error message was the one case that froze.**
+   It is drained on its own task now, the tail is kept, and a worker that exits without printing its
+   `{"ok": …}` verdict reports the last stderr line or its exit code instead of a bare "הפעולה נכשלה".
+
+Plus a stall watchdog: **4 minutes of SILENCE**, not a total deadline — a 4 GB install on a slow disk
+legitimately takes many minutes, and a deadline measured from the start would kill the one install
+that needed the time. What is never legitimate is emitting nothing while the worker reports a phase
+line per step.
+
+### The mapping screen made every other screen lie
+
+Every `SetHints` call names a literal button — `("A", "בחירה")` — which was true right up until the
+controller-mapping screen let someone move "בחירה" onto Y. From then on the footer promised A on every
+screen while A did nothing. The tokens are now read as the DEFAULT binding they were written against,
+resolved back to a `ShellAction`, and drawn as whatever button currently carries it (`LiveToken`).
+The keyboard prompts go through `KeyFor` for the same reason. `HintAction` was also a second,
+hand-copied implementation of five commands that had already drifted from `InvokeAction`; it now
+routes through it.
+
+### Everything else on the list
+
+| What | Why it was wrong |
+|---|---|
+| "לא מותקן" on a game that is patching | Stores clear the installed bit while an update downloads, so a library turns into a wall of "not installed" the morning after a patch day — and the row underneath offers to install it AGAIN. `UpdatePending` was already read off the manifest; it never reached the screen. |
+| Two badges clipped at the tile edge | A content-sized `StackPanel` aligned to the edge grows past the cover and gets clipped. A `WrapPanel` stretched to the cover width has a real boundary to wrap against. |
+| The footer said "N מושהים" | It counted `Sessions.Count` — **every** session — and labelled it "suspended". A game that was merely running was reported as parked, on the one line whose whole justification is that it can never be wrong. Running and suspended are counted separately now. |
+| Floating cards at 1280×720 | Widths were hardcoded (940/900/760…) against a 2560px window; the confirm row of a destructive dialog could sit off-screen. `CardWidth(want)` keeps the number as the INTENT and gives the viewport the final say. |
+| B on the size sliders | The sliders REPLACE the settings rows in place (deliberately — you must see the shell resize while dragging), so the shell did not know it was a level deeper and B threw the user out to Home. |
+| The library filter | The sort was remembered and the filter was not. Restored on load only if it still names a live collection, so a deleted one cannot come back as a permanently empty library. |
+| Manual + store duplicates | The install-dir comparison was verbatim, so one trailing backslash made two games. Normalised through `Path.GetFullPath`; the store record wins the merge (it has the launch URI) but a manually-typed NAME is kept. |
+| Discord connected once, at boot | Order of launch decided whether the feature existed at all: a shell that starts with Windows, before Discord finishes loading, had no rich presence for the whole session. Backed-off retry (15s → 5min), reset on success, re-armed the moment the toggle is switched on. |
+| The first frame | An empty library and an unfinished scan looked identical, and only one of them is bad news. Home is now drawn BEFORE the store sweep with placeholder tiles ("סורק את הספרייה…") in the row's real shape. |
+| GPU % on a laptop | Summing every "GPU Engine" instance adds an idle iGPU to a busy dGPU and calls the total "the GPU" — unstable, because Windows moves work between them. Grouped by adapter LUID, busiest one wins. And the counters are rebuilt after a resume: their instances are keyed by process and adapter, both gone after a sleep, and five throws in a row used to latch "this machine has no GPU counter" for the session. |
+| Sleep / shutdown | A suspended game is frozen and **this process is the only thing that can un-freeze it**. Sleep is where that stops being safe (the resume may kill us), and `SessionEnding` — log off, shut down — never ran `OnClosing` at all, so preferences changed since the last throttled save were simply lost. |
+
+### 🔴 An environment trap that cost the build loop
+
+`dotnet publish` started failing with "the process cannot access the file" on its own output. The
+Restart Manager named the holder: **Google Drive**, which syncs `Projects\` and holds a 150 MB
+single-file exe open for as long as its upload takes. The build output moved to `C:\tmp\bl_dist`
+(`bl_cycle.ps1`, and the elevated mirror's `-Source`) — no lock, and no 150 MB uploaded per build.
+⚠️ The mirror needs ONE elevation to be restarted against the new path; until it is, the copy in
+`C:\Program Files\Translation Manager\` is whatever it last mirrored.

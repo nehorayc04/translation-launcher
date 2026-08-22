@@ -163,7 +163,10 @@ Shipped the QA'd CP2077 base-game mod and propagated the version-compare fix.
   (92.3 MB zip — all 3 archives, ~206 verified semantic fixes baked in).
   **`pack_cp2077_mod.py` `MOD_DIR` was repointed** to
   `Game Lab/Cyberpunk 2077/archive/pc/mod` (where the bake scripts deploy —
-  the old `Cyberpunk 2077/…` path was empty).
+  the old `Cyberpunk 2077/…` path was empty). ⚠️ **2026-08-21: Game Lab moved
+  out of the project tree to `C:\Game Lab\` (it was 409 GB inside a folder
+  Google Drive was trying to back up). Every script was re-pointed; the paths in
+  the older per-game notes below are kept as the record of what was true then.**
 - **Version-scheme conflict + fix (`_parse_version`).** The mod scheme moved
   from dates (`2026.05.22`) to semver (`1.0.x`), but the Worker was serving
   `2026.05.22` and the launcher compares numerically: `(1,0,2) < (2026,5,22)`,

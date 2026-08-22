@@ -29,7 +29,7 @@ jobs:
         uses: vedantmgoyal2009/winget-releaser@v2
         with:
           # Must match the PackageIdentifier in the manifest YAMLs.
-          identifier: Nehoray.TranslationManager
+          identifier: HTH.TranslationManager
           # Asset selection: the release ships ONE installer named like
           # TranslationManager-Setup-<version>.exe. The regex matches
           # any version pattern so we don't have to edit the workflow
@@ -41,10 +41,10 @@ jobs:
           # Fine-Grained PAT with `public_repo` write (so the action
           # can fork microsoft/winget-pkgs under your account and open
           # the PR). Stored as a repository secret on
-          # nehorayc04/translation-launcher.
+          # hebrew-translation-hub/translation-launcher.
           token: ${{ secrets.WINGET_TOKEN }}
           # Mark as a re-release (same version, new build) so the
-          # bot's commit message reads "Update Nehoray.TranslationManager
+          # bot's commit message reads "Update HTH.TranslationManager
           # version 1.1.0" instead of trying to bump.
           # Set to true only if the GitHub release is flagged as a
           # pre-release; production releases stay false.

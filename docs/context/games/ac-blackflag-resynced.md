@@ -1,6 +1,6 @@
 ## Assassin's Creed Black Flag Resynced Hebrew — Phase-0 recon DONE, 🟡 GO-WITH-CAVEATS (2026-07-11)
 
-New game scaffolded at `games/acblackflag/` (RECON.md + `tools/acbf_forge_probe.py`). User asked
+New game scaffolded at `games/acblackflag-resynced/` (RECON.md + `tools/acbf_forge_probe.py`). User asked
 for a **read-only GO/no-GO only** (no game files touched). Install `C:\Games\Assassin's Creed
 Black Flag Resynced` — this is Ubisoft Singapore's full **2026 remake** ("Black Flag Resynced",
 released 2026-07-09, **2 days before this recon**), NOT the 2013 classic — built on the **same
@@ -48,7 +48,7 @@ HUB trailer files reference Mirage/Odyssey/Origins/Valhalla/Shadows).
 
 ### 🟢🟢 VERDICT OVERTURNED (2026-07-24): the target REOPENS — modified forges DO load; the SHA-256 "wall" was a misdiagnosis
 
-Re-research after a modding scene emerged (`games/acblackflag/RESEARCH_MODPATH.md`). **The
+Re-research after a modding scene emerged (`games/acblackflag-resynced/RESEARCH_MODPATH.md`). **The
 2026-07-17 "blocked by a SHA-256 content check" conclusion is contradicted by ~40+ live Nexus
 mods for this exact title that modify the forges and load in-game** — incl. FOUR translation mods
 adding NON-shipped scripts (Thai #10 ships a whole `DataPC_boot_patch_02.forge`+`resources/`;
@@ -76,7 +76,7 @@ LocalizationPackage, the Arabic slot, the font. **The game still refuses every m
 All game files were restored clean (patch forge md5-identical to original; user confirmed
 "נפתח ערבית"). Full detail in the memory [[acbf-resynced-v50-cracked]].
 
-- **What WAS cracked** (all pure-Python, in `games/acblackflag/tools/`): the **v50 forge TOC**
+- **What WAS cracked** (all pure-Python, in `games/acblackflag-resynced/tools/`): the **v50 forge TOC**
   (24-byte `<QIIII>` = offset, ts(=fileID), flags, size, nameHash(=TYPE, not a content hash));
   **`acbf_cfd.py`** = the CompressedFileData codec (`u64 magic 0x1004FA9957FBAA33` + 7-byte
   cinfo + `i32 blockCount` + BlockInfo `{i32 uncomp, i32 comp}×N` + blocks `{u32 adler, data}`,

@@ -471,4 +471,47 @@ render on the public dashboard.
   **LOCAL ONLY — NOT published** (no GitHub release, Worker manifest, or Supabase `games` row
   change); publish only on an explicit "פרסם".
 
+- **✅ PUBLISHED — free, manual-download only (2026-08-21).** After the full build, the user
+  reported a hard New-Game crash (12 internal engine asset-path strings had been mistranslated —
+  e.g. "Skeleton"/"Blood" — then mangled by the RTL bidi transform into non-existent file paths);
+  reverted all 12 to exact vanilla English, rebuilt, redeployed, confirmed fixed. A second,
+  cosmetic-only bug was found and left OPEN by design: in the Helgen cart-ride opening scene the
+  speaking character's subtitle name-tag sits at the wrong end of the line. Root-caused to
+  `skyrim:skyrim|593` (Ralof) via an AAA/BBB diagnostic-marker screenshot test — the engine
+  composites `[dialogue] + " :" + [name]` in a fixed physical order that string content can't
+  reorder. Two mitigation attempts both failed in-game: `bShowSubtitleSpeakerName=0` (a real,
+  binary-confirmed `SkyrimSE.exe` setting) set in BOTH `SkyrimPrefs.ini` locations this cracked/
+  portable install keeps (Documents\My Games + a second copy inside the game's own install
+  folder) — the Helgen intro's scripted "Scene" apparently bypasses the general toggle. The
+  string-blanking fallback (clear id 593/50618, bake the name into the dialogue line instead) was
+  assessed too risky to apply unilaterally: `.STRINGS`-kind ids of this shape are very likely the
+  character's canonical FULL-name field, reused wherever the game shows "Ralof"/"Lokir" elsewhere
+  (dialogue menus etc.), not a scene-only string — so blanking it could remove the name game-wide
+  for a much smaller cosmetic gain. Left as a known issue (documented in the release's
+  קרא_אותי.txt) rather than risk a wider regression; user accepted shipping with it, to be fixed
+  in a follow-up release.
+  **Shipped as `hebrew-translation-hub/skyrim-hebrew-mods` v1.0.0-beta.1**
+  (`games/skyrim/pack_and_release.py`, mirrors the Corsair Cove free/manual pattern — NOT wired
+  into the launcher, no Worker slug, no Supabase `games` row change). 178 loose files
+  (`Data\Interface` + `Data\Strings`, 4.48 MB zipped) + a new `install.py` (auto-detects the game
+  via Steam/GOG library scan + a drive fallback, copies the payload, backs up any pre-existing
+  file it would overwrite as `*.he_backup`, `--revert` restores/deletes via a bundled
+  `deployed_files.json`) — install/revert round-trip verified against a fake game skeleton before
+  publishing for real. Verified through the consumer, not the uploader: `releases/latest`
+  resolves to `v1.0.0-beta.1` (no stray prerelease tag), zip download answers `206 Partial
+  Content`. Next step when revisited: find why the cart-ride Scene bypasses
+  `bShowSubtitleSpeakerName`, or get explicit sign-off to blank the shared name id(s) despite the
+  reuse risk.
+  **Website synced same day, on request ("זה עדיין לא פורסם באתר").** `universal/
+  publish_version.py skyrim 1.0.0-beta.1 --stage beta --apply` (version + release_stage +
+  mod_version_history) + a direct PATCH of `games.status='beta'`, `download_url`,
+  `price_cents=0` (free) — matches the Corsair Cove / Borderless Gaming free-manual shape.
+  ⚠️ **Hit the `games.availability` trap first-hand** — a column separate from `status` that the
+  row had sitting at `'in-progress'` since the row was created pre-translation; the site showed
+  a "still being translated" ribbon and no working download button until `availability=
+  'available'` was also set. Now documented in the [[mod-publish skill]] for next time. Verified
+  live via `/api/games` (raw JSON, not the summarized read) after busting WebFetch's own
+  ~15-min URL cache with `?_cb=`: `status=beta`, `availability=available`, `downloadUrl` correct,
+  `showOnWebsite=true`.
+
 

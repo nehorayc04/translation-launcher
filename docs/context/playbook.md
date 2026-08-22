@@ -787,6 +787,31 @@ edit **same-size** (so the container needs no re-layout), change **one** region 
 attribute), keep a pristine `.he_backup` and revert between runs, and prefer a region whose glyph/string you can
 SEE. A null result is as informative as a positive one — record both.
 
+**(e3) A SIBLING TITLE ON THE SAME CLASS HASH ALREADY HAS YOUR SPEC — go read it before you
+re-derive it.** Anvil's font atlas is class **`0xCBD4939A`** in BOTH AC Black Flag Resynced (v50)
+and AC Shadows (v42). Shadows' record layout had been derived from scratch and was **4 bytes late**;
+ACBF's independently-cracked `<I 7f I>` (codepoint FIRST, 32-byte FACE header, records at
+`GFOF+68`) exposed it in one comparison after a full session of in-game debugging had failed to.
+**Whenever a format resists, diff your reading against every sibling in the same engine family —
+the version number differing (v42 vs v50) does NOT mean the structure differs.** See
+[[engine-family-reuse-check-magic]].
+
+**(e4) 🔴 AN OFF-BY-N INTO A RECORD ARRAY PASSES ALMOST EVERY SANITY CHECK.** Shifting a record
+boundary by 4 bytes left the floats and the texture offset on the **same addresses**, so
+`W == round(x1-x0)`, `raster size == W*H`, "each record's raster dumps a clean glyph" and a sane
+codepoint histogram **all passed** — while every glyph was silently paired with the **NEXT
+record's** codepoint. Two checks that would have caught it on day one, and belong in every
+record-array parser:
+- **Render an entry whose neighbours are visually DISTINCT.** Arabic presentation forms are useless
+  (neighbours are other forms of the same letter, so an off-by-one still "looks right" — and
+  in-game it reads as "my edit was ignored"). **Latin decides it instantly:** `'I'` is a vertical
+  stem or it is not.
+- **🔑 Walk the whole chain and demand byte-exact contiguity** — record table N must end exactly
+  where header N+1 begins. A wrong offset almost always breaks a boundary somewhere, even when a
+  single record looks perfect. ⚠️ And beware the lucky first element: face-0's `count` happened to
+  sit at the same address under both readings, so **one valid-looking face validated a wrong parse
+  for the entire object**.
+
 **(e2) SHRINK-TO-PROVE: make the probe a strict SUBSET of the failing change.** The strongest
 probe is not a random edit — it is *your own broken change with fields removed*. On AC Shadows the
 Hebrew injection rewrote `codepoint` + raster + metrics (advance/bbox/W/H) and drew the ORIGINAL
@@ -813,6 +838,59 @@ demands a byte-exact slot and you land on it by appending incompressible filler:
   is what buys the fill its headroom. Random noise is *less* compressible than a real glyph.
 - **"Does it fit" and "did the search find the byte" are different failures** — measure fit
   separately, or you will shrink content that already fit and never fix the search.
+
+**(g4) The exact-fill SEARCH itself has two classic bugs — fix both before blaming the format.**
+- **The size-vs-filler curve is NOT monotonic**, so a Newton search on "one filler byte ≈ one output
+  byte" oscillates instead of converging. Measured on AC Shadows loc res 17390: `k=0 → 623,537` but
+  `k=121 → 623,029` — **508 bytes SMALLER after adding 121** (the payload's length fields move and
+  every block boundary shifts, so the compressor does better). The walk went
+  `121→750→432→937→505→840` and scanned 406..502 while the answer sat at `k=235`. **Keep Newton as
+  the fast path, add a plain linear scan as the backstop before declaring a slot unreachable** — a
+  1024-wide scan over a ~1 MB payload costs minutes and always beats shipping vanilla or broken.
+- **Seed the filler pool.** `os.urandom()` at import is "fixed" only within one process: a solution
+  found in a probe cannot be reproduced by the deploy, and the same resource is reachable or
+  unreachable depending on the run. Use `random.Random(CONST).randbytes(n)`. **Any randomness that
+  affects a build's OUTPUT must be seeded, or you cannot reproduce, bisect, or trust a measurement.**
+- Diagnose the failing resource **in isolation** (3 minutes) instead of through the full deploy
+  (10+); and measure whether the search's assumption holds before tuning its parameters.
+
+**(g3) 🔴 NEVER ZERO-PAD AN EXACT-SLOT RESOURCE — and never leave a known-broken artifact on
+disk.** A loader that walks sub-blocks until it has consumed `record.size` chokes on ANY trailing
+content. AC Shadows had a fallback that wrote a natural encode plus a small zero pad whenever the
+exact fill failed, on the recorded assumption that "padding was never actually shown to be the
+fault". **121 bytes of trailing zeros black-screened the game after the intro logo** — and the
+package failed its own decode check (`cfd_end 623,537 != size 623,658`) before it ever launched.
+- If the exact fill misses, **leave the resource VANILLA and say so loudly**. A vanilla resource is
+  always better than an unbootable one; a partially-translated menu is a cosmetic problem, a
+  black screen is a dead build.
+- Widen the search before giving up (more filler seeds, a wider scan window) — the compressed size
+  is not continuous in the filler length, so a miss is usually a search failure, not a size failure.
+- **🔴 A warning nobody can act on is not a safeguard.** The tool printed `*** 1 package(s) BROKEN
+  -- do NOT launch, revert first` **and exited 0**, so the background run reported success and the
+  warning was filtered out of the summary. Any check worth printing is worth failing the exit code
+  over — and a grep over tool output must be able to MATCH a failure, not only the success lines.
+  See [[dont-filter-away-the-failure-line]].
+
+**(g2) 🔴 AN OFFSET SAVED IN A BACKUP IS NOT AN ADDRESS — re-validate it against the CURRENT
+table of contents before every write.** A saved `(offset, size)` is an address *in one version of
+one file*. On AC Shadows a Ubisoft update added 6 records to `patch_02`; the atlas backups still
+carried offsets from a month earlier, so `--apply` wrote 5.2 MB into the MIDDLE of unrelated live
+resources and destroyed ~12 records. The other two forges were unaffected, so **5 of 8 writes were
+correct and the run reported a clean `8/8 OK`.**
+- **The check you trust most can be the one that lies.** The writes never touched the TOC, so
+  `offset[n]+size[n] == offset[n+1]` still held for all 38,561 records and the contiguity check kept
+  printing `contiguous OK`. **A contiguity check validates the TABLE, not the CONTENTS** — it cannot
+  see that the bytes a record points at are no longer that record's bytes. Pair every structural
+  check with a content check (decode the resource and assert it is what you think it is).
+- **Re-DISCOVER the resource by content** (class hash + a signature of its payload), and treat a
+  stored index as a hint to verify, never as an address. Assert the record still exists at that
+  offset with that size and that hash, and **refuse to write otherwise** — parsing a 25 GB archive's
+  index costs milliseconds.
+- **A stale backup is worse than no backup:** it makes a destructive write look routine, and
+  afterwards you no longer hold the bytes you destroyed. Store a hash of the region next to the
+  offset so a mismatch is loud, and re-capture backups after every game update.
+- Backups keyed by index have the same disease — `<forge>.lpbak_<idx>` sidecars silently refer to
+  different resources once the archive is rebuilt. Archive them (don't delete) and re-take.
 
 **(f) Catching a ONE-TIME event with a home-made debugger (ctypes) — and its limits.** You can attach without
 admin: `DebugActiveProcess(pid)` + **`DebugSetProcessKillOnExit(False)`** (so your exit does not kill the game),

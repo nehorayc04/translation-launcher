@@ -240,6 +240,103 @@ Diagnostics live in `c:\tmp\acs_*.py` (`verify_heb_glyphs` · `contig` · `class
 `all_phxfd` · `tailmap` · `dualstream` · `gap` · `pages2` · `tailglyphs` · `filler` ·
 `transform_fit` · `fillfit`).
 
+**🔑🔑 ROOT CAUSE FOUND (2026-08-21) — the GLYPH RECORD was parsed 4 BYTES LATE. Found by
+applying AC Black Flag Resynced.** ACBF Resynced is Anvil **v50** but uses the **same atlas class
+`0xCBD4939A`**, and its cracked spec says the record is `<I 7f I>` = **codepoint FIRST**, advance,
+x0,y0,x1,y1, W,H, texOffset — behind a 32-byte FACE header `[u32 count][16B zero][u32 upem][u32 0]
+[f32 1.0]`, so records start at **`GFOF+68`**. Shadows was being read at `GFOF+72` with the
+codepoint at `+32`.
+
+The misreading is nearly invisible, which is why it survived a whole session: the floats and the
+texOffset land on the **same addresses either way**, so `W == round(x1-x0)`, `raster size == W*H`
+(1055/1057), "a record's `object[texOffset]` dumps a clean glyph", and a sane codepoint histogram
+**all passed**. The one thing wrong: **every glyph was paired with the NEXT record's codepoint.**
+Arabic presentation forms come in runs of 2–4 forms of the SAME letter, so an off-by-one still
+draws that letter — exactly why in-game it looked like "the original Arabic shape came back", and
+why the flip probe (which never touches codepoints) worked while every codepoint-based injection
+failed. ⚠️ **This retires the earlier "the metric rewrite is the bug" conclusion** — that was an
+artifact of the same off-by-one.
+
+**Two proofs, both cheap and offline:**
+1. **Render a glyph whose neighbours are visually distinct.** Arabic is useless here (neighbours
+   are forms of the same letter); **Latin decides it.** Old reading: `'I'` = 36×47, a filled
+   rounded box. Correct reading: `'I'` = 22×47, a constant vertical stem repeated 30 rows.
+2. **🔑 Walk the FACE chain and demand byte-exact contiguity.** Correct layout: face0 records
+   `[324..38,412]`, face1's header starts **exactly at 38,412**, face2 at 38,552, face3 at 52,264 —
+   every boundary closes. The old reading missed each by 4. **A structural invariant beats
+   eyeballing one record.** Bonus catch: the u32 read as a later face's `count` was really that
+   face's first **codepoint** (108 = `'l'`); face-0 was immune because its count sits at `GFOF+36`
+   either way — **one lucky face validated a wrong parse for the entire object.**
+
+Fixed in `work/acs_atlas_inject.py` (`CP_OFF=0 / MET_OFF=4 / TEX_OFF=32`, records at `GFOF+68`);
+v1's metric writer was also moved off `+0`, where it had been **clobbering the codepoint**.
+Tools: `c:	mpcs_offby3.py` (Latin render, both alignments) · `c:	mpcs_facewalk.py` (chain
+contiguity). Memory [[phxfd-record-layout-cp-first]].
+
+**▶ The rest of ACBF that transfers directly (see [`ac-blackflag-resynced.md`](ac-blackflag-resynced.md)):**
+- **🔑 CARRIER CODEPOINTS — the method that removes this whole class of risk.** ACBF stores the
+  text as **rare Arabic codepoints** whose atlas slots have been repainted with Hebrew art, rather
+  than storing Hebrew codepoints. The engine sees a strong-RTL Arabic run, applies **native bidi**
+  (right-aligned, correct order) and paints Hebrew. On Shadows this needs **no codepoint edit at
+  all** — and the flip probe already proved that repainting an Arabic slot's pixels reaches the
+  screen. **This is the fallback if the corrected mapping still misses.**
+- **The atlas CANNOT GROW — repurpose, never append.** ACBF: +94 records crashed right after the
+  intro logo even with zero duplicates, while the same atlas passed through unchanged booted fine.
+- **Codepoints are GLOBALLY UNIQUE across faces.** Injecting the same Hebrew into face0 AND the
+  Latin face created 94 duplicates → crash. Shadows has 3–4 faces per weight; inject into ONE.
+- **Ready-made Hebrew art:** the Thai community mod's ACBF atlas already carries **52 baked Hebrew
+  glyphs (U+05B0–05F4)** — a donor that skips SDF calibration entirely, if the SDF params match.
+
+**⚠️ Where ACBF does NOT transfer:** v50 stores loc records **RAW/uncompressed** and must match the
+base record's TOC `flags`; Shadows v42 is Mermaid + exact-slot fill and has **no forge integrity
+check**. And ACBF's `texOffset` is **GFOF-relative** while Shadows' is **absolute** — check, never
+assume.
+
+**⚠️ ENV: the borrowed Oodle DLL moved.** `C:\Games\Battlefield 6\oo2core_9_win64.dll` is gone
+(the copy now lives in-repo at `Game Lab/Battlefield 6/`). `acs_oodle.py` silently fell back to
+RDR2's **oo2core_5**, which loads and exports the same symbols but **decodes nothing** on v42
+blocks (`OodleLZ_Decompress` returns 0) — it reads as "the resource is corrupt". Fixed: in-repo
+candidates are tried first and a 2.5 DLL is now refused outright (override `ACS_OODLE_ALLOW_OLD`).
+
+**🔴🔴 INCIDENT + THE RULE IT BOUGHT (2026-08-21): a stale offset overwrote 5.2 MB of live
+patch_02.** Between two deploys the game was updated: patch_02 gained **6 records and 256 KB**, its
+three Arabic weights shifted **20630/20631/20632 → 20632/20633/20634**, and the middle weight even
+changed size (3,310,492 → 3,312,307). The `_atlasbak_*.bin` backups store the resource's **forge
+offset**, captured 2026-07-17 — those offsets no longer began any record, so `--apply` wrote the
+three patch_02 blobs into the MIDDLE of unrelated live resources, destroying ~12 records including
+all three Arabic fonts. boot.forge and patch_01 were unaffected by the update, so **5 of the 8
+writes were correct and the run reported a clean `8/8 OK`.**
+
+**🔑 Why every check still passed: the writes never touched the TOC.** `offset[n]+size[n] ==
+offset[n+1]` held for all 38,561 records, so the contiguity check — the structural invariant trusted
+most in this project — kept printing `contiguous OK` while the payload was garbage. **A contiguity
+check validates the TABLE, not the CONTENTS; it cannot see that the bytes a record points at are no
+longer that record's bytes.** The first real symptom was a decode failure, i.e. after the damage.
+Repair required Ubisoft Connect → verify files (no full-forge backup exists), which also reverted
+every other deploy into all three forges. Memory [[revalidate-offsets-against-current-toc]].
+
+**Three fixes now in the tooling — run them in this order after ANY game update:**
+1. `acs_atlas_inject.discover_weights()` — finds the Arabic weights **by content** (class hash
+   `0xcbd4939a` + >100 codepoints in U+0600–06FF), never by a remembered index. `c:	mpcs_state.py`
+   prints the full picture (every PHXFD record per forge with `glyphs/arb/arPF/HEB`).
+2. `work/refresh_atlas_backups.py` — re-captures the pristine blobs from the CURRENT forges once
+   they are known vanilla (`HEB=0` everywhere). Old backups are archived, never deleted.
+4. `work/acs_verify_atlas.py` — reads the Hebrew glyphs back OUT of the LIVE forges and proves
+   the codepoint→raster pairing. It deliberately takes weights from `discover_weights()` and records
+   from `_records()`: the old `c:	mpcs_verify_heb_glyphs.py` kept **private copies of both**, so it
+   spent the whole font session confirming a stale index map with a 4-byte-late parser. **A verifier
+   that re-implements the thing it verifies proves nothing** — it must share the code under test.
+3. `acs_atlas_inject.verify_slot(forge, off, size)` — re-parses the TOC and refuses to write unless
+   a record still starts at that offset with that size and that class hash. Wired into the deploy
+   path. Parsing a 25 GB forge's index costs milliseconds; there is no reason to skip it.
+⚠️ `acs_loc_deploy.deploy()` reads its pristine blob from `<forge>.lpbak_<idx>` **keyed by the
+current record index** — after an update those sidecars point at different resources, so archive
+them before re-deploying. (The `tmbak_*` sidecars belong to a different tool; leave them alone.)
+
+**Post-update index map (2026-08-21):** patch_02 **20632/20633/20634** · patch_01 24062/24063 ·
+boot 82569/82570/82571. Also fixed: `acs_loc_deploy.py` imported the shared v50 payload codec from
+`games/acblackflag/tools` — the repo reorg renamed that to **`games/acblackflag-resynced/tools`**.
+
 **Phase 3 (gated on the font):** delegate the **52,343** strings to agents
 ([[delegate-all-translation]]); publish nothing without an explicit "פרסם".
 

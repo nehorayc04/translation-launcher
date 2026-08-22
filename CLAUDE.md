@@ -53,6 +53,7 @@ below it is loaded ONLY on demand.
 | [`orchestration.md`](docs/context/orchestration.md) | The `orchestration/` multi-agent control-plane (board/state/rules/handoff files) |
 | [`fleet-and-pool-infra.md`](docs/context/fleet-and-pool-infra.md) | Cross-game NIM/community-compute fleet infrastructure, self-hosted pool server migration, dashboard, security hardening |
 | [`translation-quality-tooling.md`](docs/context/translation-quality-tooling.md) | Gender/number ambiguity tooling, visual-LQA capture backbone, universal multilang review/translate engine, deterministic localization "brain", translation-memory + context window |
+| [`discord-server.md`](docs/context/discord-server.md) | The community Discord server - bot/API access, channel+role structure, sync scripts, Discord API gotchas |
 | [`website-notes.md`](docs/context/website-notes.md) | Public website UX/feature notes that aren't launcher-specific |
 | [`security-audit-2026-07-20.md`](docs/context/security-audit-2026-07-20.md) | Security audit + ACL hardening of this repo (hardcoded creds/deps/output-dir perms/TEMP scoping) |
 
@@ -90,7 +91,7 @@ below it is loaded ONLY on demand.
 | [`ac-origins.md`](docs/context/games/ac-origins.md) | ✅ Phase 1 complete, GO |
 | [`witcher3.md`](docs/context/games/witcher3.md) | Shipped, New-Era fleet work |
 | [`rdr2.md`](docs/context/games/rdr2.md) | ✅ Phase 1 complete, GO |
-| [`skyrim.md`](docs/context/games/skyrim.md) | ✅ Phase 1 complete, GO |
+| [`skyrim.md`](docs/context/games/skyrim.md) | ✅ Published (free, manual download) — known cosmetic subtitle-name bug open |
 | [`hogwarts-legacy.md`](docs/context/games/hogwarts-legacy.md) | GO |
 | [`plague-tale-requiem.md`](docs/context/games/plague-tale-requiem.md) | Translation + gender-review 100%, mod built local |
 | [`tlou.md`](docs/context/games/tlou.md) | Part II — Phase 1 complete, GO |

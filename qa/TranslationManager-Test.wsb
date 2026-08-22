@@ -1,0 +1,25 @@
+<Configuration>
+  <!-- Windows Sandbox = a pristine, disposable Windows for clean-machine testing.
+       Every launch is a fresh OS with NO dev tools and NO leftover state - exactly
+       "does it work on someone else's computer". Same Windows VERSION as the host
+       (Win11); for other versions use Hyper-V + a free eval ISO (see README.md).
+       Double-click this .wsb to start. Close the sandbox window to discard everything. -->
+  <VGpu>Enable</VGpu>
+  <Networking>Enable</Networking>
+  <MemoryInMB>6144</MemoryInMB>
+  <MappedFolders>
+    <MappedFolder>
+      <HostFolder>C:\Users\Nehoray_Cohen\Projects\Game translator\Output</HostFolder>
+      <SandboxFolder>C:\Installer</SandboxFolder>
+      <ReadOnly>true</ReadOnly>
+    </MappedFolder>
+    <MappedFolder>
+      <HostFolder>C:\Users\Nehoray_Cohen\Projects\Game translator\qa</HostFolder>
+      <SandboxFolder>C:\QA</SandboxFolder>
+      <ReadOnly>true</ReadOnly>
+    </MappedFolder>
+  </MappedFolders>
+  <LogonCommand>
+    <Command>powershell.exe -ExecutionPolicy Bypass -NoProfile -File C:\QA\sandbox_setup.ps1</Command>
+  </LogonCommand>
+</Configuration>

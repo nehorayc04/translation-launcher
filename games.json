@@ -14,9 +14,9 @@
     "id": "gowragnarok",
     "titleEn": "God of War Ragnarök",
     "titleHe": "גוד אוף וור ראגנארוק",
-    "version": "—",
+    "version": "1.0.0-beta.1",
     "theme_key": "default",
-    "availability": "coming-soon",
+    "availability": "available",
     "tagline": "המסע של קרייטוס ואטראוס אל סוף העולם",
     "description": "חוו את הדרמה המשפחתית והקרבות האפיים מהמיתולוגיה הנורדית בתרגום עברי מרגש ועוצמתי.",
     "progress": null
@@ -25,9 +25,9 @@
     "id": "anno1800",
     "titleEn": "Anno 1800",
     "titleHe": "אנו 1800",
-    "version": "—",
+    "version": "1.0.0-beta.2",
     "theme_key": "default",
-    "availability": "planned",
+    "availability": "available",
     "tagline": "בנו אימפריה תעשייתית במהפכה התעשייתית",
     "description": "משחק אסטרטגיה ובניית ערים בעידן המהפכה התעשייתית — סחר ימי, ניהול תושבים ועיצוב מטרופולין משגשג. תרגום מלא לעברית של ממשק המשחק, מבנים ומשימות.",
     "progress": null
@@ -67,13 +67,24 @@
   },
   {
     "id": "acblackflag",
-    "titleEn": "Assassin's Creed IV: Black Flag",
-    "titleHe": "אססינ'ס קריד IV: דגל שחור",
+    "titleEn": "Assassin's Creed IV: Black Flag (2013)",
+    "titleHe": "אססינ'ס קריד IV: דגל שחור (2013)",
     "version": "—",
     "theme_key": "default",
     "availability": "planned",
-    "tagline": "תור הזהב של הפיראטים",
-    "description": "הפליגו עם אדוארד קנוויי בים הקריבי בחיפוש אחר עושר ותהילה.",
+    "tagline": "הקלאסיקה המקורית — תור הזהב של הפיראטים",
+    "description": "המשחק המקורי מ-2013. הפליגו עם אדוארד קנוויי בים הקריבי בחיפוש אחר עושר ותהילה. (גרסה נפרדת מהרימייק Resynced מ-2026.)",
+    "progress": null
+  },
+  {
+    "id": "acblackflag-resynced",
+    "titleEn": "Assassin's Creed Black Flag Resynced (2026)",
+    "titleHe": "אססינ'ס קריד: בלאק פלאג ריסינקד (2026)",
+    "version": "—",
+    "theme_key": "default",
+    "availability": "coming-soon",
+    "tagline": "הרימייק המלא — מנוע Anvil החדש",
+    "description": "הרימייק המלא מ-2026 של אססינ'ס קריד IV: בלאק פלאג, שנבנה מחדש על מנוע Anvil החדש עם גרפיקה, תאורה וקרבות ימיים משודרגים. (כותר נפרד מהמשחק המקורי מ-2013.)",
     "progress": null
   },
   {
@@ -212,12 +223,13 @@
     "id": "hogwarts",
     "titleEn": "Hogwarts Legacy",
     "titleHe": "הוגוורטס לגאסי",
-    "version": "Complete",
+    "version": "1.0.0-beta.1",
     "theme_key": "hogwarts",
-    "availability": "planned",
+    "availability": "available",
     "tagline": "הגיע הזמן לקבל את המכתב מהוגוורטס",
     "description": "חוו את עולם הקוסמים של המאה ה-19 עם תרגום מלא לכל הלחשים, השיקויים והסודות של הטירה.",
-    "progress": null
+    "progress": null,
+    "price_cents": 5300
   },
   {
     "id": "horizonfw",
@@ -289,9 +301,9 @@
     "id": "rdr2",
     "titleEn": "Red Dead Redemption 2",
     "titleHe": "רד דד רדמפשן 2",
-    "version": "Complete Edition",
+    "version": "1.0.0-beta.1",
     "theme_key": "rdr",
-    "availability": "planned",
+    "availability": "available",
     "tagline": "האפוס הקולנועי של רוקסטאר",
     "description": "ארתור מורגן וכנופיית ואן דר לינדה בסיפור על חברות, בגידה וגאולה בעולם פתוח עוצר נשימה. רוקסטאר לא נוגעת בקבצי הסינגל-פלייר.",
     "progress": null
@@ -305,6 +317,17 @@
     "availability": "planned",
     "tagline": "סיפור הישרדות אנושי ומרגש",
     "description": "ליווי של ג'ואל ואלי במסע מסוכן ברחבי ארה\"ב שאחרי המגפה.",
+    "progress": null
+  },
+  {
+    "id": "tlou2",
+    "titleEn": "The Last of Us Part II",
+    "titleHe": "דה לאסט אוף אס · חלק II",
+    "version": "—",
+    "theme_key": "default",
+    "availability": "coming-soon",
+    "tagline": "מסע נקמה אכזרי ושובר לב",
+    "description": "המשיכו את סיפורם של אלי ואבי במסע נקמה טורד מנוחה בעולם שאחרי המגפה.",
     "progress": null
   },
   {
@@ -350,5 +373,51 @@
     "tagline": "הצטרפו ל-DedSec בסן פרנסיסקו",
     "description": "האקינג יצירתי ואווירה קלילה במלחמה נגד התאגידים.",
     "progress": null
+  },
+  {
+    "id": "until-dawn",
+    "titleEn": "Until Dawn",
+    "titleHe": "עד עלות השחר",
+    "version": "-",
+    "theme_key": "default",
+    "availability": "coming-soon",
+    "tagline": "שמונה חברים, לילה אחד, גורל שנקבע בבחירות שלכם",
+    "description": "רימייק 2024 לאימה האינטראקטיבית הקלאסית — כל החלטה קובעת מי שורד עד עלות השחר בהר בלאקווד.",
+    "progress": null
+  },
+  {
+    "id": "farcry6",
+    "titleEn": "Far Cry 6",
+    "titleHe": "פאר קריי 6",
+    "version": "-",
+    "theme_key": "default",
+    "availability": "coming-soon",
+    "tagline": "מהפכה בגן עדן טרופי — הפילו את הרודן אנטון קסטיו",
+    "description": "פאר קריי 6 מציב אתכם כדני רוחאס, לוחם גרילה במדינת יארה הבדיונית בהשראת קובה. הצטרפו למהפכה נגד הדיקטטור העריץ אנטון קסטיו ובנו דייגו, בעולם פתוח ענק ופראי.",
+    "progress": null
+  },
+  {
+    "id": "farcry5",
+    "titleEn": "Far Cry 5",
+    "titleHe": "פאר קריי 5",
+    "version": "-",
+    "theme_key": "default",
+    "availability": "planned",
+    "tagline": "כת יום־הדין השתלטה על מונטנה — ואתם השריף שנשאר לבד",
+    "description": "פאר קריי 5 מציב אתכם כסגן שריף במחוז הופ שבמונטנה, שנשלח לעצור את ג'וזף סיד — מטיף כריזמטי שהפך כת יום־דין חמושה לשליטת האזור. המעצר משתבש, המחוז נסגר, ואתם נותרים לבנות התנגדות מבית לבית ולהפיל אחד־אחד את בני משפחת סיד.",
+    "progress": null
+  },
+  {
+    "id": "corsair-cove",
+    "titleEn": "Corsair Cove",
+    "titleHe": "מפרץ השודדים",
+    "version": "1.0.0-beta.1",
+    "theme_key": "hogwarts",
+    "availability": "available",
+    "tagline": "הרפתקת פיראטים בעולם פתוח",
+    "description": "בנו צי, גלו איים אבודים והשתלטו על הים הקאריבי - עם תרגום עברי מלא לממשק ולעלילה.",
+    "progress": null,
+    "price_cents": 5300,
+    "priceCents": 0
   }
 ]

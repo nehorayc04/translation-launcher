@@ -1,0 +1,78 @@
+{
+  "_comment": "THE UNIVERSAL BRAIN LAYER — true for EVERY game. Grows via the promotion gate (universal/brain.py). terms stay mostly empty (brands/lore are per-game); repairs are pure deterministic regex; rules are descriptive guidance injected into the worker sys prompt. Never hand-edit a promoted entry's meaning without re-verifying.",
+  "terms": [],
+  "repairs": [
+    {
+      "kind": "repair",
+      "name": "strip-niqqud",
+      "pattern": "[֑-ׇֽֿׁׂׅׄ]",
+      "replace": "",
+      "scope": "universal",
+      "promoted": true,
+      "note": "the model must never add vowel points; deterministic strip"
+    },
+    {
+      "kind": "repair",
+      "name": "strip-zero-width",
+      "pattern": "[​‌‍﻿]",
+      "replace": "",
+      "scope": "universal",
+      "promoted": true,
+      "note": "stray zero-width chars"
+    },
+    {
+      "kind": "repair",
+      "name": "collapse-double-space",
+      "pattern": "  +",
+      "replace": " ",
+      "scope": "universal",
+      "promoted": true
+    },
+    {
+      "kind": "repair",
+      "name": "iron-rule-plain-hyphen",
+      "pattern": "[‐‑‒–—―−⸺⸻﹘﹣－]",
+      "replace": "-",
+      "scope": "universal",
+      "promoted": true,
+      "note": "IRON RULE (user 2026-08-02): always the plain ASCII hyphen '-', never a long dash. One-for-one swap; U+05BE Hebrew maqaf is deliberately NOT in the class."
+    }
+  ],
+  "rules": [
+    {
+      "kind": "rule",
+      "name": "rtl-final-punct",
+      "scope": "universal",
+      "text": "פיסוק סופי (. ! ? …) בשורה עברית נשאר בסוף המשפט הלוגי; אל תהפוך סדר",
+      "promoted": true
+    },
+    {
+      "kind": "rule",
+      "name": "keep-tokens",
+      "scope": "universal",
+      "text": "כל משתנה/תוקן ({…}, %d, \\n, ~n~, LocKey#) נשמר verbatim — multiset זהה בין אנגלית לעברית",
+      "promoted": true
+    },
+    {
+      "kind": "rule",
+      "name": "neutral-around-var",
+      "scope": "universal",
+      "text": "נסח סביב משתנה מוזרק בצורה ניטרלית — המגדר/מספר של הערך לא ידוע בזמן התרגום",
+      "promoted": true
+    },
+    {
+      "kind": "rule",
+      "name": "brand-passthrough",
+      "scope": "universal",
+      "text": "שמות-מותג/חברה/מוצר נשארים לטיניים (סוג-1)",
+      "promoted": true
+    },
+    {
+      "kind": "rule",
+      "name": "iron-rule-dash",
+      "scope": "universal",
+      "text": "תמיד מקף רגיל \"-\", לעולם לא מקף ארוך \"—\" (כלל ברזל)",
+      "promoted": true
+    }
+  ]
+}

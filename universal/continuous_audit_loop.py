@@ -104,6 +104,7 @@ HERE         = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(HERE)        # universal/ → project root
 BATCH_SCRIPT = os.path.join(HERE, "get_next_audit_batch.py")
 BATCH_FILE   = os.path.join(HERE, "cross_audit_batch.json")
+CHECKPOINT_FILE = os.path.join(HERE, "cross_audit_checkpoint.json")
 LOCK_FILE    = os.path.join(HERE, "audit.lock")
 LOG_FILE     = os.path.join(HERE, "audit.log")
 
@@ -122,12 +123,17 @@ def _log(msg: str) -> None:
 
 LM_URL          = "http://127.0.0.1:1234/v1"
 DEFAULT_MODEL   = "qwen2.5-32b-instruct"
-REQUEST_TIMEOUT = 90.0      # seconds — 32B model needs depth to think
-RETRY_SLEEP     = 30.0      # seconds — uniform backoff per spec
+REQUEST_TIMEOUT = 180.0     # seconds — CPU-spilled 32B runs ~2.46 tok/s gen +
+                            # ~35 tok/s prefill, so the largest real rows
+                            # (~3400 prompt tok + 160 gen ≈ 162s) must COMPLETE
+                            # in one attempt instead of timing out + retrying.
+RETRY_SLEEP     = 15.0      # seconds — backoff; halved to cut dead time on the
+                            # per-row retry ladder the watchdog races against.
 
 MAX_BATCH_RESTARTS       = 5    # restart a crashed batch this many times
-MAX_BAD_RESPONSE_RETRIES = 3    # retry a single row this many times for
+MAX_BAD_RESPONSE_RETRIES = 2    # retry a single row this many times for
                                 # non-connection errors before skipping it
+                                # (2 caps a stuck row at timeout+sleep+timeout)
 
 
 # ── SAFETY: protected source files + write gate ─────────────────────────────
@@ -504,6 +510,26 @@ def flush_flags(flags: list[dict]) -> None:
             pass
 
 
+def heartbeat_checkpoint() -> None:
+    """Refresh the checkpoint file's mtime WITHOUT changing its content.
+
+    The hang-watchdog (audit_hang_watchdog.ps1) decides the audit is hung
+    when cross_audit_checkpoint.json's mtime goes stale > AUDIT_HANG_SECONDS.
+    That file is otherwise rewritten only at batch boundaries (fetch / flag-
+    flush), and flush_flags() returns early for an all-PASS batch — so a slow
+    but perfectly healthy batch never refreshed the mtime mid-flight and the
+    watchdog killed it as a false 'hang'. Touching mtime after EVERY judged
+    row decouples 'slow' from 'hung': a genuinely stuck judge_row() call
+    blocks here too (no touch), so a TRUE total stall still trips the
+    watchdog, while a slow-but-progressing batch keeps the mtime fresh.
+    mtime-only (not content) — restart-resume still reads the last batch
+    boundary from the file's JSON, unchanged."""
+    try:
+        os.utime(CHECKPOINT_FILE, None)
+    except OSError:
+        pass
+
+
 # ── per-row judge call ──────────────────────────────────────────────────────
 def judge_row(client: OpenAI, model: str, row: dict) -> dict | None:
     """Returns flag-record dict for FAIL, None for PASS (or skipped row).
@@ -529,7 +555,11 @@ def judge_row(client: OpenAI, model: str, row: dict) -> dict | None:
             resp = client.chat.completions.create(
                 model=model,
                 temperature=0.0,            # fully deterministic — kill hallucination
-                max_tokens=300,
+                max_tokens=160,             # ~65s worst-case gen at 2.46 tok/s
+                                            # (was 300 ≈ 122s, the top latency
+                                            # lever). PASS / one FAIL+SUGGEST
+                                            # fits; verdict is the FIRST token
+                                            # so truncation never misclassifies.
                 timeout=REQUEST_TIMEOUT,
                 messages=[
                     {"role": "system", "content": JUDGE_SYSTEM},
@@ -739,6 +769,9 @@ def main() -> int:
                         break
                     verdict = judge_row(client, args.model, row)
                     local_processed += 1
+                    # mtime heartbeat so the watchdog measures TRUE hangs, not
+                    # batch wall-time (see heartbeat_checkpoint docstring).
+                    heartbeat_checkpoint()
                     if verdict:
                         batch_flags.append(verdict)
                 # batch processed successfully — commit and break

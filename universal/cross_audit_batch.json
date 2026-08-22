@@ -1,89 +1,73 @@
 {
-  "batch_index": 52710,
-  "batch_size": 10,
-  "next_index": 52720,
+  "batch_index": 121848,
+  "batch_size": 8,
+  "next_index": 121856,
   "total_rows": 238556,
-  "progress_pct": 22.0996,
+  "progress_pct": 51.0807,
   "rows": [
     {
       "project": "base",
-      "section": "onscreens/onscreens.json",
-      "pk": "90542",
+      "section": "subtitles/open_world/street_stories/sts_wat_nid_01_hal.json",
+      "pk": "1418112942386741248",
       "field": "femaleVariant",
-      "english": "Story-ep1-gameplay-static_data-database-scanning-sandbox_activities-sa_ep1_airdrops_clues-sa_ep1_35_bags_clue_1_localizedName",
-      "hebrew": "חומר"
+      "english": "Why'd that girl blow a fuse?",
+      "hebrew": "למה הבחורה הזאת התפוצצה?"
     },
     {
       "project": "base",
-      "section": "onscreens/onscreens.json",
-      "pk": "90543",
+      "section": "subtitles/open_world/street_stories/sts_wat_nid_01_hal.json",
+      "pk": "1418113423037202432",
       "field": "femaleVariant",
-      "english": "Story-ep1-gameplay-static_data-database-scanning-sandbox_activities-sa_ep1_airdrops_clues-sa_ep1_35_bags_clue_1_localizedDescription",
-      "hebrew": "תיקי עור, לא נמצאה שכבת ביגוד נגד כדורים"
+      "english": "\u0001Why do people get cyberpsychosis? Who the fuck knows. And nobody's too keen on finding out",
+      "hebrew": "למה אנשים מקבלים סייברו-פסיכוזה? מי לעזאזל יודע. ואף אחד לא ממש מתלהב לגלות."
     },
     {
       "project": "base",
-      "section": "onscreens/onscreens.json",
-      "pk": "90544",
+      "section": "subtitles/open_world/street_stories/sts_wat_nid_01_hal.json",
+      "pk": "1418131942483197952",
       "field": "femaleVariant",
-      "english": "Story-ep1-gameplay-static_data-database-scanning-sandbox_activities-sa_ep1_airdrops_clues-sa_ep1_35_bags_clue_2_localizedName",
-      "hebrew": "תוכן"
+      "english": "\u0001The other girl, the one upstairs... She's alive, but she's in a bad way – bleeding. Think you can put her back together",
+      "hebrew": "הבחורה האחרת, זו מקומה למעלה... היא בחיים, אבל במצב רע - מדממת. אתה חושב שאתה יכול לחבר אותה חזרה?"
     },
     {
       "project": "base",
-      "section": "onscreens/onscreens.json",
-      "pk": "90545",
+      "section": "subtitles/open_world/street_stories/sts_wat_nid_01_hal.json",
+      "pk": "1418132456788754432",
       "field": "femaleVariant",
-      "english": "Story-ep1-gameplay-static_data-database-scanning-sandbox_activities-sa_ep1_airdrops_clues-sa_ep1_35_bags_clue_2_localizedDescription",
-      "hebrew": "בגדים, קוסמטיקה, חלקים אלקטרוניים ממקור לא ידוע"
+      "english": "There was another girl up there... Decomished.",
+      "hebrew": "הייתה בחורה אחרת שם למעלה... מפורקת."
     },
     {
       "project": "base",
-      "section": "onscreens/onscreens.json",
-      "pk": "90546",
+      "section": "subtitles/open_world/street_stories/sts_wat_nid_01_hal.json",
+      "pk": "1418141286553649152",
       "field": "femaleVariant",
-      "english": "Story-ep1-gameplay-static_data-database-scanning-sandbox_activities-sa_ep1_airdrops_clues-sa_ep1_35_bags_conclusion_localizedDescription",
-      "hebrew": "פריטים אישיים, מוצרי טואלטיקה"
+      "english": "Lena? Jesus fuck... This was s'posed to be cut 'n' dried...",
+      "hebrew": "לנה? ישו כ #####... זה היה אמור להיות פשוט..."
     },
     {
       "project": "base",
-      "section": "onscreens/onscreens.json",
-      "pk": "90547",
+      "section": "subtitles/open_world/street_stories/sts_wat_nid_01_hal.json",
+      "pk": "1418162690070183936",
       "field": "femaleVariant",
-      "english": "Story-ep1-gameplay-static_data-database-scanning-sandbox_activities-sa_ep1_airdrops_clues-sa_ep1_35_humanitary_clue_1_localizedName",
-      "hebrew": "תוכן"
+      "english": "I can't, but Regina'll send someone 'round. It'll all be OK...",
+      "hebrew": "אני לא יכול, אבל רג'ינה תשלח מישהו. הכל יהיה בסדר..."
     },
     {
       "project": "base",
-      "section": "onscreens/onscreens.json",
-      "pk": "90548",
+      "section": "subtitles/open_world/street_stories/sts_wat_nid_01_hal.json",
+      "pk": "1611029966443020288",
       "field": "femaleVariant",
-      "english": "Story-ep1-gameplay-static_data-database-scanning-sandbox_activities-sa_ep1_airdrops_clues-sa_ep1_35_humanitary_clue_1_localizedDescription",
-      "hebrew": "ציוד רפואי, תרופות"
+      "english": "That's my job done, then.",
+      "hebrew": "זו העבודה שלי נעשתה אז."
     },
     {
       "project": "base",
-      "section": "onscreens/onscreens.json",
-      "pk": "90549",
+      "section": "subtitles/open_world/street_stories/sts_wat_nid_01_hal.json",
+      "pk": "1611031379202048000",
       "field": "femaleVariant",
-      "english": "Story-ep1-gameplay-static_data-database-scanning-sandbox_activities-sa_ep1_airdrops_clues-sa_ep1_35_humanitary_clue_2_localizedName",
-      "hebrew": "תוכן"
-    },
-    {
-      "project": "base",
-      "section": "onscreens/onscreens.json",
-      "pk": "90550",
-      "field": "femaleVariant",
-      "english": "Story-ep1-gameplay-static_data-database-scanning-sandbox_activities-sa_ep1_airdrops_clues-sa_ep1_35_humanitary_clue_2_localizedDescription",
-      "hebrew": "סמים אסורים, נשק שונות"
-    },
-    {
-      "project": "base",
-      "section": "onscreens/onscreens.json",
-      "pk": "90551",
-      "field": "femaleVariant",
-      "english": "Story-ep1-gameplay-static_data-database-scanning-sandbox_activities-sa_ep1_airdrops_clues-sa_ep1_35_humanitary_conclusion_localizedDescription",
-      "hebrew": "ארגזי עזרה הומניטרית ורכבים המשמשים להובלת מטען אסור"
+      "english": "Well, that's my job done, then. 'Til next time.",
+      "hebrew": "טוב, זו העבודה שלי נעשתה אז. עד הפעם הבאה."
     }
   ]
 }

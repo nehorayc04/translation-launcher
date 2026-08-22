@@ -34,6 +34,15 @@ set PYTHONIOENCODING=utf-8
 set PYTHONUTF8=1
 set PYTHONUNBUFFERED=1
 
+REM Watchdog hang threshold. The default 360s was tuned for small batches;
+REM with --batch-size 20 a NORMAL batch is ~300s and the checkpoint only
+REM saves at batch end, so one slow row would push past 360s and the
+REM watchdog would kill a healthy-but-slow batch BEFORE the script's own
+REM per-row skip (3 x 90s timeout + 30s backoff = 330s) could recover it.
+REM 900s gives the in-script self-heal room to skip a stuck row and finish
+REM the batch; only a TRUE total hang (no checkpoint for 15 min) is killed.
+set AUDIT_HANG_SECONDS=900
+
 REM Pick the project's .venv if it exists, fall back to system python.
 set PY="%~dp0..\.venv\Scripts\python.exe"
 if not exist %PY% set PY=python.exe
@@ -54,7 +63,7 @@ REM Tee stdout+stderr into audit.log so the file captures the full
 REM per-batch progress + any traceback. The console window is quiet
 REM during runs — tail audit.log to watch progress live:
 REM   Get-Content audit.log -Tail 20 -Wait
-%PY% continuous_audit_loop.py >> audit.log 2>&1
+%PY% continuous_audit_loop.py --batch-size 8 >> audit.log 2>&1
 set EC=%errorlevel%
 echo [%date% %time%] [supervisor] audit exited code=%EC% - restarting in 30s...
 echo [%date% %time%] [supervisor] audit exited code=%EC% - restarting in 30s...>> audit.log

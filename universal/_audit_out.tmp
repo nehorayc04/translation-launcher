@@ -1,0 +1,69 @@
+[*] Acquired audit.lock (PID 25984).
+[*] Preflight — pinging LM Studio...
+[*] Preflight OK ('OK')
+[*] Continuous audit loop — model=qwen2.5-32b-instruct timeout=90s batch=10 limit=unlimited
+[*] SAFETY: 4 source JSONs protected; writes outside project root blocked.
+[*] SELF-HEAL: conn-err → 30s+infinite | batch crash → 30s+5 restarts.
+[*] Ctrl+C to pause; relaunch to resume.
+[ok] 52,720..52,729 | flags this batch: 1 | running: processed=10 flagged=1 (10.0%) | 11.3 rows/min
+  [script-reject] pk=90563: CJK — discarding flag
+  [script-reject] pk=90567: CJK — discarding flag
+  [script-reject] pk=90569: CJK — discarding flag
+[ok] 52,730..52,739 | flags this batch: 0 | running: processed=20 flagged=1 (5.0%) | 8.9 rows/min
+  [script-reject] pk=90578: Arabic — discarding flag
+  [script-reject] pk=90579: MixedWord 'רamos' — discarding flag
+[ok] 52,740..52,749 | flags this batch: 2 | running: processed=30 flagged=3 (10.0%) | 6.1 rows/min
+  [script-reject] pk=90593: MixedWord 'נטural' — discarding flag
+[ok] 52,750..52,759 | flags this batch: 2 | running: processed=40 flagged=5 (12.5%) | 7.1 rows/min
+  [script-reject] pk=90595: Cyrillic — discarding flag
+  [script-reject] pk=90597: Cyrillic — discarding flag
+  [script-reject] pk=90599: MixedWord 'לworten' — discarding flag
+[ok] 52,760..52,769 | flags this batch: 1 | running: processed=50 flagged=6 (12.0%) | 7.7 rows/min
+  [script-reject] pk=90609: Cyrillic — discarding flag
+  [script-reject] pk=90610: Cyrillic — discarding flag
+  [script-reject] pk=90611: Cyrillic — discarding flag
+  [script-reject] pk=90613: Cyrillic — discarding flag
+[ok] 52,770..52,779 | flags this batch: 1 | running: processed=60 flagged=7 (11.7%) | 7.5 rows/min
+  [script-reject] pk=90620: Cyrillic — discarding flag
+  [script-reject] pk=90623: Arabic — discarding flag
+[ok] 52,780..52,789 | flags this batch: 0 | running: processed=70 flagged=7 (10.0%) | 7.7 rows/min
+  [script-reject] pk=90625: CJK — discarding flag
+  [script-reject] pk=90628: CJK — discarding flag
+[ok] 52,790..52,799 | flags this batch: 0 | running: processed=80 flagged=7 (8.8%) | 8.3 rows/min
+[ok] 52,800..52,809 | flags this batch: 4 | running: processed=90 flagged=11 (12.2%) | 8.5 rows/min
+  [script-reject] pk=90645: Hangul — discarding flag
+  [script-reject] pk=90648: CJK — discarding flag
+  [script-reject] pk=90651: CJK — discarding flag
+  [script-reject] pk=90659: Cyrillic — discarding flag
+[ok] 52,810..52,819 | flags this batch: 5 | running: processed=100 flagged=16 (16.0%) | 7.0 rows/min
+[ok] 52,820..52,829 | flags this batch: 1 | running: processed=110 flagged=17 (15.5%) | 7.5 rows/min
+  [script-reject] pk=90679: CJK — discarding flag
+  [script-reject] pk=90680: CJK — discarding flag
+  [script-reject] pk=90686: MixedWord 'לעתידnya' — discarding flag
+  [script-reject] pk=90687: MixedWord 'מatching' — discarding flag
+[ok] 52,830..52,839 | flags this batch: 0 | running: processed=120 flagged=17 (14.2%) | 7.6 rows/min
+[ok] 52,840..52,849 | flags this batch: 1 | running: processed=130 flagged=18 (13.8%) | 8.1 rows/min
+  [script-reject] pk=90699: Arabic — discarding flag
+  [script-reject] pk=90706: MixedWord 'אתSourceType' — discarding flag
+  [script-reject] pk=90708: MixedWord 'וtones' — discarding flag
+[ok] 52,850..52,859 | flags this batch: 1 | running: processed=140 flagged=19 (13.6%) | 8.2 rows/min
+[ok] 52,860..52,869 | flags this batch: 2 | running: processed=150 flagged=21 (14.0%) | 8.5 rows/min
+  [script-reject] pk=90723: MixedWord 'תonalità' — discarding flag
+  [script-reject] pk=90729: CJK — discarding flag
+[ok] 52,870..52,879 | flags this batch: 0 | running: processed=160 flagged=21 (13.1%) | 8.8 rows/min
+  [script-reject] pk=90736: Arabic — discarding flag
+[ok] 52,880..52,889 | flags this batch: 2 | running: processed=170 flagged=23 (13.5%) | 9.0 rows/min
+  [script-reject] pk=90744: CJK — discarding flag
+[ok] 52,890..52,899 | flags this batch: 2 | running: processed=180 flagged=25 (13.9%) | 9.1 rows/min
+  [script-reject] pk=90756: MixedWord 'מatching' — discarding flag
+[ok] 52,900..52,909 | flags this batch: 1 | running: processed=190 flagged=26 (13.7%) | 9.2 rows/min
+  [script-reject] pk=90765: Cyrillic — discarding flag
+  [script-reject] pk=90767: Cyrillic — discarding flag
+  [script-reject] pk=90769: MixedWord 'תonalità' — discarding flag
+  [script-reject] pk=90773: Cyrillic — discarding flag
+[ok] 52,910..52,919 | flags this batch: 2 | running: processed=200 flagged=28 (14.0%) | 9.2 rows/min
+  [script-reject] pk=90776: Hangul — discarding flag
+  [script-reject] pk=90781: Thai — discarding flag
+  [script-reject] pk=90782: MixedWord 'ברghest' — discarding flag
+  [script-reject] pk=90783: CJK — discarding flag
+[ok] 52,920..52,929 | flags this batch: 1 | running: processed=210 flagged=29 (13.8%) | 9.2 rows/min

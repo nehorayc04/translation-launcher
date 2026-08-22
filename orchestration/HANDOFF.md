@@ -17,3 +17,7 @@
 - **הצעד הבא המדויק:** (הפקודה / הסקריפט להריץ)
 - **שערים שטרם אושרו:** (פרסום / לאנצ'ר / קבצי משחק)
 - **אזהרות/מלכודות לריצה הזו:**
+
+## מסמכים קשורים
+- באותה תיקייה: [[orchestration/BOOT|BOOT]], [[orchestration/COMMANDS|COMMANDS]], [[orchestration/DOCTRINE|DOCTRINE]], [[orchestration/FLEET|FLEET]], [[orchestration/MISSION|MISSION]], [[orchestration/README|README]], [[orchestration/RULES|RULES]]
+- מפת הבקרה: [[CLAUDE_INDEX#⚙️ סביבה / כלים / אורchestration|CLAUDE_INDEX]]

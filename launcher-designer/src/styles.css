@@ -1,0 +1,78 @@
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+body {
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background: #0b0d14;
+  color: #e6e8f0;
+}
+
+/* ── editor shell: toolbox | canvas | settings ───────────────────────────── */
+.shell { display: grid; grid-template-rows: auto 1fr; height: 100%; }
+.topbar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; background: #12151f; border-bottom: 1px solid #232838;
+}
+.topbar .brand { font-weight: 700; color: #8ab4ff; margin-inline-end: 8px; }
+.screens { display: flex; gap: 4px; }
+.screen-tab {
+  padding: 6px 12px; border-radius: 8px; cursor: pointer;
+  background: #1a1f2e; border: 1px solid #2a3147; color: #b8c0d4; font-size: 13px;
+}
+.screen-tab.active { background: #2b53c0; border-color: #3a6bff; color: #fff; }
+.spacer { flex: 1; }
+.btn {
+  padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 13px;
+  background: #1a1f2e; border: 1px solid #2a3147; color: #d7def0;
+}
+.btn:hover { background: #232a3d; }
+.btn.primary { background: #2b53c0; border-color: #3a6bff; color: #fff; }
+.btn.ghost { background: transparent; }
+
+.body { display: grid; grid-template-columns: 220px 1fr 280px; min-height: 0; }
+/* "edit the real app" layout: live preview (iframe) | properties panel */
+.body-inspect { grid-template-columns: 1fr 300px; }
+.preview-wrap { position: relative; background: #05060c; overflow: hidden; }
+.preview-frame { width: 100%; height: 100%; border: 0; display: block; background: #050510; }
+.inspect-hint {
+  position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  background: rgba(40,60,140,.92); color: #dce6ff; font-size: 12px;
+  padding: 6px 14px; border-radius: 999px; pointer-events: none;
+  border: 1px solid rgba(120,150,255,.5); white-space: nowrap; z-index: 5;
+}
+.panel { background: #10131c; overflow: auto; }
+.panel.left { border-inline-end: 1px solid #232838; }
+.panel.right { border-inline-start: 1px solid #232838; padding: 12px; }
+.panel h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em;
+  color: #7c869c; margin: 14px 12px 8px; }
+
+/* toolbox items */
+.tool {
+  display: flex; align-items: center; gap: 8px; margin: 6px 10px; padding: 10px;
+  border-radius: 8px; background: #161b29; border: 1px dashed #2c344b;
+  cursor: grab; font-size: 13px; user-select: none;
+}
+.tool:hover { border-color: #3a6bff; background: #1b2233; }
+
+/* canvas / artboard */
+.canvas-wrap { overflow: auto; padding: 28px; display: flex; justify-content: center; }
+.artboard {
+  width: 1000px; min-height: 640px; background: #0e1118;
+  border: 1px solid #2a3147; border-radius: 14px; overflow: hidden;
+  box-shadow: 0 24px 60px -20px rgba(0,0,0,.7);
+}
+
+/* selection outline for Craft nodes */
+.node-selected { outline: 2px solid #3a6bff !important; outline-offset: -2px; }
+.node-hover   { outline: 1px dashed #5878d8 !important; outline-offset: -1px; }
+
+/* settings panel fields */
+.field { margin-bottom: 10px; }
+.field label { display: block; font-size: 11px; color: #8a93aa; margin-bottom: 4px; }
+.field input[type="text"], .field input[type="number"], .field select, .field textarea {
+  width: 100%; padding: 6px 8px; border-radius: 6px;
+  background: #0b0e16; border: 1px solid #2a3147; color: #e6e8f0; font-size: 13px;
+}
+.field textarea { min-height: 56px; resize: vertical; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.muted { color: #6b7488; }
+.empty-hint { color: #6b7488; font-size: 13px; padding: 14px 12px; line-height: 1.6; }

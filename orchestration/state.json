@@ -1,15 +1,15 @@
 {
-  "updated": "2026-06-29T07:40:46",
+  "updated": "2026-07-21T10:33:39",
   "games": {
     "cyberpunk2077": {
       "title": "Cyberpunk 2077",
       "phase": "maintenance",
       "progress": 100,
-      "agents": 0,
+      "agents": 4,
       "version": "1.0.0-beta.3",
-      "next": "—",
+      "next": "דרגה-2 דו-מגדרי: ~1,770 נבנקו (checkpoint 15,020). תוקן באג נתיב-checkpoint ב-prep (סבבים לא התקדמו). סבב-2 מוכן (1,600 חדשות), נותרו 8,574. guards: copy-EN+batch-size. bake(🔒) כשנצבר",
       "gate": null,
-      "notes": "base 99.8% + DLC 99.3%; לולאת Opus QA שבועית זמינה (qa_review_*)"
+      "notes": "base 99.8% + DLC 99.3% shipped beta.3; פולישינג LQA רב-סוכני פעיל (agent_handoff_qa) — 11,926/59,291 onscreens_final נסקרו, 920 תיקונים מצטברים בספיין"
     },
     "spiderman2": {
       "title": "Marvel's Spider-Man 2",
@@ -57,7 +57,7 @@
       "progress": 100,
       "agents": 0,
       "version": "1.0.0-beta.2",
-      "next": "לאנצ'ר שוגר עם תיקון ZLIB (in-place) + טקסט מתוקן (BUILD_ID 20260629034518, release id=52). ממתין: אימות in-game של התקנת ה-launcher; פרסום OIV לאתר (גייט)",
+      "next": "מאגר /translate עלה (141,212 שורות, 3 קטגוריות עברית). פתוח: אימות in-game של התקנת הלאנצ'ר; שער #2 = פרסום OIV מעודכן לאתר",
       "gate": null,
       "notes": "בתשלום ₪53; התקנת לאנצ'ר ללא OpenIV שוגרה; אימות in-game ממתין למשתמש"
     },

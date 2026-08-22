@@ -53,3 +53,7 @@ watchdogs2, godofwar_ragnarok, anno1800, cyberpunk2077, acshadows, assassinscree
 | בדיקת תקינות | `orchestrate.py doctor` (state↔games↔דיסק) |
 
 `orchestrate.py game <id>` מציג את כל הניתוב של משחק (handoff, slug, repo, build, publish).
+
+## מסמכים קשורים
+- באותה תיקייה: [[orchestration/BOOT|BOOT]], [[orchestration/DOCTRINE|DOCTRINE]], [[orchestration/FLEET|FLEET]], [[orchestration/HANDOFF|HANDOFF]], [[orchestration/MISSION|MISSION]], [[orchestration/README|README]], [[orchestration/RULES|RULES]]
+- מפת הבקרה: [[CLAUDE_INDEX#⚙️ סביבה / כלים / אורchestration|CLAUDE_INDEX]]

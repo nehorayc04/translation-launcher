@@ -1,0 +1,207 @@
+{
+ "_comment": "Fleet layout for the dashboard. One entry per GAME; streams are machine x provider.",
+ "repo": "C:/Users/Nehoray_Cohen/Projects/Game translator",
+ "providers": [
+  "groq",
+  "sambanova",
+  "nim"
+ ],
+ "refresh": {
+  "local_seconds": 15,
+  "remote_seconds": 90,
+  "rate_window_minutes": 20
+ },
+ "vbox": "C:/Program Files/Oracle/VirtualBox/VBoxManage.exe",
+ "games": [
+  {
+   "id": "crimson-desert",
+   "title": "Crimson Desert — תרגום דור 3",
+   "corpus_total": 184993,
+   "fleet_dir": "games/crimson_desert/fleet",
+   "bank_glob": "out_*.json",
+   "shard_dir": "games/crimson_desert/fleet/shards",
+   "pull_log": "C:/tmp/cd_pull.log",
+   "pull_cadence_minutes": 5,
+   "pusher_match": "cd_progress",
+   "_pool_note": "POOL MODE (דור 2 של הצי): the machines no longer own a pre-assigned shard and no longer write local banks -- every stream is a CLIENT of the one queue, exactly like the volunteer phones. So progress, per-stream done and the remaining count all come from the pool (/cc/detail), NOT from banks/shards, and the volunteer devices are folded into this same game row instead of a separate 'community' one. Set `pool` to null to fall back to the shard model.",
+   "pool": "crimson-desert",
+   "worker": "cc_worker",
+   "task": "CdMP",
+   "pull_script": "pull_cd.sh",
+   "machines": [
+    {
+     "name": "desktop",
+     "kind": "local",
+     "dir": "C:/cdw",
+     "pool_id": "main_computer"
+    },
+    {
+     "name": "laptop",
+     "kind": "ssh",
+     "host": "100.116.78.88",
+     "lan": "10.0.0.49",
+     "port": 22,
+     "user": "Nehoray_Cohen",
+     "dir": "C:/Users/Nehoray_Cohen/Projects/cd_worker",
+     "pool_id": "main-laptop"
+    },
+    {
+     "name": "vm4",
+     "kind": "ssh",
+     "host": "100.116.78.88",
+     "lan": "10.0.0.49",
+     "port": 2225,
+     "user": "vboxuser",
+     "dir": "C:/cdw",
+     "pool_id": "win11-vm-4"
+    },
+    {
+     "name": "vm5",
+     "kind": "ssh",
+     "host": "100.116.78.88",
+     "lan": "10.0.0.49",
+     "port": 2226,
+     "user": "vboxuser",
+     "dir": "C:/cdw",
+     "pool_id": "win11-vm-5"
+    },
+    {
+     "name": "vm",
+     "kind": "ssh",
+     "host": "127.0.0.1",
+     "lan": "127.0.0.1",
+     "port": 2222,
+     "user": "vboxuser",
+     "dir": "C:/cdw",
+     "pool_id": "win11-vm-1"
+    },
+    {
+     "name": "vm2",
+     "kind": "ssh",
+     "host": "127.0.0.1",
+     "lan": "127.0.0.1",
+     "port": 2223,
+     "user": "vboxuser",
+     "dir": "C:/cdw",
+     "pool_id": "win11-vm-2"
+    },
+    {
+     "name": "vm3",
+     "kind": "ssh",
+     "host": "127.0.0.1",
+     "lan": "127.0.0.1",
+     "port": 2224,
+     "user": "vboxuser",
+     "dir": "C:/cdw",
+     "pool_id": "win11-vm-3"
+    }
+   ]
+  },
+  {
+   "id": "007-first-light",
+   "title": "007 First Light — תרגום",
+   "corpus_total": 25311,
+   "fleet_dir": "games/007_first_light/fleet",
+   "bank_glob": "out_*.json",
+   "shard_dir": "games/007_first_light/fleet/shards",
+   "pull_log": "C:/tmp/fl_pull.log",
+   "pull_cadence_minutes": 5,
+   "pusher_match": "fl_progress",
+   "_pool_note": "Second pool-mode game sharing the SAME self-hosted queue/machines as crimson-desert (dedicated fl_worker.py processes, worker id prefix fl- so it never claims a crimson-desert line -- see cc_server.py op_claim's game filter). worker_prefix tells pool_wid() which id prefix to resolve (crimson-desert's cc_worker.py stays 'cd', unaffected).",
+   "pool": "007-first-light",
+   "worker": "fl_worker",
+   "worker_prefix": "fl",
+   "task": "FLMP",
+   "community": false,
+   "machines": [
+    {
+     "name": "desktop",
+     "kind": "local",
+     "dir": "C:/fldw",
+     "pool_id": "main_computer"
+    },
+    {
+     "name": "laptop",
+     "kind": "ssh",
+     "host": "100.116.78.88",
+     "lan": "10.0.0.49",
+     "port": 22,
+     "user": "Nehoray_Cohen",
+     "dir": "C:/fldw",
+     "pool_id": "main-laptop"
+    },
+    {
+     "name": "vm4",
+     "kind": "ssh",
+     "host": "100.116.78.88",
+     "lan": "10.0.0.49",
+     "port": 2225,
+     "user": "vboxuser",
+     "dir": "C:/fldw",
+     "pool_id": "win11-vm-4"
+    },
+    {
+     "name": "vm5",
+     "kind": "ssh",
+     "host": "100.116.78.88",
+     "lan": "10.0.0.49",
+     "port": 2226,
+     "user": "vboxuser",
+     "dir": "C:/fldw",
+     "pool_id": "win11-vm-5"
+    },
+    {
+     "name": "vm",
+     "kind": "ssh",
+     "host": "127.0.0.1",
+     "lan": "127.0.0.1",
+     "port": 2222,
+     "user": "vboxuser",
+     "dir": "C:/fldw",
+     "pool_id": "win11-vm-1"
+    },
+    {
+     "name": "vm2",
+     "kind": "ssh",
+     "host": "127.0.0.1",
+     "lan": "127.0.0.1",
+     "port": 2223,
+     "user": "vboxuser",
+     "dir": "C:/fldw",
+     "pool_id": "win11-vm-2"
+    },
+    {
+     "name": "vm3",
+     "kind": "ssh",
+     "host": "127.0.0.1",
+     "lan": "127.0.0.1",
+     "port": 2224,
+     "user": "vboxuser",
+     "dir": "C:/fldw",
+     "pool_id": "win11-vm-3"
+    }
+   ]
+  }
+ ],
+ "_machines_note": "streams #1-21 = crimson-desert (desktop, laptop, vm4, vm5, vm, vm2, vm3 x groq/sambanova/nim -- vm4/vm5 are VirtualBox guests ON THE LAPTOP reached via 10.0.0.49, vm/vm2/vm3 are LOCAL guests on 127.0.0.1:2222-4). Skyrim (desktop-only) and Spider-Man 2 (the other 6 machines) both finished/were hand-closed on 2026-08-10 and were retired off these same 7 machines to make room for Crimson Desert; the numbers were reassigned, not appended, so the stream count stays exactly 21. streams #22+ = community-compute (volunteer phones), discovered from the control plane, NOT listed here -- deliberately untouched.",
+ "zombie_patterns": [
+  "pt_nim",
+  "w3_nim",
+  "w3ut_nim",
+  "ac2_nim",
+  "w3qa_nim",
+  "rdr2_nim",
+  "cc_nim",
+  "skyrim_nim",
+  "sm2ne2_nim",
+  "sm2qa_nim",
+  "drain_books"
+ ],
+ "thresholds": {
+  "stall_minutes": 20,
+  "slow_minutes": 8,
+  "throttle_lines": 2,
+  "disk_free_gb": 3.0,
+  "unreachable_strikes": 2
+ }
+}

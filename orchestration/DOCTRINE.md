@@ -90,3 +90,7 @@
 
 בכל קיר: עקרון 2 מכריע — **קשה+אמיתי = כוח; שטות+מת = חיתוך.** בכל ספק על איכות:
 הרף הוא הפתרון הנכון, לא המהיר.
+
+## מסמכים קשורים
+- באותה תיקייה: [[orchestration/BOOT|BOOT]], [[orchestration/COMMANDS|COMMANDS]], [[orchestration/FLEET|FLEET]], [[orchestration/HANDOFF|HANDOFF]], [[orchestration/MISSION|MISSION]], [[orchestration/README|README]], [[orchestration/RULES|RULES]]
+- מפת הבקרה: [[CLAUDE_INDEX#⚙️ סביבה / כלים / אורchestration|CLAUDE_INDEX]]

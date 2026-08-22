@@ -52,3 +52,7 @@
   צריך לראות את הפרופילים.
 - מסלול ה-API (worker עם רוטציית מפתחות + failover) **נשאר זמין** אם תרצה לעבור
   בעתיד; לא לממש בלי בקשה מפורשת.
+
+## מסמכים קשורים
+- באותה תיקייה: [[orchestration/BOOT|BOOT]], [[orchestration/COMMANDS|COMMANDS]], [[orchestration/DOCTRINE|DOCTRINE]], [[orchestration/HANDOFF|HANDOFF]], [[orchestration/MISSION|MISSION]], [[orchestration/README|README]], [[orchestration/RULES|RULES]]
+- מפת הבקרה: [[CLAUDE_INDEX#⚙️ סביבה / כלים / אורchestration|CLAUDE_INDEX]]

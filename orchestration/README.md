@@ -95,3 +95,7 @@ python orchestration/orchestrate.py game <GAME>. מעכשיו אתה הסשן ה
 הלוח מתעדכן בכל פעם שסשן ה-MAX פועל (פקודה / מיזוג / `orchestrate.py`). אין
 דמון רקע חוצה-פרופילים — נקודת העדכון הטבעית היא הסשן המרכזי, וזה מספיק כי כל
 הניתוב עובר דרכו.
+
+## מסמכים קשורים
+- באותה תיקייה: [[orchestration/BOOT|BOOT]], [[orchestration/COMMANDS|COMMANDS]], [[orchestration/DOCTRINE|DOCTRINE]], [[orchestration/FLEET|FLEET]], [[orchestration/HANDOFF|HANDOFF]], [[orchestration/MISSION|MISSION]], [[orchestration/RULES|RULES]]
+- מפת הבקרה: [[CLAUDE_INDEX#⚙️ סביבה / כלים / אורchestration|CLAUDE_INDEX]]

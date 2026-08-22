@@ -1,0 +1,5 @@
+{
+ "_comment": "Copy this file to telegram_config.json (gitignored) and fill in the two values below. See the docstring at the top of telegram_bot.py for how to get them.",
+ "token": "PASTE_YOUR_BOTFATHER_TOKEN_HERE",
+ "chat_id": "PASTE_YOUR_CHAT_ID_HERE (run: python telegram_bot.py --whoami)"
+}

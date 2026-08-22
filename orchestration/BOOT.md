@@ -107,3 +107,6 @@ python orchestration/orchestrate.py status. מעכשיו אתה הסשן הממ�
 לא סומך על "done", מאמת בהרצה. סכם את מצב הלאנצ'ר+אתר והצע את הצעד הבא.
 ```
 
+## מסמכים קשורים
+- באותה תיקייה: [[orchestration/COMMANDS|COMMANDS]], [[orchestration/DOCTRINE|DOCTRINE]], [[orchestration/FLEET|FLEET]], [[orchestration/HANDOFF|HANDOFF]], [[orchestration/MISSION|MISSION]], [[orchestration/README|README]], [[orchestration/RULES|RULES]]
+- מפת הבקרה: [[CLAUDE_INDEX#⚙️ סביבה / כלים / אורchestration|CLAUDE_INDEX]]

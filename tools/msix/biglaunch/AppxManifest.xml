@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Sparse (external-location) package for Big Launch.
+
+  It ships NO code. Its only job is to give the already-installed, unpackaged
+  BigLaunch.exe a package IDENTITY, which is the price of entry for two things
+  Windows will not offer a plain Win32 exe:
+
+    * windows.gamingApp        - the app extension that marks this as a gaming
+                                 shell rather than an ordinary desktop app.
+    * Microsoft.appCategory.gamingHome - the custom capability that puts the app
+                                 in Settings > Gaming > XBOX mode > "choose home
+                                 app", so the full-screen experience can launch
+                                 it INSTEAD of the Xbox shell.
+
+  🔴 THE EXECUTABLE MUST BE mediumIL. The full-screen experience activates the
+  home app through the package identity, and that activation cannot elevate - an
+  exe with requestedExecutionLevel=requireAdministrator fails to start and the
+  home app silently does nothing. BigLaunch.exe is asInvoker, so it is pointed at
+  directly and needs no launcher shim.
+
+  The Executable path is relative to the EXTERNAL LOCATION passed at register
+  time (the install folder), not to this file.
+-->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+  xmlns:uap4="http://schemas.microsoft.com/appx/manifest/uap/windows10/4"
+  xmlns:uap10="http://schemas.microsoft.com/appx/manifest/uap/windows10/10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap uap3 uap4 uap10 rescap">
+
+  <Identity
+    Name="HebrewTranslationHub.BigLaunch"
+    Publisher="CN=Hebrew Translation Hub"
+    Version="1.0.0.0"
+    ProcessorArchitecture="neutral" />
+
+  <Properties>
+    <DisplayName>Big Launch</DisplayName>
+    <PublisherDisplayName>Hebrew Translation Hub</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+    <uap10:AllowExternalContent>true</uap10:AllowExternalContent>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.26100.0" MaxVersionTested="10.0.26200.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="he-il" />
+    <Resource Language="en-us" />
+  </Resources>
+
+  <Applications>
+    <Application Id="App"
+      Executable="BigLaunch.exe"
+      uap10:TrustLevel="mediumIL"
+      uap10:RuntimeBehavior="win32App">
+
+      <uap:VisualElements
+        DisplayName="Big Launch"
+        Description="Big Launch - מצב טלוויזיה עברי"
+        BackgroundColor="transparent"
+        Square150x150Logo="Assets\Square150x150Logo.png"
+        Square44x44Logo="Assets\Square44x44Logo.png">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" />
+      </uap:VisualElements>
+
+      <Extensions>
+        <uap3:Extension Category="windows.appExtension">
+          <uap3:AppExtension
+            Name="windows.gamingApp"
+            Id="BigLaunch"
+            DisplayName="Big Launch"
+            Description="Big Launch gaming shell"
+            PublicFolder="Public" />
+        </uap3:Extension>
+      </Extensions>
+
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+    <rescap:Capability Name="unvirtualizedResources" />
+    <uap4:CustomCapability Name="Microsoft.appCategory.gamingHome_8wekyb3d8bbwe" />
+  </Capabilities>
+</Package>

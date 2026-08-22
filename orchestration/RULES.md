@@ -40,6 +40,7 @@
 | gtav | `games/gtav/agent_handoff_full/INSTRUCTIONS.md` |
 | cyberpunk2077 | `games/cyberpunk2077/qa_review_*` + glossary בפלייבוק |
 | הכול | `universal/NEW_GAME_GROUNDWORK_PLAYBOOK.md` + `AGENT_TRANSLATION_HANDOFF_TEMPLATE.md` |
+| מגדר (הכול) | `universal/GENDER_ORACLE_ROLLOUT.md` — מגדר מהלוקל הממוגדר של המשחק (כלל #12) |
 
 11. **read-modify-write של ארכיון משחק = in-place, לא full-repack.** כשעורכים ארכיון
     גדול במקום (RPF7/forge/RDA וכו') בשביל deploy — לשמר את הפריסה הפיזית המקורית
@@ -47,8 +48,20 @@
     **full-repack שאורז הכול מחדש מפיל את ה-padding המקורי והמנוע עלול להיכשל** (GTA:
     `ERR_GEN_ZLIB_2` אחרי שה-update.rpf הצטמצם 2.6GB→1.8GB). תמיד להשוות גודל-פלט מול
     המקור — צמצום דרמטי = דגל אדום. ‎[[gtav-groundwork-go]]
+12. **מגדר/מספר מהלוקל הממוגדר של המשחק, לא מאנגלית.** אנגלית לא מבחינה מגדר → תרגום
+    ממנה מנחש. המשחק כבר כולל תרגום מקצועי ממוגדר (**ערבית** = הכי קרוב לעברית: أنتَ/أنتِ
+    = אתה/את; אם אין — רוסית לדובר, ספרדית/צרפתית/גרמנית לרפרנט). **מקור המשמעות = אנגלית,
+    מקור המגדר = הלוקל הממוגדר.** לתרגומים קיימים: פאס תיקון דטרמיניסטי (`gender_oracle
+    scan` → `dualgender_inflect` — מתקן **רק** את המורפמה, אפס תרגום-מחדש). לתרגום חדש:
+    לצרף להאנדוף את איתות-המגדר פר-שורה. השיטה המלאה + טבלת מקור פר-משחק:
+    `universal/GENDER_ORACLE_ROLLOUT.md`. ‎[[gender-oracle-from-game-langs]]
 
 ## יומן כללים שנוספו
 
 - 2026-06-29 — נוצר הרישום. כללי-הליבה לעיל נדלו מ-CLAUDE.md והפלייבוק הקיים.
 - 2026-06-26 — כלל 11 (in-place vs full-repack) נוסף מלקח ה-ZLIB של GTA launcher.
+- 2026-07-06 — כלל 12 (מגדר מהלוקל הממוגדר של המשחק) נוסף; `GENDER_ORACLE_ROLLOUT.md`.
+
+## מסמכים קשורים
+- באותה תיקייה: [[orchestration/BOOT|BOOT]], [[orchestration/COMMANDS|COMMANDS]], [[orchestration/DOCTRINE|DOCTRINE]], [[orchestration/FLEET|FLEET]], [[orchestration/HANDOFF|HANDOFF]], [[orchestration/MISSION|MISSION]], [[orchestration/README|README]]
+- מפת הבקרה: [[CLAUDE_INDEX#⚙️ סביבה / כלים / אורchestration|CLAUDE_INDEX]]

@@ -5,6 +5,11 @@ Cyberpunk 2077/
 backup_translation_*/
 _font_extract_tmp/
 
+# ── personal vault / archive (never shared) ───────────────────
+.obsidian/
+_archive/
+_external-memory/
+
 # ── nested repos (each one tracks itself) ────────────────────
 # website/ is the public translation-hub site — its own git repo,
 # pushed to github.com/nehorayc04/A-translation-hub. The outer
@@ -15,6 +20,11 @@ website/
 build/
 dist/
 Output/
+
+# Big Launch (WPF console shell) — build output only; biglaunch/ itself is source.
+dist_biglaunch/
+biglaunch/bin/
+biglaunch/obj/
 __pycache__/
 *.pyc
 *.pyo
@@ -36,6 +46,7 @@ translation_manager/_build_info.py
 ~/.translation_manager/
 cache.json
 *.log
+tools/fleet_dashboard/telegram_config.json
 
 # ── local dev tooling / private notes ────────────────────────
 .claude/
@@ -155,3 +166,127 @@ games/*/tools/loctool/
 games/*/tools/ffdconverter/
 games/*/tools/atk_src/
 games/*/tools/anvil_src/
+
+
+
+
+# Ignore Smart Environment folder
+.smart-env
+# Windows writes this into a loosely-registered sparse package folder
+tools/msix/*/microsoft.system.package.metadata/
+
+# ── fleet API credentials — THIS REPO IS PUBLIC ──────────────
+# 10 untracked files were found holding 30 LIVE keys (Groq gsk_, NVIDIA NIM
+# nvapi-, SambaNova) — verified live against the providers, HTTP 200. None had
+# ever been committed; one `git add -A` would have published all of them.
+#
+# 🔴 THE NEAR-MISS THAT ALLOWED IT: the list already had `*.key`, which does
+# NOT match `key.txt`. A pattern that looks like it covers credentials and
+# misses by one character is worse than no pattern, because nobody looks twice.
+# These match by BASENAME (no leading path) so they apply at any depth — a new
+# game's fleet folder is covered before it exists.
+key.txt
+keys.json
+*_keys.json
+*_key.txt
+api_key*
+# the workers read these at runtime, so they stay ON DISK and only stay OUT of git
+games/*/fleet/**/key*
+games/*/fleet/**/*key*.json
+
+# ── scratch working directory — THIS REPO IS PUBLIC ──────────
+# 1,110 of the files git was about to add came from two CHROME PROFILES left
+# behind by the PDF-export scripts: Login Data (saved passwords), Web Data
+# (autofill: names, addresses, phone numbers), History, and a Local State
+# holding os_crypt.encrypted_key — the master key those databases are sealed
+# with. DPAPI ties it to this Windows account, so it is not remotely
+# decryptable, but browsing history and autofill are plain SQLite and none of
+# it is ours to publish. Nothing under scratchpad/ has ever been tracked.
+scratchpad/
+
+# ── oversized derived data — GitHub REJECTS a file over 100 MB ───
+# 25 files over 50 MB were about to be pushed, 13 of them over the hard limit,
+# which fails the ENTIRE push rather than skipping the file.
+#
+# 🔴 THE SAME NEAR-MISS AS THE KEYS: the list already had `games/*/work/*.json`
+# and `games/*/work/*.xml`, and a single `*` does not descend. Every offender
+# sat one level deeper - work/_fontinspect/, work/fontwork/, fleet/. `**` is
+# what those rules meant all along.
+#
+# None of this is source: font-inspection dumps, extraction spines and fleet
+# corpora are all re-derivable from the game plus the fleet, and they churn
+# constantly - the worst possible shape for git. They live on Drive instead.
+games/*/work/**/*.json
+games/*/work/**/*.xml
+games/*/work/**/*.bin
+games/*/work/**/*_full.txt
+games/*/fleet/**/*corpus*.json
+games/*/fleet/**/onscreens_panel.json
+games/*/fleet/**/newera_cc.json
+games/*/*dualgender*.json
+# vendor installers - re-downloadable from the vendor, never ours to publish
+*.msi
+# pre-<milestone> sidecars: a snapshot taken before a big re-run, same size as
+# the corpus it shadows and never source.
+*.pre_newera
+*.pre_*
+
+# ── per-game DATA — git carries the source, Drive carries the data ──
+# Measured on the first push in 7.5 weeks: 6,413 new files, 1,555 MB.
+# 2,546 of them were source (.py/.md/.cs/…) and weighed 25.7 MB. The other
+# 3,867 were 1,530 MB of derived data - corpora, extracted fonts, sprites,
+# game containers, vendored .jars. That is 98.3% of the bytes for 1.7% of the
+# meaning, in a repo we had just cut from 308 GB to 276 MB.
+#
+# These are re-derivable (from the game, or from a fleet re-run) and they churn
+# on every run, so git stores a fresh full copy each time - the exact shape that
+# made this repo unpushable in June. The bulk lives on Drive; git keeps what
+# a human wrote. Scoped to games/ so the app's own assets are unaffected.
+games/**/*.json
+games/**/*.jsonl
+games/**/*.ttf
+games/**/*.otf
+games/**/*.png
+games/**/*.jpg
+games/**/*.dds
+games/**/*.gfx
+games/**/*.dpc
+games/**/*.forge
+games/**/*.psarc
+games/**/*.prev
+games/**/*.jar
+games/**/*.pdf
+games/**/*.ld
+games/**/*.bak-*
+games/**/*.pre_*
+
+# ── games/ is DATA by default, source by exception ───────────
+# Chasing data extensions one at a time never converged (json -> pak -> tgz ->
+# oiv -> w3strings -> locres -> xpps ...), because every game brings its own
+# container format. Inverting it does: under games/ the DEFAULT is "not in
+# git", and the exceptions are the file types a person actually writes.
+# Already-tracked files are unaffected - an ignore rule never untracks.
+games/**
+!games/**/
+!games/**/*.py
+!games/**/*.md
+!games/**/*.sh
+!games/**/*.bat
+!games/**/*.ps1
+!games/**/*.cs
+!games/**/*.ts
+!games/**/*.yml
+!games/**/*.yaml
+!games/**/*.toml
+!games/**/*.ini
+
+# ── stragglers found by measuring the push set ─────────────
+# The list already had *.bak.* and *.bak[0-9]* — but the requeue scripts write
+# the DASH form, so the biggest single leftover slipped through both.
+*.bak-*
+# vendored OCR language data (tesseract) — re-downloadable, not our source
+*.traineddata
+_tessdata/
+# fleet/QA checkpoints: run state, rewritten continuously, meaningless to a reader
+universal/*checkpoint*.json
+universal/cross_audit_flags_*.json

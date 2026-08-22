@@ -1,0 +1,382 @@
+﻿<!--
+  Big Launch — the console shell.
+
+  Chrome only. Every VIEW is built in code-behind, because a 10ft shell is
+  driven by a focus tree: the code that lays a screen out is the same code that
+  must register what a thumbstick can move between, and splitting those two
+  across XAML and C# is how focus silently drifts out of sync with the DOM.
+
+  Layer order is deliberate and matches Winhanced's own MainWindow:
+    0  BackgroundImageA/B  — crossfading hero art of the focused game
+    1  Scrim + BloomCanvas — legibility, then the accent bloom
+    2  Chrome              — BumperPillNavigation / content / NavFooterGrid
+    3+ Overlays            — blade, quick menu, dialog, onboarding, toast
+-->
+<Window x:Class="BigLaunch.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Big Launch"
+        FlowDirection="RightToLeft"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        WindowState="Maximized"
+        WindowStartupLocation="CenterScreen"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Ideal"
+        FontFamily="{DynamicResource UiFont}"
+        Foreground="{DynamicResource FgPrimary}"
+        Background="{DynamicResource BgDeep}"
+        Loaded="OnLoaded"
+        Closing="OnClosing"
+        PreviewKeyDown="OnKeyDown">
+
+  <Grid x:Name="Root" ClipToBounds="True">
+
+    <!-- ============ 0. hero background, crossfaded ============ -->
+    <!-- BackgroundOverscanTransformA/B: Winhanced scales the art past the frame
+         so a crossfade can never reveal a letterboxed edge, and so the image has
+         somewhere to drift to. -->
+    <!-- 🔴 CacheMode IS NOT AN OPTIMISATION HERE, IT IS THE DIFFERENCE BETWEEN A
+         SHELL THAT IDLES AT ZERO AND ONE THAT BURNS A CORE. A BlurEffect this
+         wide over a full-screen image is re-rasterised on every render pass, and
+         the ambient bloom drifting on the layer above guarantees a render pass
+         every frame - measured: ~100% of one core sitting still on the home
+         screen, and still ~85% with every animation disabled, which is what
+         proved the cost was the static blur rather than the motion. A
+         BitmapCache rasterises the blurred image ONCE and blits it after that;
+         the crossfade animates Opacity, which a cached surface does for free. -->
+    <Image x:Name="BgA" Stretch="UniformToFill" Opacity="0" RenderTransformOrigin="0.5,0.5"
+           CacheMode="BitmapCache"
+           RenderOptions.BitmapScalingMode="HighQuality">
+      <Image.Effect>
+        <!-- The real softening. A Gaussian is what leaves the AREAS OF
+             COLOUR and takes the subject away; the overscan above is what
+             hides the transparent edge a blur always samples in. -->
+        <BlurEffect Radius="58" KernelType="Gaussian" RenderingBias="Performance"/>
+      </Image.Effect>
+      <Image.RenderTransform>
+        <ScaleTransform x:Name="BgScaleA" ScaleX="1.14" ScaleY="1.14"/>
+      </Image.RenderTransform>
+    </Image>
+    <Image x:Name="BgB" Stretch="UniformToFill" Opacity="0" RenderTransformOrigin="0.5,0.5"
+           CacheMode="BitmapCache"
+           RenderOptions.BitmapScalingMode="HighQuality">
+      <Image.Effect>
+        <!-- The real softening. A Gaussian is what leaves the AREAS OF
+             COLOUR and takes the subject away; the overscan above is what
+             hides the transparent edge a blur always samples in. -->
+        <BlurEffect Radius="58" KernelType="Gaussian" RenderingBias="Performance"/>
+      </Image.Effect>
+      <Image.RenderTransform>
+        <ScaleTransform x:Name="BgScaleB" ScaleX="1.14" ScaleY="1.14"/>
+      </Image.RenderTransform>
+    </Image>
+
+    <!-- ============ 1. scrim + bloom ============ -->
+    <!--
+      HomeArtScrim, in Winhanced's two-part shape.
+
+      🔴 THE OLD SCRIM WAS A BLANKET: a single diagonal at #F0 -> #B0 -> #F5,
+      i.e. 69-96% opaque EVERYWHERE, over an image drawn at 0.55. The art was
+      mathematically invisible - roughly 17% at the single brightest point and
+      ~3% in the corners. That is why the home screen read as a flat gradient
+      instead of a game shell.
+
+      A scrim exists to make TEXT legible, so it belongs where the text is and
+      nowhere else: dense on the copy side, transparent where the art should
+      breathe, plus a bottom ramp for the tile rows to sit on.
+
+      🔴 FlowDirection is pinned LeftToRight on purpose. A brush is mapped in its
+      element's own coordinate space, and this window is RightToLeft - so an
+      unpinned gradient MIRRORS, darkening the empty side and leaving the copy
+      sitting over bare art. Pinning it puts the gradient in screen space, where
+      "the side the text is on" is a fixed fact.
+    -->
+    <Rectangle FlowDirection="LeftToRight">
+      <Rectangle.Fill>
+        <LinearGradientBrush StartPoint="1,0" EndPoint="0,0">
+          <!-- 🔴🔴 HALVED, BECAUSE THE HERO PANEL IS GONE. This ramp was built
+               to carry a full-width logo + badges + Play block on the reading
+               side; at 95% opacity over art drawn at 1.0 the result was a flat
+               navy screen, which is most of why the shell did not read like
+               Winhanced's. Winhanced's home is a COLOUR WASH — a near-black base
+               with the art blooming through it, not a photo behind a curtain.
+               What is left to protect is a section title and some tile captions,
+               and those sit on far less screen. -->
+          <GradientStop Color="#C60E141B" Offset="0.00"/>
+          <GradientStop Color="#8E0E141B" Offset="0.26"/>
+          <GradientStop Color="#4A0E141B" Offset="0.56"/>
+          <GradientStop Color="#1E0E141B" Offset="1.00"/>
+        </LinearGradientBrush>
+      </Rectangle.Fill>
+    </Rectangle>
+
+    <Rectangle FlowDirection="LeftToRight">
+      <Rectangle.Fill>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+          <GradientStop Color="#000E141B" Offset="0.00"/>
+          <GradientStop Color="#000E141B" Offset="0.38"/>
+          <GradientStop Color="#7A0E141B" Offset="0.72"/>
+          <GradientStop Color="#E60E141B" Offset="1.00"/>
+        </LinearGradientBrush>
+      </Rectangle.Fill>
+    </Rectangle>
+
+    <!--
+      NavigationHeaderFadeLayer — Winhanced ships a dedicated header background
+      + fade layer, and this is why: the nav strip spans the FULL width, so it
+      crosses the part of the hero the side-scrim deliberately leaves bright.
+      Without it the tab labels and the telemetry readouts wash out on any light
+      key art, which is precisely what a "make the art visible" change causes if
+      you only think about the copy column.
+    -->
+    <Rectangle x:Name="HeaderFade" FlowDirection="LeftToRight"
+               VerticalAlignment="Top" Height="190">
+      <Rectangle.Fill>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+          <GradientStop Color="#B80E141B" Offset="0.00"/>
+          <GradientStop Color="#8A0E141B" Offset="0.30"/>
+          <GradientStop Color="#3E0E141B" Offset="0.66"/>
+          <GradientStop Color="#000E141B" Offset="1.00"/>
+        </LinearGradientBrush>
+      </Rectangle.Fill>
+    </Rectangle>
+
+    <Canvas x:Name="Bloom" IsHitTestVisible="False"/>
+
+    <!-- ============ 2. chrome ============ -->
+    <Grid x:Name="Chrome">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*"/>
+        <RowDefinition Height="Auto"/>
+      </Grid.RowDefinitions>
+
+      <!-- === header ===
+        🔴🔴 THE NAV IS NOT CHROME — IT LIVES IN THE PAGE. Winhanced's own home
+        puts the section header and the cover row FIRST, and only then the
+        centred nav strip, with a row of destination tiles under it; on the
+        library page the same strip sits at the very top. So its position is a
+        property of the VIEW, not of the shell, and a strip welded into the
+        header can never sit below a hero row. Building it per view also means
+        the focus tree is registered by the same code that lays it out — the
+        rule this whole file is organised around.
+
+        What is genuinely chrome is what remains here: the system READOUTS in one
+        corner and the system ACTIONS in the other, nothing between them. Dropping
+        the brand block is faithful too — Winhanced puts no logo on this surface;
+        the app you are looking at is not the thing you came here to read.
+
+        🔴 THE BUILD STRING IS GONE ON PURPOSE. A 10ft shell is read from a couch,
+        and a version id is developer chrome — the one thing on this surface
+        nobody sitting there can act on. The desktop launcher's Settings still
+        reports it, which is where anyone who needs it already looks. -->
+      <Grid Grid.Row="0" x:Name="HeaderRow" Margin="48,22,48,0">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <!--
+          GlassPillIndicator — Winhanced's signature chrome, decoded from
+          Controls/GlassPillIndicator.xbf.
+
+          🔴🔴 COLUMN 0 IS THE VISUAL *RIGHT*. This window is RightToLeft and a
+          Grid column index lives in LAYOUT space, which RTL mirrors — so the
+          readouts asked for "on the right" belong in column 0 and the icons
+          asked for "on the left" belong in column 2. Reading a column index as
+          a screen coordinate is the single most common way to land something on
+          the wrong side of this shell.
+
+          🔴 AND THEY ARE TWO PILLS, NOT ONE. Winhanced groups the system row
+          into one capsule, and that was faithful while everything in it was a
+          READOUT. Once half the row became BUTTONS, one capsule made the clock
+          look as pressable as the power icon — a glance cannot tell them apart
+          when they share a surface. Splitting by verb (glance vs press) is what
+          lets the icons grow: they are now a control cluster in their own right,
+          not chips wedged between a number and a clock.
+        -->
+        <Border Grid.Column="0" x:Name="StatPill" Style="{StaticResource GlassCard}"
+                Padding="12,6" CornerRadius="{DynamicResource RadPill}"
+                VerticalAlignment="Center">
+          <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+            <TextBlock x:Name="Clock" Style="{StaticResource Subtext}" FontWeight="SemiBold"
+                       VerticalAlignment="Center" Margin="0,0,2,0"
+                       FlowDirection="LeftToRight"/>
+            <Border x:Name="ClockRule" Width="1" Height="18" Margin="10,0,12,0"
+                    VerticalAlignment="Center"
+                    Background="{DynamicResource HairlineBrush}"/>
+            <StackPanel x:Name="StatRow" Orientation="Horizontal" VerticalAlignment="Center"/>
+          </StackPanel>
+        </Border>
+
+        <!-- the ACTION cluster: bigger targets, at the visual left -->
+        <Border Grid.Column="2" x:Name="ChipPill" Style="{StaticResource GlassCard}"
+                Padding="7,4" CornerRadius="{DynamicResource RadPill}"
+                VerticalAlignment="Center">
+          <StackPanel x:Name="PillChips" Orientation="Horizontal" VerticalAlignment="Center"/>
+        </Border>
+      </Grid>
+
+      <!-- === the tab strip ===
+        🔴🔴 THIS USED TO LIVE INSIDE THE PAGE, AND THAT WAS THE BUG. Winhanced
+        does carry it in the view (waist on home, top on the library), and the
+        comment above still describes why that is faithful - but faithful and
+        usable parted company the moment a page got long enough to scroll: the
+        one control you navigate WITH scrolled away, so reaching another tab
+        meant first scrolling back up to find the way out. A control that is
+        always available has to be always ON SCREEN.
+
+        Pinning it here buys a second thing for free: it now sits OUTSIDE the
+        cross-fade, so a tab change no longer fades and re-slides the strip you
+        are currently using. The page moves; the map you are reading does not. -->
+      <Grid Grid.Row="1" x:Name="NavHost" Margin="0,2,0,0"/>
+
+      <!-- === content === -->
+      <Grid Grid.Row="2" x:Name="ViewHost" Margin="0,4,0,0"/>
+
+      <!-- === footer: NavFooterGrid === -->
+      <!--
+        NavFooterGrid, in Winhanced's shape: a brand mark pinned to one slot and
+        the button legend opposite it, separated by a hairline so the bar reads
+        as chrome rather than as content that happens to be at the bottom.
+
+        🔴 The legend used HorizontalAlignment="Right" and rendered on the visual
+        LEFT: alignment is expressed in LAYOUT space, and this window is RTL, so
+        "Right" is mirrored. It is the same trap as the scrim gradient — in an
+        RTL shell you have to say which SIDE OF THE SCREEN you mean, and the
+        answer here is "where the reader's eye starts", i.e. Left-in-layout.
+      -->
+      <!-- 🔴 THE FOOTER LEGEND MUST OUTRANK EVERY OVERLAY. It used to live here,
+           inside Chrome — and Chrome is a SIBLING of the blade/quick-menu/dialog
+           scrims, which are declared after it and therefore paint on top. So the
+           moment a modal opened, the legend telling you how to get OUT of it
+           dimmed with the page behind it. The bar itself moved to the end of the
+           Root grid (see below); this keeps its exact height reserved so content
+           still stops above it, without hard-coding a number that would drift the
+           moment the legend wraps. -->
+      <Border Grid.Row="3" Height="{Binding ActualHeight, ElementName=FooterBar}"/>
+    </Grid>
+
+    <!-- ============ 3. game blade ============ -->
+    <!--
+      🔴🔴 THE SCRIM LIVES ON Background, NOT IN Children.
+
+      A modal is a solid layer over a dim scrim - never glass on glass - so this
+      needs a real dim; at the old flat #CC the box art underneath still won the
+      screen and the detail rows floated on top of Red Dead and Hogwarts covers.
+      The first fix layered two <Rectangle> scrims INSIDE this Grid, and they
+      vanished on open: OpenBlade calls Blade.Children.Clear() before adding the
+      panel, which wipes anything the XAML declared as a child. A Background is
+      a property, not a child, so it survives - and one gradient brush does the
+      whole job anyway.
+
+      It is a ramp, not a flat fill: near-opaque on the READING side where the
+      copy sits, easing off toward the far side so the hero art is still part of
+      the picture rather than a curtain. FlowDirection is pinned LTR because a
+      brush mirrors with its element, and "the side the text is on" has to be a
+      fixed fact (same reason as the main scrim).
+    -->
+    <Grid x:Name="Blade" Visibility="Collapsed" FlowDirection="LeftToRight">
+      <Grid.Background>
+        <LinearGradientBrush StartPoint="1,0" EndPoint="0,0">
+          <GradientStop Color="#FA0A0E14" Offset="0.00"/>
+          <GradientStop Color="#F60A0E14" Offset="0.40"/>
+          <GradientStop Color="#EC0A0E14" Offset="0.72"/>
+          <GradientStop Color="#E20A0E14" Offset="1.00"/>
+        </LinearGradientBrush>
+      </Grid.Background>
+      <!-- the panel is added here at runtime; it re-flips to RTL itself -->
+    </Grid>
+
+    <!-- ============ 4. quick menu ============ -->
+    <Grid x:Name="QuickMenu" Visibility="Collapsed" Background="#99000000"/>
+
+    <!-- ============ 4b. search ============ -->
+    <!-- Winhanced advertises Search in its footer legend on every screen, and
+         with sixty titles it is the only way to reach a game that is not on the
+         first row. Local-only: it filters the library that is already in memory,
+         it never asks a server anything. -->
+    <Grid x:Name="SearchHost" Visibility="Collapsed" Background="#A6000000"/>
+
+    <!-- ============ 5. modal dialog ============ -->
+    <Grid x:Name="DialogHost" Visibility="Collapsed" Background="#CC000000"/>
+
+    <!-- ============ 6. onboarding ============ -->
+    <Grid x:Name="OnboardHost" Visibility="Collapsed" Background="{DynamicResource BgDeep}"/>
+
+    <!-- ============ 7. footer legend — ABOVE the overlays, on purpose ============ -->
+    <Border x:Name="FooterBar" VerticalAlignment="Bottom"
+          Background="#B00A0E14" Padding="48,12"
+            BorderBrush="{DynamicResource HairlineBrush}" BorderThickness="0,1,0,0">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- FooterLeftSlot: the live status line, at the reading-start corner.
+             Winhanced puts a device glyph + a running sentence here ("Finding
+             trusted metadata · 3 games") and the button legend at the far
+             opposite corner, with nothing in between. A brand chip used to sit
+             here; it said nothing that changes, and a status bar is for the
+             things that do. -->
+        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+          <TextBlock Text="&#xE7FC;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                     FontSize="15" Opacity="0.5" VerticalAlignment="Center"
+                     Foreground="{DynamicResource FgSecondary}" Margin="0,0,12,0"/>
+          <TextBlock x:Name="FooterNote" Style="{StaticResource Caption}"
+                     VerticalAlignment="Center" MaxWidth="620"
+                     TextTrimming="CharacterEllipsis"/>
+        </StackPanel>
+
+        <StackPanel x:Name="Hints" Grid.Column="2" Orientation="Horizontal"
+                    VerticalAlignment="Center" HorizontalAlignment="Left"/>
+      </Grid>
+    </Border>
+
+    <!-- ============ 7. toast ============ -->
+    <!--
+      🔴 A TRANSIENT TOAST MUST NOT LAND ON THE PRIMARY ACTION ZONE. Top-center
+      put it directly under the tab strip and across the hero's title + Play
+      button - i.e. it covered the one thing the screen exists to offer, and it
+      read as chrome colliding with chrome. It belongs in the status band at the
+      bottom, just above the footer legend: the eye is on the content in the
+      middle, and the edges are already where this shell keeps status.
+    -->
+    <Border x:Name="Toast" Visibility="Collapsed"
+            VerticalAlignment="Bottom" HorizontalAlignment="Center"
+            Margin="0,0,0,86" Padding="26,14"
+            CornerRadius="{DynamicResource RadPill}"
+            Background="#F21A2230" BorderThickness="1"
+            BorderBrush="{DynamicResource HairlineBrush}"
+            Effect="{DynamicResource ShadowMedium}">
+      <TextBlock x:Name="ToastText" Style="{StaticResource Body}"
+                 Foreground="{DynamicResource FgPrimary}"/>
+    </Border>
+
+    <!-- ============ 8. boot intro — the LAST child, so it covers everything ============
+         Big Steam opens on a full-screen motion piece while it loads, and that is
+         what this replaces: the brand mark over a blurred backdrop that used to
+         sit here said "wait" without saying anything else. The video plays WHILE
+         the library scan runs underneath, so the wait is spent, not added.
+
+         Black, not the theme background: an opener is letterbox space, and any
+         tint behind a 16:9 fill would only show as a seam on a non-16:9 screen. -->
+    <!-- 🔴 VISIBLE FROM THE FIRST FRAME, COLLAPSED IN THE CTOR IF THERE IS NO
+         FILM. OnLoaded reads settings, applies the acrylic backdrop, builds the
+         bloom and probes the pad before it ever reaches TryStartIntro - and the
+         window is already on screen for all of it, so the opener used to be
+         introduced by a few hundred ms of empty glass chrome. An opener cannot
+         be preceded by the thing it is opening. -->
+    <Grid x:Name="IntroHost" Visibility="Visible" Background="Black"
+          MouseLeftButtonDown="Intro_Click">
+      <MediaElement x:Name="IntroVideo"
+                    LoadedBehavior="Manual" UnloadedBehavior="Manual"
+                    Stretch="UniformToFill" ScrubbingEnabled="False"/>
+    </Grid>
+  </Grid>
+</Window>

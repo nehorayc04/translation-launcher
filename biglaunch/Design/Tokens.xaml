@@ -1,0 +1,185 @@
+<!--
+  Big Launch — merged design system.
+
+  Every value here was MEASURED, not invented:
+
+  * Palette + motion + the focus model come from Steam Big Picture's own
+    stylesheet (steamui/css/chunk~2dcc5aaf7.css, 5.1 MB) — the greys, the
+    #1a9fff accent, the #8b929a focus plate, and the cubic-beziers are the
+    literal values Valve ships.
+  * Typography, spacing, corner-radius pairing (surface vs glow) and the
+    glass/acrylic layering come from Winhanced's own compiled design system
+    (Resources/DesignSystem.xbf, decoded via games/winhanced/work/xbf.py).
+
+  Nothing is copied from either product — these are the observable design
+  decisions, re-authored here as our own resources.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+  <!-- ============================================================ -->
+  <!--  PALETTE  (Steam Big Picture, measured)                       -->
+  <!-- ============================================================ -->
+  <Color x:Key="BgDeepColor">#FF0E141B</Color>   <!-- app ground        -->
+  <Color x:Key="BgSurfaceColor">#FF23262E</Color><!-- raised surface    -->
+  <Color x:Key="BgRaisedColor">#FF3D4450</Color> <!-- hover / soft focus-->
+  <Color x:Key="FocusPlateColor">#FF8B929A</Color><!-- the focus plate  -->
+  <Color x:Key="FgPrimaryColor">#FFFFFFFF</Color>
+  <Color x:Key="FgSecondaryColor">#FFDCDEDF</Color>
+  <Color x:Key="FgMutedColor">#FFB8BCBF</Color>
+  <Color x:Key="FgDimColor">#FF67707B</Color>
+  <Color x:Key="AccentColor">#FF1A9FFF</Color>   <!-- replaced at runtime
+                                                      by SystemAccentColor -->
+  <Color x:Key="DestructiveColor">#FFDE3618</Color>
+  <Color x:Key="GlowWarmColor">#FFFFD55F</Color>
+  <Color x:Key="GlowCoralColor">#FFEF806C</Color>
+
+  <SolidColorBrush x:Key="BgDeep"      Color="{DynamicResource BgDeepColor}"/>
+  <SolidColorBrush x:Key="BgSurface"   Color="{DynamicResource BgSurfaceColor}"/>
+  <SolidColorBrush x:Key="BgRaised"    Color="{DynamicResource BgRaisedColor}"/>
+  <SolidColorBrush x:Key="FocusPlate"  Color="{DynamicResource FocusPlateColor}"/>
+  <SolidColorBrush x:Key="FgPrimary"   Color="{DynamicResource FgPrimaryColor}"/>
+  <SolidColorBrush x:Key="FgSecondary" Color="{DynamicResource FgSecondaryColor}"/>
+  <SolidColorBrush x:Key="FgMuted"     Color="{DynamicResource FgMutedColor}"/>
+  <SolidColorBrush x:Key="FgDim"       Color="{DynamicResource FgDimColor}"/>
+  <SolidColorBrush x:Key="Accent"      Color="{DynamicResource AccentColor}"/>
+  <SolidColorBrush x:Key="Destructive" Color="{DynamicResource DestructiveColor}"/>
+
+  <!-- Glass. DWM paints the real acrylic BEHIND the window; these are the
+       thin tint layers that sit on top of it. Kept low-alpha on purpose —
+       a heavy fill over acrylic reads as a flat card, not glass. -->
+  <SolidColorBrush x:Key="GlassVeil"     Color="#FF0E141B" Opacity="0.55"/>
+  <SolidColorBrush x:Key="GlassRail"     Color="#FF0E141B" Opacity="0.42"/>
+  <SolidColorBrush x:Key="GlassChip"     Color="#FFFFFFFF" Opacity="0.06"/>
+  <SolidColorBrush x:Key="GlassChipHi"   Color="#FFFFFFFF" Opacity="0.13"/>
+  <SolidColorBrush x:Key="HairlineBrush" Color="#FFFFFFFF" Opacity="0.10"/>
+
+  <!--
+    THE PANEL MATERIAL.
+
+    A single flat fill is a card; glass is a fill that CHANGES across the
+    surface, because real glass catches more light at the top edge than at the
+    bottom. So the panel body is a vertical ramp from a lighter, bluer top to a
+    deeper bottom, and the border is a matching ramp - bright hairline where the
+    light lands, almost nothing underneath.
+
+    🔴 THE FILL IS TRANSLUCENT AND STAYS THAT WAY. What makes this readable over
+    box art is not opacity, it is that the shell BEHIND it is blurred while a
+    panel is open (see Frost() in MainWindow.Glass.cs). Raising the alpha here to
+    "fix" readability is what turned every previous version into a flat slab.
+
+    🔴 FlowDirection-safe: these ramp top-to-bottom only (StartPoint 0,0 ->
+    EndPoint 0,1), so the RTL mirroring of this window cannot flip them. A
+    left-to-right glass ramp would reverse itself and light the wrong edge.
+  -->
+  <LinearGradientBrush x:Key="GlassPanel" StartPoint="0,0" EndPoint="0,1">
+    <GradientStop Offset="0"   Color="#F21B2432"/>
+    <GradientStop Offset="0.5" Color="#EE141B27"/>
+    <GradientStop Offset="1"   Color="#F00E141B"/>
+  </LinearGradientBrush>
+
+  <LinearGradientBrush x:Key="GlassEdge" StartPoint="0,0" EndPoint="0,1">
+    <GradientStop Offset="0"    Color="#40FFFFFF"/>
+    <GradientStop Offset="0.35" Color="#18FFFFFF"/>
+    <GradientStop Offset="1"    Color="#0AFFFFFF"/>
+  </LinearGradientBrush>
+
+  <!-- The specular line along the very top edge of a panel, drawn as its own
+       1px element rather than a border so it can fade out at both corners the
+       way a highlight actually does. -->
+  <LinearGradientBrush x:Key="GlassSheen" StartPoint="0,0" EndPoint="1,0">
+    <GradientStop Offset="0"    Color="#00FFFFFF"/>
+    <GradientStop Offset="0.5"  Color="#59FFFFFF"/>
+    <GradientStop Offset="1"    Color="#00FFFFFF"/>
+  </LinearGradientBrush>
+
+  <!-- Row fills inside a glass panel. Lighter than the panel, never darker -
+       a well cut INTO glass reads as a hole; a row raised out of it reads as a
+       control. -->
+  <SolidColorBrush x:Key="GlassRow"      Color="#FFFFFFFF" Opacity="0.05"/>
+  <SolidColorBrush x:Key="GlassRowHi"    Color="#FFFFFFFF" Opacity="0.10"/>
+  <SolidColorBrush x:Key="TrackBrush"    Color="#FFFFFFFF" Opacity="0.18"/>
+
+  <!-- ============================================================ -->
+  <!--  TYPOGRAPHY  (Winhanced: Inter / Light-Medium-SemiBold)       -->
+  <!-- ============================================================ -->
+  <!--
+    Winhanced's face is Inter — but its UI is English. Inter has no usable
+    Hebrew, so shipping it here would mean every Hebrew glyph silently falls
+    back to a different face with different metrics. Heebo is the same design
+    DECISION correctly applied to this product: a geometric humanist sans
+    (it is the Hebrew sibling of Roboto) with real Hebrew AND Latin, and the
+    same Light/Regular/Medium/Bold ladder Winhanced's tokens assume.
+  -->
+  <FontFamily x:Key="UiFont">pack://application:,,,/Assets/Fonts/#Heebo</FontFamily>
+
+  <!--
+    Winhanced ships 12..24 - but Winhanced is read at a DESK. This shell is
+    meant to be read from a couch, where the same pixel height covers a far
+    smaller angle of vision, so the whole ladder is scaled up ~1.3x rather
+    than only stretching the top end. The RATIOS are unchanged, so hierarchy
+    reads exactly as before - everything simply arrives larger.
+  -->
+  <sys:Double x:Key="FsCaption">16</sys:Double>
+  <sys:Double x:Key="FsBody2">18</sys:Double>
+  <sys:Double x:Key="FsBody1">20</sys:Double>
+  <sys:Double x:Key="FsSubtitle">23</sys:Double>
+  <sys:Double x:Key="FsH3">26</sys:Double>
+  <sys:Double x:Key="FsH2">32</sys:Double>
+  <sys:Double x:Key="FsH1">42</sys:Double>
+  <sys:Double x:Key="FsDisplay">56</sys:Double>
+
+  <!-- ============================================================ -->
+  <!--  SPACING  (Winhanced: 2 / 6 / 12 / 20, extended for 10ft)     -->
+  <!-- ============================================================ -->
+  <Thickness x:Key="PadXs">2</Thickness>
+  <Thickness x:Key="PadSm">6</Thickness>
+  <Thickness x:Key="PadMd">12</Thickness>
+  <Thickness x:Key="PadLg">20</Thickness>
+  <Thickness x:Key="PadXl">32</Thickness>
+  <sys:Double x:Key="GutterSafe">48</sys:Double>   <!-- 10ft TV safe area -->
+  <sys:Double x:Key="ContentMaxWidth">1100</sys:Double> <!-- Steam's own
+        ==gamepad-page-content-max-width: 1100px -->
+
+  <!-- ============================================================ -->
+  <!--  RADII  (Winhanced pairs a SURFACE radius with a GLOW radius) -->
+  <!-- ============================================================ -->
+  <CornerRadius x:Key="RadSm">4</CornerRadius>
+  <CornerRadius x:Key="RadMd">8</CornerRadius>
+  <CornerRadius x:Key="RadCard">12</CornerRadius>
+  <CornerRadius x:Key="RadGlow">16</CornerRadius>
+  <CornerRadius x:Key="RadLg">16</CornerRadius>
+  <CornerRadius x:Key="RadPanel">20</CornerRadius>
+  <CornerRadius x:Key="RadPill">22</CornerRadius>
+
+  <!-- ============================================================ -->
+  <!--  MOTION  (Steam's measured curves — 342 and 103 uses)         -->
+  <!-- ============================================================ -->
+  <!-- cubic-bezier(0.17, 0.45, 0.14, 0.83) — the house curve -->
+  <KeySpline x:Key="EaseStandard">0.17,0.45 0.14,0.83</KeySpline>
+  <!-- cubic-bezier(0.16, 0.86, 0.43, 0.99) — decelerate / fade-in -->
+  <KeySpline x:Key="EaseDecel">0.16,0.86 0.43,0.99</KeySpline>
+  <!-- cubic-bezier(0.1, 0.12, 0.53, 1.72) — the focus "pop" overshoot -->
+  <KeySpline x:Key="EaseOvershoot">0.1,0.12 0.53,1.72</KeySpline>
+
+  <Duration x:Key="DurInstant">0:0:0.05</Duration>
+  <Duration x:Key="DurFast">0:0:0.1</Duration>
+  <Duration x:Key="DurQuick">0:0:0.15</Duration>
+  <Duration x:Key="DurBase">0:0:0.21</Duration>
+  <Duration x:Key="DurSlow">0:0:0.32</Duration>
+
+  <!-- ============================================================ -->
+  <!--  SHADOW                                                       -->
+  <!-- ============================================================ -->
+  <DropShadowEffect x:Key="ShadowMedium" BlurRadius="32" ShadowDepth="10"
+                    Direction="270" Opacity="0.67" Color="#FF000000"/>
+  <!-- A floating panel casts a WIDE, soft, nearly vertical shadow. Big radius +
+       low opacity is what separates it from the screen without drawing a dark
+       outline around it; a tight dark shadow is what makes glass look pasted. -->
+  <DropShadowEffect x:Key="ShadowPanel" BlurRadius="64" ShadowDepth="18"
+                    Direction="270" Opacity="0.55" Color="#FF05080D"/>
+  <DropShadowEffect x:Key="ShadowSoft" BlurRadius="16" ShadowDepth="4"
+                    Direction="270" Opacity="0.45" Color="#FF000000"/>
+
+</ResourceDictionary>

@@ -1,0 +1,711 @@
+﻿<!--
+  The merged control language.
+
+  THE FOCUS MODEL is the single most important thing in a 10ft shell, and the
+  two products solve it differently:
+
+    * Steam Big Picture  — focus INVERTS. `.gpfocus { background:#fff;
+      color:#000 }`, plus a ::after plate BEHIND the item at 120% x 132%,
+      radius 16, colour #8b929a, z-index -1. Unmissable across a room.
+      It also always sets `outline:none` — never the OS ring.
+
+    * Winhanced — focus GLOWS. CardFocusGlowBrush + a paired
+      GameCardCornerRadius / GameCardGlowCornerRadius, so the glow is a
+      slightly larger, softer echo of the card.
+
+  Neither alone is right here: Steam's plate is legible but flat, Winhanced's
+  glow is beautiful but easy to lose on a bright hero image. So we use BOTH —
+  the plate carries legibility, the accent glow carries identity — and drive
+  them with Steam's own measured overshoot curve so focus lands with a pop.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- ================= base text ================= -->
+  <Style x:Key="TextBase" TargetType="TextBlock">
+    <Setter Property="FontFamily" Value="{DynamicResource UiFont}"/>
+    <Setter Property="Foreground" Value="{DynamicResource FgPrimary}"/>
+    <Setter Property="TextOptions.TextFormattingMode" Value="Ideal"/>
+    <Setter Property="TextOptions.TextRenderingMode" Value="ClearType"/>
+    <Setter Property="SnapsToDevicePixels" Value="True"/>
+  </Style>
+
+  <Style x:Key="H1" TargetType="TextBlock" BasedOn="{StaticResource TextBase}">
+    <Setter Property="FontSize" Value="{DynamicResource FsH1}"/>
+    <Setter Property="FontWeight" Value="SemiBold"/>
+  </Style>
+  <Style x:Key="H2" TargetType="TextBlock" BasedOn="{StaticResource TextBase}">
+    <Setter Property="FontSize" Value="{DynamicResource FsH2}"/>
+    <Setter Property="FontWeight" Value="SemiBold"/>
+  </Style>
+  <Style x:Key="H3" TargetType="TextBlock" BasedOn="{StaticResource TextBase}">
+    <Setter Property="FontSize" Value="{DynamicResource FsH3}"/>
+    <Setter Property="FontWeight" Value="Medium"/>
+  </Style>
+  <Style x:Key="Body" TargetType="TextBlock" BasedOn="{StaticResource TextBase}">
+    <Setter Property="FontSize" Value="{DynamicResource FsBody1}"/>
+    <Setter Property="Foreground" Value="{DynamicResource FgSecondary}"/>
+  </Style>
+  <Style x:Key="Subtext" TargetType="TextBlock" BasedOn="{StaticResource TextBase}">
+    <Setter Property="FontSize" Value="{DynamicResource FsBody2}"/>
+    <Setter Property="Foreground" Value="{DynamicResource FgMuted}"/>
+  </Style>
+  <Style x:Key="Caption" TargetType="TextBlock" BasedOn="{StaticResource TextBase}">
+    <Setter Property="FontSize" Value="{DynamicResource FsCaption}"/>
+    <Setter Property="Foreground" Value="{DynamicResource FgDim}"/>
+    <Setter Property="FontWeight" Value="Medium"/>
+  </Style>
+
+  <!-- ============ BumperPillNavigation tab ============
+       Winhanced's top nav: LB ‹ pills › RB with a GlowUnderline riding the
+       active tab. The underline is the identity cue; the pill fill is the
+       focus cue. -->
+  <Style x:Key="BumperPill" TargetType="RadioButton">
+    <!-- We draw our OWN focus (plate + glow + rim). WPF's default focus
+         visual is a dotted rectangle that would sit on top of it. -->
+    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    <Setter Property="FontFamily" Value="{DynamicResource UiFont}"/>
+    <!-- Measured off Winhanced: the nav labels are the largest chrome text
+         on the screen after a section title, because the strip IS the
+         page's spine. At body size it read as a row of links. -->
+    <Setter Property="FontSize" Value="{DynamicResource FsH3}"/>
+    <Setter Property="FontWeight" Value="Medium"/>
+    <Setter Property="Foreground" Value="{DynamicResource FgMuted}"/>
+    <Setter Property="Focusable" Value="True"/>
+    <Setter Property="Margin" Value="4,0"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="RadioButton">
+          <Grid>
+            <Border x:Name="Fill" CornerRadius="{DynamicResource RadPill}"
+                    Background="Transparent" Padding="22,9">
+              <ContentPresenter x:Name="CP" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <!-- GlowUnderline: only under the ACTIVE tab -->
+            <Border x:Name="Underline" Height="4" Width="58" CornerRadius="2"
+                    VerticalAlignment="Bottom" HorizontalAlignment="Center"
+                    Margin="0,0,0,-6" Opacity="0"
+                    Background="{DynamicResource Accent}">
+              <Border.Effect>
+                <DropShadowEffect BlurRadius="14" ShadowDepth="0" Opacity="0.95"
+                                  Color="{DynamicResource AccentColor}"/>
+              </Border.Effect>
+            </Border>
+          </Grid>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsChecked" Value="True">
+              <Setter TargetName="Underline" Property="Opacity" Value="1"/>
+              <Setter Property="Foreground" Value="{DynamicResource FgPrimary}"/>
+              <Setter Property="FontWeight" Value="SemiBold"/>
+            </Trigger>
+            <!-- 🔴 FOCUS MUST NOT OUT-SHOUT SELECTION. Steam's rule is "focus is
+                 a bright fill", and it is right for a LIST — but this strip also
+                 carries a SELECTED state, and a white plate on the pill you are
+                 merely hovering read louder than the underline on the tab you are
+                 actually looking at: the shell appeared to be on "Home" while the
+                 page said "Settings". So focus here is a soft rim, and the loud
+                 treatment (white + SemiBold + the glowing underline) stays
+                 reserved for the tab that is genuinely current. -->
+            <Trigger Property="IsKeyboardFocused" Value="True">
+              <Setter TargetName="Fill" Property="Background" Value="{DynamicResource GlassChip}"/>
+              <Setter TargetName="Fill" Property="BorderThickness" Value="1.5"/>
+              <Setter TargetName="Fill" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+              <Setter Property="Foreground" Value="{DynamicResource FgPrimary}"/>
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="Fill" Property="Background" Value="{DynamicResource GlassChip}"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- ============ PinnedSecondaryNav filter chip ============ -->
+  <Style x:Key="Chip" TargetType="RadioButton">
+    <!-- We draw our OWN focus (plate + glow + rim). WPF's default focus
+         visual is a dotted rectangle that would sit on top of it. -->
+    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    <Setter Property="FontFamily" Value="{DynamicResource UiFont}"/>
+    <Setter Property="FontSize" Value="{DynamicResource FsBody2}"/>
+    <Setter Property="FontWeight" Value="Medium"/>
+    <Setter Property="Foreground" Value="{DynamicResource FgMuted}"/>
+    <Setter Property="Margin" Value="3,0"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="RadioButton">
+          <Border x:Name="B" CornerRadius="{DynamicResource RadPill}"
+                  Background="{DynamicResource GlassChip}"
+                  BorderThickness="1" BorderBrush="Transparent"
+                  Padding="15,6">
+            <ContentPresenter VerticalAlignment="Center"/>
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsChecked" Value="True">
+              <Setter TargetName="B" Property="Background" Value="{DynamicResource Accent}"/>
+              <Setter Property="Foreground" Value="#FF0E141B"/>
+              <Setter Property="FontWeight" Value="SemiBold"/>
+            </Trigger>
+            <Trigger Property="IsKeyboardFocused" Value="True">
+              <!-- Steam: focused chip inverts to white-on-dark -->
+              <Setter TargetName="B" Property="Background" Value="{DynamicResource FgPrimary}"/>
+              <Setter Property="Foreground" Value="#FF0E141B"/>
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="B" Property="BorderBrush" Value="{DynamicResource HairlineBrush}"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- ============ THE GAME TILE ============
+       Layer order matters and is the whole trick:
+         0  FocusPlate  — Steam's grey plate, LARGER than the card
+         1  Glow        — Winhanced's accent halo
+         2  Card        — the box art
+         3  Rim         — a 2px specular edge, drawn last so nothing clips it
+       On focus the whole thing scales with Steam's overshoot curve. -->
+  <Style x:Key="Tile" TargetType="Button">
+    <!-- We draw our OWN focus (plate + glow + rim). WPF's default focus
+         visual is a dotted rectangle that would sit on top of it. -->
+    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="Focusable" Value="True"/>
+    <!-- 🔴 THE MARGIN IS THE FOCUS BLOOM'S CLEARANCE, NOT SPACING TASTE.
+         Focus scales the whole tile to 1.09 AND hangs a plate 13/16px outside it
+         AND a 42px-blur glow beyond that. At 10px the bloom had nowhere to go:
+         it grew straight into the neighbour and into the viewport edge, so a
+         focused card looked CUT rather than lifted. 16 is the smallest value
+         that clears the plate; the grids that place tiles themselves widen it
+         further, because their neighbours are on two axes instead of one. -->
+    <Setter Property="Margin" Value="16"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Button">
+          <Grid x:Name="Root" RenderTransformOrigin="0.5,0.5">
+            <Grid.RenderTransform>
+              <ScaleTransform x:Name="S" ScaleX="1" ScaleY="1"/>
+            </Grid.RenderTransform>
+
+            <!-- (0) Steam's focus plate: bigger than the card, sits behind -->
+            <Border x:Name="Plate" Opacity="0"
+                    Margin="-13,-16,-13,-16"
+                    CornerRadius="{DynamicResource RadGlow}"
+                    Background="{DynamicResource FocusPlate}"/>
+
+            <!-- (1) Winhanced's accent glow -->
+            <Border x:Name="Glow" Opacity="0"
+                    Margin="-6"
+                    CornerRadius="{DynamicResource RadGlow}"
+                    Background="Transparent">
+              <Border.Effect>
+                <DropShadowEffect x:Name="GlowFx" BlurRadius="42" ShadowDepth="0"
+                                  Opacity="0.9" Color="{DynamicResource AccentColor}"/>
+              </Border.Effect>
+              <Border CornerRadius="{DynamicResource RadGlow}"
+                      Background="{DynamicResource Accent}"/>
+            </Border>
+
+            <!-- (2) the card itself
+                 🔴 TRANSPARENT, NOT BgSurface. The content inside carries its own
+                 rounded clip (a RectangleGeometry at radius 12 — see Tile()), and
+                 an antialiased clip edge is not perfectly opaque. A solid plate
+                 painted behind it therefore bled through at exactly the four
+                 corners, which is what the grey arcs on every card were: not a
+                 rendering artefact, an opaque background showing through the one
+                 place the content stops covering it. A cover-less tile paints its
+                 OWN PlateFill(), so nothing here relied on this fill. -->
+            <!-- 🔴 SEPARATION WITHOUT A PER-TILE EFFECT. Every card used to carry
+                 its own always-on DropShadowEffect, which means a library grid of
+                 fifty-eight covers asked the GPU for fifty-eight blurred
+                 surfaces on every frame it scrolled. MEASURED on this machine:
+                 scrolling the grid cost 2969ms of CPU with the shadows and
+                 2438ms without - an 18% tax for an effect nobody can point to on
+                 a bright cover. A hairline rim does the one job the shadow was
+                 doing (telling one cover from the next against a dark ground) at
+                 the cost of a border.
+                 A hairline rim was tried as a cheaper stand-in and measured
+                 2812ms - it gives back most of the saving, because a border is
+                 another draw per tile. So the card carries NOTHING at rest,
+                 which is also what both reference shells do: box art is a bright
+                 rectangle on a dark ground and separates itself, and the focused
+                 card still gets its plate, glow and rim.
+                 To put the shadow back: Effect="{DynamicResource ShadowSoft}". -->
+            <Border x:Name="Card" CornerRadius="{DynamicResource RadCard}"
+                    Background="Transparent"
+                    ClipToBounds="True">
+              <ContentPresenter/>
+            </Border>
+
+            <!-- (3) specular rim, always last -->
+            <Border x:Name="Rim" CornerRadius="{DynamicResource RadCard}"
+                    BorderThickness="2" BorderBrush="Transparent"
+                    IsHitTestVisible="False"/>
+          </Grid>
+
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsKeyboardFocused" Value="True">
+              <Setter TargetName="Plate" Property="Opacity" Value="0.85"/>
+              <Setter TargetName="Glow" Property="Opacity" Value="0.55"/>
+              <Setter TargetName="Rim" Property="BorderBrush" Value="{DynamicResource FgPrimary}"/>
+              <Trigger.EnterActions>
+                <BeginStoryboard>
+                  <Storyboard>
+                    <!-- Steam's own overshoot: cubic-bezier(0.1,0.12,0.53,1.72) -->
+                    <DoubleAnimation Storyboard.TargetName="S" Storyboard.TargetProperty="ScaleX"
+                                     To="1.09" Duration="0:0:0.21">
+                      <DoubleAnimation.EasingFunction>
+                        <BackEase EasingMode="EaseOut" Amplitude="0.45"/>
+                      </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                    <DoubleAnimation Storyboard.TargetName="S" Storyboard.TargetProperty="ScaleY"
+                                     To="1.09" Duration="0:0:0.21">
+                      <DoubleAnimation.EasingFunction>
+                        <BackEase EasingMode="EaseOut" Amplitude="0.45"/>
+                      </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                  </Storyboard>
+                </BeginStoryboard>
+              </Trigger.EnterActions>
+              <Trigger.ExitActions>
+                <BeginStoryboard>
+                  <Storyboard>
+                    <DoubleAnimation Storyboard.TargetName="S" Storyboard.TargetProperty="ScaleX"
+                                     To="1" Duration="0:0:0.15"/>
+                    <DoubleAnimation Storyboard.TargetName="S" Storyboard.TargetProperty="ScaleY"
+                                     To="1" Duration="0:0:0.15"/>
+                  </Storyboard>
+                </BeginStoryboard>
+              </Trigger.ExitActions>
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="Rim" Property="BorderBrush" Value="{DynamicResource HairlineBrush}"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+
+    <!-- 🔴 THE FOCUSED TILE MUST COME TO THE FRONT. Everything that says
+         "this one is selected" is drawn OUTSIDE the button's own box: the
+         plate at Margin -13/-16, a 42px blur halo, and a 1.09 overshoot. A
+         panel paints its children in order, so without this the NEXT tile
+         paints over the right half of that effect and the previous one eats
+         the left — the halo arrives as two clipped vertical bars and the
+         card that is supposed to be LIFTED looks sliced instead. No amount
+         of margin fixes it: the effect is a blur, so there is no gap wide
+         enough. Raising the z-order costs nothing and fixes it completely.
+         (Style.Triggers, not ControlTemplate.Triggers — ZIndex has to land
+         on the BUTTON, which is the panel's child; a template trigger only
+         reaches inside the template.) -->
+    <Style.Triggers>
+      <Trigger Property="IsKeyboardFocused" Value="True">
+        <Setter Property="Panel.ZIndex" Value="10"/>
+      </Trigger>
+      <Trigger Property="IsMouseOver" Value="True">
+        <Setter Property="Panel.ZIndex" Value="10"/>
+      </Trigger>
+    </Style.Triggers>
+  </Style>
+
+  <!-- ============ Primary CTA (▶ שחק) ============ -->
+  <Style x:Key="PrimaryCTA" TargetType="Button">
+    <!-- We draw our OWN focus (plate + glow + rim). WPF's default focus
+         visual is a dotted rectangle that would sit on top of it. -->
+    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    <Setter Property="FontFamily" Value="{DynamicResource UiFont}"/>
+    <Setter Property="FontSize" Value="{DynamicResource FsSubtitle}"/>
+    <Setter Property="FontWeight" Value="SemiBold"/>
+    <Setter Property="Foreground" Value="#FF0E141B"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Button">
+          <Border x:Name="B" CornerRadius="{DynamicResource RadPill}"
+                  Background="{DynamicResource Accent}" Padding="30,13">
+            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsKeyboardFocused" Value="True">
+              <!-- Steam inverts a focused primary to solid white -->
+              <Setter TargetName="B" Property="Background" Value="{DynamicResource FgPrimary}"/>
+              <Setter TargetName="B" Property="Effect" Value="{DynamicResource ShadowSoft}"/>
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="B" Property="Opacity" Value="0.9"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+              <Setter TargetName="B" Property="Background" Value="{DynamicResource BgRaised}"/>
+              <Setter Property="Foreground" Value="{DynamicResource FgDim}"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- ============ Secondary / ghost button ============ -->
+  <Style x:Key="GhostButton" TargetType="Button">
+    <!-- We draw our OWN focus (plate + glow + rim). WPF's default focus
+         visual is a dotted rectangle that would sit on top of it. -->
+    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    <Setter Property="FontFamily" Value="{DynamicResource UiFont}"/>
+    <Setter Property="FontSize" Value="{DynamicResource FsBody1}"/>
+    <Setter Property="FontWeight" Value="Medium"/>
+    <Setter Property="Foreground" Value="{DynamicResource FgSecondary}"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Button">
+          <Border x:Name="B" CornerRadius="{DynamicResource RadPill}"
+                  Background="{DynamicResource GlassChip}"
+                  BorderThickness="1" BorderBrush="{DynamicResource HairlineBrush}"
+                  Padding="24,11">
+            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsKeyboardFocused" Value="True">
+              <Setter TargetName="B" Property="Background" Value="{DynamicResource FgPrimary}"/>
+              <Setter Property="Foreground" Value="#FF0E141B"/>
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="B" Property="Background" Value="{DynamicResource GlassChipHi}"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- ============ Ghost ICON button ============
+       A square, quiet affordance for a glyph on its own — the back mark in a
+       panel header, a close mark on a card. It is deliberately NOT focusable by
+       the pad: B already goes back, and putting the same action in the focus
+       ring as well would make every panel start one press away from the first
+       row that actually matters. It exists for the mouse. -->
+  <Style x:Key="GhostIcon" TargetType="Button">
+    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    <Setter Property="Focusable" Value="False"/>
+    <Setter Property="Foreground" Value="{DynamicResource FgSecondary}"/>
+    <Setter Property="Cursor" Value="Hand"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Button">
+          <Border x:Name="B" Width="38" Height="38" CornerRadius="{DynamicResource RadMd}"
+                  Background="Transparent">
+            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="B" Property="Background" Value="{DynamicResource GlassRowHi}"/>
+              <Setter Property="Foreground" Value="{DynamicResource FgPrimary}"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- ============ Destructive CTA ============
+       Steam paints a destructive dialog #c44848 and Winhanced gives the power
+       button its own GlassPillPowerButtonStyle — i.e. BOTH products refuse to
+       let "shut down the machine" wear the same clothes as "OK". This is the
+       one button colour that must never be the accent. -->
+  <Style x:Key="DestructiveCTA" TargetType="Button">
+    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    <Setter Property="FontFamily" Value="{DynamicResource UiFont}"/>
+    <Setter Property="FontSize" Value="{DynamicResource FsBody1}"/>
+    <Setter Property="FontWeight" Value="SemiBold"/>
+    <Setter Property="Foreground" Value="{DynamicResource FgPrimary}"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Button">
+          <Grid>
+            <Border x:Name="Plate" Opacity="0" Margin="-7,-6,-7,-6"
+                    CornerRadius="{DynamicResource RadPill}"
+                    Background="{DynamicResource Destructive}"/>
+            <Border x:Name="B" CornerRadius="{DynamicResource RadPill}"
+                    Background="{DynamicResource Destructive}" Padding="28,12"/>
+            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                              Margin="28,12"/>
+          </Grid>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsKeyboardFocused" Value="True">
+              <!-- Focus BRIGHTENS the danger; it never turns it into a neutral
+                   white pill, or the riskiest button becomes the calmest one. -->
+              <Setter TargetName="Plate" Property="Opacity" Value="0.34"/>
+              <Setter TargetName="B" Property="Effect" Value="{DynamicResource ShadowSoft}"/>
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="B" Property="Opacity" Value="0.88"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- ============ GlassPillIndicator button ============
+       Winhanced's StatusIndicatorButtonStyle: a glyph-only chip inside the
+       system pill, each with its OWN glow border on focus. -->
+  <Style x:Key="StatusIndicator" TargetType="Button">
+    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    <Setter Property="Foreground" Value="{DynamicResource FgSecondary}"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Button">
+          <Grid>
+            <Border x:Name="Glow" Opacity="0" Margin="-3"
+                    CornerRadius="{DynamicResource RadPill}"
+                    Background="{DynamicResource FocusPlate}"/>
+            <Border x:Name="B" Width="34" Height="34"
+                    CornerRadius="17" Background="Transparent">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+          </Grid>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsKeyboardFocused" Value="True">
+              <Setter TargetName="Glow" Property="Opacity" Value="0.9"/>
+              <Setter TargetName="B" Property="Background" Value="{DynamicResource FgPrimary}"/>
+              <Setter Property="Foreground" Value="#FF0E141B"/>
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="B" Property="Background" Value="{DynamicResource GlassChipHi}"/>
+              <Setter Property="Foreground" Value="{DynamicResource FgPrimary}"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- ============ NavFooterGrid hint ============ -->
+  <!-- The clickable wrapper around one footer legend entry. It has to be
+       INVISIBLE at rest: the legend is read as text, and a row of five buttons
+       along the bottom of a 10ft shell would compete with the content. So the
+       only affordance is a soft plate on hover - enough to answer "is this
+       clickable" for the one user who tries it, and nothing at all otherwise. -->
+  <Style x:Key="HintHit" TargetType="Button">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="Padding" Value="6,3,6,3"/>
+    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Button">
+          <Border x:Name="Bg" Background="{TemplateBinding Background}"
+                  CornerRadius="8" Padding="{TemplateBinding Padding}">
+            <ContentPresenter VerticalAlignment="Center"/>
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="Bg" Property="Background" Value="{DynamicResource GlassChipHi}"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <Style x:Key="HintGlyph" TargetType="Border">
+    <Setter Property="Width" Value="26"/>
+    <Setter Property="Height" Value="26"/>
+    <Setter Property="CornerRadius" Value="13"/>
+    <Setter Property="Background" Value="{DynamicResource GlassChipHi}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource HairlineBrush}"/>
+    <Setter Property="Margin" Value="0,0,8,0"/>
+  </Style>
+
+  <!-- ============ Glass surface (Winhanced's GlassRailHost / DockCard) ============
+       The tint that rides ON TOP of the DWM acrylic. Kept low-alpha on
+       purpose: a heavy fill over acrylic reads as a flat card, not glass. -->
+  <Style x:Key="GlassCard" TargetType="Border">
+    <Setter Property="Background" Value="{DynamicResource GlassRail}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource HairlineBrush}"/>
+    <Setter Property="CornerRadius" Value="{DynamicResource RadLg}"/>
+    <Setter Property="Padding" Value="{DynamicResource PadLg}"/>
+  </Style>
+
+  <!-- ============ Glass PANEL — the floating-window material ============
+       Everything that floats over the shell (system panels, pickers,
+       confirmations, the quick menu) wears this, so they read as one family of
+       objects made of one material instead of a pile of differently-tinted
+       cards. The gradient fill + gradient edge are defined in Tokens.xaml; the
+       reason it stays readable over box art is Frost(), not opacity. -->
+  <Style x:Key="GlassPanelCard" TargetType="Border" BasedOn="{StaticResource GlassCard}">
+    <Setter Property="Background" Value="{DynamicResource GlassPanel}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource GlassEdge}"/>
+    <Setter Property="CornerRadius" Value="{DynamicResource RadPanel}"/>
+    <Setter Property="Padding" Value="22"/>
+    <Setter Property="Effect" Value="{DynamicResource ShadowPanel}"/>
+  </Style>
+
+  <!-- ============ A settings / list row ============
+       Winhanced's ToggleCard shape: title + subtitle on one side, the state on
+       the other. It states the COST of a change, which is what separates a
+       credible system tool from an "optimizer". -->
+  <Style x:Key="ListRow" TargetType="Button">
+    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    <Setter Property="FontFamily" Value="{DynamicResource UiFont}"/>
+    <Setter Property="Foreground" Value="{DynamicResource FgPrimary}"/>
+    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+    <Setter Property="Margin" Value="0,0,0,8"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Button">
+          <Grid>
+            <!-- An accent bloom, sized to a row rather than a card. See the
+                 focus trigger below for why this is not Steam's white plate. -->
+            <Border x:Name="Plate" Opacity="0" Margin="-6,-4,-6,-4"
+                    CornerRadius="{DynamicResource RadLg}"
+                    Background="{DynamicResource Accent}"/>
+            <Border x:Name="B" CornerRadius="{DynamicResource RadMd}"
+                    Background="{DynamicResource GlassChip}"
+                    BorderThickness="1" BorderBrush="Transparent"
+                    Padding="18,14">
+              <ContentPresenter/>
+            </Border>
+          </Grid>
+          <ControlTemplate.Triggers>
+            <!--
+              🔴🔴 A ROW IS NOT A TILE — DO NOT INVERT IT.
+
+              This used to be Steam's gpfocus: a white plate with the text
+              flipped to near-black. On a COVER that is exactly right, and the
+              tiles still do it. On a full-width row it fails twice.
+
+              First, legibility: `Foreground` on a Button is INHERITED, so it
+              only reaches text that has not set its own. The row's title and
+              caption carry the Body/Caption styles, whose explicit Foreground
+              wins over inheritance — so the plate went white while the title
+              stayed light grey and disappeared. Same class as the destination
+              tile's `Foreground = null`: in WPF, "the parent said so" loses to
+              "the style said so".
+
+              Second, and the reason not to just patch it with bindings: a
+              full-bleed white rectangle on a dark 10ft screen is a flash every
+              time the stick moves. Winhanced focuses a row with an ACCENT
+              BORDER and a soft bloom, which is legible at couch distance,
+              costs no contrast anywhere, and cannot break whatever text a row
+              happens to contain.
+            -->
+            <Trigger Property="IsKeyboardFocused" Value="True">
+              <Setter TargetName="Plate" Property="Opacity" Value="0.20"/>
+              <Setter TargetName="B" Property="Background" Value="{DynamicResource GlassChipHi}"/>
+              <Setter TargetName="B" Property="BorderThickness" Value="2"/>
+              <Setter TargetName="B" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+              <Setter TargetName="B" Property="Effect" Value="{DynamicResource ShadowMedium}"/>
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="B" Property="BorderBrush" Value="{DynamicResource HairlineBrush}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+              <Setter Property="Foreground" Value="{DynamicResource FgDim}"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- ============ Progress (downloads, storage, telemetry) ============ -->
+  <Style x:Key="Meter" TargetType="ProgressBar">
+    <Setter Property="Height" Value="6"/>
+    <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+    <Setter Property="Background" Value="{DynamicResource GlassChipHi}"/>
+    <Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="ProgressBar">
+          <!-- 🔴 PART_Track MUST STRETCH. It had HorizontalAlignment="Left", so
+               the Grid shrank to its only child - a Rectangle with no width -
+               and ProgressBar sizes PART_Indicator from PART_Track.ActualWidth.
+               The track measured 0, so the indicator measured 0, and EVERY
+               meter in the app rendered as an empty rail no matter the value.
+               The alignment belongs on the indicator, which is where the fill
+               grows from (and RTL mirrors that to the reading start for free). -->
+          <Border CornerRadius="3" Background="{TemplateBinding Background}" ClipToBounds="True">
+            <Grid x:Name="PART_Track">
+              <Rectangle x:Name="PART_Indicator" Fill="{TemplateBinding Foreground}"
+                         HorizontalAlignment="Left" RadiusX="3" RadiusY="3"/>
+            </Grid>
+          </Border>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!--
+    DestTile — the landscape destination card under the nav strip.
+
+    🔴🔴 FOCUS HERE IS AN ACCENT BORDER, NOT AN INVERTED PLATE. Every other
+    focusable in this shell flips to a white plate with dark text, and on a
+    brand-coloured tile that would erase the one thing the tile IS: its colour.
+    Winhanced's own tiles keep their fill and take a bright accent rim plus a
+    small lift — the card stays itself and simply comes forward. Measured off
+    their Library screen, where the focused "Xbox Remote Play" tile keeps its
+    green and gains a blue edge.
+
+    The tint arrives per instance (set in code), so the template must NOT set
+    Background — a Setter here would win over the instance value and every tile
+    would come out the same colour.
+  -->
+  <Style x:Key="DestTile" TargetType="Button">
+    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    <Setter Property="Foreground" Value="{DynamicResource FgPrimary}"/>
+    <Setter Property="Height" Value="150"/>
+    <Setter Property="Margin" Value="9,0"/>
+    <Setter Property="HorizontalAlignment" Value="Stretch"/>
+    <Setter Property="Cursor" Value="Hand"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Button">
+          <Grid x:Name="Lift" RenderTransformOrigin="0.5,0.5">
+            <Border x:Name="Card"
+                    CornerRadius="{DynamicResource RadLg}"
+                    Background="{TemplateBinding Background}"
+                    BorderThickness="2"
+                    BorderBrush="Transparent">
+              <!-- A single specular sheen, so a flat tint reads as a surface
+                   catching light rather than a rectangle of colour. -->
+              <Border CornerRadius="{DynamicResource RadLg}">
+                <Border.Background>
+                  <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#26FFFFFF" Offset="0.0"/>
+                    <GradientStop Color="#00FFFFFF" Offset="0.55"/>
+                    <GradientStop Color="#14000000" Offset="1.0"/>
+                  </LinearGradientBrush>
+                </Border.Background>
+                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              </Border>
+            </Border>
+          </Grid>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsKeyboardFocused" Value="True">
+              <Setter TargetName="Card" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+              <Setter TargetName="Card" Property="Effect" Value="{DynamicResource ShadowMedium}"/>
+              <!-- The transform is replaced WHOLE. A ScaleTransform named
+                   inside Grid.RenderTransform is not a legal trigger target
+                   (MC4111) — only the element it hangs off is. -->
+              <Setter TargetName="Lift" Property="RenderTransform">
+                <Setter.Value><ScaleTransform ScaleX="1.035" ScaleY="1.035"/></Setter.Value>
+              </Setter>
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="Card" Property="BorderBrush" Value="{DynamicResource GlassChipHi}"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+              <Setter TargetName="Lift" Property="RenderTransform">
+                <Setter.Value><ScaleTransform ScaleX="0.99" ScaleY="0.99"/></Setter.Value>
+              </Setter>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+</ResourceDictionary>

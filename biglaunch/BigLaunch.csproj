@@ -1,0 +1,76 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>BigLaunch</AssemblyName>
+    <RootNamespace>BigLaunch</RootNamespace>
+    <ApplicationIcon>Assets\biglaunch.ico</ApplicationIcon>
+    <Version>1.0.0</Version>
+    <Product>Big Launch</Product>
+    <Company>Hebrew Translation Hub</Company>
+    <!-- A 10ft shell must never show a console, and must never be DPI-blurry. -->
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+
+    <!--
+      🔴🔴 THE SHIPPED ARTIFACT IS ONE FILE, AND THAT IS NOT OPTIONAL.
+      installer.iss copies exactly ONE line — `dist_biglaunch\BigLaunch.exe` —
+      and nothing else from this project. A plain `dotnet publish` without these
+      properties emits the ordinary multi-file layout instead: a ~316KB apphost
+      beside BigLaunch.dll and three satellite DLLs. It runs perfectly from
+      dist_biglaunch (the loose DLLs are right there), so the local test loop
+      shows nothing wrong — and the INSTALLED copy is a shortcut that dies on
+      launch because the runtime assemblies were never copied.
+
+      Pinning it here rather than in a build flag is the point: the shape then
+      cannot depend on which command anyone happened to type.
+
+      Framework-dependent on purpose (~1.7MB, .NET 8 Desktop required) — the
+      self-contained equivalent is ~150MB and this ships inside an installer
+      that is already large.
+    -->
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>false</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Winhanced's own face is Inter and Steam's is Motiva Sans — neither can
+         be used here: Inter has NO Hebrew, and Motiva Sans is Valve's licensed
+         font. Heebo is the geometric-grotesque with a real Hebrew set, so the
+         shell keeps the same visual weight in the language it actually ships
+         in. Embedded as a resource so the EXE never falls back to a different
+         metric set on a machine that lacks it. -->
+    <Resource Include="Assets\Fonts\*.ttf" />
+    <Resource Include="Assets\*.png" Exclude="Assets\splash.png" />
+
+    <!-- The brand badge, shown by Windows itself the instant the process starts -
+         BEFORE WPF, XAML or the library scan exist. A 10ft shell that shows
+         nothing for the first second reads as "it didn't launch", and on a
+         handheld that is the moment the user presses the button again. WPF
+         renders this as a LAYERED window, so the PNG's alpha is kept and the
+         round badge floats with no box around it; it fades out by itself the
+         moment MainWindow paints. -->
+    <!-- 🔴 NO SplashScreen BUILD ACTION. This is the logo that kept appearing
+         before the opener. WPF's SplashScreen is not ours to time: the runtime
+         puts the PNG on screen the instant the PROCESS starts - before App, before
+         any XAML - and holds it until MainWindow first paints. So it necessarily
+         precedes the film, it sits on top of the desktop rather than on our own
+         black, and nothing in the shell's own code can stop it. The opener IS the
+         product's title card; a second one in front of it is one too many.
+         The file stays in the repo, it is simply no longer a build action. -->
+    <None Include="Assets\splash.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The ONLY external package. Windows exposes GPU utilisation exclusively
+         through performance counters; CPU and RAM stay on plain P/Invoke. -->
+    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="8.0.1" />
+  </ItemGroup>
+
+</Project>

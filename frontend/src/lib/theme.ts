@@ -41,12 +41,12 @@ import type { Availability, ModState } from "./types";
 // e.g. amber "בעבודה" disappears on Cyberpunk's yellow cover).
 //
 // IMPORTANT: the parameter is typed `string` (not the strict Availability
-// union) AND the function always returns a result — never undefined. The
+// union) AND the function always returns a result - never undefined. The
 // website's catalog can introduce new availability values at any time
 // (the admin form adds rows on the fly); when that happens the launcher
 // must NOT crash. Unknown values fall back to a neutral chip showing the
 // raw value, exactly like the website's <AvailabilityRibbon>. This was
-// the root cause of the v1.0.5/v1.0.6 black-screen — a "translating"
+// the root cause of the v1.0.5/v1.0.6 black-screen - a "translating"
 // row from the new admin pipeline-stage options hit a non-exhaustive
 // switch here and returned undefined, then GameCard accessed
 // `.tone` on undefined and crashed the entire React tree.
@@ -69,7 +69,22 @@ export function availabilityLabel(a: string): { text: string; tone: string } {
   // the launcher is rebuilt. Shows the raw token in a neutral chip so
   // the admin can still see "this game has *some* state" rather than
   // a crash or a missing chip.
-  return { text: a || "—", tone: `${base} text-slate-300 ring-slate-300/30` };
+  return { text: a || "-", tone: `${base} text-slate-300 ring-slate-300/30` };
+}
+
+// Sort rank for "לפי סטטוס": ready first, then in-production, QA, coming, planned…
+export function availabilityRank(a: string): number {
+  switch (a as Availability) {
+    case "available":                                                      return 0;
+    case "in-progress": case "extracting": case "translating":
+    case "packing":     case "finalizing":                                 return 1;
+    case "qa":                                                             return 2;
+    case "coming-soon":                                                    return 3;
+    case "planned":                                                        return 4;
+    case "paused":                                                         return 5;
+    case "archived":                                                       return 6;
+  }
+  return 9;
 }
 
 export function modStateLabel(s: string): { text: string; tone: string } {
@@ -79,7 +94,7 @@ export function modStateLabel(s: string): { text: string; tone: string } {
     case "DISABLED":      return { text: "תרגום מושבת",      tone: `${base} text-amber-200   ring-amber-400/40` };
     case "NOT_INSTALLED": return { text: "מוכן להתקנה",      tone: `${base} text-sky-200     ring-sky-400/40` };
     case "NOT_AVAILABLE": return { text: "תרגום לא זמין",    tone: `${base} text-slate-300   ring-slate-300/30` };
-    case "UNKNOWN":       return { text: "—",                tone: `${base} text-slate-400   ring-slate-400/30` };
+    case "UNKNOWN":       return { text: "-",                tone: `${base} text-slate-400   ring-slate-400/30` };
   }
-  return { text: s || "—", tone: `${base} text-slate-400 ring-slate-400/30` };
+  return { text: s || "-", tone: `${base} text-slate-400 ring-slate-400/30` };
 }

@@ -36,7 +36,7 @@ log = logging.getLogger(__name__)
 
 
 # ── Toolhelp32 child-process termination ─────────────────────
-# On Windows, child processes do NOT die when their parent exits —
+# On Windows, child processes do NOT die when their parent exits -
 # so the Chrome `--app` subprocess Eel spawned for the launcher
 # window stays alive (showing a 'site can't be reached' page) after
 # the Python process is gone via os._exit. We use the toolhelp32
@@ -96,7 +96,7 @@ def _kill_my_child_processes() -> None:
     except Exception:                              # pragma: no cover
         pass
 
-_icon: Optional[object] = None        # pystray.Icon — typed loosely so the
+_icon: Optional[object] = None        # pystray.Icon - typed loosely so the
                                       # module imports cleanly when pystray
                                       # isn't installed.
 _thread: Optional[threading.Thread] = None
@@ -129,7 +129,7 @@ def _load_icon_image():
         try:
             return Image.open(p)
         except OSError as e:
-            log.warning("tray: cannot open %s — %s", p, e)
+            log.warning("tray: cannot open %s - %s", p, e)
     # Bare-fallback: 64x64 solid yellow square (matches brand-yellow #fff700).
     img = Image.new("RGB", (64, 64), (255, 247, 0))
     return img
@@ -145,7 +145,7 @@ def _relaunch_self(restored: bool = True) -> None:
 
     `restored=True` (the default for every tray/single-instance relaunch)
     passes `--restored` so the new process knows it is NOT a genuine cold
-    start — it shows the disk cache instantly and skips the
+    start - it shows the disk cache instantly and skips the
     refresh-on-open. Only the OS launching the exe fresh omits the flag.
     """
     extra = ["--restored"] if restored else []
@@ -159,7 +159,7 @@ def _relaunch_self(restored: bool = True) -> None:
             entry = Path(sys.argv[0]).resolve()
             subprocess.Popen([sys.executable, str(entry), *extra], close_fds=True)
     except Exception as e:                                # pragma: no cover
-        log.warning("tray: relaunch failed — %s", e)
+        log.warning("tray: relaunch failed - %s", e)
 
 
 _LAUNCHER_WINDOW_TITLE = "מנהל התרגומים הרשמי"
@@ -186,7 +186,7 @@ def _focus_window(hwnd: int) -> bool:
     try:
         u = ctypes.windll.user32
         SW_RESTORE = 9
-        # ShowWindow un-minimises and un-hides — no-op if already visible.
+        # ShowWindow un-minimises and un-hides - no-op if already visible.
         u.ShowWindow(hwnd, SW_RESTORE)
         # SetForegroundWindow is restricted by Windows; the call still
         # flashes the taskbar entry which is better than silence even
@@ -203,7 +203,7 @@ def _menu_open(icon, _item) -> None:
 
     If the launcher window is still alive (close-to-tray was triggered by
     a *temporary* hide, or the user just minimised), bring it to the
-    front via the Windows API — no relaunch, no child-kill, no flicker.
+    front via the Windows API - no relaunch, no child-kill, no flicker.
 
     Only when the window has actually been destroyed (the legacy
     close-to-tray path closes the Chromium window since Eel/Chrome
@@ -211,17 +211,17 @@ def _menu_open(icon, _item) -> None:
     """
     if _on_show_request is not None:
         try: _on_show_request()
-        except Exception as e: log.warning("tray show callback failed — %s", e)
+        except Exception as e: log.warning("tray show callback failed - %s", e)
 
     # Happy path: focus the live window. NO process relaunch, NO Chrome
-    # child kill — both used to cause the visible "the launcher vanished"
+    # child kill - both used to cause the visible "the launcher vanished"
     # the user reported.
     hwnd = _find_launcher_window()
     if hwnd:
         _focus_window(hwnd)
         return
 
-    # Cold path: the window is gone — spawn a fresh launcher. Keep our
+    # Cold path: the window is gone - spawn a fresh launcher. Keep our
     # tray icon alive for ~1.2 s so the new process's tray icon has time
     # to appear before ours vanishes (otherwise the icon visibly blinks).
     _relaunch_self()
@@ -237,13 +237,13 @@ def _menu_open(icon, _item) -> None:
 def _menu_quit(icon, _item) -> None:
     """Fired by tray menu → 'סגור לצמיתות'.
 
-    Close the Chrome `--app` child FIRST — on Windows it does NOT die
+    Close the Chrome `--app` child FIRST - on Windows it does NOT die
     with the parent, so without this the user picks "close permanently"
     and the launcher window stays on screen (showing a dead Eel page).
     """
     if _on_quit_request is not None:
         try: _on_quit_request()
-        except Exception as e: log.warning("tray quit callback failed — %s", e)
+        except Exception as e: log.warning("tray quit callback failed - %s", e)
     _kill_my_child_processes()
     try: icon.stop()
     except Exception: pass
@@ -258,7 +258,7 @@ def start(
 ) -> bool:
     """Spawn the tray icon on a daemon thread. Returns True on success.
 
-    Safe to call multiple times — subsequent calls are no-ops while a
+    Safe to call multiple times - subsequent calls are no-ops while a
     tray is already running.
     """
     global _icon, _thread, _on_show_request, _on_quit_request
@@ -268,7 +268,7 @@ def start(
     try:
         import pystray
     except ImportError as e:
-        log.warning("tray: pystray not installed (%s) — running without tray", e)
+        log.warning("tray: pystray not installed (%s) - running without tray", e)
         return False
 
     _on_show_request = on_show
@@ -287,7 +287,7 @@ def start(
             _icon.run()      # type: ignore[union-attr]
             log.info("tray: icon.run() returned")
         except Exception:
-            # Full traceback — a silent tray failure is exactly the
+            # Full traceback - a silent tray failure is exactly the
             # "app not in the system tray" bug, so we want it diagnosable.
             log.exception("tray: icon.run() crashed")
 

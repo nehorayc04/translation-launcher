@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<style>
+  /* NO COLOUR ANYWHERE. The window is a frameless, DWM-Acrylic surface -
+     Windows itself supplies the blur and the rounded corners - so the page
+     paints only a whisper of NEUTRAL shade for legibility (no hue at all)
+     and the text. Any colour here would read as a tinted card rather than
+     as blurred glass. */
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: default;
+  }
+  body { display: flex; }
+
+  .overlay-window {
+    position: relative;
+    display: flex;
+    /* Rail on the LEFT by default (content opens to the right). Docked on the
+       RIGHT edge this MIRRORS - see .edge-right below. */
+    flex-direction: row-reverse;   /* forces the rail to the LEFT despite dir=rtl */
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    /* ── GLASS SURFACE ──────────────────────────────────────────
+       The BLUR is not done here - it comes from Windows' own acrylic on
+       the window (a page cannot blur what is behind its own window; see
+       the note in game_copilot_runtime._set_accent). What the page adds is
+       everything ELSE that makes a surface read as glass rather than as a
+       flat veil: a slightly frosted body, a bright specular rim, a lit top
+       edge, and a soft inner shade at the bottom.
+       The radius MUST match _CARD_RADIUS in the runtime, which clips the
+       window itself - otherwise the square acrylic rect shows at the
+       corners ("weird square edges"). */
+    border-radius: 22px;
+    background:
+      linear-gradient(
+        160deg,
+        rgba(255, 255, 255, .11) 0%,
+        rgba(255, 255, 255, .04) 34%,
+        rgba(255, 255, 255, 0)   58%),
+      rgba(18, 18, 21, 0.20);
+    /* 🔴 NO full-perimeter rim. A 1px `inset 0 0 0 1px` outline reads as a
+       thin FRAME drawn around the panel - which is exactly what it is - and
+       on a colourless surface that frame is the most visible thing on it.
+       Depth now comes only from a lit TOP edge and a soft bottom shade,
+       which imply a light source instead of outlining a box. */
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, .22),      /* lit top edge  */
+      inset 0 -18px 26px -18px rgba(0, 0, 0, .55); /* bottom shade */
+    opacity: 1;
+    transition: opacity .2s ease;
+  }
+  /* A very fine grain. Real glass is never perfectly smooth, and on a
+     low-alpha surface this is what stops it looking like plain cellophane.
+     Static (no animation) - an animated filter on a Qt WebEngine build with
+     GPU compositing disabled is a per-paint CPU cost while a GAME is running. */
+  .overlay-window::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: .035;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .overlay-window.gone   { opacity: 0; }
+  .overlay-window.dimmed { opacity: .82; }
+
+  /* TINT MODE - "שקוף וקצת מושחר": Windows' blur is switched OFF, so the
+     game stays perfectly SHARP behind the panel and the page supplies all
+     of the shading. It needs a heavier fill than the glass mode (there is
+     no blurred, tinted acrylic layer underneath to help legibility), and
+     it drops the frosted highlight, which only makes sense on frost. Also
+     the cheaper mode - nothing for the compositor to re-sample while a
+     game is running. */
+  .overlay-window.tint {
+    background: rgba(10, 10, 12, 0.62);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12);   /* no rim - see above */
+  }
+  .overlay-window.tint::after { opacity: .022; }
+
+  /* 🔴 MIRROR WHEN DOCKED RIGHT. The page has been toggling `.edge-right`
+     since round 10 and NOTHING ever styled it, so the rail stayed pinned to
+     the left by `row-reverse` and a right-docked panel opened AWAY from its
+     own edge - the arrow pointed one way and the panel grew the other.
+     The rail must hug the docked edge so the content opens INWARD. */
+  .overlay-window.edge-right { flex-direction: row; }
+  /* The content padding is asymmetric (tight against the rail, roomy on the
+     outside), so it has to mirror with the rail or the text hugs the wrong
+     side. */
+  .overlay-window.edge-right .content { padding: 12px 6px 10px 16px; }
+
+  /* TOP / BOTTOM docks: the rail turns into a HORIZONTAL strip hugging that
+     edge, so the buttons always sit ON the docked side whichever edge it is.
+     `dir` only affects the inline (row) axis, so column order is literal:
+     the sidebar is the first child, so `column` puts it on top. */
+  .overlay-window.edge-top    { flex-direction: column; }
+  .overlay-window.edge-bottom { flex-direction: column-reverse; }
+  .overlay-window.edge-top .sidebar,
+  .overlay-window.edge-bottom .sidebar {
+    flex-direction: row;
+    width: auto;
+    height: 34px;
+    flex: 0 0 34px;
+    padding: 0 14px;
+    box-sizing: border-box;
+  }
+  /* A horizontal rail wants a WIDE grab handle, not a tall one. */
+  .overlay-window.edge-top .drag-pill,
+  .overlay-window.edge-bottom .drag-pill { width: 44px; height: 20px; border-radius: 10px; }
+  .overlay-window.edge-top .content    { padding: 4px 16px 10px 16px; }
+  .overlay-window.edge-bottom .content { padding: 12px 16px 4px 16px; }
+
+  /* rail - no background of its own, no separator line */
+  .sidebar {
+    width: 52px;
+    flex: 0 0 52px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+  }
+
+  .icon-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    color: rgba(255, 255, 255, .45);
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+    transition: color .18s ease;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, .8);
+  }
+  .icon-btn:hover  { color: #fff; }
+  .icon-btn:active { color: rgba(255, 255, 255, .75); }
+
+  /* The one deliberately solid element: it must stay findable when the
+     rest of the panel is hidden, and it is the drag handle. */
+  /* Subtle by default - at .30 white on a colourless panel this read as a
+     light-grey OVAL BUTTON pasted on the glass, the loudest thing on screen.
+     It only needs to be findable, and it brightens on hover anyway. */
+  .drag-pill {
+    width: 22px;
+    height: 44px;
+    background: rgba(255, 255, 255, .085);
+    border: none;
+    border-radius: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    transition: background .18s ease;
+  }
+  .drag-pill:hover    { background: rgba(255, 255, 255, .20); }
+  .drag-pill.dragging { cursor: grabbing; background: rgba(255, 255, 255, .26); }
+  /* Collapsed it is the ONLY thing left, so it earns a little more presence
+     and its own soft shadow to lift it off the desktop. */
+  .overlay-window.collapsed .drag-pill {
+    background: rgba(22, 22, 26, .72);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, .5);
+  }
+  .overlay-window.collapsed .drag-pill:hover { background: rgba(38, 38, 44, .86); }
+
+  .triangle {
+    color: #fff;
+    font-size: 11px;
+    line-height: 1;
+    pointer-events: none;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, .7);
+  }
+
+  /* content */
+  .content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 12px 16px 10px 6px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  /* Legibility over pure blur comes from a text shadow, not from a
+     background fill - that is what lets the panel stay colourless. */
+  .title, .body, .hint { text-shadow: 0 1px 3px rgba(0, 0, 0, .85); }
+
+  .title {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: rgba(255, 255, 255, .96);
+    flex: 0 0 auto;
+  }
+
+  .body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    margin-top: 6px;
+    font-size: 11.5px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, .88);
+    scrollbar-width: none;              /* Firefox */
+  }
+  /* A visible scrollbar thumb reads as a stray floating bar on a
+     colourless panel - the content still scrolls, just without chrome. */
+  .body::-webkit-scrollbar { width: 0; height: 0; display: none; }
+  .body .step { margin: 1px 0; }
+  .body .head { font-weight: 600; color: #fff; margin-top: 5px; }
+  .body .detail {
+    direction: ltr;
+    text-align: left;
+    font-size: 10.5px;
+    color: rgba(255, 255, 255, .62);
+    word-break: break-word;
+    margin-top: 5px;
+  }
+  .body .err { font-weight: 600; }
+
+  .hint {
+    flex: 0 0 auto;
+    margin-top: 7px;
+    font-size: 10px;
+    color: rgba(255, 255, 255, .55);
+  }
+
+  /* COLLAPSED = the pill alone. No frame, no veil, no ✕/↻ - the window
+     itself shrinks to the pill and its acrylic is switched OFF, so there is
+     genuinely nothing else left to see.
+
+     🔴 SPECIFICITY: these MUST be `.overlay-window.collapsed` (2 classes) and
+     MUST come after `.overlay-window.tint`. Written as a bare `.collapsed`
+     (1 class) they LOST to `.tint`, so collapsing in tint mode kept the fill
+     and the rim - a visible frame drawn around the lone pill. */
+  .overlay-window.collapsed {
+    background: transparent;
+    box-shadow: none;
+    border-radius: 18px;
+  }
+  .overlay-window.collapsed::after   { display: none; }
+  .overlay-window.collapsed .content { display: none; }
+  .overlay-window.collapsed .icon-btn { display: none; }
+  .overlay-window.collapsed .sidebar { width: 100%; flex: 1 1 auto; justify-content: center; }
+  /* Collapsed on a TOP/BOTTOM dock the window is WIDE and SHORT, so the rail
+     has to fill it the other way round. 3 classes, so it beats both the
+     collapsed rule above and the horizontal-rail rule further up. */
+  .overlay-window.edge-top.collapsed .sidebar,
+  .overlay-window.edge-bottom.collapsed .sidebar {
+    width: 100%; height: 100%; flex: 1 1 auto; padding: 0; justify-content: center;
+  }
+</style>
+</head>
+<body>
+  <!-- starts hidden so the first show_animated() FADES in instead of popping -->
+  <div class="overlay-window gone" id="win">
+    <div class="sidebar">
+      <button class="icon-btn" id="btnClose" title="סגירה">&#10005;</button>
+      <div class="drag-pill" id="pill" title="לחיצה = פתיחה/כיווץ · גרירה = הזזה">
+        <span class="triangle" id="tri">&#9654;</span>
+      </div>
+      <button class="icon-btn" id="btnRefresh" title="נתחו שוב את המסך">&#8635;</button>
+    </div>
+
+    <div class="content">
+      <div class="title" id="title"></div>
+      <!-- The text goes in the INNER div. `.body` is the scroll box, and a
+           scroll box's own scrollHeight can never report LESS than its
+           visible height - so measuring it could only ever grow the window,
+           never shrink it back after a long answer. An inner block is sized
+           purely by its content, in both directions. -->
+      <div class="body" id="body"><div id="bodyInner"></div></div>
+      <div class="hint" id="hint"></div>
+    </div>
+  </div>
+
+<script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+<script>
+(function () {
+  var api = null;
+  var win = document.getElementById('win');
+
+  // ── called from Python ───────────────────────────────
+  // DEFINED FIRST, ON PURPOSE. If the QWebChannel handshake below throws
+  // (transport not ready, qrc script missing) it kills the rest of this
+  // IIFE - and if these setters lived after it, `setShown` would never
+  // exist, the panel would stay in its initial `gone` state, and the
+  // overlay would be permanently invisible with no error the user can
+  // see. Measured: that is exactly what happened the first time.
+  window.setTitle = function (t) { document.getElementById('title').textContent = t || ''; _remeasure(); };
+  window.setBody  = function (h) { document.getElementById('bodyInner').innerHTML = h || ''; _remeasure(); };
+  window.setHint  = function (t) { document.getElementById('hint').textContent = t || ''; _remeasure(); };
+
+  // ── GROW, don't scroll ──────────────────────────────────────────────
+  // A long answer must open the window UP and DOWN until it fits, not sit
+  // in a 156px slot with a hidden scrollbar. Only the page can know how
+  // tall the text really is (it owns the wrapping), so it measures and
+  // Python resizes the window around the dock anchor.
+  //
+  //   needed = window height - VISIBLE body height + NATURAL text height
+  //
+  // Derived, not hand-summed, so it stays right whatever else is in the
+  // layout (title, hint, padding, and a horizontal rail on a top/bottom
+  // dock). 🔴 The last term is the INNER div, never `.body.scrollHeight`:
+  // a scroll box's scrollHeight is at LEAST its own visible height, so
+  // measuring it can only ever grow the window - a long answer followed by
+  // a short one left a huge, mostly empty panel (measured: 670px reported
+  // as "needed" for two lines of text).
+  var _measureQueued = false;
+  function _measure() {
+    _measureQueued = false;
+    // Collapsed the content is display:none, so a measurement then would
+    // report ~0 and shrink the panel the next time it opens.
+    if (_collapsed || !api || typeof api.contentHeight !== 'function') return;
+    var body = document.getElementById('body');
+    var inner = document.getElementById('bodyInner');
+    var winH = win.clientHeight;
+    if (!winH || !body || !inner) return;
+    api.contentHeight(Math.ceil(winH - body.clientHeight + inner.scrollHeight));
+  }
+  function _remeasure() {
+    if (_measureQueued) return;                // one measurement per frame
+    _measureQueued = true;
+    requestAnimationFrame(_measure);
+  }
+  // The window resizing re-wraps the text, which changes what it needs.
+  window.addEventListener('resize', _remeasure);
+
+  // The arrow points the way the panel will MOVE when pressed: outward to
+  // reveal the content, back toward its own edge to tuck it away. Which
+  // screen direction that is depends on BOTH the dock side and the current
+  // state, so both setters recompute it.
+  var _edge = 'right', _collapsed = false;
+  function _arrow() {
+    // Expanded, the press tucks the panel back INTO its own edge; collapsed,
+    // it opens AWAY from it. So the glyph is simply "toward the edge" when
+    // open and "away from the edge" when shut, on whichever axis it docks.
+    var g;
+    if (_edge === 'top')         g = _collapsed ? '&#9660;' : '&#9650;';   // v open / ^ tuck
+    else if (_edge === 'bottom') g = _collapsed ? '&#9650;' : '&#9660;';
+    else {
+      var railOnRight = (_edge === 'right');
+      var pointRight = _collapsed ? !railOnRight : railOnRight;
+      g = pointRight ? '&#9654;' : '&#9664;';
+    }
+    document.getElementById('tri').innerHTML = g;
+  }
+  window.setCollapsed = function (on) {
+    _collapsed = !!on;
+    win.classList.toggle('collapsed', _collapsed);
+    _arrow();
+    if (!_collapsed) _remeasure();             // re-opening must re-fit the text
+  };
+  window.setEdge = function (edge) {
+    _edge = edge || 'right';
+    // Every dock gets its own class. `edge-left` has no rule (it IS the base
+    // layout) but is toggled anyway so the state is inspectable and a future
+    // rule cannot silently miss it - the exact bug `.edge-right` had.
+    win.classList.toggle('edge-left',   _edge === 'left');
+    win.classList.toggle('edge-right',  _edge === 'right');
+    win.classList.toggle('edge-top',    _edge === 'top');
+    win.classList.toggle('edge-bottom', _edge === 'bottom');
+    _arrow();
+  };
+  window.setShown  = function (on) { win.classList.toggle('gone', !on); };
+  window.setDimmed = function (on) { win.classList.toggle('dimmed', !!on); };
+  // 'tint' = no OS blur; the game stays sharp behind a darker see-through
+  // panel, so the page carries ALL of the shading itself.
+  window.setSurface = function (s) { win.classList.toggle('tint', s === 'tint'); };
+
+  // Run once at load: the arrow is hardcoded in the markup, and _arrow()
+  // otherwise only runs when Python pushes setEdge/setCollapsed - so if
+  // either call is ever missed the arrow is left pointing the wrong way
+  // with nothing to correct it.
+  _arrow();
+
+  // ── the bridge back to Python ────────────────────────
+  try {
+    new QWebChannel(qt.webChannelTransport, function (channel) {
+      api = channel.objects.overlay;
+      // The handshake is ASYNC, so the first setBody() almost always lands
+      // before there is anyone to report the height to. Measure once the
+      // bridge exists, or a long first answer opens un-grown.
+      _remeasure();
+    });
+  } catch (err) {
+    // No bridge: the buttons go dead, but the panel still RENDERS and
+    // Python can still drive its content. Failing loud here would black
+    // out the whole overlay for a recoverable problem.
+    console.error('overlay: QWebChannel unavailable', err);
+  }
+
+  document.getElementById('btnClose').addEventListener('click', function () {
+    if (api) api.close();
+  });
+  document.getElementById('btnRefresh').addEventListener('click', function () {
+    if (api) api.refresh();
+  });
+
+  // ── DRAGGING ────────────────────────────────────────────────────────
+  // 🔴 A 320ms LONG-PRESS on a 24x48 pill was the whole "hard to drag"
+  // problem: a tiny target AND a deliberate wait before anything moved.
+  // Replaced with a 4px MOVEMENT THRESHOLD (standard hysteresis): the drag
+  // begins the instant the pointer actually travels, and a press that does
+  // NOT travel is still a click. Nothing to wait for, nothing to learn.
+  //
+  // The whole panel is a drag surface now, like a title bar - only the
+  // buttons and the scrollable text opt out. Grabbing a 470px panel is a
+  // different experience from hunting a 22px pill.
+  //
+  // The page reports only START and END; Python tracks the cursor itself
+  // while dragging, because a page's `mousemove` stops firing the moment
+  // the pointer outruns the moving window, and its screenX/Y are CSS pixels
+  // that disagree with Qt's on a scaled display.
+  var pill = document.getElementById('pill');
+  var DRAG_THRESHOLD = 4;                      // px of travel before it is a drag
+  var armed = false, dragging = false, fromPill = false, x0 = 0, y0 = 0;
+
+  function armDrag(e, isPill) {
+    if (e.button !== 0) return;
+    armed = true;
+    dragging = false;
+    fromPill = isPill;
+    x0 = e.screenX;
+    y0 = e.screenY;
+    e.preventDefault();                        // no text selection while dragging
+  }
+
+  pill.addEventListener('mousedown', function (e) { armDrag(e, true); });
+  win.addEventListener('mousedown', function (e) {
+    // Buttons keep their click; the body keeps its scroll/selection.
+    if (e.target.closest('.icon-btn, .drag-pill, .body')) return;
+    armDrag(e, false);
+  });
+
+  window.addEventListener('mousemove', function (e) {
+    if (!armed || dragging) return;
+    // screenX/Y are only used to measure DISTANCE here (a delta is
+    // scale-independent); the actual move is Python polling the real cursor.
+    if (Math.abs(e.screenX - x0) < DRAG_THRESHOLD &&
+        Math.abs(e.screenY - y0) < DRAG_THRESHOLD) return;
+    dragging = true;
+    pill.classList.add('dragging');
+    if (api) api.dragStart();
+  });
+
+  window.addEventListener('mouseup', function () {
+    if (!armed) return;
+    armed = false;
+    if (dragging) {
+      dragging = false;
+      pill.classList.remove('dragging');
+      if (api) api.dragEnd();
+    } else if (fromPill && api) {
+      api.toggleCollapse();                    // a click that never travelled
+    }
+  });
+})();
+</script>
+</body>
+</html>

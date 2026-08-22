@@ -1,17 +1,17 @@
 """
-Deep-link support — the custom `hebrewhub://game/<id>` URL protocol.
+Deep-link support - the custom `hebrewhub://game/<id>` URL protocol.
 
 The website's personal-area "פתח בתוכנה" button opens this protocol so the
 launcher pops to the foreground on the specific game's card. Windows-only
 (every function no-ops elsewhere). Three responsibilities:
 
-  1. register_scheme()  — register the `hebrewhub` protocol under HKCU (no admin
+  1. register_scheme()  - register the `hebrewhub` protocol under HKCU (no admin
      needed); re-run every launch so the exe path stays correct after an
      install/move. Self-healing.
-  2. parse_and_strip()  — pull a `hebrewhub://game/<id>` arg out of argv (and
+  2. parse_and_strip()  - pull a `hebrewhub://game/<id>` arg out of argv (and
      remove it) so argparse / QApplication never trip on the extra positional;
      returns the <id>.
-  3. pending-file handoff — when a SECOND instance is launched with the URI it
+  3. pending-file handoff - when a SECOND instance is launched with the URI it
      writes the id to a temp file and signals the running instance (the
      named-event signal itself can't carry a payload); the owner reads it and
      navigates.
@@ -22,6 +22,7 @@ import logging
 import re
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 log = logging.getLogger(__name__)
@@ -74,23 +75,37 @@ def register_scheme() -> None:
 
 
 def write_pending(game_id: str) -> None:
-    """Second-instance side — stash the target id for the running instance."""
+    """Second-instance side - stash the target id for the running instance."""
     try:
         _PENDING.write_text(str(game_id), encoding="utf-8")
     except Exception:
         log.exception("deeplink: write_pending failed")
 
 
+# A handoff is consumed within milliseconds. Anything older is debris from a
+# handoff whose signal never landed (the owner was busy/dying) - consuming it
+# would make a LATER, unrelated launch jump to a stale game card out of nowhere.
+_PENDING_MAX_AGE_S = 60.0
+
+
 def read_pending() -> str | None:
-    """Owner side — consume the stashed id (read + delete). None if absent."""
+    """Owner side - consume the stashed id (read + delete). None if absent or
+    STALE. Always deletes the file, so debris can never accumulate."""
     try:
         if not _PENDING.exists():
             return None
+        try:
+            age = time.time() - _PENDING.stat().st_mtime
+        except OSError:
+            age = 0.0
         gid = _PENDING.read_text(encoding="utf-8").strip()
         try:
             _PENDING.unlink()
         except Exception:
             pass
+        if age > _PENDING_MAX_AGE_S:
+            log.info("deeplink: ignoring stale pending id (%.0fs old)", age)
+            return None
         return gid or None
     except Exception:
         return None

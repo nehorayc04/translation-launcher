@@ -1,4 +1,4 @@
-r"""gtav_mod.py — launcher-side applier for the GTA V Hebrew mod, WITHOUT OpenIV.
+r"""gtav_mod.py - launcher-side applier for the GTA V Hebrew mod, WITHOUT OpenIV.
 
 Wraps the proven rpf7_writer (vendored as `gtav_rpf7`) to read-modify-write the
 user's EXISTING OPEN `mods\` folder, preserving every other file/mod byte-exact:
@@ -10,7 +10,7 @@ user's EXISTING OPEN `mods\` folder, preserving every other file/mod byte-exact:
 Payloads ride in `assets/gtav/gtav_he_payload.zip` (bundled). Backups live OUTSIDE
 the game in `~/.translation_manager/mod_backups/gtav/`; apply builds the new RPF in a
 temp file and `os.replace`-s it in atomically, so a crash never corrupts the live
-archive, and revert() restores the pristine backup. Only OPEN archives are touched —
+archive, and revert() restores the pristine backup. Only OPEN archives are touched -
 the encrypted vanilla is never read (a clean install with no `mods\` folder is GUIDED
 through a one-time OpenIV setup; this module only runs once that folder exists).
 
@@ -52,16 +52,34 @@ _ROOT = Path(__file__).resolve().parent          # …/translation_manager
 
 # ── bundled payloads ──────────────────────────────────────────────────────────
 # Two payloads ship: the HEBREW build (install) and the VANILLA English originals
-# (surgical remove — swap the same files back to English IN PLACE, so removal never
+# (surgical remove - swap the same files back to English IN PLACE, so removal never
 # relies on the install-time full backup, which may be stale if the user changed
 # other mods after installing).
 _HE_ZIP  = "gtav_he_payload.zip"
 _VAN_ZIP = "gtav_vanilla_payload.zip"
 
+# Server-downloaded payload dir (set by main_eel after a successful fetch). It WINS
+# over the bundled copy, so a new mod version reaches users without a launcher
+# rebuild - the bundled zips stay purely as the offline / server-down fallback.
+_PAYLOAD_DIR: Optional[Path] = None
+
+
+def set_payload_dir(path) -> None:
+    """Point the payload resolver at a downloaded dir (or None to use the bundle)."""
+    global _PAYLOAD_DIR
+    try:
+        p = Path(path) if path else None
+    except Exception:                                   # pragma: no cover
+        p = None
+    _PAYLOAD_DIR = p if (p and p.is_dir()) else None
+
 
 def _asset(name: str) -> Optional[Path]:
-    """Resolve assets/gtav/<name> for the frozen build (sys._MEIPASS) AND a dev run."""
+    """Resolve <name>: the downloaded payload dir first, then assets/gtav/ in the
+    frozen build (sys._MEIPASS), then a dev run."""
     cands = []
+    if _PAYLOAD_DIR is not None:
+        cands.append(_PAYLOAD_DIR / name)
     base = getattr(sys, "_MEIPASS", None)
     if base:
         cands.append(Path(base) / "translation_manager" / "assets" / "gtav" / name)
@@ -175,7 +193,7 @@ def has_mods_folder(game_root) -> bool:
 
 
 def loader_connected(game_root) -> bool:
-    """The OpenIV ASI loader (dinput8.dll proxy) present in the game root — the game
+    """The OpenIV ASI loader (dinput8.dll proxy) present in the game root - the game
     reads `mods\\` only when this is active."""
     return (Path(game_root) / "dinput8.dll").is_file()
 
@@ -207,7 +225,7 @@ def apply(game_root, backup_dir, cb: ProgressCB | None = None) -> dict:
     atomic-write them in. Idempotent (re-apply just re-writes the same Hebrew)."""
     u2, u = _mods(game_root)
     if not has_mods_folder(game_root):
-        return {"ok": False, "error": "אין תיקיית mods פתוחה — צריך ליצור אותה פעם אחת ב-OpenIV"}
+        return {"ok": False, "error": "אין תיקיית mods פתוחה - צריך ליצור אותה פעם אחת ב-OpenIV"}
     try:
         gxt2, fonts = _load_payloads(_HE_ZIP)
     except Exception as e:
@@ -245,14 +263,19 @@ def apply(game_root, backup_dir, cb: ProgressCB | None = None) -> dict:
         _log(cb, "ההתקנה הושלמה", 100)
         return {"ok": True, "gxt2": n2, "fonts": n1}
     except MemoryError:
-        return {"ok": False, "error": "אין מספיק זיכרון פנוי — סגור תוכנות כבדות ונסה שוב"}
+        return {"ok": False, "error": "אין מספיק זיכרון פנוי - סגור תוכנות כבדות ונסה שוב"}
+    except OSError as e:                                # WinError 2/3, file missing/locked/no access
+        return {"ok": False,
+                "error": ("קובץ שנדרש להתקנה לא נמצא או שאין גישה אליו - ודא שקובצי ה-mods "
+                          "וקובצי המשחק במקומם, שהמשחק סגור, ושהתוכנה רצה עם הרשאות מתאימות, "
+                          f"ונסה שוב. (פרטים: {e})")}
     except Exception as e:
         return {"ok": False, "error": f"שגיאה בהתקנה: {e}"}
 
 
 def revert(game_root, backup_dir, cb: ProgressCB | None = None) -> dict:
     """SURGICAL remove: swap the 610 gxt2 + 3 fonts back to the VANILLA English /
-    original fonts INSIDE the CURRENT mods RPF — read-modify-write, so every OTHER
+    original fonts INSIDE the CURRENT mods RPF - read-modify-write, so every OTHER
     file is preserved byte-exact, INCLUDING any mod the user added AFTER installing.
     Does NOT use the install-time backup (which can be stale)."""
     u2, u = _mods(game_root)
@@ -283,10 +306,10 @@ def revert(game_root, backup_dir, cb: ProgressCB | None = None) -> dict:
         if mk.is_file():
             try: mk.unlink()
             except OSError: pass
-        _log(cb, "התרגום הוסר — הטקסט חזר לאנגלית, המודים האחרים שלך נשמרו", 100)
+        _log(cb, "התרגום הוסר - הטקסט חזר לאנגלית, המודים האחרים שלך נשמרו", 100)
         return {"ok": True, "gxt2": n2, "fonts": n1}
     except MemoryError:
-        return {"ok": False, "error": "אין מספיק זיכרון פנוי — סגור תוכנות כבדות ונסה שוב"}
+        return {"ok": False, "error": "אין מספיק זיכרון פנוי - סגור תוכנות כבדות ונסה שוב"}
     except Exception as e:
         return {"ok": False, "error": f"שגיאה בהסרה: {e}"}
 

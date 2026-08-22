@@ -1,5 +1,5 @@
 """
-Website integration — serves the local build of the translation hub and
+Website integration - serves the local build of the translation hub and
 parses src/data/games.ts to feed the launcher's library view.
 """
 
@@ -78,7 +78,7 @@ def open_url(url: str) -> None:
 
 
 # ─────────────────────────────────────────────────────────────
-# games.ts parser — extracts featured-game cards for Home view
+# games.ts parser - extracts featured-game cards for Home view
 # ─────────────────────────────────────────────────────────────
 _GAME_BLOCK = re.compile(
     r"\{\s*"

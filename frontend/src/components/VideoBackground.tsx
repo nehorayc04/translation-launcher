@@ -1,4 +1,4 @@
-// Static background — a single pre-extracted frame from the old looping clip
+// Static background - a single pre-extracted frame from the old looping clip
 // (`bg-poster.jpg`) plus the tinted gradient overlay.
 //
 // The animated <video> background was REMOVED. A continuously-decoded +
@@ -12,7 +12,7 @@
 // The poster image was REMOVED (user request): the app background is now a
 // soft, gentle AMBIENT colour driven by the "צבע אווירה" Appearance setting
 // (the .accent-bg layer reads --accent / ambient-rainbow). Here we only paint
-// a calm dark base for that colour to glow over — zero decode/composite cost.
+// a calm dark base for that colour to glow over - zero decode/composite cost.
 export default function VideoBackground() {
   return (
     <div

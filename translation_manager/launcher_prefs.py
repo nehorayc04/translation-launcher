@@ -9,7 +9,7 @@ Stores a small JSON file alongside the launcher's other per-user state
                     (the actual registry write is in `autostart.py`; this
                     is the source-of-truth flag the UI toggle binds to)
 
-API is intentionally tiny — every read returns a fresh dict so callers
+API is intentionally tiny - every read returns a fresh dict so callers
 don't have to worry about cache invalidation, and every write is atomic
 (temp file + os.replace) so a crashed process can't leave the file half-
 written.
@@ -17,9 +17,7 @@ written.
 
 from __future__ import annotations
 
-import json
 import logging
-import os
 from pathlib import Path
 from typing import Literal, TypedDict
 
@@ -32,7 +30,7 @@ class LauncherPrefs(TypedDict, total=False):
     close_behavior:   CloseBehavior      # None = unset → first-launch modal
     start_with_os:    bool               # mirrors the registry state
     cleared_software: list[str]          # software ids whose path the user
-                                         # "forgot" — treated as not-installed
+                                         # "forgot" - treated as not-installed
                                          # until the next full scan re-detects
     crash_reporting:  bool               # send crash/error reports to the dev
                                          # (default True; Settings toggle opts out)
@@ -41,12 +39,14 @@ class LauncherPrefs(TypedDict, total=False):
                                          # mod updates globally (default False)
     mod_beta_overrides: dict             # per-mod beta opt-in override:
                                          # {game_id: bool} wins over the global
+    app_icon:         str                # chosen app-icon variant id (see
+                                         # app_icon.VARIANTS); default brand icon
     disable_gpu_compositing: bool        # opt OUT of GPU compositing (default
                                          # False = GPU on, smooth UI). Set True
                                          # only as a flicker workaround when
                                          # another workload saturates the GPU;
                                          # applied by main_qt at next boot.
-    # NOTE: silent auto-update was removed by request — updates are ALWAYS
+    # NOTE: silent auto-update was removed by request - updates are ALWAYS
     # surfaced as an in-app message + a Windows notification; nothing installs
     # without the user clicking "update". No `mod_auto_update` pref remains.
 
@@ -56,38 +56,37 @@ _STATE_FILE = _STATE_DIR / "launcher_prefs.json"
 
 
 # ─────────────────────────────────────────────────────────────
+# ⚠ report=False on BOTH calls is load-bearing, not a style choice.
+# Telemetry (crash_reporter) asks launcher_prefs whether reporting is even
+# allowed. If a prefs read/write failure reported itself, the reporter would call
+# back into the very load() that just failed → infinite recursion. This file is
+# the one place that must heal SILENTLY.
 def load() -> LauncherPrefs:
-    """Return the prefs dict. Missing/corrupted file → empty dict."""
-    if not _STATE_FILE.exists():
-        return {}
-    try:
-        data = json.loads(_STATE_FILE.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as e:
-        log.warning("launcher_prefs: cannot read %s — %s", _STATE_FILE, e)
-        return {}
+    """Self-healing read. A corrupt prefs file no longer silently resets every
+    setting the user chose (reporting opt-out, close behaviour, beta channel):
+    resilience serves the `.bak` sidecar and repairs the primary from it."""
+    from . import resilience
+    data = resilience.read_json(_STATE_FILE, default={}, name="launcher_prefs",
+                                report=False)
     return data if isinstance(data, dict) else {}
 
 
 def save(prefs: LauncherPrefs) -> bool:
-    """Atomic write. Returns True on success."""
-    try:
-        _STATE_DIR.mkdir(parents=True, exist_ok=True)
-        tmp = _STATE_FILE.with_suffix(_STATE_FILE.suffix + ".tm-tmp")
-        tmp.write_text(json.dumps(prefs, ensure_ascii=False, indent=2),
-                       encoding="utf-8")
-        os.replace(tmp, _STATE_FILE)
-        return True
-    except OSError as e:
-        log.warning("launcher_prefs: write failed — %s", e)
-        return False
+    """Self-healing, atomic write (temp + os.replace, previous version kept as
+    `.bak`, retried through a transient file lock). True on success."""
+    from . import resilience
+    return bool(resilience.write_json(_STATE_FILE, prefs, name="launcher_prefs",
+                                      report=False))
 
 
 # ── convenience getters / setters ────────────────────────────
-def get_close_behavior() -> CloseBehavior | None:
+def get_close_behavior() -> CloseBehavior:
+    # DEFAULT = "minimize": clicking X keeps the launcher running in the tray
+    # (no first-run prompt). The user can flip it to "close" from Settings.
     val = load().get("close_behavior")
     if val in ("minimize", "close"):
         return val  # type: ignore[return-value]
-    return None
+    return "minimize"
 
 
 def set_close_behavior(behavior: CloseBehavior) -> bool:
@@ -126,6 +125,42 @@ def set_disable_gpu_compositing(disabled: bool) -> bool:
     return save(prefs)
 
 
+# ── Custom frameless title bar ────────────────────────────────
+# Default ON (in-app frosted title bar) per user request - the OS title bar is
+# replaced with an in-app one (min/max/close drawn by React, drag via
+# startSystemMove, resize via startSystemResize). Applied at window creation, so
+# a change needs a restart. STILL reversible from Settings AND the tray (so a
+# broken frameless window can always be undone). main_window reads this at boot.
+def get_custom_titlebar() -> bool:
+    return bool(load().get("custom_titlebar", True))
+
+
+def set_custom_titlebar(enabled: bool) -> bool:
+    prefs = load()
+    prefs["custom_titlebar"] = bool(enabled)
+    return save(prefs)
+
+
+# ── App icon variant (window/taskbar/tray + launch shortcut) ──
+# One of the ids in app_icon.VARIANTS (e.g. "5g-circle-round"). The chosen
+# variant is applied LIVE to the window/taskbar/tray and its .ico is pointed at
+# by the Start-menu/Desktop/pinned shortcuts. Default = the brand icon (matches
+# the website + the splash/sidebar logo). Stored as a plain string; app_icon
+# validates it (an unknown value falls back to the default).
+_APP_ICON_DEFAULT = "brand"
+
+
+def get_app_icon() -> str:
+    val = load().get("app_icon")
+    return val if isinstance(val, str) and val else _APP_ICON_DEFAULT
+
+
+def set_app_icon(variant: str) -> bool:
+    prefs = load()
+    prefs["app_icon"] = str(variant)
+    return save(prefs)
+
+
 # ── "forgotten" software paths ────────────────────────────────
 # Software install paths are auto-detected (registry/path fingerprints).
 # The user can "forget" one from Settings; it then reports as not-installed
@@ -146,7 +181,7 @@ def add_cleared_software(software_id: str) -> bool:
 
 
 def clear_all_cleared_software() -> bool:
-    """Drop the whole forgotten-set — called by a full software scan."""
+    """Drop the whole forgotten-set - called by a full software scan."""
     prefs = load()
     if "cleared_software" in prefs:
         prefs.pop("cleared_software", None)
@@ -155,9 +190,15 @@ def clear_all_cleared_software() -> bool:
 
 
 # ── mod update channel / behaviour ────────────────────────────
+# DEFAULT = True. Every translation we ship is currently a pre-release (beta),
+# so an opt-OUT default stranded users on their first version and hid real
+# updates. Users who dislike betas turn it off in Settings (or per-mod).
+_BETA_DEFAULT = True
+
+
 def get_beta_channel() -> bool:
     """Global opt-in to pre-release (alpha/beta/rc) mod updates."""
-    return bool(load().get("mod_beta_channel", False))
+    return bool(load().get("mod_beta_channel", _BETA_DEFAULT))
 
 
 def set_beta_channel(enabled: bool) -> bool:
@@ -173,7 +214,7 @@ def wants_prerelease(game_id: str) -> bool:
     ov = prefs.get("mod_beta_overrides")
     if isinstance(ov, dict) and game_id in ov:
         return bool(ov[game_id])
-    return bool(prefs.get("mod_beta_channel", False))
+    return bool(prefs.get("mod_beta_channel", _BETA_DEFAULT))
 
 
 def set_mod_beta_override(game_id: str, enabled: bool | None) -> bool:

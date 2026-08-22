@@ -1,11 +1,10 @@
-// "הורדות ועדכונים" — system updates + translation updates with a live
+// "הורדות ועדכונים" - system updates + translation updates with a live
 // HTML/CSS progress bar driven by Python's update_download_progress push.
 // The list itself is SWR-cached: instant first paint from the on-disk
 // snapshot, then quietly refreshed in the background.
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   api,
-  onLauncherUpdateProgress,
   onModProgress,
   type UpdateItem,
   type LauncherUpdateInfo,
@@ -14,10 +13,26 @@ import {
   type ModProgress,
 } from "../lib/eel";
 import { useDownloadProgress } from "../lib/useDownloadProgress";
+import { useActivity } from "../lib/notifications";
 import { useSWRSource } from "../lib/useSWRSource";
+import LiquidWave from "../components/LiquidWave";
+import {
+  IconOptHdrDownloads,
+  IconOptHdrModUpdates,
+  IconOptHdrSystemUpdates,
+  IconOptHdrTranslationUpdates,
+  IconOptBtnCheckAgain,
+  IconOptBadgeInstalled,
+  IconOptEmptyNoUpdates,
+  IconOptBtnUpdateMod,
+  IconOptBtnRetryDownload,
+  IconOptBtnDownloadUpdate,
+  IconOptBtnSelfUpdate,
+  IconAppDownloadsSelfUpdateEmoji,
+} from "../components/UiIcons";
 
 interface Props {
-  /** Bumped by App whenever the sidebar refresh button completes — forces
+  /** Bumped by App whenever the sidebar refresh button completes - forces
    *  this view to re-pull listUpdates() even if the SWR cache is hot. */
   refreshNonce?: number;
 }
@@ -38,7 +53,7 @@ export default function DownloadsView({ refreshNonce = 0 }: Props) {
   }, [items]);
 
   // ── Installed game-mod updates (newer version on the server) ──────
-  // A separate live source from the static updates catalog — compares each
+  // A separate live source from the static updates catalog - compares each
   // installed translation mod's version against its manifest.
   const [modUpdates, setModUpdates] = useState<ModUpdate[]>([]);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -79,6 +94,11 @@ export default function DownloadsView({ refreshNonce = 0 }: Props) {
         r = gameId === "spiderman2" ? await api.installSpiderman2Mod()
           : gameId === "watchdogs2" ? await api.installWatchdogs2Mod()
           : gameId === "gtav"       ? await api.installGtavMod()
+          : gameId === "gowragnarok" ? await api.installGowrMod()
+          : gameId === "hogwarts"    ? await api.installHogwartsMod()
+          : gameId === "witcher3"    ? await api.installWitcher3Mod()
+          : gameId === "plague-tale-requiem" ? await api.installPlagueTaleMod()
+          : gameId === "virtualdj"   ? await api.applyVirtualdjTranslation()
           : await api.downloadAndInstallGameMod(gameId);
       } else {
         r = await api.downloadAndInstallGameMod(gameId);
@@ -93,14 +113,11 @@ export default function DownloadsView({ refreshNonce = 0 }: Props) {
 
   return (
     <div className="h-full overflow-y-auto px-8 py-6 animate-fade-in">
-      <div className="mb-6 flex items-center justify-between animate-rise">
-        <span className="text-xs text-slate-500">
-          {loading ? "טוען..." : `${items.length + modUpdates.length} פריטים זמינים`}
-        </span>
-        <h1 className="text-3xl font-extrabold"><span className="text-gradient">הורדות ועדכונים</span></h1>
+      <div className="mb-6 animate-rise">
+        <h1 className="text-3xl font-extrabold text-right inline-flex items-center gap-1.5"><IconOptHdrDownloads width={20} className="shrink-0 opacity-90" style={{ color: "#22c55e" }} /><span style={{ background: "linear-gradient(90deg, #ffffff 0%, #22c55e 100%)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>הורדות ועדכונים</span></h1>
       </div>
 
-      {/* Persistent self-update panel — always on top, independent of
+      {/* Persistent self-update panel - always on top, independent of
           the translation/system update list below. */}
       <SelfUpdatePanel />
 
@@ -125,7 +142,7 @@ export default function DownloadsView({ refreshNonce = 0 }: Props) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Game-mod updates — installed translation mods with a newer version on
+// Game-mod updates - installed translation mods with a newer version on
 // the server. "עדכן" re-downloads + reinstalls the latest in place.
 function ModUpdatesSection({
   updates, updatingId, progress, onUpdate,
@@ -141,7 +158,7 @@ function ModUpdatesSection({
     <section>
       <div className="flex items-center gap-3 mb-4">
         <span className="text-slate-400 text-sm">{updates.length}</span>
-        <h2 className="text-xl font-bold text-white">עדכוני תרגום למשחקים</h2>
+        <h2 className="text-xl font-bold text-white inline-flex items-center gap-1.5"><IconOptHdrModUpdates width={20} className="shrink-0 opacity-90" />עדכוני תרגום למשחקים</h2>
         <span className="h-[2px] flex-1 rounded-full opacity-30"
               style={{ background: `linear-gradient(to left, ${accent}, transparent)` }} />
       </div>
@@ -156,21 +173,28 @@ function ModUpdatesSection({
                  style={{ borderColor: `${accent}33`, background: `linear-gradient(135deg, ${accent}0e, transparent 70%), rgba(255,255,255,0.02)` }}>
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="font-bold text-white truncate">{u.titleHe}</div>
+                  <div className="font-bold text-white truncate">{u.titleEn}</div>
                   <div className="text-[12px] text-slate-400 mt-0.5" dir="ltr">
-                    <span className="font-mono text-slate-300">v{u.installedVersion ?? "—"}</span>
+                    <span className="font-mono text-slate-300">v{u.installedVersion ?? "-"}</span>
                     {"  →  "}
                     <span className="font-mono" style={{ color: accent }}>v{u.latestVersion}</span>
+                    {u.updateSource === "offline" && (
+                      <span className="ms-2 text-[11px] text-slate-400" dir="rtl">
+                        (מהחבילה האופליין - ללא אינטרנט)
+                      </span>
+                    )}
                   </div>
                 </div>
                 <button
                   disabled={anyBusy}
                   onClick={() => onUpdate(u.gameId, u.kind)}
                   className="shrink-0 px-4 py-2 rounded-xl text-sm font-bold text-brand-ink
-                             transition hover:brightness-110 disabled:opacity-50"
+                             transition hover:brightness-110 disabled:opacity-50
+                             inline-flex items-center justify-center gap-1.5"
                   style={{ background: accent }}
                 >
-                  {busy ? "מעדכן…" : "עדכן"}
+                  <IconOptBtnUpdateMod width={18} className="shrink-0 opacity-90" />
+                  {busy ? "מעדכן…" : (u.updateSource === "offline" ? "עדכון אופליין" : "עדכן")}
                 </button>
               </div>
               {busy && progress && (
@@ -181,10 +205,15 @@ function ModUpdatesSection({
                       {progress.phase === "verify" ? "מאמת…" : progress.phase === "apply" ? "מתקין…" : `${pct.toFixed(0)}%`}
                     </span>
                   </div>
-                  <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-200"
-                         style={{ width: `${pct}%`, background: accent }} />
-                  </div>
+                  <LiquidWave
+                    pct={progress.phase === "verify" || progress.phase === "apply" ? 100 : pct}
+                    ratePerMin={48}
+                    primary={accent}
+                    secondary="#22c55e"
+                    glow={accent}
+                    height={42}
+                  />
+
                 </div>
               )}
             </div>
@@ -196,7 +225,7 @@ function ModUpdatesSection({
 }
 
 // ─────────────────────────────────────────────────────────────
-// Self-update panel — checks the release feed, downloads the
+// Self-update panel - checks the release feed, downloads the
 // installer in-app (live progress), and runs it silently. No
 // external installer window: the .exe runs with /VERYSILENT, its
 // PrepareToInstall hook closes this process, and its [Run] entry
@@ -204,17 +233,31 @@ function ModUpdatesSection({
 function SelfUpdatePanel() {
   const [info, setInfo]         = useState<LauncherUpdateInfo | null>(null);
   const [checking, setChecking] = useState(true);
-  const [updating, setUpdating] = useState(false);
-  const [progress, setProgress] = useState<LauncherUpdateProgress | null>(null);
+  // Brief LOCAL "starting" state for the gap between clicking and the first
+  // progress event; once the GLOBAL store activity appears it takes over.
+  const [starting, setStarting] = useState<LauncherUpdateProgress | null>(null);
+
+  // ⭐ THE fix: the launcher-update progress lives in the GLOBAL notifications
+  // store (subscribed once at App level), NOT this panel's local state - so
+  // leaving this screen mid-download and coming back reflects the ONGOING
+  // download instead of resetting to "עדכן עכשיו" while it silently finishes.
+  const act = useActivity("launcher-update");
+  const progress: LauncherUpdateProgress | null = act
+    ? { phase: act.phase, pct: act.pct, detail: act.detail ?? "" }
+    : starting;
+  const updating = act ? act.active : !!starting;
+
+  // Once the store activity exists, drop the local "starting" placeholder.
+  useEffect(() => { if (act) setStarting(null); }, [act]);
 
   const check = useCallback(async () => {
     setChecking(true);
-    setProgress(null);
+    setStarting(null);           // never clears the store activity (an ongoing DL survives)
     try {
       setInfo(await api.getLauncherUpdateInfo());
     } catch (e) {
       setInfo({
-        currentVersion: "—", latestVersion: "—", updateAvailable: false,
+        currentVersion: "-", latestVersion: "-", updateAvailable: false,
         downloadUrl: null, sizeBytes: 0, sizeMb: 0, notes: "", sha256: null,
         error: String(e),
       });
@@ -225,41 +268,6 @@ function SelfUpdatePanel() {
 
   useEffect(() => { check(); }, [check]);
 
-  // Progress stream from Python's launcher_update_progress pushes.
-  // The "launch" phase means the installer was spawned and is now
-  // waiting for the UAC prompt — on the happy path the installer
-  // taskkills this process within a few seconds. If we're still alive
-  // ~30 s later it means UAC was dismissed (or the installer aborted
-  // before reaching PrepareToInstall), so we surface a meaningful
-  // error instead of leaving the bar stuck on "מתקין…" forever.
-  useEffect(() => {
-    let launchTimer: number | null = null;
-    const unsubscribe = onLauncherUpdateProgress((p) => {
-      setProgress(p);
-      if (p.phase === "error" || p.phase === "cancelled") {
-        setUpdating(false);
-        if (launchTimer !== null) {
-          window.clearTimeout(launchTimer);
-          launchTimer = null;
-        }
-      } else if (p.phase === "launch") {
-        if (launchTimer !== null) window.clearTimeout(launchTimer);
-        launchTimer = window.setTimeout(() => {
-          setProgress({
-            phase: "error",
-            pct:   0,
-            detail: "ההתקנה לא התחילה — ייתכן שחלון ההרשאות (UAC) נדחה. נסה שוב.",
-          });
-          setUpdating(false);
-        }, 30_000);
-      }
-    });
-    return () => {
-      unsubscribe();
-      if (launchTimer !== null) window.clearTimeout(launchTimer);
-    };
-  }, []);
-
   const cancelUpdate = useCallback(async () => {
     try {
       await api.cancelLauncherUpdate();
@@ -269,17 +277,14 @@ function SelfUpdatePanel() {
   }, []);
 
   const startUpdate = async () => {
-    setUpdating(true);
-    setProgress({ phase: "download", pct: 0, detail: "מתחיל בהורדה…" });
+    setStarting({ phase: "download", pct: 0, detail: "מתחיל בהורדה…" });
     try {
       const r = await api.startLauncherUpdate();
       if (!r.ok) {
-        setUpdating(false);
-        setProgress({ phase: "error", pct: 0, detail: r.error || "כשל בהפעלת העדכון" });
+        setStarting({ phase: "error", pct: 0, detail: r.error || "כשל בהפעלת העדכון" });
       }
     } catch (e) {
-      setUpdating(false);
-      setProgress({ phase: "error", pct: 0, detail: String(e) });
+      setStarting({ phase: "error", pct: 0, detail: String(e) });
     }
   };
 
@@ -289,7 +294,7 @@ function SelfUpdatePanel() {
   const verifying  = progress?.phase === "verify";
   const downloading = progress?.phase === "download";
   // The user can cancel during download/verify. Once the installer
-  // process has been launched we no longer offer the button — the
+  // process has been launched we no longer offer the button - the
   // install is the installer's job to finish or fail.
   const cancellable = updating && (downloading || verifying);
   const barPct      = Math.min(100, Math.max(0, progress?.pct ?? 0));
@@ -306,13 +311,13 @@ function SelfUpdatePanel() {
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-lg" aria-hidden>⬆️</span>
+            <IconAppDownloadsSelfUpdateEmoji width={17} className="shrink-0 opacity-90" />
             <h2 className="text-lg font-bold text-white">עדכון התוכנה</h2>
           </div>
           <p className="text-[12px] text-slate-400 mt-1">
             גרסה מותקנת:{" "}
             <span className="font-mono text-slate-200" dir="ltr">
-              v{info?.currentVersion ?? "—"}
+              v{info?.currentVersion ?? "-"}
             </span>
             {info && info.latestVersion !== info.currentVersion && (
               <>
@@ -322,14 +327,14 @@ function SelfUpdatePanel() {
                 </span>
               </>
             )}
-            {/* Same version, different build — the in-app updater detected a
+            {/* Same version, different build - the in-app updater detected a
                 re-released build via its build-id. No version delta to show,
                 so spell out that an update is still waiting. */}
             {info?.updateAvailable && info.latestVersion === info.currentVersion && (
               <>
                 {"  ·  "}
                 <span className="font-bold" style={{ color: accent }}>
-                  עדכון זמין — build חדש
+                  עדכון זמין - build חדש
                 </span>
               </>
             )}
@@ -343,21 +348,25 @@ function SelfUpdatePanel() {
               onClick={startUpdate}
               className="px-5 py-2.5 rounded-xl text-sm font-bold transition
                          text-brand-ink hover:brightness-110 shrink-0
-                         shadow-[0_6px_15px_-6px_rgba(255,247,0,0.5)]"
+                         shadow-[0_6px_15px_-6px_rgba(255,247,0,0.5)]
+                         inline-flex items-center justify-center gap-1.5"
               style={{ background: accent }}
             >
+              <IconOptBtnSelfUpdate width={18} className="shrink-0 opacity-90" />
               עדכן עכשיו{info.sizeMb ? ` · ${info.sizeMb.toFixed(0)} MB` : ""}
             </button>
           ) : info?.error ? (
             <button
               onClick={check}
               className="px-4 py-2 rounded-xl text-sm font-bold transition shrink-0
-                         border border-white/15 text-slate-200 hover:bg-white/5"
+                         border border-white/15 text-slate-200 hover:bg-white/5
+                         inline-flex items-center justify-center gap-1.5"
             >
+              <IconOptBtnCheckAgain width={18} className="shrink-0 opacity-90" />
               בדוק שוב
             </button>
           ) : (
-            // Up to date — show the status badge with a manual re-check
+            // Up to date - show the status badge with a manual re-check
             // button to its LEFT (dir=ltr → refresh is the left-most element
             // at the frame's left edge).
             <div className="flex items-center gap-2 shrink-0" dir="ltr">
@@ -395,7 +404,7 @@ function SelfUpdatePanel() {
       {/* Check-failed note */}
       {!updating && !checking && info?.error && (
         <p className="mt-3 text-[12px] text-amber-300/90 border-t border-white/5 pt-3">
-          לא ניתן לבדוק עדכונים כרגע — בדוק את החיבור לאינטרנט ונסה שוב.
+          לא ניתן לבדוק עדכונים כרגע - בדוק את החיבור לאינטרנט ונסה שוב.
         </p>
       )}
 
@@ -432,20 +441,24 @@ function SelfUpdatePanel() {
               )}
             </div>
           </div>
-          <div className="h-2 bg-white/5 rounded-full overflow-hidden ring-1 ring-white/5">
-            <div
-              className="h-full rounded-full transition-all duration-200"
-              style={{
-                width: failed || cancelled ? "100%"
-                     : launching || verifying ? "100%"
-                     : `${barPct}%`,
-                background: failed     ? "#ef4444"
-                          : cancelled  ? "#64748b"
-                          : `linear-gradient(90deg, ${accent}, #fff)`,
-                boxShadow: failed || cancelled ? "none" : `0 0 12px ${accent}80`,
-              }}
+          {failed || cancelled ? (
+            <div className="h-2 bg-white/5 rounded-full overflow-hidden ring-1 ring-white/5">
+              <div
+                className="h-full rounded-full transition-all duration-200"
+                style={{ width: "100%", background: failed ? "#ef4444" : "#64748b" }}
+              />
+            </div>
+          ) : (
+            // Flowing liquid wave - identical to the site's live-progress bar.
+            <LiquidWave
+              pct={launching || verifying ? 100 : barPct}
+              ratePerMin={48}
+              primary={accent}
+              secondary={accent === "#fff700" ? "#00ffe0" : "#22c55e"}
+              glow={accent}
+              height={46}
             />
-          </div>
+          )}
           {(failed || cancelled) && (
             <button
               onClick={startUpdate}
@@ -457,7 +470,7 @@ function SelfUpdatePanel() {
           )}
           {launching && (
             <p className="mt-2 text-[11px] text-slate-400">
-              האפליקציה תיסגר אוטומטית ותיפתח מחדש בגרסה החדשה — אין צורך לעשות דבר.
+              האפליקציה תיסגר אוטומטית ותיפתח מחדש בגרסה החדשה - אין צורך לעשות דבר.
             </p>
           )}
         </div>
@@ -480,7 +493,14 @@ function Section({
     <section>
       <div className="flex items-center gap-3 mb-4">
         <span className="text-slate-400 text-sm">{items.length}</span>
-        <h2 className="text-xl font-bold text-white">{title}</h2>
+        <h2 className="text-xl font-bold text-white inline-flex items-center gap-1.5">
+          {title === "עדכוני מערכת" ? (
+            <IconOptHdrSystemUpdates width={20} className="shrink-0 opacity-90" />
+          ) : title === "עדכוני תרגומים" ? (
+            <IconOptHdrTranslationUpdates width={20} className="shrink-0 opacity-90" />
+          ) : null}
+          {title}
+        </h2>
         <span
           className="h-[2px] flex-1 rounded-full opacity-30"
           style={{ background: `linear-gradient(to left, ${accent}, transparent)` }}
@@ -550,7 +570,7 @@ function UpdateCard({
       {/* Size + action */}
       <div className="flex items-center justify-between gap-3">
         <div className="text-[11px] text-slate-500">
-          {item.size_mb.toFixed(1)} MB
+          {(item.size_mb ?? 0).toFixed(1)} MB
         </div>
 
         {running ? (
@@ -564,15 +584,19 @@ function UpdateCard({
           </button>
         ) : done ? (
           <span className="text-[12px] font-bold px-4 py-1.5 rounded-lg
-                           bg-emerald-500/20 text-emerald-200 ring-1 ring-emerald-400/30">
+                           bg-emerald-500/20 text-emerald-200 ring-1 ring-emerald-400/30
+                           inline-flex items-center gap-1.5">
+            <IconOptBadgeInstalled width={14} className="shrink-0 opacity-90" />
             מותקן
           </span>
         ) : failed ? (
           <button
             onClick={handleDownload}
             className="text-[12px] font-bold px-4 py-1.5 rounded-lg
-                       bg-rose-500/15 text-rose-200 hover:bg-rose-500/30 transition"
+                       bg-rose-500/15 text-rose-200 hover:bg-rose-500/30 transition
+                       inline-flex items-center justify-center gap-1.5"
           >
+            <IconOptBtnRetryDownload width={18} className="shrink-0 opacity-90" />
             נסה שוב
           </button>
         ) : (
@@ -580,35 +604,42 @@ function UpdateCard({
             onClick={handleDownload}
             className="text-[12px] font-bold px-4 py-1.5 rounded-lg
                        bg-brand-yellow hover:bg-yellow-300 text-brand-ink transition
-                       shadow-[0_4px_12px_-4px_rgba(255,247,0,0.5)]"
+                       shadow-[0_4px_12px_-4px_rgba(255,247,0,0.5)]
+                       inline-flex items-center justify-center gap-1.5"
           >
+            <IconOptBtnDownloadUpdate width={18} className="shrink-0 opacity-90" />
             הורד ועדכן
           </button>
         )}
       </div>
 
-      {/* Progress bar — appears only while running or just finished */}
+      {/* Progress bar - appears only while running or just finished */}
       {(running || done || failed) && (
         <div className="mt-4">
           <div className="flex justify-between text-[10px] mb-1">
             <span dir="ltr" className="text-slate-300 font-mono">
-              {speed || (done ? "100%" : "—")}
+              {speed || (done ? "100%" : "-")}
             </span>
             <span className="text-slate-400">{pct.toFixed(1)}%</span>
           </div>
-          <div className="h-1.5 bg-white/5 rounded-full overflow-hidden ring-1 ring-white/5">
-            <div
-              className="h-full rounded-full"
-              style={{
-                width: `${pct}%`,
-                background: failed ? "#ef4444"
-                           : done   ? "#22c55e"
-                                    : `linear-gradient(90deg, ${accent}, #fff)`,
-                transition: "width 0.2s linear, background-color 0.2s ease",
-                boxShadow: failed ? "none" : `0 0 12px ${accent}80`,
-              }}
+          {running ? (
+            // Flowing liquid wave - identical to the site's live-progress bar.
+            <LiquidWave
+              pct={pct}
+              ratePerMin={48}
+              primary={accent}
+              secondary={accent === "#fff700" ? "#00ffe0" : "#22c55e"}
+              glow={accent}
+              height={40}
             />
-          </div>
+          ) : (
+            <div className="h-1.5 bg-white/5 rounded-full overflow-hidden ring-1 ring-white/5">
+              <div
+                className="h-full rounded-full"
+                style={{ width: `${pct}%`, background: failed ? "#ef4444" : "#22c55e" }}
+              />
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -626,7 +657,8 @@ function Loader() {
 
 function Empty() {
   return (
-    <div className="glass-soft rounded-2xl p-10 text-center text-slate-400">
+    <div className="glass-soft rounded-2xl p-10 text-center text-slate-400 flex flex-col items-center gap-2">
+      <IconOptEmptyNoUpdates width={30} className="opacity-70" />
       אין עדכונים זמינים כרגע.
     </div>
   );

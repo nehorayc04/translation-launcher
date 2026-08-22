@@ -6,7 +6,7 @@
 //
 // Behavior:
 //   • No-ops when `enabled` is false or `api` isn't ready (dev UI mode).
-//   • Re-fetches when `refreshNonce` bumps — App's sidebar refresh
+//   • Re-fetches when `refreshNonce` bumps - App's sidebar refresh
 //     button increments that counter, so one click updates everything.
 //   • Optional `pollMs` polls in the background; set to 0 to disable.
 //   • Silent on errors: keeps the last good snapshot in state.
@@ -55,7 +55,7 @@ export function useLiveGameProgress(
         const data = await api.getLiveProgress(gameId);
         if (!cancelled) setState({ snap: data, loaded: true });
       } catch {
-        // Network blip — mark loaded so the consumer can fall back to
+        // Network blip - mark loaded so the consumer can fall back to
         // its static value rather than waiting forever at 0%.
         if (!cancelled) setState((s) => ({ snap: s.snap, loaded: true }));
       }
@@ -75,7 +75,7 @@ export function useLiveGameProgress(
     };
   }, [gameId, enabled, refreshNonce, pollMs]);
 
-  // SWR push subscription — Python's background refresh fires
+  // SWR push subscription - Python's background refresh fires
   // cache_refreshed("progress", data, gameId) whenever it notices the
   // server returned different numbers. Skips a full poll round-trip.
   useEffect(() => {

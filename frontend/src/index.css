@@ -6,7 +6,7 @@
 @tailwind utilities;
 
 /* ── Global RTL + dark canvas ──────────────────────── */
-/* Only <html> gets the fallback color — #root MUST be transparent
+/* Only <html> gets the fallback color - #root MUST be transparent
    so the fixed-position video behind it remains visible. */
 html {
   background: #050510;
@@ -24,7 +24,7 @@ html, body, #root {
 }
 body, #root { background: transparent; }
 
-/* Custom scrollbar — keeps glass aesthetic.
+/* Custom scrollbar - keeps glass aesthetic.
    "Hidden until you scroll/hover" (per design choice): the thumb is fully
    transparent at rest and fades in only while the pointer is over a
    scrollable region. Width stays reserved so content never reflows. */
@@ -56,12 +56,12 @@ img, video, a { -webkit-user-drag: none; }
 /* Legacy utility kept for callers that still reference it */
 .no-select { user-select: none; -webkit-user-select: none; }
 
-/* Glass panel utility — used a lot.
+/* Glass panel utility - used a lot.
    PERF (critical): the Qt shell launches Chromium with --disable-gpu-compositing
    (main_qt.py), so `backdrop-filter: blur()` is rasterized ON THE CPU every paint.
    A near-fullscreen glass panel over the background was re-blurred continuously →
    permanently low FPS. We DROP backdrop-filter entirely and use a solid, slightly
-   translucent dark fill instead — visually a dark frosted panel, but ZERO per-paint
+   translucent dark fill instead - visually a dark frosted panel, but ZERO per-paint
    blur cost. The background poster still shows through the panel gaps / rounded
    corners. This one change removes the dominant render cost app-wide. */
 .glass {
@@ -86,7 +86,62 @@ img, video, a { -webkit-user-drag: none; }
 @keyframes rise  { 0% { opacity: 0; transform: translateY(18px); } 100% { opacity: 1; transform: translateY(0); } }
 @keyframes sheen { 0% { transform: translateX(-150%) skewX(-18deg); } 60%, 100% { transform: translateX(250%) skewX(-18deg); } }
 
-/* Gradient brand text — for big headings / numbers. */
+/* ── View / tab transition ────────────────────────────────────────────
+   A professional fade + gentle rise + micro-scale, played ONCE each time the
+   active view (or settings tab) changes via a keyed remount. `both` holds the
+   start frame so there's no pre-paint flash. Auto-disabled by the reduce-anims
+   rule below (which collapses animation-duration to ~0ms). One transient
+   element per switch → no lingering compositor layer (no will-change). */
+@keyframes view-in {
+  0%   { opacity: 0; transform: translateY(18px) scale(0.976); }
+  55%  { opacity: 1; transform: translateY(-4px) scale(1.008); }  /* springy overshoot */
+  100% { opacity: 1; transform: translateY(0)    scale(1); }
+}
+/* fill-mode `backwards` (NOT `both`): holds the 0% frame at start, then REVERTS
+   to the base style when it ends → the transform is REMOVED after ~340ms, so a
+   `position:fixed`/`sticky` descendant (modals, the detail settings rail) is not
+   pinned to a transformed ancestor. The 100% frame == base (translateY 0 / opacity
+   1), so the revert is visually seamless. */
+.view-transition { animation: view-in .5s cubic-bezier(.34, 1.3, .5, 1) backwards; }
+
+/* Springy sliding sidebar active-indicator: the single pill glides between rows
+   with an over-shooting spring curve (like the admin's layoutId glow). Only the
+   position (top/height) is animated; opacity fades it out on non-nav screens. */
+.nav-slide {
+  transition:
+    top    .44s cubic-bezier(.34, 1.35, .5, 1),
+    height .44s cubic-bezier(.34, 1.35, .5, 1),
+    opacity .22s ease;
+}
+
+/* Sidebar rail expand/collapse WIDTH. A pronounced LIQUID spring (over-and-back on
+   both open AND close) ONLY at "full animation" (data-anim=high); at normal/low a
+   plain quick ease exactly like before the liquid effect; off snaps instantly.
+   The icons are absolutely pinned (see ICONBOX in Sidebar.tsx), so even the full
+   over/under-shoot never reflows or jitters them. */
+.sidebar-rail-tr { transition: width .4s cubic-bezier(.22, 1, .36, 1); }
+/* Full-animation LIQUID rail, but DIRECTIONAL: a springy OVERSHOOT only when OPENING
+   (data-open=1) - that just makes the glass momentarily WIDER, which is harmless since
+   every icon is pinned to the left edge. When CLOSING (data-open=0) a smooth ease-out
+   with NO overshoot: a closing overshoot would dip the width BELOW the collapsed 72px,
+   and then the 48px icon slots overflow (logo/avatar/bell escape left) and the pinned
+   gear pokes out (settings "cut" on the right). The clean settle keeps content ≥48px. */
+html[data-anim="high"] .sidebar-rail-tr[data-open="1"] { transition: width .5s cubic-bezier(.34, 1.5, .58, 1); }
+html[data-anim="high"] .sidebar-rail-tr[data-open="0"] { transition: width .46s cubic-bezier(.32, .72, 0, 1); }
+html.reduce-anims .sidebar-rail-tr { transition: none; }
+
+/* Notifications panel scroll - a slim, always-visible cyan-tinted scrollbar
+   (RTL → sits on the LEFT edge of the panel) so many notifications scroll. */
+.notif-scroll { scrollbar-width: thin; scrollbar-color: rgba(0,255,224,0.35) transparent; }
+.notif-scroll::-webkit-scrollbar { width: 8px; }
+.notif-scroll::-webkit-scrollbar-track { background: transparent; }
+.notif-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0,255,224,0.30); border-radius: 9999px;
+  border: 2px solid transparent; background-clip: content-box;
+}
+.notif-scroll::-webkit-scrollbar-thumb:hover { background: rgba(0,255,224,0.55); background-clip: content-box; }
+
+/* Gradient brand text - for big headings / numbers. */
 .text-gradient {
   background: linear-gradient(110deg, #fff700 0%, #fff 35%, #00ffe0 100%);
   background-size: 200% auto;
@@ -96,7 +151,19 @@ img, video, a { -webkit-user-drag: none; }
   color: transparent;
 }
 
-/* A moving light sheen — overlay on buttons / hero on hover. The element
+/* Same recipe as .text-gradient but tinted per plugin/game via --pg-accent.
+   -webkit-text-fill-color is NOT optional: without it the gradient paints the
+   whole BOX and the text renders invisible (a solid colour bar). */
+.text-gradient-accent {
+  background: linear-gradient(100deg, #ffffff 0%, var(--pg-accent, #00ffe0) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+
+/* A moving light sheen - overlay on buttons / hero on hover. The element
    needs position:relative + overflow:hidden; this rides on a child span. */
 .sheen-layer {
   position: absolute;
@@ -125,7 +192,7 @@ img, video, a { -webkit-user-drag: none; }
           mask-image: radial-gradient(ellipse 80% 80% at 70% 30%, #000 30%, transparent 75%);
 }
 
-/* Elevated interactive card — lift + deepen shadow on hover. */
+/* Elevated interactive card - lift + deepen shadow on hover. */
 .lift {
   transition: transform 0.3s cubic-bezier(0.22,1,0.36,1),
               box-shadow 0.3s cubic-bezier(0.22,1,0.36,1),
@@ -144,7 +211,7 @@ img, video, a { -webkit-user-drag: none; }
 .stagger > *:nth-child(7) { animation-delay: 0.40s; }
 .stagger > *:nth-child(8) { animation-delay: 0.46s; }
 
-/* Premium horizontal scroller — hides the scrollbar but keeps wheel/drag. */
+/* Premium horizontal scroller - hides the scrollbar but keeps wheel/drag. */
 .scroll-x {
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -154,7 +221,7 @@ img, video, a { -webkit-user-drag: none; }
 /* ── Per-game ambient background ───────────────────────────────────────
    A fixed layer behind the app whose tint follows the currently-selected
    game's accent (set via the --accent CSS var on :root by useAccent).
-   PERF: these are STATIC soft radial gradients — NOT animated, NOT
+   PERF: these are STATIC soft radial gradients - NOT animated, NOT
    filter:blur(). An animated blur(90px) layer sitting behind the main
    .glass panel's backdrop-filter forced Chromium to re-rasterize a huge
    blurred surface every frame (the #1 cause of the launcher feeling slow).
@@ -182,11 +249,13 @@ img, video, a { -webkit-user-drag: none; }
 .accent-bg::after {
   width: 40rem; height: 40rem;
   bottom: -16rem; left: -12rem;
-  background: radial-gradient(circle, var(--accent, #00ffe0) 0%, transparent 70%);
-  opacity: 0.28;
+  /* Secondary tone: falls back to the primary → a solid single-colour ambient
+     unless the user picked a two-tone swatch (--accent2 differs). */
+  background: radial-gradient(circle, var(--accent2, var(--accent, #00ffe0)) 0%, transparent 70%);
+  opacity: 0.32;
 }
 
-/* Soft hero aurora — STATIC soft gradients (no blur filter / no infinite
+/* Soft hero aurora - STATIC soft gradients (no blur filter / no infinite
    animation; same visual, none of the per-frame cost). */
 .aurora {
   position: absolute;
@@ -213,19 +282,44 @@ img, video, a { -webkit-user-drag: none; }
 }
 
 /* ── Skeleton loading shimmer ─────────────────────────────────────────── */
+/* The placeholder shown wherever a picture has not painted yet. It has two
+   jobs, and the first one is the one that was failing: LOOK LIKE A DELIBERATE
+   PLACEHOLDER. A flat `rgba(255,255,255,0.05)` over this app's near-black
+   shell reads as an empty black box, so once the sweep finished the card
+   looked broken rather than loading. It now carries a soft tint - the card's
+   own accent when one is supplied (see --skeleton-tint), a neutral wash
+   otherwise - so it is visibly "a picture is coming" from the first frame. */
 .skeleton {
   position: relative;
   overflow: hidden;
-  background: rgba(255,255,255,0.05);
+  background:
+    radial-gradient(125% 90% at 50% 0%,
+                    var(--skeleton-tint, rgba(255,255,255,0.09)), transparent 72%),
+    rgba(255,255,255,0.05);
   border-radius: 0.75rem;
 }
 .skeleton::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(100deg, transparent 20%, rgba(255,255,255,0.10) 50%, transparent 80%);
+  background: linear-gradient(100deg,
+              transparent 15%,
+              var(--skeleton-sheen, rgba(255,255,255,0.16)) 50%,
+              transparent 85%);
   transform: translateX(-100%);
-  animation: skeleton-sweep 1.4s ease-in-out infinite;
+  /* PERF: still a BOUNDED count, never `infinite` - a grid can show dozens of
+     these at once and each cycle repaints a region inside the (default-on)
+     backdrop-filter'd .glass panel, which is CPU-rasterized under
+     --disable-gpu-compositing.
+     But the bound is now tied to the STATE'S OWN MAXIMUM LIFETIME instead of
+     an arbitrary 7s: GameCard/SmartImage force the error fallback after 12s,
+     so the placeholder can never outlive that - and 2.2s x 6 = 13.2s covers it
+     with margin. The old 5x1.4s stopped at 7s and parked the sweep off-screen,
+     which is precisely the "empty card" this element exists to prevent.
+     Costs nothing in the common case: a cover that lands in <1s unmounts the
+     whole element, so the extra iterations are only ever paid when a load is
+     genuinely slow - which is exactly when the affordance is needed. */
+  animation: skeleton-sweep 2.2s ease-in-out 6;
 }
 @keyframes skeleton-sweep {
   100% { transform: translateX(100%); }
@@ -234,6 +328,16 @@ img, video, a { -webkit-user-drag: none; }
 /* Respect reduced-motion: kill the looping ambient/skeleton animations. */
 @media (prefers-reduced-motion: reduce) {
   .accent-bg::before, .accent-bg::after, .aurora, .skeleton::after { animation: none; }
+}
+
+/* ── Smart sleep (main.tsx) ───────────────────────────────────────────── */
+/* When the window is minimized or hidden to the system tray, fully PAUSE every
+   animation so an unseen launcher costs ~0% CPU/GPU. Resumes instantly on show.
+   Purely visual - no data/polling behaviour changes. */
+html[data-app-asleep="true"] *,
+html[data-app-asleep="true"] *::before,
+html[data-app-asleep="true"] *::after {
+  animation-play-state: paused !important;
 }
 
 /* ── Appearance prefs (themePrefs.ts) ─────────────────────────────────── */
@@ -245,14 +349,201 @@ html.reduce-anims *::after {
   animation-iteration-count: 1 !important;
   transition-duration: 0.001ms !important;
 }
-/* Compact density: shrink the rem base so all rem-based spacing/sizing tightens
-   uniformly (Tailwind is rem-based). */
-html[data-density="compact"] { font-size: 14.5px; }
+/* ── anims-low ────────────────────────────────────────────────────────────
+   The middle ground between "everything" and "nothing". `reduce-anims` (above)
+   is the OFF switch - it flattens every duration to ~0. "low" instead keeps the
+   short FUNCTIONAL transitions (hover, focus) so the UI still answers you, stops
+   the AMBIENT/looping decoration that runs forever for no interaction (aurora,
+   logo float, glow pulses, sheens, shimmer, the per-screen entrance), AND SNAPS
+   the fluid SLIDES - the travelling menu indicator and the option-picker thumb -
+   because that springy glide is exactly the "fluid" motion this level trims. */
+html.anims-low .nav-slide,
+html.anims-low .seg-thumb { transition: none; }
+html.anims-low .aurora,
+html.anims-low .accent-bg,
+html.anims-low .float-soft,
+html.anims-low .sheen-layer,
+/* ::after, not the element - the sweep lives on the pseudo-element, so the
+   bare `.skeleton` selector this used to carry stopped nothing at all. */
+html.anims-low .skeleton::after,
+html.anims-low [class*="animate-glow-pulse"],
+html.anims-low [class*="animate-float"],
+html.anims-low [class*="animate-gradient-pan"],
+html.anims-low [class*="animate-shimmer"] {
+  animation: none !important;
+}
+html.anims-low .view-transition,
+html.anims-low .stagger > * {
+  animation: none !important;
+  opacity: 1 !important;          /* .stagger starts at opacity:0 - don't strand it */
+  transform: none !important;
+}
+
+/* ── Segmented control (shared: sidebar mode, animation level, ...) ────────
+   ONE rounded glass row; the active option is a thumb that SLIDES, matching the
+   motion of switching menus. The blur is layered only under data-backdrop=glass
+   so a weak/software-rendered host (autoBackdrop → "none") gets the same shape
+   with zero per-paint blur cost. */
+.seg-glass {
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 0;
+  padding: 5px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.14),
+              inset -1px -1px 0 rgba(255, 255, 255, 0.04),
+              0 12px 30px -18px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+  isolation: isolate;
+}
+html[data-backdrop="glass"] .seg-glass {
+  backdrop-filter: blur(14px) saturate(150%);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+}
+
+/* The thumb IS the menus' travelling indicator, laid on its side: the same soft
+   directional accent wash, the same glowing edge bar, the same glass, the same
+   springy curve. Anything else made "choosing an option" feel like a different
+   product from "choosing a menu".
+   Colour = the app's own selection cyan by default. NOT var(--accent): that is
+   the user's ambient wash (it can be yellow), and yellow at 16% under a white
+   sheen renders muddy ORANGE - a selection indicator must be the product's
+   selection colour. `--seg-accent` lets a host (a game panel) pass its own. */
+.seg-thumb {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  left: 0;
+  z-index: 0;
+  border-radius: 9999px;
+  /* A GLOWING BODY, not an outlined pill and not an edge bar: the selection has
+     to read at a glance on its own. An even accent fill + a soft inner glow +
+     a real outer bloom. (The previous outer shadow used a -10px spread, which
+     shrank the bloom to nothing - it looked flat.) */
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.02)),
+    color-mix(in srgb, var(--seg-accent, #00ffe0) 20%, transparent);
+  box-shadow:
+    inset 0 0 14px color-mix(in srgb, var(--seg-accent, #00ffe0) 28%, transparent),
+    inset 1px 1px 0 rgba(255, 255, 255, 0.14),
+    0 0 18px -2px color-mix(in srgb, var(--seg-accent, #00ffe0) 45%, transparent),
+    0 0 5px color-mix(in srgb, var(--seg-accent, #00ffe0) 30%, transparent);
+  /* THE SAME curve + duration as the menu indicator (.nav-slide). The old
+     cubic-bezier(.22,1,.36,1) is easeOutQuint: it front-loads the motion, which
+     reads as fast and abrupt. y2 = 1.35 overshoots and settles - that is what
+     makes the menu transition feel fluid. */
+  transition: transform .44s cubic-bezier(.34, 1.35, .5, 1),
+              width     .44s cubic-bezier(.34, 1.35, .5, 1),
+              opacity   .22s ease;
+  will-change: transform;
+}
+/* NO edge bar here. The glowing bar is the signature of MOVING BETWEEN MENUS
+   (the sidebar panel + the settings tab list) - it says "this is the section you
+   are in". Repeating it on every option picker diluted that meaning into
+   decoration. An option picker gets the wash + the glass + the same springy
+   curve; the bar stays exclusive to navigation. */
+html.reduce-anims .seg-thumb,
+html.anims-low  .seg-thumb { transition: none; }
+
+.seg-opt {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 9999px;
+  color: #aeb6cc;
+  transition: color 200ms ease;
+  cursor: pointer;
+  min-width: 0;
+}
+.seg-opt:hover:not(:disabled) { color: #e8ecf7; }
+.seg-opt:disabled { cursor: default; }
+.seg-opt-on    { color: #eafffb;
+                 text-shadow: 0 0 12px color-mix(in srgb, var(--seg-accent, #00ffe0) 35%, transparent); }
+.seg-label { font-size: 0.86rem; font-weight: 700; white-space: nowrap; }
+.seg-hint  { font-size: 0.68rem; opacity: 0.72; white-space: nowrap; }
+.seg-opt-on .seg-hint { opacity: 0.9; }
+.seg-icon  { display: inline-flex; align-items: center; justify-content: center; }
+.seg-opt-on .seg-icon { color: var(--seg-accent, #00ffe0); }
+
+/* Compact variant for toolbars (grid/list, card size, list layout). Icon-only
+   options need a tighter box than a settings row. */
+.seg-sm { padding: 3px; }
+.seg-sm .seg-thumb { top: 3px; bottom: 3px; }
+.seg-sm .seg-opt   { padding: 5px 9px; gap: 5px; flex-direction: row; }
+.seg-sm .seg-label { font-size: 0.74rem; font-weight: 600; }
+
+/* Disabled row (e.g. a language switch mid-write) - dim, no pointer. */
+.seg-disabled { opacity: 0.5; pointer-events: none; }
+
+/* At data-anim="high" the thumb becomes real glass too, matching the menus'
+   travelling indicator. (The row itself is already glass at any level.) */
+html[data-anim="high"][data-backdrop="glass"] .seg-thumb {
+  backdrop-filter: blur(12px) saturate(165%);
+  -webkit-backdrop-filter: blur(12px) saturate(165%);
+}
+
+/* ── data-anim="high": glass marks WHERE YOU ARE, never what you hover ─────
+   There is deliberately NO :hover glass rule here. Hover is a pointer position,
+   not a state worth rendering a material for: it made every button flash a pane
+   of glass as the mouse crossed it, which is noise. "You are here" IS a state,
+   so the glass rides the ONE travelling indicator each menu already has (the
+   sidebar nav, the settings tab list), on top of the accent wash + glowing edge
+   bar, and slides with the selection. One blur layer per menu, not one per
+   button - and nothing reacts to the mouse merely passing over it.
+   NOTE (engine limit): a true refraction (reactbits-style feDisplacementMap via
+   `backdrop-filter: url(#svg)`) is NOT supported by Chromium/QtWebEngine. This
+   is blur + saturate + a curvature sheen: the closest this engine can render. */
+html[data-anim="high"][data-backdrop="glass"] .nav-slide-glass {
+  backdrop-filter: blur(12px) saturate(165%);
+  -webkit-backdrop-filter: blur(12px) saturate(165%);
+  /* The ORIGINAL SUBTLE GLASS the user liked (a translucent blurred pane with a
+     soft frame + gentle depth), NOT a glowing accent pill (which the user rejected).
+     Only the two things that drew a hard LIGHT edge on the RIGHT are removed: the
+     1px white border (a full rectangle outline, and it also insets the backdrop-
+     filter revealing a raw ring) and the `inset -1px -1px` bottom-right highlight.
+     Kept: the soft top-left inner highlight, the dark drop shadow (glass depth) and
+     a very faint accent halo (-12px spread = barely there). */
+  box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.16),
+              0 10px 26px -16px rgba(0, 0, 0, 0.65),
+              0 0 26px -12px var(--nav-accent, #00ffe0);
+  border: none;
+}
+/* The curvature sheen - part of the glass look (a soft top highlight). */
+html[data-anim="high"][data-backdrop="glass"] .nav-slide-glass::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 48%;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.13), transparent);
+}
+
+/* Gentle logo float (sidebar/brand) - subtler than animate-float's -10px so it
+   never overflows a compact slot. Auto-disabled by reduce-anims above. */
+@keyframes float-soft { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+.float-soft { animation: float-soft 4.5s ease-in-out infinite; }
+
+/* Text size: the user-chosen root font-size is applied inline on <html> by
+   themePrefs.applyTextScale (Tailwind is rem-based, so all text/sizing scales). */
 
 /* ── Console-style focus ring (keyboard/controller nav) ───────────────── */
 /* Strong, visible focus indicator for spatial navigation. Only on
    :focus-visible so mouse clicks stay clean. */
-:focus-visible {
+:focus-visible,
+/* Controller/keyboard nav forces the ring on plain :focus too - programmatic
+   .focus() from a gamepad often does NOT match :focus-visible, which left the
+   user unable to see where focus was (the "unstable" feeling). */
+body.using-spatial-nav :focus {
   outline: none;
   box-shadow: 0 0 0 2px #050510, 0 0 0 4px var(--accent, #00ffe0),
               0 0 18px -2px var(--accent, #00ffe0) !important;
@@ -267,7 +558,7 @@ html[data-density="compact"] { font-size: 14.5px; }
    attribute switch, easy to disable on weak machines.
    NOTE: a true glass *refraction* (reactbits feDisplacementMap) needs
    `backdrop-filter: url(#svg)`, which Chromium/QtWebEngine does NOT support, so
-   these use blur+saturate — the closest this engine can render. */
+   these use blur+saturate - the closest this engine can render. */
 
 /* Sidebar surface base (solid). Edge = INSET shadow, NEVER `border`, so the
    width animation shows no 1px white seam (the old "white frame" bug). */
@@ -290,7 +581,7 @@ html[data-backdrop="glass"] .glass-soft   { background: rgba(16,16,32,0.30); bac
 html[data-backdrop="glass"] .sidebar-glass{ background: rgba(14,14,30,0.40); backdrop-filter: blur(20px) saturate(150%); -webkit-backdrop-filter: blur(20px) saturate(150%); box-shadow: inset 1px 1px 0 rgba(255,255,255,0.22), inset -1px -1px 0 rgba(255,255,255,0.05), 0 18px 46px -18px rgba(0,0,0,0.7); }
 html[data-backdrop="glass"] .nav-glass    { background: rgba(255,255,255,0.06); backdrop-filter: blur(14px) saturate(150%); -webkit-backdrop-filter: blur(14px) saturate(150%); box-shadow: inset 1px 1px 0 rgba(255,255,255,0.24), inset -1px -1px 0 rgba(255,255,255,0.05); }
 
-/* acrylic — heavier blur + saturation + tint */
+/* acrylic - heavier blur + saturation + tint */
 html[data-backdrop="acrylic"] .glass,
 html[data-backdrop="acrylic"] .glass-strong,
 html[data-backdrop="acrylic"] .sidebar-glass,
@@ -301,7 +592,7 @@ html[data-backdrop="acrylic"] .sidebar-glass{ background: rgba(16,16,32,0.55); }
 html[data-backdrop="acrylic"] .glass-soft   { background: rgba(18,18,34,0.42); backdrop-filter: blur(28px) saturate(185%); -webkit-backdrop-filter: blur(28px) saturate(185%); }
 html[data-backdrop="acrylic"] .nav-glass    { background: rgba(255,255,255,0.09); }
 
-/* mica — subtle, mostly-opaque desktop tint, minimal blur */
+/* mica - subtle, mostly-opaque desktop tint, minimal blur */
 html[data-backdrop="mica"] .glass,
 html[data-backdrop="mica"] .glass-strong,
 html[data-backdrop="mica"] .sidebar-glass,
@@ -311,7 +602,7 @@ html[data-backdrop="mica"] .glass           { background: rgba(13,13,26,0.86); }
 html[data-backdrop="mica"] .glass-strong    { background: rgba(10,10,22,0.90); }
 html[data-backdrop="mica"] .sidebar-glass   { background: rgba(11,11,24,0.90); }
 
-/* tabbed — between mica and glass */
+/* tabbed - between mica and glass */
 html[data-backdrop="tabbed"] .glass,
 html[data-backdrop="tabbed"] .glass-strong,
 html[data-backdrop="tabbed"] .sidebar-glass,
@@ -320,7 +611,7 @@ html[data-backdrop="tabbed"] .nav-glass     { backdrop-filter: blur(10px) satura
 html[data-backdrop="tabbed"] .glass         { background: rgba(15,15,30,0.70); }
 html[data-backdrop="tabbed"] .sidebar-glass { background: rgba(13,13,28,0.72); }
 
-/* none — the solid base look (no backdrop-filter); nothing to layer. */
+/* none - the solid base look (no backdrop-filter); nothing to layer. */
 
 /* ── Ambient "colourful" mode (Appearance → צבעוני / html.ambient-rainbow) ──
    A soft multi-colour wash instead of a single accent tint. Gentle + low
@@ -336,8 +627,8 @@ html.ambient-rainbow .accent-bg {
 html.ambient-rainbow .accent-bg::before { background: radial-gradient(circle, #00ffe0 0%, transparent 70%); }
 html.ambient-rainbow .accent-bg::after  { background: radial-gradient(circle, #ff4d8d 0%, transparent 70%); }
 
-/* ── Dynamic ambient — the colour gently DRIFTS (not fixed) ────────────────
-   GPU-cheap: only `transform` on the (non-blurred) radial-gradient blobs — no
+/* ── Dynamic ambient - the colour gently DRIFTS (not fixed) ────────────────
+   GPU-cheap: only `transform` on the (non-blurred) radial-gradient blobs - no
    filter, no re-raster. Applies to both single-accent and "colourful" modes.
    Killed under reduce-motion / animations-off (rules above). */
 @keyframes ambient-drift-a { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-6%, 9%) scale(1.14); } }

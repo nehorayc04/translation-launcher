@@ -1,10 +1,10 @@
-// Canonical version model for the launcher UI — MIRRORS the website's
+// Canonical version model for the launcher UI - MIRRORS the website's
 // `website/src/lib/version.ts` and the backend `main_eel.py:_parse_version`.
 // Keep the three in lockstep.
 //
 // SemVer `MAJOR.MINOR.PATCH` + optional pre-release stage `-<stage>.<n>`
 // (e.g. `1.1.0-beta.2`). Stages oldest→newest: alpha → beta → rc → stable.
-// Legacy date scheme (`2026.05.22`) ranks below every semver; the `—`/`-`
+// Legacy date scheme (`2026.05.22`) ranks below every semver; the `-`/`-`
 // placeholder is shown as-is.
 
 export type Stage = "alpha" | "beta" | "rc" | "stable";

@@ -1,4 +1,4 @@
-// Mirror of the website's src/lib/phaseLabels.ts. Kept in sync manually —
+// Mirror of the website's src/lib/phaseLabels.ts. Kept in sync manually -
 // the website is the canonical source of truth (the API contract lives
 // there), but copying the table here is cheaper than building a shared
 // npm package for one tiny dictionary.
@@ -26,7 +26,7 @@ export const PHASE_REMAINING_LABEL_HE: Record<string, string> = {
   packaging:   "קבצים נותרו",
   qa:          "פריטים נותרו",
   deployment:  "פריטים נותרו",
-  idle:        "—",
+  idle:        "-",
 };
 
 export const PHASE_RATE_LABEL_HE: Record<string, string> = {
@@ -35,7 +35,7 @@ export const PHASE_RATE_LABEL_HE: Record<string, string> = {
   packaging:   "קצב אריזה / שעה",
   qa:          "קצב בקרה / שעה",
   deployment:  "קצב פריסה / שעה",
-  idle:        "—",
+  idle:        "-",
 };
 
 export function resolvePhaseHeadline(

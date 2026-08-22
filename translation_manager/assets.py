@@ -1,5 +1,5 @@
 """
-Cover-image loader — maps internal game IDs to the JPGs that ship inside
+Cover-image loader - maps internal game IDs to the JPGs that ship inside
 `<website>/public/covers/<id>.jpg`, resizes them with Pillow, and caches the
 CTkImage so each cover is loaded at most once per app run.
 """
@@ -13,7 +13,7 @@ from .config import WEBSITE_PROJECT_DIR
 
 def _cover_fit(img, target_w: int, target_h: int):
     """
-    CSS `object-fit: cover` — scale so the image FILLS the target box
+    CSS `object-fit: cover` - scale so the image FILLS the target box
     then crop the overflow. Preserves aspect ratio (no stretching).
     """
     from PIL import Image
@@ -50,7 +50,7 @@ def find_cover(game_id: str) -> Path | None:
 
 
 # ─────────────────────────────────────────────────────────────
-# Image cache — keyed by (game_id, width, height). CTkImage is
+# Image cache - keyed by (game_id, width, height). CTkImage is
 # heavy enough that we share instances across cards.
 # ─────────────────────────────────────────────────────────────
 _image_cache: dict[tuple[str, int, int], object] = {}
@@ -62,7 +62,7 @@ def load_cover(game_id: str, width: int, height: int):
     Load a cover image (PIL Image, cache-aware). Returns None on missing /
     load failure so the caller can fall back to a placeholder.
 
-    PIL Image is the storage format — callers convert to ImageTk.PhotoImage
+    PIL Image is the storage format - callers convert to ImageTk.PhotoImage
     (or CTkImage) at the widget-creation site. ImageTk.PhotoImage on a plain
     `tk.Label` avoids the scroll paint-trail bug that CTkImage exhibits
     inside CTkScrollableFrame.

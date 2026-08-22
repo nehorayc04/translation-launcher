@@ -9,6 +9,7 @@
 // yellow + cyan accents.
 import type { Game } from "../lib/types";
 import { useLiveGameProgress } from "../lib/useLiveGameProgress";
+import LiquidWave from "./LiquidWave";
 import {
   resolvePhaseHeadline,
   resolvePhaseDoneLabel,
@@ -18,7 +19,7 @@ import {
 
 interface Props {
   game: Game;
-  /** Bumped by App's sidebar refresh — re-pulls progress without remounting. */
+  /** Bumped by App's sidebar refresh - re-pulls progress without remounting. */
   refreshNonce?: number;
 }
 
@@ -36,7 +37,7 @@ export default function ProgressDashboard({ game, refreshNonce = 0 }: Props) {
   const updatedAt = snap?.updatedAt ?? null;
 
   // First-paint protection: render the whole card at zeros while the
-  // initial fetch is in flight — better than briefly flashing the
+  // initial fetch is in flight - better than briefly flashing the
   // stale static `game.progress`.
   const phase     = snap?.phase ?? "translation";
   const headline  = !loaded ? "טוען נתונים..." : resolvePhaseHeadline(phase, snap?.phaseLabelHe);
@@ -71,16 +72,17 @@ export default function ProgressDashboard({ game, refreshNonce = 0 }: Props) {
           {pct.toFixed(1)}%
         </span>
       </div>
-      <div className="h-2 bg-white/5 rounded-full overflow-hidden ring-1 ring-white/5">
-        <div
-          className="h-full rounded-full transition-[width] duration-700"
-          style={{
-            width: `${pct}%`,
-            background: "linear-gradient(90deg, #00ffe0, #fff700)",
-            boxShadow: "0 0 12px rgba(255,247,0,0.45)",
-          }}
-        />
-      </div>
+      {/* Flowing "liquid wave" fill - the SAME rate-driven wave as the website's
+          home progress dashboard (ported verbatim). The leading edge (RTL = left)
+          rises/falls with the live rate and the surface follows it. */}
+      <LiquidWave
+        pct={pct}
+        ratePerMin={(snap?.ratePerHour ?? 0) / 60}
+        primary="#fff700"
+        secondary="#00ffe0"
+        glow="rgba(255,247,0,0.45)"
+        height={72}
+      />
 
       <div className="mt-4 grid grid-cols-3 gap-3">
         <Stat label={doneLabel} value={processed} accent="#fff700" />
@@ -136,3 +138,4 @@ function Stat({
     </div>
   );
 }
+

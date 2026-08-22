@@ -1,8 +1,8 @@
-// useSWRSource — generic React hook that pairs an initial Eel fetch with
+// useSWRSource - generic React hook that pairs an initial Eel fetch with
 // a subscription to Python's `cache_refreshed` push events.
 //
 // Flow:
-//   1. On mount, call `initialFetch()` — this returns the cached/stale
+//   1. On mount, call `initialFetch()` - this returns the cached/stale
 //      value from Python's SWR layer immediately (no network round-trip
 //      on subsequent launches).
 //   2. Register a listener into `window.__eelCacheHandlers` (set up by
@@ -14,7 +14,7 @@
 //
 // Why mirror `useDownloadProgress`'s registry pattern? Because the actual
 // `eel.expose()` registration must happen in unminified, scanner-friendly
-// JS (public/eel-bindings.js) — bundled React code can't safely call
+// JS (public/eel-bindings.js) - bundled React code can't safely call
 // eel.expose() without tripping eel's HTML parser. The registry is the
 // hand-off between the two worlds.
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -69,7 +69,7 @@ export function useSWRSource<T>(
       const fresh = await fetchRef.current();
       setData(fresh);
     } catch (e) {
-      console.warn(`[useSWRSource] initial fetch for ${kind}/${subKey ?? "—"} failed`, e);
+      console.warn(`[useSWRSource] initial fetch for ${kind}/${subKey ?? "-"} failed`, e);
     } finally {
       setLoading(false);
       if (markRefreshing) setRefreshing(false);
@@ -87,7 +87,7 @@ export function useSWRSource<T>(
     if (!w.__eelCacheHandlers) w.__eelCacheHandlers = [];
     const handler: CacheHandler = (evtKind, evtData, evtSubKey) => {
       if (evtKind !== kind) return;
-      // Treat undefined and null subKeys as equivalent — Python sends
+      // Treat undefined and null subKeys as equivalent - Python sends
       // `null` for scalar kinds; the hook may not pass `subKey` at all.
       const myKey  = subKey ?? null;
       const evtKey = evtSubKey ?? null;

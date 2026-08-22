@@ -1,6 +1,6 @@
 """
 Pure logic for detecting state and enabling / disabling / removing mod files.
-No UI imports here — easy to unit-test or reuse from a CLI.
+No UI imports here - easy to unit-test or reuse from a CLI.
 """
 
 import threading
@@ -52,7 +52,7 @@ def detect_state(game: GameConfig, base: Path) -> str:
         return STATE_DISABLED
     if active == 0 and disabled == 0:
         return STATE_NOT_INSTALLED
-    # Mixed — pick the dominant flavor
+    # Mixed - pick the dominant flavor
     return STATE_ACTIVE if active >= disabled else STATE_DISABLED
 
 

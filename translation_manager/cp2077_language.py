@@ -2,12 +2,12 @@
 Cyberpunk 2077 language-slot automation.
 
 The Hebrew translation mod ships under Cyberpunk's Arabic locale archive
-(see CP2077 pipeline notes — Hebrew CR2W in en-us crashes the engine,
+(see CP2077 pipeline notes - Hebrew CR2W in en-us crashes the engine,
 Arabic-slot uses CDPR's tested RTL/bidi path). This module flips the
 game's Text + Subtitles settings to "ar-ar" when the mod is installed
 and restores the user's prior choice when it's removed.
 
-Voice is intentionally untouched — the user keeps their preferred
+Voice is intentionally untouched - the user keeps their preferred
 voice-over language (typically English).
 
 Public surface:
@@ -15,7 +15,7 @@ Public surface:
     restore_language()    -> dict
 
 Both return a structured dict and never raise. The launcher's mod
-install/remove flow consults `ok` for telemetry only — failures here
+install/remove flow consults `ok` for telemetry only - failures here
 must not block the file-level mod operations, which are the actual
 load-bearing part.
 """
@@ -25,6 +25,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import time
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -34,7 +35,7 @@ ARABIC_LOCALE       = "ar-ar"
 LANG_VARS_TO_SWAP   = ("Text", "Subtitles")        # NOT Voice
 LANG_GROUP_NAMES    = ("/language", "language")
 
-# Cached backup file — sits next to custom_paths.json so it auto-cleans
+# Cached backup file - sits next to custom_paths.json so it auto-cleans
 # with the rest of the launcher's per-user runtime data.
 _STATE_DIR  = Path.home() / ".translation_manager"
 _STATE_FILE = _STATE_DIR / "cp2077_lang_backup.json"
@@ -49,16 +50,41 @@ def _settings_file() -> Path:
     return Path(raw) / "CD Projekt Red" / "Cyberpunk 2077" / "UserSettings.json"
 
 
-def _read_json(path: Path) -> dict[str, Any] | None:
-    """Read + parse a JSON file, tolerating an optional UTF-8 BOM."""
+def _read_json_ex(path: Path) -> tuple[dict[str, Any] | None, str]:
+    """(data, error_code). Distinguishes the THREE very different reasons a read
+    can fail - they used to collapse into one None and one misleading message:
+
+      settings-file-missing  - the game never wrote its settings yet.
+      settings-file-locked   - the game is RUNNING: it holds the file, or we
+                               caught it mid-rewrite (a partial file → a JSON
+                               decode error). Retried briefly, since that window
+                               is milliseconds.
+      settings-file-unreadable - present, readable, but not the expected object.
+
+    This matters because the advice is OPPOSITE per case: "missing" → run the
+    game once; "locked" → CLOSE the game (and note the game REWRITES this file on
+    exit, so a change made while it runs would be clobbered anyway)."""
     if not path.exists():
-        return None
-    try:
-        data = json.loads(path.read_text(encoding="utf-8-sig"))
-    except (OSError, json.JSONDecodeError) as e:
-        log.warning("cp2077_language: cannot read %s — %s", path, e)
-        return None
-    return data if isinstance(data, dict) else None
+        return None, "settings-file-missing"
+    last: Exception | None = None
+    for delay in (0.0, 0.08, 0.25):        # transient lock / mid-write window
+        if delay:
+            time.sleep(delay)
+        try:
+            data = json.loads(path.read_text(encoding="utf-8-sig"))
+            if isinstance(data, dict):
+                return data, ""
+            return None, "settings-file-unreadable"
+        except (OSError, json.JSONDecodeError) as e:
+            last = e
+    log.warning("cp2077_language: cannot read %s - %s", path, last)
+    return None, "settings-file-locked"
+
+
+def _read_json(path: Path) -> dict[str, Any] | None:
+    """Read + parse a JSON file, tolerating an optional UTF-8 BOM.
+    Thin wrapper over _read_json_ex for the callers that only need the data."""
+    return _read_json_ex(path)[0]
 
 
 def _write_json_atomic(path: Path, data: dict[str, Any]) -> bool:
@@ -70,7 +96,7 @@ def _write_json_atomic(path: Path, data: dict[str, Any]) -> bool:
         os.replace(tmp, path)
         return True
     except OSError as e:
-        log.warning("cp2077_language: write failed for %s — %s", path, e)
+        log.warning("cp2077_language: write failed for %s - %s", path, e)
         return False
 
 
@@ -91,7 +117,7 @@ def _clear_state() -> None:
         if _STATE_FILE.exists():
             _STATE_FILE.unlink()
     except OSError as e:
-        log.debug("cp2077_language: state cleanup ignored — %s", e)
+        log.debug("cp2077_language: state cleanup ignored - %s", e)
 
 
 # ─────────────────────────────────────────────────────────────
@@ -106,7 +132,7 @@ def _iter_lang_vars(data: dict[str, Any]) -> list[dict[str, Any]]:
     We tolerate the alternate `vars` → `entries` rename and case
     variations of the group name. If the standard schema yields nothing,
     we fall back to a recursive scan that picks up any object whose
-    `name` matches one of the language vars we care about — that way an
+    `name` matches one of the language vars we care about - that way an
     unexpected schema bump from CDPR doesn't silently no-op.
     """
     out: list[dict[str, Any]] = []
@@ -115,7 +141,7 @@ def _iter_lang_vars(data: dict[str, Any]) -> list[dict[str, Any]]:
     # the legacy names too so an older UserSettings.json still works.
     targets = set(LANG_VARS_TO_SWAP) | {"Voice", "OnScreen", "VoiceOver", "Platform"}
 
-    # Pass 1 — the group list. CDPR puts the groups under "data" (current
+    # Pass 1 - the group list. CDPR puts the groups under "data" (current
     # schema) or "groups" (older); the group key is "group_name" or "name";
     # the vars under "options" (current) / "vars" / "entries".
     groups = data.get("data") or data.get("groups")
@@ -132,7 +158,7 @@ def _iter_lang_vars(data: dict[str, Any]) -> list[dict[str, Any]]:
     if out:
         return out
 
-    # Pass 2 — recursive fallback. Only collect dicts that look like a
+    # Pass 2 - recursive fallback. Only collect dicts that look like a
     # language var (name ∈ targets + has a `value`), which avoids
     # accidentally rewriting unrelated nodes elsewhere in the file.
     def walk(node: Any) -> None:
@@ -236,9 +262,11 @@ def set_text_language(locale: str) -> dict[str, Any]:
     enable_arabic_slot() / restore_language() remain the auto-flip pair the
     mod lifecycle drives. Returns {ok, changed, error}."""
     path = _settings_file()
-    data = _read_json(path)
+    data, err = _read_json_ex(path)
     if data is None:
-        return {"ok": False, "changed": [], "error": "settings-file-missing-or-unreadable"}
+        # Report WHICH failure it was - "locked" (the game is open) needs the
+        # opposite advice from "missing" (the game never ran).
+        return {"ok": False, "changed": [], "error": err or "settings-file-unreadable"}
 
     by_name = _vars_by_name(_iter_lang_vars(data))
     changed: list[str] = []

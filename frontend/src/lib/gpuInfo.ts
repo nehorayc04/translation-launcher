@@ -1,4 +1,4 @@
-// GPU acceleration probe — the DECISIVE diagnostic for "the app is never smooth".
+// GPU acceleration probe - the DECISIVE diagnostic for "the app is never smooth".
 // Reads the real WebGL renderer (WEBGL_debug_renderer_info → UNMASKED_RENDERER).
 // If it's SwiftShader/software, Chromium is NOT GPU-accelerated → that is the
 // jank root cause (and a Chromium-flag / Qt problem, not CSS). If it names the
@@ -29,9 +29,20 @@ export function detectGpu(): GpuInfo {
       if (!vendor)   vendor   = String(gl.getParameter(gl.VENDOR)   || "");
     }
   } catch { /* WebGL unavailable */ }
-  const software = !renderer ||
+  // POSITIVE match only. `!renderer` used to count as software, which was
+  // harmless while this string was just logged - but it now drives the UI's
+  // auto-degrade, and the probe legitimately returns "" when it runs before the
+  // document is ready or the WEBGL_debug_renderer_info extension is absent. An
+  // UNKNOWN renderer must NOT be treated as software, or a perfectly good
+  // machine silently loses its glass + animations. Unknown → assume fine.
+  const software =
     /swiftshader|software|microsoft basic|llvmpipe|mesa offscreen|generic/i.test(renderer);
   cached = { renderer: renderer || "unknown", vendor: vendor || "unknown", accelerated: !software };
+  // Publish for themePrefs.shouldAutoReduce() (kept as a plain global to avoid
+  // an import cycle: themePrefs runs BEFORE React mounts).
+  try {
+    (window as unknown as { __gpuAccelerated?: boolean }).__gpuAccelerated = cached.accelerated;
+  } catch { /* ignore */ }
   return cached;
 }
 

@@ -6,13 +6,14 @@ import { useEffect } from "react";
 import { api, type NewsItem } from "../lib/eel";
 import { useSWRSource } from "../lib/useSWRSource";
 import type { Game } from "../lib/types";
+import { IconOptHdrNews } from "./UiIcons";
 
 interface Props {
   /** Clicking a news item with `link: <game_id>` opens that game's detail panel. */
   onOpenGame: (g: Game) => void;
   /** Resolve a game-id to a full Game for the click handler. */
   games: Game[];
-  /** Bumped by App's sidebar refresh — forces a fresh fetch even if the
+  /** Bumped by App's sidebar refresh - forces a fresh fetch even if the
    *  SWR layer thinks the cache is hot. */
   refreshNonce?: number;
 }
@@ -36,6 +37,10 @@ export default function NewsSection({ onOpenGame, games, refreshNonce = 0 }: Pro
   return (
     <section className="mt-8">
       <div className="flex items-baseline justify-between mb-4">
+        <h2 className="flex items-center gap-3 text-2xl font-bold text-white">
+          <span className="h-6 w-1.5 rounded-full bg-brand-yellow shadow-[0_0_12px_rgba(255,247,0,0.6)]" />
+          <IconOptHdrNews width={20} className="shrink-0 opacity-90" />חדשות ועדכונים
+        </h2>
         <span className="text-xs text-slate-500">
           {loading
             ? "טוען..."
@@ -43,7 +48,6 @@ export default function NewsSection({ onOpenGame, games, refreshNonce = 0 }: Pro
               ? "עדכון אחרון"
               : `${items.length} עדכונים אחרונים`}
         </span>
-        <h2 className="text-2xl font-bold text-white">חדשות ועדכונים</h2>
       </div>
 
       {loading ? (

@@ -1,7 +1,7 @@
 // Singleton subscriber for download progress events.
 //
 // The actual `eel.expose("update_download_progress", ...)` registration
-// lives in `public/eel-bindings.js` — a static, unminified script. That's
+// lives in `public/eel-bindings.js` - a static, unminified script. That's
 // because Vite/Rolldown can emit string literals as template-literal
 // backticks, and eel's HTML scanner then mis-captures the exposed name
 // (e.g. `` `update_download_progress` ``) which crashes Python on boot.
@@ -37,7 +37,7 @@ function onEvent(itemId: string, pct: number, speed: string, state: DownloadStat
 }
 
 // Register against the global registry created by eel-bindings.js.
-// The bindings file may load slightly before or after this module — both
+// The bindings file may load slightly before or after this module - both
 // orderings work because the registry is just an Array.
 const w = window as any;
 if (!w.__eelDLHandlers) w.__eelDLHandlers = [];

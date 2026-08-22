@@ -1,4 +1,4 @@
-// Optional, synthesized UI sounds (no audio assets — Web Audio oscillators).
+// Optional, synthesized UI sounds (no audio assets - Web Audio oscillators).
 // Off by default; gated by the themeSounds pref. initUiSounds() wires a soft
 // click to every button press when enabled.
 import { getSounds } from "./themePrefs";

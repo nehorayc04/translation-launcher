@@ -1,17 +1,22 @@
-// First-run onboarding — a short animated multi-step welcome. Shown once
+// First-run onboarding - a short animated multi-step welcome. Shown once
 // (localStorage 'onboardingDone'); skippable. Robust modal carousel (no
 // fragile element-anchored coachmarks).
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { IconAppOnboardingStepWelcome, IconAppOnboardingStepTheme } from "./UiIcons";
 
-const STEPS: { icon: string; title: string; body: string }[] = [
-  { icon: "👋", title: "ברוך הבא למנהל התרגומים",
-    body: "המרכז החכם שלך לניהול והתקנת תרגומים עבריים למשחקי PC — מאובטח, מהיר, ומעוצב בסטנדרט הגבוה ביותר." },
-  { icon: "🎮", title: "הספרייה שלך",
-    body: "התוכנה מזהה אוטומטית את המשחקים המותקנים. לכל משחק יש עמוד עם תרגום, גרסאות והגדרות. אפשר לעבור בין תצוגת רשת לרשימה ולמיין כרצונך." },
-  { icon: "🎨", title: "כל משחק וצבע משלו",
-    body: "כשנכנסים לעמוד משחק — כל התוכנה נצבעת בצבע הכותר. אפשר לכוונן צבע אווירה, צפיפות ואנימציות ב'הגדרות → מראה'." },
+const STEPS: { icon: ReactNode; title: string; body: string }[] = [
+  { icon: <IconAppOnboardingStepWelcome width={30} />, title: "ברוך הבא למנהל התרגומים",
+    body: "המרכז החכם שלך לניהול והתקנת תרגומים עבריים למשחקי PC - מאובטח, מהיר, ומעוצב בסטנדרט הגבוה ביותר. הסיור קצר, ואפשר לדלג בכל שלב." },
+  { icon: "🔍", title: "שלב 1 - שהתוכנה תמצא את המשחק",
+    body: "היכנס ל'ספרייה'. משחקים מותקנים מזוהים אוטומטית. לא רואה את המשחק? לחץ 'סריקת כוננים מלאה' לסריקת כל הכוננים, או פתח את כרטיס המשחק והזן ידנית את הנתיב המלא לתיקיית ההתקנה." },
+  { icon: "⬇️", title: "שלב 2 - התקנת התרגום",
+    body: "פתח את כרטיס המשחק ולחץ 'התקן תרגום'. התוכנה מורידה ומתקינה את המוד עבורך, עם סרגל התקדמות. תרגומים בתשלום נפתחים אחרי רכישה; השאר חינמיים." },
+  { icon: "✅", title: "שלב 3 - הפעלה בתוך המשחק",
+    body: "אחרי ההתקנה - בכרטיס המשחק בחר 'שפת המשחק: עברית'. במשחק עצמו הגדר את שפת הטקסט/כתוביות ל-العربية (הערבית) פעם אחת, והעברית תופיע. הכול הפיך בלחיצה." },
+  { icon: <IconAppOnboardingStepTheme width={30} />, title: "כל משחק וצבע משלו",
+    body: "כשנכנסים לעמוד משחק - כל התוכנה נצבעת בצבע הכותר. אפשר לכוונן צבע אווירה, גודל טקסט ואנימציות ב'הגדרות → מראה'." },
   { icon: "🕹️", title: "שליטה מלאה במקלדת ובשלט",
-    body: "נווט עם החיצים או ה-D-pad, הפעל ב-Enter / כפתור A, וחזור עם Backspace / כפתור B. כפתור Start פותח מצב מסך-מלא (Big Picture)." },
+    body: "נווט עם החיצים או ה-D-pad, הפעל ב-Enter / כפתור A, וחזור עם Backspace / כפתור B. אפשר לפתוח שוב את המדריך הזה בכל עת מ'הגדרות → כללי'." },
 ];
 
 export default function OnboardingTour({ onClose }: { onClose: () => void }) {

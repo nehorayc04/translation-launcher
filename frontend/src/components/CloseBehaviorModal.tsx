@@ -5,15 +5,16 @@
 // "minimise to tray" or "close completely"; if they tick the
 // "remember" checkbox the choice is persisted and this modal never
 // reappears. With the checkbox off we apply the choice once for this
-// session — the next launcher boot prompts again.
+// session - the next launcher boot prompts again.
 //
 // We can't truly intercept Windows' "X" click (Eel + Chrome --app has
-// no hook for that — see the discussion in main_eel._on_window_closed)
+// no hook for that - see the discussion in main_eel._on_window_closed)
 // so this is the cleanest way to honour the SPIRIT of the request:
 // "ask once, remember forever, behave silently from then on".
 import { useState } from "react";
 import { api } from "../lib/eel";
 import type { LauncherPrefs } from "../lib/types";
+import { IconOptBtnCloseConfirm } from "./UiIcons";
 
 interface Props {
   onResolved: (next: LauncherPrefs) => void;
@@ -33,11 +34,17 @@ export default function CloseBehaviorModal({ onResolved }: Props) {
         const r = await api.setCloseBehavior(choice);
         onResolved({ closeBehavior: r.closeBehavior, startWithOs: r.startWithOs });
       } else {
-        // One-time choice — don't persist. Resolve with the choice for
+        // One-time choice - don't persist. Resolve with the choice for
         // this session only; the next boot will see closeBehavior=null
         // and re-prompt.
         onResolved({ closeBehavior: choice, startWithOs: false });
       }
+    } catch {
+      // The bridge may not be ready at this earliest-boot moment (or the
+      // call otherwise failed). NEVER trap the user behind this
+      // full-screen overlay - apply the choice for THIS session only so
+      // the app becomes usable; the next boot re-prompts.
+      onResolved({ closeBehavior: choice, startWithOs: false });
     } finally {
       setBusy(false);
     }
@@ -60,7 +67,7 @@ export default function CloseBehaviorModal({ onResolved }: Props) {
           </div>
           <div className="leading-tight">
             <h2 className="text-white font-extrabold text-lg">סגירת התוכנה</h2>
-            <p className="text-slate-400 text-xs">בחירה חד-פעמית — אפשר לשנות בהגדרות בכל רגע</p>
+            <p className="text-slate-400 text-xs">בחירה חד-פעמית - אפשר לשנות בהגדרות בכל רגע</p>
           </div>
         </div>
 
@@ -107,10 +114,12 @@ export default function CloseBehaviorModal({ onResolved }: Props) {
           disabled={busy}
           onClick={submit}
           className="w-full py-3 rounded-xl bg-brand-yellow hover:bg-yellow-300
+                     flex items-center justify-center gap-1.5
                      text-brand-ink font-extrabold transition
                      disabled:opacity-50 disabled:cursor-wait
                      shadow-[0_10px_30px_-10px_rgba(255,247,0,0.6)]"
         >
+          <IconOptBtnCloseConfirm width={18} className="shrink-0 opacity-90" />
           {busy ? "שומר…" : "אישור"}
         </button>
       </div>

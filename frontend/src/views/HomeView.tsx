@@ -1,42 +1,79 @@
-// Landing screen — clean premium brand hero (no spotlight game) + quick stats
+// Landing screen - clean premium brand hero (no spotlight game) + quick stats
 // + featured games row + live progress + news. Styled to a WeMod/Steam grade.
-import { isInFlight, type Game } from "../lib/types";
+import { type Game } from "../lib/types";
 import GameCard from "../components/GameCard";
 import NewsSection from "../components/NewsSection";
-import ProgressDashboard from "../components/ProgressDashboard";
 import { useSiteConfig } from "../lib/useSiteConfig";
 import { accentFor } from "../lib/theme";
-import { resolveCoverUrl } from "../lib/coverUrl";
-import { useEffect, useState, type ComponentType, type SVGProps } from "react";
+import { resolveCoverUrl, resolveAssetUrl } from "../lib/coverUrl";
+import SmartImage from "../components/SmartImage";
+import { IconOptHdrFeatured, IconAppHomeStatProgress } from "../components/UiIcons";
+import { useDragScroll } from "../lib/useDragScroll";
+import { useEffect, useState, useRef, type ComponentType, type SVGProps } from "react";
 
 interface Props {
   games: Game[];
+  /** The software catalog - only used for the "בקטלוג" total (games + software).
+   *  The other stats stay game-scoped. */
+  software?: Game[];
   onOpenGame:  (g: Game) => void;
   onOpenLibrary: () => void;
-  onBigPicture?: () => void;
-  /** Bumped by App's refresh button — forwarded to NewsSection so it
+  /** Enter "ביג-לאנץ" - the separate console shell (frontend/src/biglaunch/). */
+  onBigLaunch?: () => void;
+  /** Bumped by App's refresh button - forwarded to NewsSection so it
    *  re-pulls without waiting for an unmount/remount cycle. */
   refreshNonce?: number;
 }
 
-export default function HomeView({ games, onOpenGame, onOpenLibrary, onBigPicture, refreshNonce }: Props) {
+export default function HomeView({ games, software = [], onOpenGame, onOpenLibrary, onBigLaunch, refreshNonce }: Props) {
   const cfg = useSiteConfig();
   const vis = cfg.sections?.visible ?? {};
   // Featured games are curated from /admin → games → "מוצג ב'תרגומים מובילים'".
   const FALLBACK_IDS = ["cyberpunk", "gowragnarok", "tsushima", "rdr1", "rdr2", "gtav", "hogwarts"];
   const flagged = games.filter((g) => g.featured);
-  const featured = (flagged.length > 0
+  const featuredNow = (flagged.length > 0
     ? [...flagged].sort((a, b) => (a.sortOrder ?? 1000) - (b.sortOrder ?? 1000))
     : FALLBACK_IDS
         .map((id) => games.find((g) => g.id === id))
         .filter((g): g is Game => Boolean(g))
   );
 
+  // SETTLED featured list. `games` paints instantly from a possibly-stale local
+  // cache and the live SWR refresh silently corrects it a moment later (see
+  // swr_cache.py) - and it can correct it more than once in a burst (several
+  // background checks each pushing their own update). Recomputing `featured`
+  // straight from `games` on every one of those pushes made the row visibly
+  // gain/lose/reshuffle cards right after opening the app, and again on every
+  // later catalog change - it read as broken, not "updating".
+  // Fix: paint the FIRST composition immediately (zero added latency - this is
+  // just the plain value on first render), but debounce any LATER composition
+  // change - a fast correction (the common case) then never flashes the
+  // in-between state, and a burst of pushes collapses into one settled swap.
+  const featuredSig = featuredNow.map((g) => g.id).join(",");
+  const [featured, setFeatured] = useState(featuredNow);
+  const featuredSigRef = useRef(featuredSig);
+  useEffect(() => {
+    if (featuredSig === featuredSigRef.current) return;
+    const t = window.setTimeout(() => {
+      featuredSigRef.current = featuredSig;
+      setFeatured(featuredNow);
+    }, 500);
+    return () => window.clearTimeout(t);
+    // featuredNow is recomputed every render from `games`; only the derived
+    // signature should drive the debounce.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [featuredSig]);
+
+  // Click-and-drag horizontal scroll for the featured row (a SHORT click still
+  // opens a game; a drag scrolls right/left and never opens one).
+  const featuredRef = useDragScroll<HTMLDivElement>();
+
   const installed = games.filter((g) => g.is_installed).length;
-  const withMods  = games.filter((g) => g.mod_state === "ACTIVE").length;
-  const inProg    = games.filter((g) => isInFlight(g.availability)).length;
-  // Live progress card mounts only when there's a game in production.
-  const inProgGame = games.find((g) => isInFlight(g.availability));
+  // "בקרוב" = titles the admin marked coming-soon (the catalog has no separate
+  // "in-work" state, so the old in-flight count was always 0).
+  const comingSoon = games.filter((g) => g.availability === "coming-soon").length;
+  // "זמינים" = titles whose translation is released and ready to download.
+  const available  = games.filter((g) => g.availability === "available").length;
 
   return (
     <div className="h-full overflow-y-auto px-8 py-6 animate-fade-in">
@@ -44,7 +81,7 @@ export default function HomeView({ games, onOpenGame, onOpenLibrary, onBigPictur
       <section className="glass rounded-3xl relative overflow-hidden animate-rise">
         <div className="aurora" aria-hidden />
         <div className="absolute inset-0 grid-texture pointer-events-none" aria-hidden />
-        {/* Ambient glow — a STATIC radial gradient (no filter:blur / no animation).
+        {/* Ambient glow - a STATIC radial gradient (no filter:blur / no animation).
             The old blur-3xl + animate-glow-pulse blobs were a continuous CPU-blur
             under --disable-gpu-compositing → the main FPS killer. A gradient looks
             the same for free. */}
@@ -63,92 +100,78 @@ export default function HomeView({ games, onOpenGame, onOpenLibrary, onBigPictur
             <span className="text-gradient">מנהל התרגומים הרשמי</span>
           </h1>
           <p className="text-slate-300/90 text-[1.05rem] max-w-2xl leading-relaxed mb-8">
-            הדור הבא של הגיימינג בעברית. המרכז החכם שלך לניהול והתקנת תרגומים —
+            הדור הבא של הגיימינג בעברית. המרכז החכם שלך לניהול והתקנת תרגומים -
             מאובטח, מהיר, ומעוצב בסטנדרט הגבוה ביותר.
           </p>
-          <div className="flex gap-3 justify-center flex-wrap">
-            <button
-              onClick={onOpenLibrary}
-              className="group relative overflow-hidden bg-brand-yellow hover:brightness-110
-                         text-brand-ink font-extrabold px-8 py-3 rounded-xl transition-all
-                         shadow-[0_12px_30px_-10px_rgba(255,247,0,0.6)]"
-            >
-              <span className="sheen-layer" aria-hidden />
-              ▸ עיין בספרייה
-            </button>
-            {onBigPicture && (
+          {/* The hero CTAs ("עיין בספרייה" / "האתר הרשמי") were removed by
+              request - the sidebar already navigates to the library, and the
+              brand logo there opens the official site. What's left is the entry
+              to "ביג-לאנץ" - a SEPARATE console shell, not a mode of this app. */}
+          {onBigLaunch && (
+            <div className="flex gap-3 justify-center flex-wrap">
               <button
                 type="button"
-                onClick={onBigPicture}
+                onClick={onBigLaunch}
                 className="border border-brand-cyan/40 hover:border-brand-cyan/70
                            hover:bg-brand-cyan/10 text-brand-cyan font-semibold
                            px-6 py-3 rounded-xl transition-all"
-                title="מצב מסך-מלא לניווט בשלט/מקלדת מהספה"
+                title="ממשק קונסולה במסך מלא - ניווט מלא בשלט מהספה"
               >
-                🖥 מצב מסך-מלא
+                🎮 ביג-לאנץ
               </button>
-            )}
-            <a
-              href="https://hebrew-translation-hub.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="border border-white/15 hover:border-brand-cyan/50
-                         hover:bg-brand-cyan/5 text-slate-100 font-semibold
-                         px-6 py-3 rounded-xl transition-all"
-            >
-              האתר הרשמי ↗
-            </a>
-          </div>
+            </div>
+          )}
         </div>
       </section>
 
       {/* ── RECOMMENDED SPOTLIGHT (rotating carousel) ──────────────── */}
+      {/* Show EVERY featured game (no cap) - it rotates through all of them, so
+          a game the admin adds to "תרגומים מובילים" appears here too. The
+          carousel clamps its index + cycles with `% n`, so any count is safe. */}
       {(vis['grid'] ?? true) && featured.length > 0 && (
-        <FeaturedCarousel games={featured.slice(0, 6)} onOpenGame={onOpenGame} />
+        <FeaturedCarousel games={featured} onOpenGame={onOpenGame} />
       )}
 
       {/* ── STATS ──────────────────────────────────────────────────── */}
-      <section className="grid grid-cols-3 gap-4 mt-6 stagger">
-        <Stat label="משחקים בקטלוג" value={games.length} accent="#fff700" Icon={IconCatalog} />
+      <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 stagger">
+        {/* The catalog total spans the WHOLE library - games + software together. */}
+        <Stat label="בקטלוג" value={games.length + software.length} accent="#fff700" Icon={IconCatalog} />
+        <Stat label="זמינים"          value={available}     accent="#a78bfa" Icon={IconAvailable} />
+        <Stat label="בקרוב"           value={comingSoon}    accent="#00ffe0" Icon={IconAppHomeStatProgress} />
         <Stat label="מותקנים במחשב"  value={installed}     accent="#22c55e" Icon={IconInstalled} />
-        <Stat label="בעבודה"          value={inProg}        accent="#00ffe0" Icon={IconProgress} />
       </section>
-
-      {/* LIVE PROGRESS — only renders when there's an in-progress game */}
-      {(vis['dashboard'] ?? true) && inProgGame && (
-        <ProgressDashboard game={inProgGame} refreshNonce={refreshNonce} />
-      )}
 
       {/* ── FEATURED ROW ───────────────────────────────────────────── */}
       {(vis['grid'] ?? true) && (
         <section className="mt-8">
           <div className="flex items-center justify-between mb-4">
+            <h2 className="flex items-center gap-3 text-2xl font-bold text-white">
+              <span className="h-6 w-1.5 rounded-full bg-brand-yellow shadow-[0_0_12px_rgba(255,247,0,0.6)]" />
+              <IconOptHdrFeatured width={20} className="shrink-0 opacity-90" />
+              תרגומים מובילים
+            </h2>
             <button
+              type="button"
               onClick={onOpenLibrary}
               className="text-brand-cyan hover:text-brand-yellow text-sm font-semibold transition-colors"
             >
               לכל הספרייה ←
             </button>
-            <h2 className="flex items-center gap-3 text-2xl font-bold text-white">
-              <span className="h-6 w-1.5 rounded-full bg-brand-yellow shadow-[0_0_12px_rgba(255,247,0,0.6)]" />
-              תרגומים מובילים
-            </h2>
           </div>
-          <div className="flex gap-5 overflow-x-auto scroll-x pb-3 -mx-2 px-2">
+          {/* Generous padding INSIDE the horizontal scroller so a hovered card's
+              lift (-6px) + all-around accent glow (~26px radius) have room top
+              AND bottom and are NOT clipped by the scroller's rectangle
+              (overflow-x:auto also clips the Y axis). 32px each side clears the
+              glow; the negative margins keep the row aligned with its siblings. */}
+          <div ref={featuredRef} className="flex gap-5 overflow-x-auto scroll-x pt-8 pb-12 px-6 -mx-6 -mt-4 cursor-grab select-none">
             {featured.map((g) => (
               <GameCard key={g.id} game={g} onClick={onOpenGame} size="lg" />
             ))}
           </div>
-          {withMods > 0 && (
-            <div className="text-xs text-slate-500 mt-2 text-right flex items-center gap-2 justify-end">
-              {withMods === 1 ? "מוד אחד פעיל כרגע" : `${withMods} מודים פעילים כרגע`}
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#22c55e] animate-pulse-dot" />
-            </div>
-          )}
         </section>
       )}
 
-      {/* NEWS — dynamic, fetched from backend (remote → local fallback) */}
+      {/* NEWS - dynamic, fetched from backend (remote → local fallback) */}
       {(vis['news'] ?? true) && (
         <NewsSection games={games} onOpenGame={onOpenGame} refreshNonce={refreshNonce} />
       )}
@@ -207,17 +230,17 @@ function FeaturedCarousel({
                   it never looks cropped like a vertical cover did). Falls back to a
                   masked cover only when a game has no banner yet. */}
               {g.bannerUrl ? (
-                <img
-                  src={g.bannerUrl}
+                <SmartImage
+                  src={resolveAssetUrl(g.bannerUrl)}
                   alt={g.titleEn}
                   draggable={false}
                   className="absolute inset-0 w-full h-full object-cover"
                   onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
                 />
               ) : (
-                /* No banner → a blurred, zoomed cover backdrop — identical to the
+                /* No banner → a blurred, zoomed cover backdrop - identical to the
                    game-menu top banner ("if there's no image, a blurred background"). */
-                <img
+                <SmartImage
                   src={cover}
                   alt={g.titleEn}
                   draggable={false}
@@ -225,40 +248,35 @@ function FeaturedCarousel({
                   onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
                 />
               )}
-              {/* Readability scrim — darkens the text (right/RTL) side. */}
+              {/* Readability scrim - darkens the text (right/RTL) side. */}
               <div className="absolute inset-0" style={{
                 background: `linear-gradient(to left, rgba(7,7,18,0.92) 24%, rgba(7,7,18,0.5) 54%, rgba(7,7,18,0.12)), radial-gradient(60% 100% at 100% 50%, ${accent}1f, transparent 70%)`,
               }} aria-hidden />
               {/* Text block (RTL right). Uses the transparent LOGO when present. */}
-              <div className="relative h-full flex flex-col justify-center items-end gap-3 pr-9 pl-[42%]">
-                <div className="font-display text-[10px] tracking-[0.3em]" style={{ color: accent }}>
-                  ★ &nbsp; M U M L A T Z
-                </div>
-                {g.logoUrl ? (
+              {/* "After" design: big accent-coloured game name on the RIGHT,
+                  the logo on the LEFT, no "פתח" button - the whole card is the
+                  click target (this <button> already opens the game). */}
+              <div className="relative h-full">
+                {g.logoUrl && (
                   <img
-                    src={g.logoUrl}
-                    alt={g.titleEn}
+                    src={resolveAssetUrl(g.logoUrl)}
+                    alt=""
+                    aria-hidden
                     draggable={false}
-                    className="max-h-16 max-w-[70%] object-contain drop-shadow-[0_3px_14px_rgba(0,0,0,0.9)]"
+                    className="absolute bottom-6 left-8 h-20 w-auto max-w-[40%] object-contain object-left drop-shadow-[0_3px_14px_rgba(0,0,0,0.9)]"
                     onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
                   />
-                ) : (
-                  <h3 className="text-3xl font-extrabold text-white leading-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
-                    {g.titleHe || g.titleEn}
-                  </h3>
                 )}
-                {g.tagline && (
-                  <p className="text-slate-300 text-sm max-w-md leading-relaxed line-clamp-2">
-                    {g.tagline}
-                  </p>
-                )}
-                <span
-                  className="mt-1 inline-flex items-center gap-2 px-6 py-2.5 rounded-xl font-extrabold text-brand-ink
-                             shadow-[0_10px_26px_-8px_rgba(0,0,0,0.7)]"
-                  style={{ background: accent }}
+                {/* Name - bottom-right (same place as the edit). The library
+                    cards' font is Orbitron (Latin-only), so to get the SAME font
+                    for the whole name (not just the digits) we show the English
+                    title, exactly like the cards. */}
+                <h3
+                  className="absolute bottom-10 right-9 left-[42%] text-4xl font-display font-extrabold tracking-wide leading-[1.14] pb-[0.12em] text-right line-clamp-2 drop-shadow-[0_3px_14px_rgba(0,0,0,0.95)]"
+                  style={{ color: accent }}
                 >
-                  ▸ פתח
-                </span>
+                  {g.titleEn}
+                </h3>
               </div>
             </button>
           );
@@ -327,7 +345,7 @@ function Stat({
                  hover:border-white/10"
       style={{ direction: "rtl" }}
     >
-      {/* accent corner glow — static radial gradient (no filter:blur → cheap to paint) */}
+      {/* accent corner glow - static radial gradient (no filter:blur → cheap to paint) */}
       <div className="absolute -top-10 -left-10 w-32 h-32 rounded-full opacity-40
                       group-hover:opacity-70 transition-opacity pointer-events-none"
            style={{ background: `radial-gradient(circle, ${accent}55, transparent 70%)` }} aria-hidden />
@@ -372,12 +390,12 @@ function IconInstalled(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
-function IconProgress(props: SVGProps<SVGSVGElement>) {
+function IconAvailable(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}
          strokeLinecap="round" strokeLinejoin="round" {...props}>
-      <path d="M12 3a9 9 0 1 0 9 9" />
-      <path d="M12 7v5l3 2" />
+      <circle cx="12" cy="12" r="9" />
+      <path d="m8.5 12 2.5 2.5 4.5-5" />
     </svg>
   );
 }

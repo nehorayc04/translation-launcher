@@ -1,12 +1,12 @@
-r"""rpf7_writer.py — pure-Python OPEN RPF7 (GTA V RAGE pack) read-modify-write.
+r"""rpf7_writer.py - pure-Python OPEN RPF7 (GTA V RAGE pack) read-modify-write.
 
-This is what the launcher needs to install the Hebrew mod the way OpenIV does —
-WITHOUT OpenIV — and WITHOUT harming other mods that live in the same RPF:
+This is what the launcher needs to install the Hebrew mod the way OpenIV does -
+WITHOUT OpenIV - and WITHOUT harming other mods that live in the same RPF:
 read the existing OPEN archive, replace ONLY our target files, re-serialize while
 preserving every other entry byte-for-byte, write it back.
 
 Scope: OPEN archives only (encryption == 0x4E45504F). The vanilla NG archives are
-unreadable (Legacy-2025 keys, uncrackable) — but OpenIV's `mods\...` copies are OPEN,
+unreadable (Legacy-2025 keys, uncrackable) - but OpenIV's `mods\...` copies are OPEN,
 and a from-scratch DLC pack is OPEN too, so OPEN is all the launcher ever writes.
 
 RPF7 TOC layout (little-endian), matching tools/rpf7_reader.py:
@@ -51,7 +51,7 @@ class Node:
                                   # (→ empty data → corruption). Binary files (gxt2/fonts) = 0.
         self._idx = 0             # original entry index (for in-place TOC patching)
         self._name_off = 0        # original NameOffset into the names table (preserved in-place)
-        self._dirty = False       # set by replace_file_data — only dirty files get appended
+        self._dirty = False       # set by replace_file_data - only dirty files get appended
 
 
 def parse_open_rpf(buf, base=0):
@@ -61,7 +61,7 @@ def parse_open_rpf(buf, base=0):
     if magic != MAGIC:
         raise ValueError("not an RPF7 at %d" % base)
     if enc != ENC_OPEN:
-        raise ValueError("archive is encrypted (enc=0x%08X) — only OPEN is writable" % enc)
+        raise ValueError("archive is encrypted (enc=0x%08X) - only OPEN is writable" % enc)
     ent_off = base + 16
     nms_off = ent_off + ec * 16
     names = buf[nms_off:nms_off + nl]
@@ -184,7 +184,7 @@ def serialize_open_rpf(root):
 
 
 # --------------------------------------------------------------------------- #
-# tree helpers — find / replace a file by path (preserving everything else)
+# tree helpers - find / replace a file by path (preserving everything else)
 # --------------------------------------------------------------------------- #
 def find(node, path):
     """path like 'x64/data/lang/american_rel.rpf' -> Node, or None."""
@@ -211,7 +211,7 @@ def deflate(data):
 def replace_file_data(node, path, new_bytes, compress=True):
     """Replace ONLY the file at `path` with `new_bytes`; every other entry untouched.
     compress=True (default) stores raw-DEFLATE like OpenIV (csize=deflated len, usize=raw
-    len). compress=False stores raw (csize=0) — used for re-embedding a nested .rpf, which
+    len). compress=False stores raw (csize=0) - used for re-embedding a nested .rpf, which
     the parent stores uncompressed. Returns True on success."""
     f = find(node, path)
     if f is None or f.is_dir:
@@ -229,7 +229,7 @@ def replace_file_data(node, path, new_bytes, compress=True):
 
 
 # --------------------------------------------------------------------------- #
-# serialize IN-PLACE — preserve the original archive byte-for-byte, append only
+# serialize IN-PLACE - preserve the original archive byte-for-byte, append only
 # the files we changed, patch only their TOC entries. This is what OpenIV does:
 # unchanged files keep their EXACT original physical offset/padding (the RAGE
 # streaming/resource layout the engine expects), so the game still loads. A full
@@ -271,7 +271,7 @@ def serialize_inplace(original_buf, root, base=0):
 
 
 # --------------------------------------------------------------------------- #
-# self-test — build a tree from scratch, serialize, re-parse, assert identical
+# self-test - build a tree from scratch, serialize, re-parse, assert identical
 # --------------------------------------------------------------------------- #
 if __name__ == "__main__":
     fails = []
@@ -335,7 +335,7 @@ if __name__ == "__main__":
             if ch.is_dir: walk2(ch, p)
             else: got2[p] = ch.data
     walk2(r3, "")
-    # replace_file_data defaults to compress=True, so the on-disk bytes are deflated —
+    # replace_file_data defaults to compress=True, so the on-disk bytes are deflated -
     # inflate before comparing to the original content.
     _rt = got2.get("sub/c.gxt2")
     _rt = zlib.decompress(_rt, -15) if _rt else _rt

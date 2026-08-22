@@ -1,15 +1,15 @@
 """
-Theme — palette and tokens lifted from the website's `src/theme/themes.ts`.
+Theme - palette and tokens lifted from the website's `src/theme/themes.ts`.
 
 Supports two **chrome modes** matching the website's ThemeToggle:
 
-  • `"game"`  — Cyberpunk chrome: yellow #fff700 + cyan #00ffe0 on deep
+  • `"game"`  - Cyberpunk chrome: yellow #fff700 + cyan #00ffe0 on deep
                 purple-tinted black. Orbitron display font.
-  • `"clean"` — Neutral grayscale chrome: off-white text on slightly-blue
+  • `"clean"` - Neutral grayscale chrome: off-white text on slightly-blue
                 dark background. System fonts. No yellow highlights.
 
 Per-game cover gradients (CARD_GRADIENTS / CARD_ACCENTS) DO NOT swap with
-the mode — each game keeps its own theme on its card. The chrome (sidebar,
+the mode - each game keeps its own theme on its card. The chrome (sidebar,
 buttons, text, accents) is what changes.
 
 Switching modes:
@@ -18,7 +18,7 @@ Switching modes:
 """
 
 # ═════════════════════════════════════════════════════════════
-# Static tokens — IDENTICAL in both modes
+# Static tokens - IDENTICAL in both modes
 # ═════════════════════════════════════════════════════════════
 
 # Status colors (universal)
@@ -41,7 +41,7 @@ TEXT_ON_BRAND   = "#0a0a14"
 # Layout constants
 KICKER_TRACKING = "  "
 
-# Per-game cover gradients (from website themes.ts) — DO NOT swap on mode
+# Per-game cover gradients (from website themes.ts) - DO NOT swap on mode
 CARD_GRADIENTS: dict[str, tuple[str, str]] = {
     "cyberpunk":  ("#070710", "#1a0d40"),
     "tsushima":   ("#0a0303", "#3a0a0a"),
@@ -78,9 +78,9 @@ _GAME_TOKENS = {
     "ACCENT_CYAN":     "#00ffe0",
     "BG_BASE":         "#070710",
     "AMBIENT_PURPLE":  "#1a0d40",
-    # Surfaces — clear hierarchy so rounded corners on panels read
+    # Surfaces - clear hierarchy so rounded corners on panels read
     # visibly against the window bg (and against each other).
-    "SURFACE_0":       "#050510",   # window bg (darkest — where video peeks)
+    "SURFACE_0":       "#050510",   # window bg (darkest - where video peeks)
     "SURFACE_1":       "#121226",   # sidebar / chrome panels
     "SURFACE_2":       "#121226",   # main content panel
     "SURFACE_3":       "#1a1a35",   # cards inside panels
@@ -144,7 +144,7 @@ _CLEAN_TOKENS = {
     "TEXT_SECONDARY":  "#a0a7b3",
     "TEXT_MUTED":      "#5a627a",
     "TEXT_ACCENT":     "#eef0f4",
-    # Fonts — system stack, fall back to Segoe UI / Heebo
+    # Fonts - system stack, fall back to Segoe UI / Heebo
     "FONT_DISPLAY":    "Segoe UI",
     "FONT_HEBREW":     "Heebo",
     "FONT_FALLBACK":   "Segoe UI",

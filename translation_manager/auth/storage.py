@@ -9,17 +9,17 @@ Why hybrid:
     that limit, so storing it directly in the keyring as we used to
     fails on the very first sign-in.
   • Storing the WHOLE blob on disk in plaintext would be worse than
-    the old keyring approach — anyone who exfiltrated %USERPROFILE%
+    the old keyring approach - anyone who exfiltrated %USERPROFILE%
     would walk away with the user's refresh token.
   • Hybrid splits the two: the 44-byte base64 Fernet key sits inside
     the keyring (DPAPI-encrypted on Windows, Keychain on macOS, Secret
     Service on Linux), well below every backend's size limit. The
     encrypted payload sits on disk. Neither half is useful on its
-    own — exfil of the disk file needs the keyring key, exfil of the
+    own - exfil of the disk file needs the keyring key, exfil of the
     keyring key needs the file. Symmetry of inconvenience.
 
 Migration from the old plain-JSON-in-keyring layout is automatic on
-the first load() after upgrade — if we find a legacy JSON blob under
+the first load() after upgrade - if we find a legacy JSON blob under
 the old keyring slot we decode it, re-save it under the new scheme,
 and clear the legacy entry. From then on the new path is the only
 one exercised.
@@ -72,12 +72,17 @@ class StoredToken:
 
 def _load_or_create_key() -> bytes:
     """Return the Fernet key, creating + persisting a new one if absent.
-    The key is ~44 bytes of base64 — comfortably under every keyring
+    The key is ~44 bytes of base64 - comfortably under every keyring
     backend's per-credential size limit."""
     try:
         existing = keyring.get_password(_SERVICE, _KEY_USER)
     except keyring.errors.KeyringError:
-        existing = None
+        # A keyring ACCESS error is NOT "the key is absent". Treating it as absent
+        # and minting a NEW key here would overwrite the real one, so the existing
+        # session.enc (encrypted with the old key) can never be decrypted again →
+        # a permanent, SILENT sign-out on a transient Credential-Manager hiccup.
+        # Propagate so the caller handles it as transient, not a fresh install.
+        raise
     if existing:
         return existing.encode('ascii')
     new_key = Fernet.generate_key()  # 32 random bytes → 44 base64 chars
@@ -92,7 +97,7 @@ def _load_or_create_key() -> bytes:
 
 
 def _atomic_write(path: Path, data: bytes) -> None:
-    """Write file atomically — write to .tmp, fsync, replace. Prevents
+    """Write file atomically - write to .tmp, fsync, replace. Prevents
     a half-written session.enc if the process is killed mid-write
     (which would otherwise look like corruption on next load)."""
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -137,7 +142,7 @@ class TokenStore:
                 self._clear_legacy()
             except Exception:
                 # If migration fails (e.g. cryptography missing on this
-                # platform) keep the legacy blob — at least the user
+                # platform) keep the legacy blob - at least the user
                 # stays signed in.
                 return legacy
             return legacy
@@ -150,11 +155,16 @@ class TokenStore:
             enc  = path.read_bytes()
             blob = Fernet(key).decrypt(enc)
             data = json.loads(blob.decode('utf-8'))
-        except (InvalidToken, json.JSONDecodeError, ValueError, OSError,
-                keyring.errors.KeyringError):
-            # Corrupted file, mismatched key (e.g. user wiped Credential
-            # Manager and a stale ciphertext is left), or unreadable —
-            # nuke both halves so the next sign-in starts clean.
+        except (keyring.errors.KeyringError, OSError):
+            # TRANSIENT: a keyring-access hiccup or a disk/AV file lock. The
+            # session.enc is intact - do NOT clear it. Return None ("can't read the
+            # session right now"), and a later successful load recovers it. Clearing
+            # here on a passing glitch is exactly the permanent-sign-out bug.
+            return None
+        except (InvalidToken, json.JSONDecodeError, ValueError):
+            # Genuinely UNRECOVERABLE: corrupt ciphertext or a mismatched key (e.g.
+            # the user wiped Credential Manager and a stale session.enc is left).
+            # Nuke both halves so the next sign-in starts clean.
             self.clear()
             return None
         return StoredToken(

@@ -61,7 +61,7 @@ def configure(*,
     if push_cb is not None:
         _push_cb = push_cb
     if bundled_files:
-        log.info("[swr] ignoring %d bundled files — cache is network-only now",
+        log.info("[swr] ignoring %d bundled files - cache is network-only now",
                  len(bundled_files))
     _ensure_loaded(bundled_files or {})
 
@@ -76,7 +76,7 @@ def swr(kind: str,
         ttl: float = 30.0) -> Any:
     """SWR getter.
 
-    1) Hot path — cached value newer than ttl  → return immediately, no work.
+    1) Hot path - cached value newer than ttl  → return immediately, no work.
     2) Stale-but-present path                   → return immediately AND
                                                   spawn a background refresh.
     3) Cold path (nothing cached anywhere)      → run fetcher synchronously.
@@ -84,18 +84,22 @@ def swr(kind: str,
     None responses are cached only for kind=="progress" (where None = legit 404).
     For other kinds a None response is treated as "no update; keep old".
     """
-    _ensure_loaded({})  # idempotent — handles modules that don't call configure()
+    _ensure_loaded({})  # idempotent - handles modules that don't call configure()
 
     key: _Key = (kind, sub_key)
     now   = time.time()
     entry = _mem.get(key)
 
     if entry is not None:
-        if (now - entry["ts"]) >= ttl:
+        # A BACKWARD clock jump (NTP correction / manual change / a VM resume)
+        # makes (now - ts) negative, so the entry would look eternally fresh and
+        # NEVER refresh. Treat any negative age as stale and re-fetch.
+        age = now - entry["ts"]
+        if age >= ttl or age < 0:
             _maybe_refresh_bg(key, fetcher)
         return entry["data"]
 
-    # Cold path — first ever call for this key
+    # Cold path - first ever call for this key
     try:
         fresh = fetcher()
     except Exception as e:                                # noqa: BLE001
@@ -112,7 +116,7 @@ def swr(kind: str,
 
 
 def put(kind: str, data: Any, *, sub_key: str | None = None, push: bool = True) -> None:
-    """Manual override — used by force-refresh paths."""
+    """Manual override - used by force-refresh paths."""
     key: _Key = (kind, sub_key)
     old = _mem.get(key, {}).get("data")
     _mem[key] = {"ts": time.time(), "data": data}
@@ -139,19 +143,38 @@ def touch_all() -> None:
     refresh-on-open. The periodic poller keeps the data live afterwards.
     A genuine cold start does NOT call this, so it still refreshes."""
     now = time.time()
-    for entry in _mem.values():
+    # Snapshot the values first: the background poller/worker may insert a
+    # NEW key into _mem mid-iteration (e.g. the user opens a game card as a
+    # tray-restore fires this), which would raise
+    # "RuntimeError: dictionary changed size during iteration". list() is
+    # atomic under the GIL - same guard as _build_snapshot's .copy().
+    for entry in list(_mem.values()):
         entry["ts"] = now
 
 
+# The poller re-fetches EVERY progress key on EVERY tick, forever. Without a cap
+# a long session that browsed 30 game cards permanently added 30 HTTP requests
+# per tick. Keep only the most-recently-used ones - that is what the UI can
+# actually be looking at.
+_MAX_PROGRESS_KEYS = 8
+
+
 def progress_keys() -> list[str]:
-    """Sub-keys of every cached ('progress', <id>) entry — lets the
-    background poller refresh exactly the games whose progress the UI
-    has already shown, without guessing ids."""
-    return [sk for (kind, sk) in _mem if kind == "progress" and sk is not None]
+    """Sub-keys of the ('progress', <id>) entries the poller should refresh -
+    the most-recently-updated _MAX_PROGRESS_KEYS of them, newest first.
+
+    Bounded on purpose: this drives per-tick network work."""
+    # list(...) snapshots atomically (GIL) so a concurrent insert can't raise
+    # "dictionary changed size during iteration".
+    items = [(sk, ent.get("ts", 0.0))
+             for (kind, sk), ent in list(_mem.items())
+             if kind == "progress" and sk is not None]
+    items.sort(key=lambda t: t[1], reverse=True)
+    return [sk for sk, _ in items[:_MAX_PROGRESS_KEYS]]
 
 
 # ─────────────────────────────────────────────────────────────────
-# Internal — disk seed
+# Internal - disk seed
 # ─────────────────────────────────────────────────────────────────
 def _ensure_loaded(bundled_files: dict[str, Path]) -> None:
     """Idempotently load cache.json into _mem and seed missing scalar
@@ -187,7 +210,7 @@ def _ensure_loaded(bundled_files: dict[str, Path]) -> None:
                             }
             log.info("[swr] loaded %d entries from %s", len(_mem), _STORE_FILE)
         except (OSError, json.JSONDecodeError, ValueError) as e:
-            log.warning("[swr] %s unreadable (%s) — starting empty", _STORE_FILE, e)
+            log.warning("[swr] %s unreadable (%s) - starting empty", _STORE_FILE, e)
 
     _seed_bundled(bundled_files)
 
@@ -205,7 +228,7 @@ def _seed_bundled(_bundled_files: dict[str, Path]) -> None:
 
 
 # ─────────────────────────────────────────────────────────────────
-# Internal — background refresh
+# Internal - background refresh
 # ─────────────────────────────────────────────────────────────────
 def _maybe_refresh_bg(key: _Key, fetcher: Callable[[], Any]) -> None:
     """Refresh `key` in the background unless a refresh is already running.
@@ -215,7 +238,7 @@ def _maybe_refresh_bg(key: _Key, fetcher: Callable[[], Any]) -> None:
     The refresh runs on a gevent GREENLET, not a real OS thread: on a
     successful refresh `_bg_worker` calls `_push_cb` → eel.cache_refreshed
     (...)(), and that eel bridge call is bound to the launcher's main
-    gevent hub. Invoking it from a separate OS thread fails silently — so
+    gevent hub. Invoking it from a separate OS thread fails silently - so
     the live UI update never arrives and the data only appears to refresh
     on the next component re-mount. A greenlet shares the hub; the
     fetcher's `requests` call still cooperatively yields."""
@@ -224,12 +247,37 @@ def _maybe_refresh_bg(key: _Key, fetcher: Callable[[], Any]) -> None:
             return
         _inflight[key] = threading.Event()
 
+    # TRANSPORT-AWARE. A greenlet only ever runs when its thread yields to the
+    # gevent hub. Under the SHIPPED Qt build no hub is pumped (the GUI thread
+    # runs Qt's event loop; a QThreadPool worker returns immediately), so
+    # gevent.spawn() here scheduled a greenlet that NEVER executed: the refresh
+    # never happened AND _bg_worker's `finally` never popped _inflight[key], so
+    # the key stayed "in-flight" forever and could never refresh again for the
+    # life of the process. The `except → Thread` fallback never fired either,
+    # because `import gevent` succeeds (it's bundled). Under Qt use a real
+    # thread; under Eel keep the greenlet (its hub IS pumped, and the eel push
+    # callback is bound to that hub).
+    if _use_gevent():
+        try:
+            import gevent
+            gevent.spawn(_bg_worker, key, fetcher)
+            return
+        except Exception:                                 # pragma: no cover
+            pass
+    threading.Thread(target=_bg_worker, args=(key, fetcher), daemon=True).start()
+
+
+def _use_gevent() -> bool:
+    """True only under the Eel build, where a gevent hub is actually running.
+    `PySide6 in sys.modules` ⇒ we are the Qt shell ⇒ native threads."""
+    import sys
+    if "PySide6" in sys.modules:
+        return False
     try:
-        import gevent
-        gevent.spawn(_bg_worker, key, fetcher)
-    except Exception:                                     # pragma: no cover
-        # No gevent (e.g. a non-launcher caller) — fall back to a thread.
-        threading.Thread(target=_bg_worker, args=(key, fetcher), daemon=True).start()
+        from gevent import monkey
+        return bool(monkey.is_module_patched("socket"))
+    except Exception:
+        return False
 
 
 def _bg_worker(key: _Key, fetcher: Callable[[], Any]) -> None:
@@ -241,7 +289,7 @@ def _bg_worker(key: _Key, fetcher: Callable[[], Any]) -> None:
             return
 
         if fresh is None and key[0] != "progress":
-            # Treat as "no update" — keep the cached value intact.
+            # Treat as "no update" - keep the cached value intact.
             return
 
         old = _mem.get(key, {}).get("data")
@@ -266,7 +314,7 @@ def _bg_worker(key: _Key, fetcher: Callable[[], Any]) -> None:
 
 
 # ─────────────────────────────────────────────────────────────────
-# Internal — persistence
+# Internal - persistence
 # ─────────────────────────────────────────────────────────────────
 def _persist_async() -> None:
     """Schedule a debounced disk write. Coalesces multiple updates that
@@ -293,18 +341,28 @@ def _persist_now() -> None:
             _STORE_DIR.mkdir(parents=True, exist_ok=True)
             tmp = _STORE_FILE.with_suffix(".json.tmp")
             try:
-                payload = json.dumps(snapshot, ensure_ascii=False, indent=2)
+                # COMPACT, not pretty. This file is machine-only and is fully
+                # rewritten on every poll tick; indent=2 inflated it ~30-40% for
+                # nobody's benefit (pure disk churn on an HDD).
+                payload = json.dumps(snapshot, ensure_ascii=False,
+                                     separators=(",", ":"))
             except UnicodeEncodeError:
                 # A remote field contains lone UTF-16 surrogates (caused by an
                 # earlier mojibake admin save). ensure_ascii=False would emit
                 # those as raw bytes; flip to ascii-safe so we write valid
                 # JSON instead of crashing the SWR loop and breaking the Eel
                 # bridge (which black-screens the launcher).
-                payload = json.dumps(snapshot, ensure_ascii=True, indent=2)
+                payload = json.dumps(snapshot, ensure_ascii=True,
+                                     separators=(",", ":"))
             tmp.write_text(payload, encoding="utf-8")
             os.replace(tmp, _STORE_FILE)
         except OSError as e:
             log.warning("[swr] disk write to %s failed: %s", _STORE_FILE, e)
+        except Exception as e:                            # noqa: BLE001
+            # Was OSError-only: a TypeError/ValueError out of json.dumps (an
+            # exotic value in a remote payload) escaped to the worker thread and
+            # silently killed persistence for the rest of the session.
+            log.warning("[swr] persist failed for %s: %s", _STORE_FILE, e)
 
 
 def _build_snapshot() -> dict[str, Any]:

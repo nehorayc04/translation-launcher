@@ -1,5 +1,5 @@
 """
-Single-instance guard — ports the Win32 named-mutex + named-event scheme
+Single-instance guard - ports the Win32 named-mutex + named-event scheme
 out of main_eel.py so main_qt.py runs identical logic without dragging
 in any Eel-specific imports.
 
@@ -12,7 +12,7 @@ Strategy (Windows only, no-op elsewhere):
      re-show the main window (callback). Used by the Start-menu shortcut
      so a second launch doesn't crash on port collision.
 
-Why a different mutex name than the Eel build? On purpose — running the
+Why a different mutex name than the Eel build? On purpose - running the
 Eel build AND the Qt build side-by-side during development must NOT
 collide. The Eel build uses `..._SingleInstance_v1`; the Qt build uses
 `..._SingleInstance_qt_v1`.
@@ -34,6 +34,17 @@ _SHOW_EVENT_NAME = "TranslationManagerLauncher_ShowEvent_qt_v1"
 
 _HANDLE: Optional[int] = None
 
+# Set when acquire() found the mutex owned by a HIGHER-integrity (elevated)
+# instance. That owner's show-event is unreachable for the same reason the mutex
+# is, so this launch can neither run nor raise the running window - the caller
+# must SAY so instead of vanishing.
+_ELEVATED_OWNER = False
+
+
+def elevated_owner() -> bool:
+    """True iff the running instance is elevated and therefore unreachable."""
+    return _ELEVATED_OWNER
+
 
 def acquire() -> bool:
     """True iff THIS process is the first / sole instance.
@@ -45,11 +56,34 @@ def acquire() -> bool:
         return True
     try:
         ERROR_ALREADY_EXISTS = 183
+        ERROR_ACCESS_DENIED  = 5
         k = ctypes.windll.kernel32
         k.CreateMutexW.restype  = wintypes.HANDLE
         k.CreateMutexW.argtypes = [ctypes.c_void_p, wintypes.BOOL, wintypes.LPCWSTR]
         handle = k.CreateMutexW(None, False, _MUTEX_NAME)
         if not handle:
+            err = k.GetLastError()
+            if err == ERROR_ACCESS_DENIED:
+                # THE mutex ALREADY EXISTS but was created by a process running at
+                # a HIGHER integrity level (an elevated instance - e.g. the
+                # installer relaunched the app as admin because it could not drop
+                # back to the original user). Windows' mandatory-integrity policy
+                # denies us the handle, so this is NOT "the API broke", it is the
+                # single-instance condition wearing a different error code.
+                # Failing OPEN here is what let two launchers run at once, and the
+                # damage is far worse than a missing window: both open the SAME
+                # QtWebEngine profile, the second cannot take the Local Storage
+                # leveldb LOCK, so localStorage silently degrades to IN-MEMORY -
+                # the onboarding tour and the welcome notice then replay on every
+                # launch and no UI preference is ever persisted.
+                log.warning("single-instance: mutex exists at a higher integrity "
+                            "level (an ELEVATED instance is running) - exiting")
+                global _ELEVATED_OWNER
+                _ELEVATED_OWNER = True
+                return False
+            # Any OTHER failure: fail OPEN, but never silently.
+            log.warning("single-instance: CreateMutexW failed (err=%s) - "
+                        "cannot enforce a single instance this launch", err)
             return True
         if k.GetLastError() == ERROR_ALREADY_EXISTS:
             k.CloseHandle(handle)
@@ -57,11 +91,13 @@ def acquire() -> bool:
         _HANDLE = handle
         return True
     except Exception:
+        log.warning("single-instance: guard unavailable - launching anyway",
+                    exc_info=True)
         return True
 
 
 def signal_show() -> None:
-    """Non-owner side — wake the running instance and exit. Best-effort."""
+    """Non-owner side - wake the running instance and exit. Best-effort."""
     if sys.platform != "win32":
         return
     try:
@@ -81,12 +117,18 @@ def signal_show() -> None:
         if h:
             k.SetEvent(h)
             k.CloseHandle(h)
+        else:
+            # The owner holds the mutex but its show-event can't be opened →
+            # this launch exits having shown NOTHING (the user clicks the
+            # shortcut and nothing happens). Used to be completely silent.
+            log.warning("single-instance: OpenEventW failed (err=%s) - the "
+                        "running instance was not raised", k.GetLastError())
     except Exception:
-        pass
+        log.warning("single-instance: signal_show failed", exc_info=True)
 
 
 def start_listener(on_show: Callable[[], None]) -> None:
-    """Owner side — daemon thread that fires `on_show()` whenever the
+    """Owner side - daemon thread that fires `on_show()` whenever the
     named event is set. `on_show` runs on the listener thread, so any
     Qt UI work it does must marshal back to the GUI thread itself."""
     if sys.platform != "win32":

@@ -1,16 +1,16 @@
 """
-RFC 7636 PKCE — Proof Key for Code Exchange.
+RFC 7636 PKCE - Proof Key for Code Exchange.
 
 Why PKCE matters for a desktop app:
   Without PKCE, an attacker who intercepts the redirect ?code=
   on the loopback URL can exchange it for tokens (no client secret
-  is shipped in a desktop binary — that's the whole point of public
+  is shipped in a desktop binary - that's the whole point of public
   clients). PKCE binds the code exchange to a code_verifier the
   attacker can't know, so an intercepted code is useless.
 
 Generated values:
-  code_verifier   — high-entropy random string, 43–128 chars, [A-Z a-z 0-9 - . _ ~]
-  code_challenge  — base64url( sha256(code_verifier) ), no padding
+  code_verifier   - high-entropy random string, 43-128 chars, [A-Z a-z 0-9 - . _ ~]
+  code_challenge  - base64url( sha256(code_verifier) ), no padding
 """
 from __future__ import annotations
 

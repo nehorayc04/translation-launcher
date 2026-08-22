@@ -6,6 +6,13 @@
 
     <link rel="icon" type="image/png" sizes="512x512" href="./icon.png" />
 
+    <!-- Start fetching the splash logo during HTML PARSE, in parallel with the
+         JS bundle. Without this the browser only discovers <img src> when React
+         renders the splash, so the wordmark/text painted first and the logo
+         popped in a beat later ("the image always appears after the sentences").
+         Preloading makes it decode by the time the splash mounts. -->
+    <link rel="preload" as="image" href="./app-logo.png" fetchpriority="high" />
+
     <title>מנהל התרגומים הרשמי</title>
     <!-- eel.js / eel-bindings.js are served by the Eel build's gevent
          websocket on /eel.js and /eel-bindings.js. Under the Qt shell

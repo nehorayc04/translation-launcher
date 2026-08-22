@@ -52,7 +52,7 @@ def find_steam_install() -> Path | None:
 
 
 def _source_dir() -> Path:
-    """Where steam_hebrew_output/ lives — dev vs PyInstaller bundle."""
+    """Where steam_hebrew_output/ lives - dev vs PyInstaller bundle."""
     if getattr(sys, "frozen", False):
         return Path(sys.executable).parent / "steam_hebrew_output"
     return Path(__file__).resolve().parent.parent / "steam_hebrew_output"
@@ -84,7 +84,7 @@ def apply(target: Path | None = None) -> dict:
 
         steam = target or find_steam_install()
         if steam is None:
-            return {"ok": False, "error": "לא נמצאה תיקיית Steam — האם Steam מותקן?"}
+            return {"ok": False, "error": "לא נמצאה תיקיית Steam - האם Steam מותקן?"}
 
         ts = time.strftime("%Y%m%d_%H%M%S")
         copied: list[str] = []
@@ -95,14 +95,14 @@ def apply(target: Path | None = None) -> dict:
             steam / "steamui" / "localization",
             "*_arabic-json.js", ts, copied,
         )
-        # Legacy VDF — two locations
+        # Legacy VDF - two locations
         _copy_dir(src / "resource", steam / "resource", "*_arabic.txt", ts, copied)
         _copy_dir(src / "friends",  steam / "friends",  "*_arabic.txt", ts, copied)
 
         if not copied:
             return {
                 "ok": False,
-                "error": "לא נמצאו קבצי תרגום מוכנים — הרץ את steam_translator.py קודם.",
+                "error": "לא נמצאו קבצי תרגום מוכנים - הרץ את steam_translator.py קודם.",
             }
 
         return {"ok": True, "count": len(copied), "steam_dir": str(steam), "error": None}

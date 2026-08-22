@@ -7,7 +7,7 @@ import {
   createContext, useContext, useEffect, useMemo, useState,
   type ReactNode,
 } from "react";
-import { getAccent } from "./themePrefs";
+import { getAccent, getAccent2 } from "./themePrefs";
 
 // The neutral default tracks the user's Appearance pref (themePrefs), falling
 // back to brand cyan.
@@ -22,16 +22,24 @@ const Ctx = createContext<AccentCtx>({ accent: DEFAULT_ACCENT, setAccent: () => 
 
 export function AccentProvider({ children }: { children: ReactNode }) {
   const [accent, setAccentState] = useState<string>(DEFAULT_ACCENT);
+  // Secondary colour for the two-tone ambient wash. A per-GAME accent is always
+  // single (both = the game colour); only the user's default can be two-tone.
+  const [accent2, setAccent2State] = useState<string>(getAccent2());
 
   // null restores the user's CURRENT neutral pref (re-read live so a change in
-  // Appearance settings takes effect immediately on the next close).
-  const setAccent = (c: string | null) => setAccentState(c || getAccent());
+  // Appearance settings takes effect immediately on the next close); a color
+  // paints both tones the same (a game's single accent).
+  const setAccent = (c: string | null) => {
+    if (c) { setAccentState(c); setAccent2State(c); }
+    else { setAccentState(getAccent()); setAccent2State(getAccent2()); }
+  };
 
-  // Push the resolved color onto :root so the plain-CSS .accent-bg layer
-  // (and anything else that wants `var(--accent)`) tracks it live.
+  // Push the resolved colors onto :root so the plain-CSS .accent-bg layer
+  // (and anything else that wants `var(--accent)`) tracks them live.
   useEffect(() => {
     document.documentElement.style.setProperty("--accent", accent);
-  }, [accent]);
+    document.documentElement.style.setProperty("--accent2", accent2);
+  }, [accent, accent2]);
 
   const value = useMemo(() => ({ accent, setAccent }), [accent]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

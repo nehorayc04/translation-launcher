@@ -1,4 +1,4 @@
-// Personal Area — mirrors the website's /profile so a user sees the
+// Personal Area - mirrors the website's /profile so a user sees the
 // same identity, purchases and votes whether they're on the launcher
 // or in a browser. Both surfaces hit the same Supabase backend; we
 // fetch through the Python bridge (auth_get_my_*) which forwards the
@@ -12,12 +12,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { api, type MyPurchase, type MyPurchasesResult } from "../lib/eel";
 import { useLauncherAuth } from "../lib/useLauncherAuth";
 import { resolveCoverUrl } from "../lib/coverUrl";
+import { IconOptBtnSyncNow, IconOptBtnBackHome, IconOptBtnSignout, IconOptHdrMyVotes, IconOptHdrMySoftware, IconAppPersonalStatePurchasesError } from "../components/UiIcons";
+import { LibraryIcon } from "../components/NavIcons";
 
 interface Props {
   /** Bumped by parent on the global "refresh from server" click so
    *  the personal area also pulls fresh data on demand. */
   refreshNonce: number;
-  /** Routes back to home — wired by the parent App. */
+  /** Routes back to home - wired by the parent App. */
   onBack:       () => void;
   /** Routes the user to the website's /profile in their default browser
    *  for the heavier flows (MFA, password change, account deletion) we
@@ -48,7 +50,7 @@ export default function PersonalAreaView({
     try {
       // Refresh the cached identity first so a name/avatar edit done
       // in the browser propagates immediately. Failures here are
-      // non-fatal — the purchases/votes calls handle auth themselves.
+      // non-fatal - the purchases/votes calls handle auth themselves.
       await refreshAuth();
       // authGetMyPurchases returns a discriminated result so we can
       // tell "0 purchases" (reason=ok) apart from a token / network
@@ -86,18 +88,32 @@ export default function PersonalAreaView({
     return (
       <div className="h-full grid place-items-center p-10" dir="rtl">
         <div className="max-w-md text-center space-y-3">
-          <div className="text-5xl">🔐</div>
+          {/* Vector "closed lock with key" (🔐) - themeable currentColor, gold to
+              echo the emoji it replaces. */}
+          <div className="flex justify-center">
+            <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round"
+                 style={{ color: "#fbbf24" }} aria-hidden>
+              <rect x="4.5" y="9.5" width="15" height="11.5" rx="2.5" />
+              <path d="M7.5 9.5V6.4a4.5 4.5 0 0 1 9 0V9.5" />
+              <circle cx="9" cy="15.3" r="2.2" />
+              <circle cx="9" cy="15.3" r="0.65" />
+              <path d="M11.2 15.3H16" />
+              <path d="M14.4 15.3v1.9M16 15.3v1.5" />
+            </svg>
+          </div>
           <h2 className="text-white text-xl font-bold">צריך להיכנס תחילה</h2>
           <p className="text-slate-400 text-sm">
-            כדי לראות את האזור האישי שלך — רכישות, הצבעות ופרטים אישיים —
+            כדי לראות את האזור האישי שלך - רכישות, הצבעות ופרטים אישיים -
             התחבר דרך הסרגל בצד.
           </p>
           <button
             type="button"
             onClick={onBack}
-            className="px-4 py-2 rounded-xl bg-white/5 border border-white/10
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-white/5 border border-white/10
                        text-slate-300 hover:bg-white/10 text-xs font-semibold transition"
           >
+            <IconOptBtnBackHome width={18} className="shrink-0 opacity-90" />
             חזרה לדף הבית
           </button>
         </div>
@@ -118,12 +134,31 @@ export default function PersonalAreaView({
           onRefresh={pull}
         />
 
+        {/* Split the library: games vs software (VirtualDJ etc.) - the two are
+            distinct kinds and the user wants them shown separately, like Steam. */}
         <PurchasesSection
-          rows={purchases}
+          kind="games"
+          rows={purchases === null ? null : purchases.filter((r) => !r.games?.is_software)}
           reason={purchasesReason}
           detail={purchasesDetail}
           onRetry={pull}
         />
+
+        {(() => {
+          const soft = purchases === null ? null : purchases.filter((r) => !!r.games?.is_software);
+          // Only surface the software panel when the user actually owns software
+          // (or while loading) - no permanently-empty section for game-only users.
+          if (soft !== null && soft.length === 0) return null;
+          return (
+            <PurchasesSection
+              kind="software"
+              rows={soft}
+              reason={purchasesReason === "error" ? "ok" : purchasesReason}
+              detail={null}
+              onRetry={pull}
+            />
+          );
+        })()}
 
         <VotesSection ids={votes} />
       </div>
@@ -145,6 +180,12 @@ function IdentityCard({
 }) {
   const displayName = user?.fullName?.trim() || user?.email?.split('@')[0] || 'משתמש';
   const initials = useMemo(() => displayName.slice(0, 2).toUpperCase(), [displayName]);
+  // Same trap as the sidebar avatar: a REMOTE Google picture that fails to load
+  // (offline / blocked CDN) left an empty tile, because the initials fallback
+  // only triggered on a missing URL. Fall back on a failed LOAD too.
+  const [avatarBroken, setAvatarBroken] = useState(false);
+  const avatarUrl = user?.avatarUrl;
+  useEffect(() => { setAvatarBroken(false); }, [avatarUrl]);
 
   return (
     <section
@@ -159,11 +200,12 @@ function IdentityCard({
       }}
     >
       <div className="shrink-0">
-        {user?.avatarUrl ? (
+        {user?.avatarUrl && !avatarBroken ? (
           <img
             src={user.avatarUrl}
             alt={displayName}
             referrerPolicy="no-referrer"
+            onError={() => setAvatarBroken(true)}
             className="w-20 h-20 rounded-2xl object-cover"
             style={{ boxShadow: '0 8px 24px -8px rgba(0,255,224,0.45)' }}
           />
@@ -189,7 +231,7 @@ function IdentityCard({
         <h1 className="text-2xl md:text-3xl font-bold text-white truncate">{displayName}</h1>
         <div className="text-slate-400 text-xs mt-0.5" dir="ltr">{user?.email}</div>
         <div className="text-[10px] text-slate-500 mt-0.5 uppercase tracking-wider">
-          {user?.provider ?? '—'}
+          {user?.provider ?? '-'}
         </div>
 
         <div className="flex flex-wrap items-center gap-x-5 gap-y-1 mt-3 text-xs">
@@ -204,10 +246,11 @@ function IdentityCard({
           onClick={onRefresh}
           disabled={pulling}
           title="משוך מחדש מהשרת"
-          className="px-3 py-2 rounded-xl text-xs font-semibold transition
+          className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition
                      bg-white/5 border border-white/10 text-slate-200
                      hover:bg-white/10 disabled:opacity-50 disabled:cursor-wait whitespace-nowrap"
         >
+          <IconOptBtnSyncNow width={18} className="shrink-0 opacity-90" />
           {pulling ? 'מסנכרן…' : 'סנכרן עכשיו'}
         </button>
         <button
@@ -222,10 +265,11 @@ function IdentityCard({
         <button
           type="button"
           onClick={onSignOut}
-          className="px-3 py-2 rounded-xl text-xs font-semibold transition
+          className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition
                      bg-rose-500/10 border border-rose-500/30 text-rose-200
                      hover:bg-rose-500/20 whitespace-nowrap"
         >
+          <IconOptBtnSignout width={18} className="shrink-0 opacity-90" />
           התנתק
         </button>
       </div>
@@ -244,25 +288,33 @@ function Stat({ label, value }: { label: string; value: number }) {
 
 // ── purchases ────────────────────────────────────────────────────
 function PurchasesSection({
-  rows, reason, detail, onRetry,
+  kind, rows, reason, detail, onRetry,
 }: {
+  kind:    "games" | "software";
   rows:    MyPurchase[] | null;
   reason:  MyPurchasesResult["reason"];
   detail:  string | null;
   onRetry: () => void;
 }) {
-  if (rows === null) return <SectionSkeleton title="המשחקים שלי" />;
+  const title     = kind === "software" ? "התוכנות שלי" : "המשחקים שלי";
+  const TitleIcon = kind === "software" ? IconOptHdrMySoftware : LibraryIcon;
+  const emptyMain = kind === "software" ? "עדיין לא רכשת תוכנות." : "עדיין לא רכשת תרגומים.";
+  const emptyHint = kind === "software"
+    ? "עיין בתוכנות וקנה את הראשונה - היא תופיע כאן מיד."
+    : "עיין בספרייה וקנה את התרגום הראשון - הוא יופיע כאן מיד.";
+
+  if (rows === null) return <SectionSkeleton title={title} />;
 
   return (
     <section className="space-y-3">
       <div className="flex items-baseline justify-between">
-        <h2 className="text-white font-bold text-lg">המשחקים שלי</h2>
+        <h2 className="text-white font-bold text-lg inline-flex items-center gap-2"><TitleIcon width={20} className="shrink-0 opacity-90" />{title}</h2>
         <span className="text-xs text-slate-500">{rows.length} פריטים</span>
       </div>
 
       {reason === "error" ? (
         <div className="rounded-2xl border border-rose-500/30 bg-rose-500/[0.05] p-8 text-center">
-          <div className="text-3xl mb-2">⚠️</div>
+          <div className="text-3xl mb-2 flex justify-center"><IconAppPersonalStatePurchasesError width={26} className="opacity-70" /></div>
           <p className="text-slate-200 text-sm">לא ניתן לטעון את הרכישות שלך כרגע.</p>
           {detail && (
             <p className="text-slate-500 text-[11px] mt-1 font-mono" dir="ltr">{detail}</p>
@@ -279,10 +331,8 @@ function PurchasesSection({
       ) : rows.length === 0 ? (
         <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-8 text-center">
           <div className="text-3xl mb-2">📦</div>
-          <p className="text-slate-300 text-sm">עדיין לא רכשת תרגומים.</p>
-          <p className="text-slate-500 text-xs mt-1">
-            עיין בספרייה וקנה את התרגום הראשון — הוא יופיע כאן מיד.
-          </p>
+          <p className="text-slate-300 text-sm">{emptyMain}</p>
+          <p className="text-slate-500 text-xs mt-1">{emptyHint}</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -345,7 +395,7 @@ function VotesSection({ ids }: { ids: string[] | null }) {
   return (
     <section className="space-y-3">
       <div className="flex items-baseline justify-between">
-        <h2 className="text-white font-bold text-lg">ההצבעות שלי</h2>
+        <h2 className="inline-flex items-center gap-1.5 text-white font-bold text-lg"><IconOptHdrMyVotes width={20} className="shrink-0 opacity-90" />ההצבעות שלי</h2>
         <span className="text-xs text-slate-500">{ids.length} הצבעות</span>
       </div>
 

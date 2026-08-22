@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 
 const NEWS = [
-  "תרגום Cyberpunk 2077 — 72% הושלמו",
+  "תרגום Cyberpunk 2077 - 72% הושלמו",
   "פרויקט האתר עודכן עם 6 סצנות תלת-ממדיות",
   "תוספת תמיכה במשחקים: Witcher 3, BG3, Elden Ring",
 ];

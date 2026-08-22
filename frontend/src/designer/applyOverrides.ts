@@ -1,6 +1,6 @@
 /* Apply a saved launcher-designer design to the REAL launcher.
  *
- * The designer ("edit the real app" mode) exports `design-overrides.json` — a
+ * The designer ("edit the real app" mode) exports `design-overrides.json` - a
  * map of stable CSS selectors → { style, text, hidden }. Drop that export into
  * THIS folder (replace design-overrides.json) and rebuild the launcher; the
  * design then becomes the actual UI.

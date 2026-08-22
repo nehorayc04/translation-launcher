@@ -5,10 +5,10 @@
 // Python auth subsystem via the bridge.
 //
 // Env vars (build-time, baked from .env.build):
-//   VITE_PAYPAL_CLIENT_ID   — required. PayPal app's public client id.
+//   VITE_PAYPAL_CLIENT_ID   - required. PayPal app's public client id.
 //                              Sandbox key for testing, live for prod.
-//   VITE_PAYPAL_ENV         — 'sandbox' (default) | 'live'  (informational)
-//   VITE_PAYPAL_CURRENCY    — default 'ILS' (Israeli new shekel)
+//   VITE_PAYPAL_ENV         - 'sandbox' (default) | 'live'  (informational)
+//   VITE_PAYPAL_CURRENCY    - default 'ILS' (Israeli new shekel)
 import { useEffect, useMemo, useState } from "react";
 import {
   PayPalScriptProvider,
@@ -16,15 +16,16 @@ import {
   type ReactPayPalScriptOptions,
 } from "@paypal/react-paypal-js";
 import { api, jsLog } from "../lib/eel";
+import { IconOptHdrBuyTitle, IconOptStatAmountLabel } from "./UiIcons";
 
 const API_BASE = "https://hebrew-translation-hub.com";
 
 interface Props {
   /** Catalog id of the game being purchased. */
   gameId:     string;
-  /** Display-only — actual amount is looked up server-side. */
+  /** Display-only - actual amount is looked up server-side. */
   gameTitle:  string;
-  /** Display-only — same as above. UI hint for the price label. */
+  /** Display-only - same as above. UI hint for the price label. */
   priceCents: number;
   /** Backdrop click / X button. Fires regardless of payment outcome.
    *  Parent should unmount the modal entirely on this (conditional
@@ -54,10 +55,10 @@ export function BuyModal({ gameId, gameTitle, priceCents, onClose, onSuccess }: 
   const [error, setError] = useState<string | null>(null);
   const [done,  setDone]  = useState(false);
 
-  console.log("[BuyModal] mount/render — done:", done);
+  console.log("[BuyModal] mount/render - done:", done);
   jsLog(`[BuyModal] mount/render done=${done}`);
 
-  // Esc closes the modal — matches the rest of the launcher's modal UX.
+  // Esc closes the modal - matches the rest of the launcher's modal UX.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", onKey);
@@ -87,7 +88,7 @@ export function BuyModal({ gameId, gameTitle, priceCents, onClose, onSuccess }: 
       >
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 className="text-white font-bold text-lg">רכישת תרגום</h2>
+            <h2 className="text-white font-bold text-lg inline-flex items-center gap-1.5"><IconOptHdrBuyTitle width={20} className="shrink-0 opacity-90" />רכישת תרגום</h2>
             <div className="text-slate-400 text-sm mt-0.5">{gameTitle}</div>
           </div>
           <button
@@ -101,7 +102,7 @@ export function BuyModal({ gameId, gameTitle, priceCents, onClose, onSuccess }: 
         </div>
 
         <div className="rounded-xl bg-white/[0.04] border border-white/[0.06] px-4 py-3 flex items-center justify-between">
-          <span className="text-slate-300 text-sm">סכום לתשלום</span>
+          <span className="text-slate-300 text-sm inline-flex items-center gap-1.5"><IconOptStatAmountLabel width={18} className="shrink-0 opacity-90" />סכום לתשלום</span>
           <span className="text-brand-yellow font-bold text-xl">
             {formatPrice(priceCents, currency)}
           </span>
@@ -109,7 +110,7 @@ export function BuyModal({ gameId, gameTitle, priceCents, onClose, onSuccess }: 
 
         {!clientId && (
           <div className="text-amber-300/90 text-sm text-center px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/30">
-            PayPal טרם הוגדר — חסר <code className="font-mono">VITE_PAYPAL_CLIENT_ID</code> בבילד.
+            PayPal טרם הוגדר - חסר <code className="font-mono">VITE_PAYPAL_CLIENT_ID</code> בבילד.
           </div>
         )}
 
@@ -169,7 +170,7 @@ export function BuyModal({ gameId, gameTitle, priceCents, onClose, onSuccess }: 
                     // states below this line don't render (component
                     // gone from tree).
                     onClose();
-                    jsLog("[BuyModal] onClose() returned — should be unmounted now");
+                    jsLog("[BuyModal] onClose() returned - should be unmounted now");
                   } catch (e) {
                     setError((e as Error).message);
                   }
@@ -190,7 +191,7 @@ export function BuyModal({ gameId, gameTitle, priceCents, onClose, onSuccess }: 
 
         {done && (
           <div className="text-center px-4 py-3 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-100 text-sm font-bold">
-            ✓ התשלום הושלם — טוען גישה…
+            ✓ התשלום הושלם - טוען גישה…
           </div>
         )}
 

@@ -90,8 +90,9 @@ class CatalogPoller(QObject):
 
     def start(self) -> None:
         if not self._timer.isActive():
+            self._retune()
             self._timer.start()
-            log.info("catalog poller started (every %sms)", _POLL_INTERVAL_MS)
+            log.info("catalog poller started (base %sms, adaptive)", _POLL_INTERVAL_MS)
 
     def stop(self) -> None:
         self._timer.stop()
@@ -101,5 +102,27 @@ class CatalogPoller(QObject):
         waiting the full interval. Same dispatch path as the timer."""
         self._on_tick()
 
+    def _retune(self) -> None:
+        """Re-derive the polling cadence from the LIVE state of this machine.
+
+        The launcher very often sits behind a running game. A fixed 60s network
+        poll steals CPU exactly when frames matter most, and keeps a tray-idle
+        launcher awake for no reason. perf_manager stretches the interval when we
+        are backgrounded / the user is AFK / the machine is pegged, and keeps it
+        at full speed when the user is actually looking at a healthy machine.
+        Never raises - on any problem we simply keep the base cadence."""
+        try:
+            from translation_manager import perf_manager
+            ms = perf_manager.poll_interval(_POLL_INTERVAL_MS)
+            if ms != self._timer.interval():
+                self._timer.setInterval(ms)
+                log.debug("[poller] cadence -> %sms (%s)", ms,
+                          perf_manager.snapshot().get("state"))
+            # Nobody is looking at us -> hand our idle RAM back to Windows.
+            perf_manager.on_background_tick()
+        except Exception:                                 # pragma: no cover
+            pass
+
     def _on_tick(self) -> None:
+        self._retune()
         QThreadPool.globalInstance().start(_PollRunnable(self._b))

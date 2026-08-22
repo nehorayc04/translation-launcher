@@ -36,6 +36,15 @@ class GameConfig:
     # cache→install copy there; mod_files then live relative to that root.
     # Empty (the default) = copy into the detected game folder, as before.
     documents_subdir: str = ""
+    # Relative dir UNDER the game folder where a FLAT payload belongs (Corsair
+    # Cove ships its two paks at the archive root but they live in
+    # CorsairCove\Content\Paks). Ignored when documents_subdir is set.
+    deploy_subdir: str = ""
+    # Top-level names inside the downloaded package that are NOT deploy payload
+    # for THIS game (on top of the generic package-metadata skip in game_mod).
+    # Anno ships `data4.rda` in the archive, but it is consumed FROM THE CACHE by
+    # the maindata hook - copying it into the mods folder is a 2.5 MB duplicate.
+    payload_exclude: tuple[str, ...] = ()
 
     def is_valid_dir(self, base: Path) -> bool:
         return bool(self.validation_file) and (base / self.validation_file).exists()
@@ -78,6 +87,19 @@ GAMES: dict[str, GameConfig] = {
         name="Red Dead Redemption 2",
         internal_id="rdr2",   # matches /covers/rdr2.jpg
         cover_theme="rdr",
+        # Lenny's Mod Loader tree, dropped flat into the game root: the loader
+        # (`dinput8.dll` + `vfs.asi` + ScriptHook) plus `lml\` with the Hebrew
+        # gxt2 + the Hebrew-injected Scaleform font. Nothing shipped by Rockstar
+        # is overwritten - and any loader file the user ALREADY had is captured
+        # by game_mod.orig_dir() and restored on remove.
+        mod_slug="rdr2-hebrew",
+        # Sentinels for detect/remove: ONLY files that are unmistakably ours. A
+        # user who installed by hand has no installed_files record, and removal
+        # falls back to this list - listing the generic `dinput8.dll` here would
+        # delete a loader that may belong to a DIFFERENT mod. Dropping our gxt2
+        # already reverts the game to English.
+        mod_files=[r"lml\tranar\Ko Games Studio.gxt2",
+                   r"lml\KGF\asset_replace\font_lib_efigs.gfx"],
         common_paths=[
             r"C:\Program Files (x86)\Steam\steamapps\common\Red Dead Redemption 2",
             r"C:\Program Files\Rockstar Games\Red Dead Redemption 2",
@@ -127,17 +149,40 @@ GAMES: dict[str, GameConfig] = {
         ],
         validation_file=r"Game\eldenring.exe",
     ),
+    "Corsair Cove": GameConfig(
+        name="Corsair Cove",
+        internal_id="corsair-cove",
+        cover_theme="default",
+        # The mod HIJACKS two of the game's own EMPTY pak stubs (339 bytes each -
+        # their real content lives in the IoStore .ucas/.utoc half, so overwriting
+        # them loses nothing) instead of adding a pak the GDK build would refuse to
+        # mount. s2 = the Hebrew locres, s4 = the Hebrew-injected fonts. The
+        # originals are captured by game_mod.orig_dir() and restored on remove.
+        mod_slug="corsair-cove-hebrew",
+        deploy_subdir=r"CorsairCove\Content\Paks",
+        mod_files=[r"pakchunk0_s2-WinGDK.pak", r"pakchunk0_s4-WinGDK.pak"],
+        common_paths=[
+            r"E:\Games\Corsair Cove",
+            r"C:\Games\Corsair Cove",
+            r"C:\Program Files (x86)\Steam\steamapps\common\Corsair Cove",
+            r"D:\SteamLibrary\steamapps\common\Corsair Cove",
+        ],
+        validation_file=r"CorsairCove\Content\Paks\pakchunk0-WinGDK.pak",
+    ),
     "Anno 1800": GameConfig(
         name="Anno 1800",
         internal_id="anno1800",
         cover_theme="default",
         # Download-distributed via the Cloudflare Worker, BUT a loose-file mod:
         # the payload (a `zzz_hebrew_translation/` folder) deploys into
-        # %Documents%\Anno 1800\mods\ — Anno's own mod loader, NOT the game
+        # %Documents%\Anno 1800\mods\ - Anno's own mod loader, NOT the game
         # folder. mod_files is the installed-detection sentinel relative to
         # that deploy root (a real cache payload supersedes it after download).
         mod_slug="anno1800-hebrew",
         documents_subdir=r"Anno 1800\mods",
+        # Deployed to the GAME's maindata by the data4 hook (read from the cache),
+        # never into the mods folder.
+        payload_exclude=("data4.rda",),
         mod_files=[r"zzz_hebrew_translation\modinfo.json"],
         common_paths=[
             r"C:\Program Files (x86)\Steam\steamapps\common\Anno 1800",
@@ -163,7 +208,7 @@ class Strings:
 
     HOME_TITLE      = "ברוך הבא"
     HOME_HERO_TITLE = "אתר תרגום משחקים"
-    HOME_HERO_DESC  = "פרויקט פעיל — עשרות תרגומי עברית למשחקי PC, גלריית גרפיקה תלת-ממדית מרשימה ועדכונים שוטפים."
+    HOME_HERO_DESC  = "פרויקט פעיל - עשרות תרגומי עברית למשחקי PC, גלריית גרפיקה תלת-ממדית מרשימה ועדכונים שוטפים."
     HOME_HERO_OPEN  = "פתח באתר חי"
     HOME_HERO_LOCAL = "פתח גרסה מקומית"
     HOME_HERO_BUILD = "פתח תיקיית הפרויקט"
@@ -173,7 +218,7 @@ class Strings:
 
     LIB_TITLE       = "ספריית המשחקים"
     LIB_INSTALLED_M = "מותקנים עם מוד פעיל"
-    LIB_INSTALLED_D = "מותקנים — מוד מושבת"
+    LIB_INSTALLED_D = "מותקנים - מוד מושבת"
     LIB_INSTALLED   = "מותקנים ללא מוד"
     LIB_NOT_FOUND   = "לא נמצאו במחשב"
     LIB_SCANNING    = "סורק את המחשב לאיתור משחקים מותקנים..."
@@ -198,11 +243,11 @@ class Strings:
     STATUS_ACTIVE   = "פעיל"
     STATUS_DISABLED = "מושבת"
     STATUS_MISSING  = "לא מותקן"
-    STATUS_UNKNOWN  = "—"
+    STATUS_UNKNOWN  = "-"
 
     UPDATE_TITLE    = "עדכוני מערכת"
     UPDATE_LATEST   = "גרסה אחרונה: v1.0.0"
-    UPDATE_NEWS_1   = "תרגום Cyberpunk 2077 — 72% הושלמו"
+    UPDATE_NEWS_1   = "תרגום Cyberpunk 2077 - 72% הושלמו"
     UPDATE_NEWS_2   = "פרויקט האתר עודכן עם 6 סצנות תלת-ממדיות"
     UPDATE_NEWS_3   = "תוספת תמיכה במשחקים: Witcher 3, BG3, Elden Ring"
 
@@ -211,9 +256,10 @@ class Strings:
     PICK_DIR        = "בחר תיקייה"
 
     MSG_NO_WEBSITE  = "פרויקט האתר לא נמצא בנתיב המוגדר."
-    MSG_NO_DIST     = "תיקיית dist לא קיימת — יש להריץ 'npm run build' תחילה."
+    MSG_NO_DIST     = "תיקיית dist לא קיימת - יש להריץ 'npm run build' תחילה."
     MSG_SERVING     = "מגיש את האתר על http://localhost:{port}"
     MSG_OPENED      = "האתר נפתח בדפדפן."
     MSG_NO_PROJECT  = "פרויקט האתר לא נמצא."
 
-    FOOTER          = "Translation Manager v1.0  •  © 2026 Nehoray"
+    # User-visible - PROJECT name only, never a personal one.
+    FOOTER          = "Translation Manager  •  © 2026 Hebrew Translation Hub"

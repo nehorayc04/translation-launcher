@@ -1,7 +1,7 @@
 """
 Supabase project config for the launcher's OAuth flow.
 
-The anon key is intentionally embeddable in the binary — Supabase's
+The anon key is intentionally embeddable in the binary - Supabase's
 RLS makes that key safe to ship to end users (it has zero implicit
 permissions beyond what policies grant). The service-role key, which
 is the dangerous one, never leaves the website's Vercel functions.

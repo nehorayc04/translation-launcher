@@ -26,7 +26,7 @@ from pathlib import Path
 
 log = logging.getLogger(__name__)
 
-# Visible name in the registry entry — also what the user sees in the
+# Visible name in the registry entry - also what the user sees in the
 # Windows "Startup apps" Task Manager tab.
 _REG_VALUE_NAME = "TranslationManager"
 _REG_RUN_KEY    = r"Software\Microsoft\Windows\CurrentVersion\Run"
@@ -61,7 +61,7 @@ def target_command() -> str:
 # ─────────────────────────────────────────────────────────────
 def _open_run_key(write: bool):
     """Open HKCU Run key. Returns the open key handle; caller closes it."""
-    import winreg  # local import — non-Windows envs would fail at module load
+    import winreg  # local import - non-Windows envs would fail at module load
     flags = winreg.KEY_READ | (winreg.KEY_WRITE if write else 0)
     return winreg.OpenKey(winreg.HKEY_CURRENT_USER, _REG_RUN_KEY, 0, flags)
 
@@ -92,7 +92,7 @@ def enable() -> tuple[bool, str]:
             winreg.SetValueEx(k, _REG_VALUE_NAME, 0, winreg.REG_SZ, target_command())
         return True, ""
     except OSError as e:
-        log.warning("autostart: enable failed — %s", e)
+        log.warning("autostart: enable failed - %s", e)
         return False, str(e)
 
 
@@ -109,5 +109,5 @@ def disable() -> tuple[bool, str]:
                 pass
         return True, ""
     except OSError as e:
-        log.warning("autostart: disable failed — %s", e)
+        log.warning("autostart: disable failed - %s", e)
         return False, str(e)

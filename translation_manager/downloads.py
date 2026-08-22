@@ -2,9 +2,9 @@
 Chunk-based file downloader with live progress reporting.
 
 Two worker flavors:
-  • `_real_download_worker`   — uses requests.get(stream=True), chunk-by-chunk,
+  • `_real_download_worker`   - uses requests.get(stream=True), chunk-by-chunk,
                                 computes percent + MB/s in real time.
-  • `_simulated_worker`       — fake bytes-per-second loop for offline testing
+  • `_simulated_worker`       - fake bytes-per-second loop for offline testing
                                 (test items don't hit the network).
 
 The active worker emits progress via a module-level callback that main_eel
@@ -12,7 +12,7 @@ wires to `eel.update_download_progress(item_id, pct, speed_text)()`.
 
 Threading: each download runs in a daemon thread; cancellation goes through
 a per-job `threading.Event`. The progress callback is fired from the worker
-thread — main_eel marshals it back to Eel's RPC layer, which is safe to
+thread - main_eel marshals it back to Eel's RPC layer, which is safe to
 call from any thread.
 """
 
@@ -50,7 +50,7 @@ def _emit(item_id: str, pct: float, speed_text: str, state: str) -> None:
 
 # Note: the catalog of available updates lives in `main_eel._load_updates()`
 # (remote-first / local-fallback, same pattern as catalog + news). This module
-# is now purely the execution engine — callers pass the item dict in directly.
+# is now purely the execution engine - callers pass the item dict in directly.
 
 
 # ─────────────────────────────────────────────────────────────
@@ -100,7 +100,7 @@ def _simulated_worker(item: dict, cancel: threading.Event, rec: dict) -> None:
 
     downloaded = 0.0
     tick       = 0.12       # 120 ms per tick
-    # Start slow, accelerate, then plateau — feels organic
+    # Start slow, accelerate, then plateau - feels organic
     elapsed = 0.0
     while downloaded < total_mb and not cancel.is_set():
         # Speed curve: 0.5 → 4.5 MB/s ramp, then jitter
@@ -110,7 +110,7 @@ def _simulated_worker(item: dict, cancel: threading.Event, rec: dict) -> None:
         elif progress_frac > 0.85:
             speed_mbs = 3.0 + (1 - progress_frac) * 3  # taper at end
         else:
-            speed_mbs = 4.0 + (hash(int(elapsed * 10)) % 100) / 100  # 4.0–5.0 with jitter
+            speed_mbs = 4.0 + (hash(int(elapsed * 10)) % 100) / 100  # 4.0-5.0 with jitter
         downloaded = min(total_mb, downloaded + speed_mbs * tick)
         pct        = (downloaded / total_mb) * 100
         speed_text = _human_speed(speed_mbs * 1024 * 1024)

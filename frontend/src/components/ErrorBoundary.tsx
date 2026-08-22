@@ -3,9 +3,22 @@
 // thrown during render or in a lifecycle method below this boundary
 // and surfaces it to the user with a "reload" button.
 import { Component, type ErrorInfo, type ReactNode } from "react";
-import { safeReportCrash } from "../lib/eel";
+import { safeReportEvent } from "../lib/eel";
 
-interface Props { children: ReactNode }
+interface Props {
+  children: ReactNode;
+  // Optional CONTAINED mode: a cloud-controlled subtree (e.g. a plugin's
+  // declarative UI manifest) can crash on a bad admin edit with no code
+  // change on our side. Without a local boundary that crash bubbles up to
+  // the one app-wide boundary and blanks the ENTIRE launcher. Passing a
+  // `fallback` renders a small inline recovery UI in place instead; pass
+  // `localReset` so its "try again" only clears THIS boundary rather than
+  // hard-reloading the whole app. Omitting both keeps the original
+  // full-screen behavior byte-for-byte, so every existing call site is
+  // unaffected.
+  fallback?: ReactNode | ((reset: () => void) => ReactNode);
+  localReset?: boolean;
+}
 interface State { error: Error | null }
 
 export default class ErrorBoundary extends Component<Props, State> {
@@ -18,26 +31,35 @@ export default class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, info: ErrorInfo) {
     // Surface to the eel console too, so it lands in any log file the
     // user is willing to share with us. We don't want to silently
-    // swallow the stack — that's how the v1.0.5 black-screen happened.
+    // swallow the stack - that's how the v1.0.5 black-screen happened.
     console.error("[ErrorBoundary] caught", error, info.componentStack);
-    // Report to the dev (opt-in gated + PII-scrubbed on the Python side).
-    void safeReportCrash(
-      error.name || "FrontendError",
-      error.message || String(error),
-      (info.componentStack || "").slice(0, 4000),
+    // Report to the dev as a SILENT event (anonymous, opt-in gated, scrubbed on
+    // the Python side). No admin email / user message - the user already sees
+    // the recovery screen below; email stays for the fatal Python crash only.
+    safeReportEvent(
+      "react_error_boundary",
+      `${error.name || "FrontendError"}: ${error.message || String(error)}`,
       "react-error-boundary",
+      error.name || "FrontendError",
+      "error",
     );
   }
 
   reset = () => {
     this.setState({ error: null });
-    // Hard reload — clears any half-mounted state from the crashed
+    if (this.props.localReset) return;   // contained mode - no app-wide reload
+    // Hard reload - clears any half-mounted state from the crashed
     // subtree. The bridged Python process keeps running.
     try { window.location.reload(); } catch { /* no-op */ }
   };
 
   render() {
     if (!this.state.error) return this.props.children;
+    if (this.props.fallback !== undefined) {
+      return typeof this.props.fallback === "function"
+        ? this.props.fallback(this.reset)
+        : this.props.fallback;
+    }
     return (
       <div
         dir="rtl"
@@ -48,7 +70,7 @@ export default class ErrorBoundary extends Component<Props, State> {
           <div className="text-5xl">⚠️</div>
           <h1 className="text-white text-2xl font-bold">משהו התקלקל</h1>
           <p className="text-slate-400 text-sm">
-            התוכנה נתקלה בשגיאה לא צפויה. נסה לטעון מחדש —
+            התוכנה נתקלה בשגיאה לא צפויה. נסה לטעון מחדש -
             הנתונים שלך לא נפגעו.
           </p>
           <pre

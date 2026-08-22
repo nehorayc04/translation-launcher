@@ -1,5 +1,5 @@
 """
-Marvel's Spider-Man 2 — native Hebrew-mod applier (no Overstrike).
+Marvel's Spider-Man 2 - native Hebrew-mod applier (no Overstrike).
 
 Insomniac's engine resolves every asset through a Table-of-Contents file
 (`<game>/toc`, format I29 / "TOC2": an UNCOMPRESSED DAT1 wrapped as
@@ -13,7 +13,7 @@ that file to the TOC's ArchivesSection, and (3) redirecting the asset's
 size-entry to {archive_index=<new>, offset=0, value=<len>}. No big archive
 is ever repacked. We replicate exactly that, in Python, via the vendored
 `dat1lib` parser (which round-trips the inner DAT1 byte-for-byte under the
-RECALCULATE_ORIGINAL_ORDER strategy — verified against the pristine TOC).
+RECALCULATE_ORIGINAL_ORDER strategy - verified against the pristine TOC).
 
 A `.stage`/`.modular` is a ZIP: each patched asset is an entry named
 `{span}/{UPPER_HEX_ASSET_ID}` holding raw DAT1 bytes; `info.json` is
@@ -21,7 +21,7 @@ metadata; a `.modular` nests its `.stage`(s) under `modules/`.
 
 Everything is reversible: the live TOC is backed up before the first write,
 and our mod files + a manifest let `revert()` restore the exact prior state
-(any other mods the user had stay intact — we only append + redirect).
+(any other mods the user had stay intact - we only append + redirect).
 Never raises out of the public API; returns structured dicts.
 """
 
@@ -45,17 +45,17 @@ TOC_MAGIC_I29 = 0x34E89035
 _MODS_SUBDIR  = ("d", "mods")          # <game>/d/mods/
 _OUR_PREFIX   = "tm_he_"               # our mod-archive filenames live here
 _BACKUP_NAME  = "toc.tm_he_backup"     # pristine-before-our-apply TOC copy
-_MANIFEST     = ".tm_he_manifest.json" # under d/mods/ — tracks what we wrote
+_MANIFEST     = ".tm_he_manifest.json" # under d/mods/ - tracks what we wrote
 
 
 # ─────────────────────────────────────────────────────────────
-# dat1lib loader — vendored under translation_manager/vendor/ in the
+# dat1lib loader - vendored under translation_manager/vendor/ in the
 # shipped build; falls back to the in-repo research copy for dev.
 # ─────────────────────────────────────────────────────────────
 def _load_dat1lib():
     # dat1lib uses absolute internal imports (`import dat1lib.types…`), so it
     # must resolve as a TOP-LEVEL package. Add its parent dir to sys.path and
-    # import plainly — for the frozen build (vendored under
+    # import plainly - for the frozen build (vendored under
     # translation_manager/vendor/) and dev (the in-repo research copy).
     here = Path(__file__).resolve().parent
     base = getattr(sys, "_MEIPASS", None)
@@ -69,7 +69,7 @@ def _load_dat1lib():
                 sys.path.insert(0, str(cand))
             import dat1lib  # type: ignore
             return dat1lib
-    import dat1lib  # type: ignore — last resort (already on sys.path?)
+    import dat1lib  # type: ignore - last resort (already on sys.path?)
     return dat1lib
 
 
@@ -137,7 +137,7 @@ def _read_toc(dat1lib, toc_path: Path):
 
 def _write_toc(t, toc_path: Path) -> None:
     """Serialize the modified TOC2 and write [magic][logical_len][raw DAT1].
-    (dat1lib's own .save() zlib-compresses — wrong for I29 — so we wrap the
+    (dat1lib's own .save() zlib-compresses - wrong for I29 - so we wrap the
     raw DAT1 ourselves, atomically.)"""
     import io
     buf = io.BytesIO()
@@ -202,10 +202,61 @@ def _append_archive(t, rel_name: str) -> int:
 
 
 # ─────────────────────────────────────────────────────────────
+# Game-update awareness - never restore a stale (pre-update) backup over a
+# freshly-patched toc (that would downgrade the toc vs. the updated archives and
+# can crash the updated game). The toc is "ours" iff it still references our
+# tm_he_* mod archives; a game patch rewrites the toc and drops those.
+# ─────────────────────────────────────────────────────────────
+def _toc_is_ours(t) -> bool:
+    try:
+        arch = t.get_archives_section()
+    except Exception:
+        return False
+    for e in getattr(arch, "archives", []) or []:
+        fn = bytes(getattr(e, "filename", b"") or b"").split(b"\x00", 1)[0]
+        if b"tm_he_" in fn:
+            return True
+    return False
+
+
+def _discard_stale(game_root: Path) -> None:
+    """Drop our manifest + mod files + the (now-stale) backup WITHOUT restoring
+    the backup - used when a game update already reset the toc to clean vanilla,
+    so restoring the old backup would downgrade the fresh toc."""
+    game_root = Path(game_root)
+    mods = _mods_dir(game_root)
+    for p in (game_root / _BACKUP_NAME, mods / _MANIFEST):
+        try: p.unlink()
+        except OSError: pass
+    if mods.is_dir():
+        for f in mods.glob(_OUR_PREFIX + "*"):
+            try: f.unlink()
+            except OSError: pass
+
+
+# ─────────────────────────────────────────────────────────────
 # Public API
 # ─────────────────────────────────────────────────────────────
 def is_applied(game_root: Path) -> bool:
-    return (_mods_dir(game_root) / _MANIFEST).is_file()
+    """Applied = our manifest exists AND the live toc still matches the toc we
+    wrote (size + mtime). A game update rewrites the toc → the stat differs →
+    we report NOT applied, so the UI prompts a clean reinstall and never trusts
+    the now-stale backup. (Cheap: one os.stat, no toc parse.)"""
+    man = _mods_dir(game_root) / _MANIFEST
+    if not man.is_file():
+        return False
+    try:
+        meta = json.loads(man.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return True  # manifest present but unreadable → assume applied (conservative)
+    rec = meta.get("toc_stat")
+    if not rec:
+        return True  # legacy manifest (no stat recorded) → prior behavior
+    try:
+        st = _toc_path(game_root).stat()
+    except OSError:
+        return False
+    return rec.get("size") == st.st_size and rec.get("mtime_ns") == st.st_mtime_ns
 
 
 def apply(game_root: Path, payload_files: list[Path], cb: ProgressCB | None = None) -> dict:
@@ -222,7 +273,7 @@ def apply(game_root: Path, payload_files: list[Path], cb: ProgressCB | None = No
     game_root = Path(game_root)
     toc = _toc_path(game_root)
     if not toc.is_file():
-        return {"ok": False, "error": "קובץ ה-toc של המשחק לא נמצא — ודא את נתיב ההתקנה"}
+        return {"ok": False, "error": "קובץ ה-toc של המשחק לא נמצא - ודא את נתיב ההתקנה"}
 
     # Collect all (span, asset_id, bytes) across every payload file.
     assets: list[tuple[int, int, bytes]] = []
@@ -234,21 +285,42 @@ def apply(game_root: Path, payload_files: list[Path], cb: ProgressCB | None = No
     if not assets:
         return {"ok": False, "error": "לא נמצאו נכסים בקבצי המוד"}
 
-    # Clean slate — undo a previous apply so indices/archives don't pile up.
-    if is_applied(game_root):
-        revert(game_root)
+    if cb:
+        cb("apply", 5.0, "קורא את טבלת הנכסים…")
+    t = _read_toc(dat1lib, toc)
+
+    # GAME-UPDATE-AWARE clean slate. Decide from the toc ITSELF, not the
+    # (possibly stale) manifest:
+    #   • toc still references our tm_he_* archives → a prior apply is live and
+    #     the backup is the valid clean base → revert to it, then re-read.
+    #   • toc does NOT reference them → either never applied, or a game update
+    #     already reset the toc to clean vanilla → DROP any stale backup/manifest
+    #     WITHOUT restoring (restoring would downgrade the fresh toc → crash).
+    if _toc_is_ours(t):
+        if (game_root / _BACKUP_NAME).is_file():
+            revert(game_root)
+            t = _read_toc(dat1lib, toc)
+        else:
+            # The live toc is already OURS (references tm_he_*) but the pristine
+            # backup is gone (deleted out-of-band). Proceeding would (a) capture
+            # this MODDED toc as the "original" backup and (b) stack new archive
+            # redirects on top of the old ones → an ever-growing, un-restorable
+            # toc. Refuse and point the user at a game-file verify (which restores
+            # a clean vanilla toc) instead of corrupting further.
+            return {"ok": False, "error":
+                    "קובץ ה-toc כבר ממודל אך גיבוי הווניל חסר. אמת את קבצי המשחק "
+                    "(Steam → אימות שלמות הקבצים) ואז התקן מחדש."}
+    elif is_applied(game_root) or (game_root / _BACKUP_NAME).is_file():
+        _discard_stale(game_root)
 
     mods = _mods_dir(game_root)
     mods.mkdir(parents=True, exist_ok=True)
 
-    # Back up the live TOC once (captures any OTHER mods already present).
+    # Back up the CURRENT (now-clean) TOC once (captures any OTHER mods present).
     backup = game_root / _BACKUP_NAME
     if not backup.exists():
         shutil.copy2(toc, backup)
 
-    if cb:
-        cb("apply", 5.0, "קורא את טבלת הנכסים…")
-    t = _read_toc(dat1lib, toc)
     sizes = t.get_sizes_section()
 
     written: list[str] = []
@@ -274,7 +346,7 @@ def apply(game_root: Path, payload_files: list[Path], cb: ProgressCB | None = No
             cb("apply", 5.0 + 90.0 * (i + 1) / len(assets), f"מחיל נכס {i + 1}/{len(assets)}")
 
     if redirected == 0:
-        # Nothing matched — back the writes out so we don't leave junk.
+        # Nothing matched - back the writes out so we don't leave junk.
         for n in written:
             try: (mods / n).unlink()
             except OSError: pass
@@ -293,8 +365,14 @@ def apply(game_root: Path, payload_files: list[Path], cb: ProgressCB | None = No
         cb("apply", 97.0, "כותב toc מעודכן…")
     _write_toc(t, toc)
 
+    try:
+        _st = toc.stat()
+        _toc_stat = {"size": _st.st_size, "mtime_ns": _st.st_mtime_ns}
+    except OSError:
+        _toc_stat = None
     (mods / _MANIFEST).write_text(
-        json.dumps({"archives": written, "redirected": redirected}, ensure_ascii=False, indent=2),
+        json.dumps({"archives": written, "redirected": redirected, "toc_stat": _toc_stat},
+                   ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
     if cb:
@@ -311,7 +389,18 @@ def revert(game_root: Path) -> dict:
     mods = _mods_dir(game_root)
     try:
         if backup.is_file():
-            shutil.copy2(backup, toc)
+            # Restore ONLY if the live toc is still ours. If a game update reset
+            # the toc (not ours), the backup is STALE → dropping our files is
+            # enough (the current toc is already clean vanilla - never downgrade
+            # it, that would mismatch the updated archives and can crash).
+            restore = True
+            try:
+                if not _toc_is_ours(_read_toc(_load_dat1lib(), toc)):
+                    restore = False
+            except Exception:
+                restore = True   # unsure → restore (prior behavior)
+            if restore:
+                shutil.copy2(backup, toc)
             backup.unlink()
         # Remove our mod archives + manifest.
         man = mods / _MANIFEST

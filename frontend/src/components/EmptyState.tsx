@@ -1,4 +1,4 @@
-// Friendly empty-state — an illustrative icon bubble + title + hint +
+// Friendly empty-state - an illustrative icon bubble + title + hint +
 // optional CTA. Used where a list/section has no content yet.
 import type { ReactNode } from "react";
 

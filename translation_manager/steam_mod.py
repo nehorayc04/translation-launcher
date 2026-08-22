@@ -1,25 +1,25 @@
 """
-steam_mod.py — local lifecycle for the Steam Hebrew translation mod.
+steam_mod.py - local lifecycle for the Steam Hebrew translation mod.
 
 Owns the persistent cache and the enable/disable toggle. Sits above
 `steam_apply`, which it uses only to locate the Steam install.
 
-Cache layout — `~/.translation_manager/mod_cache/steam/`:
+Cache layout - `~/.translation_manager/mod_cache/steam/`:
     steamui/localization/*_arabic-json.js
     resource/*_arabic.txt
     friends/*_arabic.txt
     state.json   {"version", "cached_at", "enabled", "installed_files"}
 
 (Kept under `~/.translation_manager/` for consistency with `paths.py`,
-`launcher_prefs.py` and the SWR cache — all launcher state lives there.)
+`launcher_prefs.py` and the SWR cache - all launcher state lives there.)
 
-Backup scheme — the `.orig` rule
+Backup scheme - the `.orig` rule
 ---------------------------------
 The files we install are `*_arabic*`. Steam ships its OWN files at those
 paths (the real Arabic localization). To make the toggle reversible we
 keep ONE pristine copy per file:
 
-    <file>.orig — the genuine Steam file, captured the FIRST time we ever
+    <file>.orig - the genuine Steam file, captured the FIRST time we ever
                   overwrite <file>, and never touched again.
 
   enable()  : if <file>.orig is absent and <file> exists -> copy it to
@@ -30,8 +30,8 @@ keep ONE pristine copy per file:
 A timestamped `.bak` scheme can't do this: a second enable() would back
 up our OWN Hebrew file, and a later "restore latest" would yield Hebrew.
 
-disable() only touches files listed in `state["installed_files"]` — the
-exact set the last enable() actually wrote — so a partial enable can't
+disable() only touches files listed in `state["installed_files"]` - the
+exact set the last enable() actually wrote - so a partial enable can't
 make disable delete a file it never installed.
 """
 from __future__ import annotations
@@ -45,7 +45,7 @@ from typing import Callable
 from . import steam_apply
 
 # Progress callback: cb(phase, pct, detail). For this module `phase` is
-# always "apply" — download/verify/extract belong to mod_source.py.
+# always "apply" - download/verify/extract belong to mod_source.py.
 ProgressCB = Callable[[str, float, str], None]
 
 CACHE_DIR  = Path.home() / ".translation_manager" / "mod_cache" / "steam"
@@ -72,7 +72,7 @@ def read_state() -> dict:
 
 
 def _write_state(state: dict) -> None:
-    """Atomic write (temp + replace) — mirrors launcher_prefs.py."""
+    """Atomic write (temp + replace) - mirrors launcher_prefs.py."""
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
     tmp = STATE_FILE.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -108,7 +108,7 @@ def status() -> dict:
 # ── cache population ──────────────────────────────────────────
 def populate_cache(src: Path, version: str) -> dict:
     """Copy a freshly-extracted `steam_hebrew_output` tree into the cache,
-    replacing any existing cache. Leaves `enabled=False` — call enable()
+    replacing any existing cache. Leaves `enabled=False` - call enable()
     next to actually apply it."""
     if not src.is_dir():
         return {"ok": False, "error": f"source not found: {src}"}
@@ -143,13 +143,13 @@ def populate_cache(src: Path, version: str) -> dict:
 # ── toggle ────────────────────────────────────────────────────
 def enable(cb: ProgressCB | None = None) -> dict:
     """Copy the cached Hebrew files into the live Steam install, capturing
-    each genuine original as `<file>.orig` the first time. Idempotent —
+    each genuine original as `<file>.orig` the first time. Idempotent -
     safe to re-run after a partial failure."""
     if not is_cached():
-        return {"ok": False, "error": "אין מטמון מקומי — יש להתקין קודם"}
+        return {"ok": False, "error": "אין מטמון מקומי - יש להתקין קודם"}
     steam = steam_apply.find_steam_install()
     if steam is None:
-        return {"ok": False, "error": "לא נמצאה תיקיית Steam — האם Steam מותקן?"}
+        return {"ok": False, "error": "לא נמצאה תיקיית Steam - האם Steam מותקן?"}
 
     files = _cache_files()
     installed: list[str] = []
@@ -175,13 +175,14 @@ def enable(cb: ProgressCB | None = None) -> dict:
             break
 
     st = read_state()
-    # Only declare "enabled" when EVERY target was written; on partial
-    # failure, mark partial-enable iff something landed so disable() can
-    # still revert what we did. Writing enabled=True unconditionally on
-    # error meant the next enable() saw target.exists() AND orig.exists()
-    # for the never-installed files and SKIPPED the .orig capture — i.e.
-    # silently lost the genuine Steam original on the second attempt.
-    st["enabled"] = err is None and len(installed) == len(files)
+    # "enabled" == the apply finished with no error AND at least one file landed.
+    # We must NOT require len(installed)==len(files): a cache file whose Steam
+    # sub-tree is absent is legitimately SKIPPED (line ~161) yet still counted in
+    # `files`, so `== len(files)` would report enabled=False on a fully-successful
+    # apply - which then makes clear_cache() skip its restore while still deleting
+    # the .orig backups (data loss). `err is None` already means every applicable
+    # file was written (the loop only breaks on a real error).
+    st["enabled"] = err is None and len(installed) > 0
     st["installed_files"] = installed
     _write_state(st)
 
@@ -236,13 +237,17 @@ def disable(cb: ProgressCB | None = None) -> dict:
 # ── cache teardown ────────────────────────────────────────────
 def clear_cache() -> dict:
     """Revert Steam to its original files, drop the `.orig` backups, then
-    delete the local cache — leaving the machine as if the mod never ran."""
+    delete the local cache - leaving the machine as if the mod never ran."""
     st = read_state()
     if not st and not CACHE_DIR.exists():
         return {"ok": True, "count": 0, "note": "no cache to clear"}
 
-    # 1. If currently applied, restore the genuine Steam files first.
-    if st.get("enabled"):
+    # 1. Restore the genuine Steam files first whenever ANYTHING was installed -
+    #    gated on installed_files, NOT the `enabled` flag. Deleting the .orig
+    #    backups (step 2) without restoring would leave Steam permanently on our
+    #    Hebrew files with no recovery; disable() is idempotent so restoring an
+    #    already-reverted set is harmless.
+    if st.get("installed_files"):
         r = disable()
         if not r.get("ok"):
             return {"ok": False, "error": f"כשל בשחזור קבצי Steam לפני הניקוי: {r.get('error')}"}

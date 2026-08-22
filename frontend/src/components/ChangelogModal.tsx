@@ -1,6 +1,7 @@
-// "What's new" modal — a nice bulleted changelog window (per the design
+// "What's new" modal - a nice bulleted changelog window (per the design
 // brief). Splits the changelog text into bullet points. Reusable.
 import { useEffect } from "react";
+import { IconOptBtnChangelogOk } from "./UiIcons";
 
 interface Props {
   open: boolean;
@@ -23,7 +24,7 @@ export default function ChangelogModal({ open, title, version, changelog, accent
 
   // Bulletize: split on newlines / bullet glyphs / sentence " · " separators.
   const bullets = changelog
-    .split(/\r?\n|(?:^|\s)[•\-–]\s+|\s·\s/)
+    .split(/\r?\n|(?:^|\s)[•\--]\s+|\s·\s/)
     .map((s) => s.trim())
     .filter(Boolean);
 
@@ -67,9 +68,10 @@ export default function ChangelogModal({ open, title, version, changelog, accent
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2 rounded-xl font-bold text-brand-ink transition hover:brightness-110"
+            className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl font-bold text-brand-ink transition hover:brightness-110"
             style={{ background: accent }}
           >
+            <IconOptBtnChangelogOk width={18} className="shrink-0 opacity-90" />
             הבנתי
           </button>
         </div>

@@ -1,10 +1,10 @@
 """
-Watch Dogs 2 — native Hebrew-mod applier (fat-redirect, no Overstrike / mod
+Watch Dogs 2 - native Hebrew-mod applier (fat-redirect, no Overstrike / mod
 manager). Python reimplementation of the proven `games/watchdogs2/work/
 wd2_archive.py` deploy, hardened for shipping inside the launcher.
 
 WD2 (Ubisoft Disrupt, FAT5 v11) stores assets across load-ordered archives
-`common < patch < patch2` — each a `<name>.fat` index + `<name>.dat` blob under
+`common < patch < patch2` - each a `<name>.fat` index + `<name>.dat` blob under
 `<game>/data_win64/`. We install the Hebrew translation by, for each of the 3
 shipped files (localization `.loc` + the Hebrew font `.ffd` + its atlas `.xbt`):
 
@@ -17,8 +17,8 @@ recorded; `revert()` restores the `.fat` and truncates the `.dat`. Backups + an
 apply marker live OUTSIDE the game folder (the launcher's app-data cache) so a
 Program-Files install with no writable backup subfolder still reverts cleanly.
 
-Activation is in-game (Settings → Written Language = العربية / Arabic) — the
-Hebrew rides the Arabic RTL slot — so this applier does NOT touch any game
+Activation is in-game (Settings → Written Language = العربية / Arabic) - the
+Hebrew rides the Arabic RTL slot - so this applier does NOT touch any game
 setting; only the 3 asset files. Never raises out of the public API.
 """
 
@@ -91,6 +91,31 @@ def _tag(rel_path: str) -> str:
     return rel_path.replace("\\", "_").replace("/", "_")
 
 
+def _atomic_write_bytes(dst: Path, data: bytes) -> None:
+    """Write `data` to `dst` ATOMICALLY (temp file in the same dir + os.replace).
+
+    `dst` here is a `.fat` - the game's OWN archive INDEX. A plain open/write/close
+    that is interrupted (crash, force-close, power loss, AV real-time-scan lock
+    mid-write) leaves a TORN index and the game can then fail to load the whole
+    archive - not just lose the mod. os.replace on the same volume is atomic, so
+    the reader only ever sees the complete old or the complete new bytes. This
+    mirrors the temp+replace pattern the other appliers (SM2/GoWR/HL/PT/GTAV) use.
+    """
+    tmp = dst.with_name(dst.name + f".tmp{os.getpid()}")
+    try:
+        with open(tmp, "wb") as f:
+            f.write(data)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp, dst)
+    except BaseException:
+        try:
+            tmp.unlink()
+        except OSError:
+            pass
+        raise
+
+
 # ─────────────────────────────────────────────────────────────
 # Per-archive deploy / revert
 # ─────────────────────────────────────────────────────────────
@@ -131,7 +156,7 @@ def _deploy_one(data: Path, backup: Path, rel_path: str, payload_path: Path) -> 
         nc = newoff >> 2
         nd = 0                                         # unc=0, scheme=None (v11 stored)
         struct.pack_into("<III", fat, fatpos + 8, nb, nc, nd)
-        fatp.write_bytes(fat)
+        _atomic_write_bytes(fatp, bytes(fat))      # torn .fat = unloadable archive
         redirected += 1
     return redirected
 
@@ -145,18 +170,22 @@ def _revert_one(data: Path, backup: Path, rel_path: str) -> None:
             continue
         datp = data / (name + ".dat")
         fatp = data / (name + ".fat")
-        try:
-            shutil.copy2(fbk, fatp)
-            with open(datp, "r+b") as f:
-                f.truncate(int(szf.read_text(encoding="utf-8").strip()))
-        finally:
-            # Drop the backups so is_applied() flips False and a future apply
-            # re-captures the (now-original) .fat.
-            for b in (fbk, szf):
-                try:
-                    b.unlink()
-                except OSError:
-                    pass
+        # Restore FIRST; only drop the backups once BOTH the .fat restore
+        # and the .dat truncate actually succeed. If either raises (e.g. the
+        # game is running and locks the file) the exception propagates so
+        # revert() reports failure AND the backups are KEPT - a retry with
+        # the game closed can then finish. The old `finally` deleted the
+        # backups even on failure, which lost the true-original .fat, left
+        # is_applied() stuck true, and made a re-apply stack on top → a
+        # permanently-un-revertable, ever-growing .dat.
+        _atomic_write_bytes(fatp, fbk.read_bytes())   # restore index atomically
+        with open(datp, "r+b") as f:
+            f.truncate(int(szf.read_text(encoding="utf-8").strip()))
+        for b in (fbk, szf):
+            try:
+                b.unlink()
+            except OSError:
+                pass
 
 
 # ─────────────────────────────────────────────────────────────
@@ -172,12 +201,19 @@ def apply(game_root, payload_map: list, backup_dir, cb: ProgressCB | None = None
     apply (so we never stack offsets / lose the true-original backup)."""
     data = _data_dir(game_root)
     if not data.is_dir():
-        return {"ok": False, "error": "תיקיית data_win64 לא נמצאה — ודא את נתיב ההתקנה של המשחק"}
+        return {"ok": False, "error": "תיקיית data_win64 לא נמצאה - ודא את נתיב ההתקנה של המשחק"}
     backup = Path(backup_dir)
     try:
         # Clean slate so a re-install can't append on top of a prior redirect.
+        # If that revert FAILS (e.g. the game is open and locks a .dat), we
+        # MUST abort - proceeding would append the payload a second time onto
+        # an already-modded .dat and back up the modded .fat as "original",
+        # producing an ever-growing, un-revertable archive.
         if is_applied(backup):
-            revert(game_root, backup)
+            rv = revert(game_root, backup)
+            if not rv.get("ok"):
+                return {"ok": False,
+                        "error": rv.get("error") or "שחזור ההתקנה הקודמת נכשל - סגור את המשחק ונסה שוב"}
         backup.mkdir(parents=True, exist_ok=True)
         n = max(1, len(payload_map))
         total_redirected = 0
@@ -192,8 +228,16 @@ def apply(game_root, payload_map: list, backup_dir, cb: ProgressCB | None = None
         if total_redirected == 0:
             return {"ok": False,
                     "error": "אף קובץ לא תאם לארכיוני המשחק (ייתכן שהמשחק עודכן)"}
+        # Record each archive's .dat size AS WE LEAVE IT (post-apply). revert()
+        # compares this to the live size to detect a game update that rewrote the
+        # archive - restoring a stale backup over an updated .dat would corrupt it.
+        applied_sizes = {
+            name: (data / (name + ".dat")).stat().st_size
+            for name in ARCHIVES if (data / (name + ".dat")).is_file()
+        }
         (backup / _MARKER).write_text(
-            json.dumps({"targets": applied_targets, "redirected": total_redirected},
+            json.dumps({"targets": applied_targets, "redirected": total_redirected,
+                        "applied_sizes": applied_sizes},
                        ensure_ascii=False),
             encoding="utf-8",
         )
@@ -202,7 +246,7 @@ def apply(game_root, payload_map: list, backup_dir, cb: ProgressCB | None = None
         return {"ok": True, "count": total_redirected, "error": ""}
     except PermissionError:
         return {"ok": False,
-                "error": "אין הרשאת כתיבה / המשחק פתוח — סגור את המשחק (ו/או הרץ כמנהל) ונסה שוב"}
+                "error": "אין הרשאת כתיבה / המשחק פתוח - סגור את המשחק (ו/או הרץ כמנהל) ונסה שוב"}
     except Exception as e:                                  # pragma: no cover
         return {"ok": False, "error": str(e)}
 
@@ -215,13 +259,41 @@ def revert(game_root, backup_dir) -> dict:
     try:
         marker = backup / _MARKER
         targets: list[str] = []
+        applied_sizes: dict = {}
         if marker.is_file():
             try:
-                targets = json.loads(marker.read_text(encoding="utf-8")).get("targets", [])
+                m = json.loads(marker.read_text(encoding="utf-8"))
+                targets = m.get("targets", [])
+                applied_sizes = m.get("applied_sizes", {}) or {}
             except (OSError, ValueError):
                 targets = []
         if not targets:
             targets = [rel for _, rel in TARGETS]          # defensive sweep
+
+        # GAME-UPDATE GUARD (checked ONCE, before ANY restore - applied_sizes is
+        # the post-apply size of the whole archive, so this is only valid before
+        # we start truncating): if a live .dat no longer matches the size we left
+        # it at, a game patch rewrote that archive. Restoring the stale .fat +
+        # truncating to the pre-mod size would CHOP/desync the updated content, so
+        # DROP all backups WITHOUT touching the live archives (they're already the
+        # game's own, mod-free after the update).
+        stale = any(
+            (data / (name + ".dat")).is_file()
+            and (data / (name + ".dat")).stat().st_size != int(sz)
+            for name, sz in applied_sizes.items()
+        )
+        if stale:
+            for b in list(backup.glob("*.fat.*.bak")) + list(backup.glob("*.dat.*.origsize")):
+                try:
+                    b.unlink()
+                except OSError:
+                    pass
+            try:
+                marker.unlink()
+            except OSError:
+                pass
+            return {"ok": True, "error": "", "stale": True}
+
         for rel in targets:
             _revert_one(data, backup, rel)
         try:
@@ -231,6 +303,6 @@ def revert(game_root, backup_dir) -> dict:
         return {"ok": True, "error": ""}
     except PermissionError:
         return {"ok": False,
-                "error": "אין הרשאת כתיבה / המשחק פתוח — סגור את המשחק ונסה שוב"}
+                "error": "אין הרשאת כתיבה / המשחק פתוח - סגור את המשחק ונסה שוב"}
     except Exception as e:                                  # pragma: no cover
         return {"ok": False, "error": str(e)}

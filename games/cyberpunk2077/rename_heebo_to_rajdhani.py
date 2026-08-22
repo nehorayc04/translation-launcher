@@ -1,4 +1,4 @@
-"""
+﻿"""
 Replace Heebo's name table with vanilla raj/industry's name table so the engine
 identifies our font under the expected family name.
 """
@@ -8,7 +8,7 @@ import subprocess
 from fontTools.ttLib import TTFont
 
 CLI = r"C:\Users\Nehoray_Cohen\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe"
-CP = r"C:\Users\Nehoray_Cohen\Projects\Game translator\Game Lab\Cyberpunk 2077"
+CP = r"C:\Game Lab\Cyberpunk 2077"
 ARCHIVE = os.path.join(CP, r"archive\pc\content\basegame_1_engine.archive")
 
 WORK = r"C:\Users\Nehoray_Cohen\AppData\Local\Temp\font_v2"

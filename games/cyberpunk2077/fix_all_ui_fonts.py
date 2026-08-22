@@ -1,4 +1,4 @@
-"""
+﻿"""
 fix_all_ui_fonts.py
 ===================
 Broad UI-font substitution. Replaces the core Cyberpunk 2077 Latin UI
@@ -51,7 +51,7 @@ except Exception:
     pass
 
 CLI         = r"C:\Users\Nehoray_Cohen\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe"
-GAME        = r"C:\Users\Nehoray_Cohen\Projects\Game translator\Game Lab\Cyberpunk 2077"
+GAME        = r"C:\Game Lab\Cyberpunk 2077"
 SCRIPTS_DIR = r"C:\Users\Nehoray_Cohen\Projects\Game translator"
 PROJECT     = os.path.join(SCRIPTS_DIR, "תרגום_משחקים")
 

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Convert localization_translated.json to a Lua-loadable lookup table for the
 Hebrew Translator CET mod.
 
@@ -22,7 +22,7 @@ except Exception:
     pass
 
 SRC = r"C:\Users\Nehoray_Cohen\Projects\Game translator\תרגום_משחקים\source\resources\localization_translated.json"
-DST_DIR = r"C:\Users\Nehoray_Cohen\Projects\Game translator\Game Lab\Cyberpunk 2077\bin\x64\plugins\cyber_engine_tweaks\mods\hebrew_translator"
+DST_DIR = r"C:\Game Lab\Cyberpunk 2077\bin\x64\plugins\cyber_engine_tweaks\mods\hebrew_translator"
 DST = os.path.join(DST_DIR, "translations.lua")
 
 HEBREW_RE = re.compile(r"[֐-׿]")

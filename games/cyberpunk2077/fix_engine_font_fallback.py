@@ -1,4 +1,4 @@
-"""
+﻿"""
 fix_engine_font_fallback.py
 ===========================
 Engine-config override that makes EVERY Latin-font widget in the game
@@ -50,7 +50,7 @@ except Exception:
     pass
 
 CLI         = r"C:\Users\Nehoray_Cohen\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe"
-GAME        = r"C:\Users\Nehoray_Cohen\Projects\Game translator\Game Lab\Cyberpunk 2077"
+GAME        = r"C:\Game Lab\Cyberpunk 2077"
 SCRIPTS_DIR = r"C:\Users\Nehoray_Cohen\Projects\Game translator"
 PROJECT     = os.path.join(SCRIPTS_DIR, "תרגום_משחקים")
 ENGINE_ARCH = os.path.join(GAME, r"archive\pc\content\basegame_1_engine.archive")

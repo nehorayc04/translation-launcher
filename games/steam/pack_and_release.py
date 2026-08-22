@@ -27,7 +27,7 @@ import time
 import zipfile
 from pathlib import Path
 
-REPO         = "nehorayc04/steam-hebrew-mods"
+REPO         = "hebrew-translation-hub/steam-hebrew-mods"
 ARCHIVE_NAME = "steam_hebrew_translation.zip"
 
 ROOT       = Path(__file__).resolve().parent

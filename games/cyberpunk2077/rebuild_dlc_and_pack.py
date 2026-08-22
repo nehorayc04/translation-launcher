@@ -1,4 +1,4 @@
-"""
+﻿"""
 rebuild_dlc_and_pack.py
 =======================
 Bakes the Phantom Liberty DLC Hebrew translation into z_hebrew_dlc.archive —
@@ -45,7 +45,7 @@ except Exception:
 
 # ── paths ────────────────────────────────────────────────────────────────────
 CLI   = r"C:\Users\Nehoray_Cohen\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe"
-GAME  = r"C:\Users\Nehoray_Cohen\Projects\Game translator\Game Lab\Cyberpunk 2077"
+GAME  = r"C:\Game Lab\Cyberpunk 2077"
 PROJ  = r"C:\Users\Nehoray_Cohen\Projects\Game translator\תרגום_משחקים"
 SCRIPTS_DIR = r"C:\Users\Nehoray_Cohen\Projects\Game translator"
 

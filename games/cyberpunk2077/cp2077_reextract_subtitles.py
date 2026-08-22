@@ -1,4 +1,4 @@
-"""
+﻿"""
 cp2077_reextract_subtitles.py
 =============================
 Re-extract English subtitle dialogue text using WolvenKit's canonical decode
@@ -40,7 +40,7 @@ except Exception:
 
 
 CLI = r"C:\Users\Nehoray_Cohen\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe"
-GAME = r"C:\Users\Nehoray_Cohen\Projects\Game translator\Game Lab\Cyberpunk 2077"
+GAME = r"C:\Game Lab\Cyberpunk 2077"
 PROJ = r"C:\Users\Nehoray_Cohen\Projects\Game translator\תרגום_משחקים"
 TRANSLATED_JSON = os.path.join(PROJ, r"source\resources\localization_translated.json")
 EXPORT_JSON = os.path.join(PROJ, r"source\resources\localization_export.json")

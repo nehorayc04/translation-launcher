@@ -1,7 +1,7 @@
-"""Extract a .stage file from inside the .modular and inspect its layout."""
+﻿"""Extract a .stage file from inside the .modular and inspect its layout."""
 import zipfile, os, io
 
-modular = r"C:\Users\Nehoray_Cohen\Projects\Game translator\Game Lab\Marvel's Spider-Man 2\Mods Library\Spider-Gore.modular"
+modular = r"C:\Game Lab\Marvel's Spider-Man 2\Mods Library\Spider-Gore.modular"
 stage_name = "modules/00__BLOOD/00_Realistic_Small.stage"
 
 with zipfile.ZipFile(modular) as outer:

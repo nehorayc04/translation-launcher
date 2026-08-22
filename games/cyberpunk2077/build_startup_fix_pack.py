@@ -1,4 +1,4 @@
-"""
+﻿"""
 build_startup_fix_pack.py
 =========================
 Builds and deploys `z_hebrew_startup_fix.archive` — a tiny override mod
@@ -48,7 +48,7 @@ except Exception:
 
 # ── Paths (mirror the other pack scripts) ───────────────────────────────────
 CLI         = r"C:\Users\Nehoray_Cohen\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe"
-GAME        = r"C:\Users\Nehoray_Cohen\Projects\Game translator\Game Lab\Cyberpunk 2077"
+GAME        = r"C:\Game Lab\Cyberpunk 2077"
 SCRIPTS_DIR = r"C:\Users\Nehoray_Cohen\Projects\Game translator"
 ENGINE_ARCH = os.path.join(GAME, r"archive\pc\content\basegame_1_engine.archive")
 

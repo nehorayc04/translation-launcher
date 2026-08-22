@@ -1,4 +1,4 @@
-"""Pull the actually-deployed onscreens.json out of z_hebrew_translation.archive
+﻿"""Pull the actually-deployed onscreens.json out of z_hebrew_translation.archive
 and print the Hebrew text for the 3 UI bug PKs (361, 1539, 80643).
 
 If the strings match the latest source localization_translated.json the
@@ -21,7 +21,7 @@ if hasattr(sys.stdout, "buffer"):
                                   errors="replace", write_through=True)
 
 CLI       = Path(r"C:\Users\Nehoray_Cohen\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe")
-ARCHIVE   = Path(r"C:\Users\Nehoray_Cohen\Projects\Game translator\Game Lab\Cyberpunk 2077\archive\pc\mod\z_hebrew_translation.archive")
+ARCHIVE   = Path(r"C:\Game Lab\Cyberpunk 2077\archive\pc\mod\z_hebrew_translation.archive")
 WORK      = Path(r"C:\Users\Nehoray_Cohen\AppData\Local\Temp\forensic_deploy")
 SRC_JSON  = Path(r"C:\Users\Nehoray_Cohen\Projects\Game translator\תרגום_משחקים\source\resources\localization_translated.json")
 

@@ -34,15 +34,16 @@ import time
 import zipfile
 from pathlib import Path
 
-REPO         = "nehorayc04/cp2077-hebrew-mods"
+REPO         = "hebrew-translation-hub/cp2077-hebrew-mods"
 ARCHIVE_NAME = "cyberpunk_hebrew_translation.zip"
 
 ROOT       = Path(__file__).resolve().parent
 
 _REPO_ROOT = ROOT.parent.parent   # games/<game>/ -> repo root
-# The mod's two archives live in the project's staging game copy (see
-# the "DEPLOY TARGET" note in CLAUDE.md — staging, NOT C:\Games).
-MOD_DIR    = _REPO_ROOT / "Cyberpunk 2077" / "archive" / "pc" / "mod"
+# The mod's archives live in the project's staging game copy — the folder the
+# bake scripts deploy to (GAME = "Game Lab/Cyberpunk 2077"; see the "DEPLOY
+# TARGET" note in CLAUDE.md — staging, NOT C:\Games).
+MOD_DIR    = _REPO_ROOT / "Game Lab" / "Cyberpunk 2077" / "archive" / "pc" / "mod"
 OUT_DIR    = ROOT / "release"
 
 # The exact payload — all three archives, nothing from mod_backups/.

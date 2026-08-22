@@ -1,4 +1,4 @@
-"""
+﻿"""
 build_hebrew_menu_label_patch.py
 ================================
 Patch builder — overrides pk=49601 (sec=UI-Settings-Language-Arabic) in
@@ -35,7 +35,7 @@ except Exception:
     pass
 
 CLI         = r"C:\Users\Nehoray_Cohen\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe"
-GAME        = r"C:\Users\Nehoray_Cohen\Projects\Game translator\Game Lab\Cyberpunk 2077"
+GAME        = r"C:\Game Lab\Cyberpunk 2077"
 CONTENT_DIR = os.path.join(GAME, r"archive\pc\content")
 
 WORK        = r"C:\tmp\menu_label_patch"

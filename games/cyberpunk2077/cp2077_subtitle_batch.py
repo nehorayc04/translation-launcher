@@ -1,4 +1,4 @@
-"""
+﻿"""
 cp2077_subtitle_batch.py
 ========================
 Batch-process all 3,083 subtitle CR2W files through the Arabic-slot pipeline:
@@ -47,7 +47,7 @@ CLI = r"C:\Users\Nehoray_Cohen\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CL
 # so every re-pack vanished into the wrong folder and the user kept seeing a
 # stale archive. lang_ar_text.archive (the extraction source) is byte-
 # identical across installs, so extracting from here is fine too.
-GAME = r"C:\Users\Nehoray_Cohen\Projects\Game translator\Game Lab\Cyberpunk 2077"
+GAME = r"C:\Game Lab\Cyberpunk 2077"
 PROJ = r"C:\Users\Nehoray_Cohen\Projects\Game translator\תרגום_משחקים"
 TRANSLATED_JSON = os.path.join(PROJ, r"source\resources\localization_translated.json")
 

@@ -1,4 +1,4 @@
-"""
+﻿"""
 rebuild_onscreens_and_pack.py
 =============================
 End-to-end rebuild of the onscreens CR2W from the current
@@ -37,10 +37,10 @@ CLI            = r"C:\Users\Nehoray_Cohen\AppData\Local\Programs\WolvenKit-CLI\W
 # repointing deploy at C:\Games meant the user (who plays the staging copy)
 # kept loading a stale archive and never saw updates. Deploy here.
 # lang_ar_text.archive (extraction source) is byte-identical across installs.
-GAME           = r"C:\Users\Nehoray_Cohen\Projects\Game translator\Game Lab\Cyberpunk 2077"
+GAME           = r"C:\Game Lab\Cyberpunk 2077"
 SCRIPTS_DIR    = r"C:\Users\Nehoray_Cohen\Projects\Game translator"
 PROJECT        = os.path.join(SCRIPTS_DIR, "תרגום_משחקים")
-APPLY_SCRIPT   = os.path.join(SCRIPTS_DIR, "cp2077_apply_translations_to_wkit_json.py")
+APPLY_SCRIPT   = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cp2077_apply_translations_to_wkit_json.py")
 LANG_AR_ARCH   = os.path.join(GAME, r"archive\pc\content\lang_ar_text.archive")
 
 WORK           = r"C:\Users\Nehoray_Cohen\AppData\Local\Temp\onscreens_rebuild"

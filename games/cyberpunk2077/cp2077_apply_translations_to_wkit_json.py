@@ -87,6 +87,14 @@ def main():
         if new_mv and new_mv != entry.get("maleVariant", ""):
             entry["maleVariant"] = new_mv
             mv_updated += 1
+        elif new_fv and not new_mv and (entry.get("maleVariant") or "").strip():
+            # CRITICAL (2026-06-11): our spine usually fills only femaleVariant.
+            # The Arabic skeleton carries a non-empty ARABIC maleVariant for
+            # ~7,400 entries; a male-V player resolves maleVariant, and our
+            # Heebo fonts have no Arabic glyphs -> the line renders BLANK
+            # (only ASCII parens/dots show). Backfill Hebrew into maleVariant.
+            entry["maleVariant"] = new_fv
+            mv_updated += 1
         if (new_fv == entry.get("femaleVariant", "")) and (new_mv == entry.get("maleVariant", "")):
             unchanged += 1
 

@@ -1,6 +1,6 @@
-"""Peek inside a real SM2 mod to learn the file structure."""
+﻿"""Peek inside a real SM2 mod to learn the file structure."""
 import zipfile, os
-p = r"C:\Users\Nehoray_Cohen\Projects\Game translator\Game Lab\Marvel's Spider-Man 2\Mods Library\Spider-Gore.modular"
+p = r"C:\Game Lab\Marvel's Spider-Man 2\Mods Library\Spider-Gore.modular"
 print("[*] path exists:", os.path.exists(p), "size:", os.path.getsize(p))
 try:
     z = zipfile.ZipFile(p)

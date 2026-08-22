@@ -1,4 +1,4 @@
-"""
+﻿"""
 merge_static_archives.py
 ========================
 Merges the two STATIC Hebrew mods into a single archive:
@@ -39,7 +39,7 @@ except Exception:
     pass
 
 CLI       = r"C:\Users\Nehoray_Cohen\AppData\Local\Programs\WolvenKit-CLI\WolvenKit.CLI.exe"
-GAME      = r"C:\Users\Nehoray_Cohen\Projects\Game translator\Game Lab\Cyberpunk 2077"
+GAME      = r"C:\Game Lab\Cyberpunk 2077"
 MOD_DIR   = os.path.join(GAME, r"archive\pc\mod")
 BACKUP_ROOT = os.path.join(GAME, r"archive\pc\mod_backups")
 

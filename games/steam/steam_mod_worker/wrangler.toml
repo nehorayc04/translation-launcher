@@ -4,3 +4,15 @@
 name = "steam-hebrew-mods"
 main = "src/index.js"
 compatibility_date = "2026-05-20"
+
+# The community /translate POOL lives on TURSO (libSQL/SQLite, 5GB + 10M writes/mo
+# free) so it never fills the Supabase DB that AUTH lives in. The Worker's
+# /pool/query route forwards to Turso's HTTP pipeline API. Secrets set with
+# `wrangler secret put`: POOL_SECRET (the shared server-only gate), TURSO_URL,
+# TURSO_TOKEN. (No binding needed — Turso is reached over HTTPS.)
+#
+# Community-Compute queue (/cc/*, isolated cc_* tables on the SAME Turso DB —
+# SEPARATE from the site's Supabase, so it can never break AUTH). Secrets:
+#   CC_SECRET        — the app secret embedded in the volunteer devices
+#                      (enroll/claim/renew/submit/release/stats).
+#   CC_ADMIN_SECRET  — operator-only (config-set + block/unblock a device).

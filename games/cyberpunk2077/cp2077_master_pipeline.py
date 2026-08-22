@@ -1,4 +1,4 @@
-"""
+﻿"""
 cp2077_master_pipeline.py
 =========================
 Unattended overnight pipeline — chains everything needed for full Hebrew coverage:
@@ -126,7 +126,7 @@ def main():
     log("=" * 70)
     log("")
     log("To verify deployment:")
-    log("  ls -la 'C:/Users/Nehoray_Cohen/Projects/Game translator/Game Lab/Cyberpunk 2077/archive/pc/mod/'")
+    log("  ls -la 'C:/Game Lab/Cyberpunk 2077/archive/pc/mod/'")
     log("  Look for z_hebrew_translation.archive (should be ~7-15 MB now with subtitles)")
 
 
